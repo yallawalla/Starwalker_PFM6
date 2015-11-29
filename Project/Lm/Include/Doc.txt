@@ -1,0 +1,25 @@
+>-l d0,d1,d2,d3,,d4,d5,d6,d7
+
+0:/t lm.ini
+
+   10                   /.. pyro
+   35,   95,   30,   40 /.. pump
+   10,   95,   30,   40 /.. fan
+13520,12524,16384,16384 /.. offset
+10500,14999,16384,32768 /.. gain
+    0,    0             /.. air, H2O
+  600,  350,    2       /.. flash
+
+
+
+- can filter za EC20sync (0x42), msg postavi sync flag v _CAN objektu
+- loceni enum za can <> konzolni dostop EC20 in IOC
+
+
+
+18.11.2015, napake pri HW V2
+
+- zamenjana rx, tx od FTD na CPU
+- na FTD je VCCIO v zraku - povezava ns 3V3OUT
+- mogoce bi pri reset pomagal pulldown na fan rpm liniji ???
+- 

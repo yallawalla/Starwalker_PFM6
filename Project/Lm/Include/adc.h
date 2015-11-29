@@ -1,0 +1,59 @@
+#ifndef					ADC_H
+#define					ADC_H
+#include				"stm32f2xx.h"
+
+typedef struct	{
+unsigned short	T2,T3,V5,V12,V24,cooler,bottle,compressor,air,Ipump;
+} _ADCDMA;
+
+#define	NUM_ADCERR	5
+typedef	struct {
+				bool	V5:1;
+				bool	V12:1;
+				bool	V24:1;
+				bool	InputPressure:1;
+				bool	Overheat:1;
+}	error;
+
+__inline 
+int			__fit(int to, const int t[], const int ft[]) {
+int			f3=(ft[3]*(t[0]-to)-ft[0]*(t[3]-to)) / (t[0]-t[3]);
+int			f2=(ft[2]*(t[0]-to)-ft[0]*(t[2]-to)) / (t[0]-t[2]);
+int			f1=(ft[1]*(t[0]-to)-ft[0]*(t[1]-to)) / (t[0]-t[1]);
+				f3=(f3*(t[1]-to) - f1*(t[3]-to)) / (t[1]-t[3]);
+				f2=(f2*(t[1]-to)-f1*(t[2]-to)) / (t[1]-t[2]);
+				return(f3*(t[2]-to)-f2*(t[3]-to)) / (t[2]-t[3]);
+}
+
+#define	_12Voff_ENABLE		GPIO_ResetBits(GPIOB,GPIO_Pin_3)
+#define	_12Voff_DISABLE		GPIO_SetBits(GPIOB,GPIO_Pin_3)
+#define	_SYS_SHG_ENABLE		GPIO_SetBits(GPIOB,GPIO_Pin_4)
+#define	_SYS_SHG_DISABLE	GPIO_ResetBits(GPIOB,GPIO_Pin_4)
+
+#define	_UREF							3.3
+#define	_Rdiv(a,b)				((a)/(a+b))
+#define	_Rpar(a,b)				((a)*(b)/(a+b))
+#define	_V5								(int)(5.0/_UREF*_Rdiv(820.0,820.0)*65535.0+0.5)			
+#define	_V12							(int)(12.0/_UREF*_Rdiv(820.0,3300.0)*65535.0+0.5)			
+#define	_V24							(int)(24.0/_UREF*_Rdiv(820.0,6800.0)*65535.0+0.5)			
+
+const int Ttab[]={ 1000, 2500, 5000, 8000 };
+const	int Rtab[]={ (0xffff*_Rdiv(18813.0,5100.0)), (0xffff*_Rdiv(10000.0,5100.0)), (0xffff*_Rdiv(3894.6,5100.0)), (0xffff*_Rdiv(1462.6,5100.0))};
+
+class	_ADC {
+	private:
+		int	n,timeout;
+		_ADC();
+	public:
+		static
+		_ADC 				*Instance(void);		
+		_ADCDMA			buf,
+								adf,
+								offset,
+								gain;
+		error				error;
+		void				Status(void);
+		int					Th2o;
+};
+
+#endif
