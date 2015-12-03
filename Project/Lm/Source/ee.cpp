@@ -74,16 +74,16 @@ void	_EE::ISR(_EE *p) {
 						status=_eeIDLE;
 						break;
 //______________________________________________________________
-					case tLOW0:
-						TIM2->ARR=16;
-						EE_PORT->BSRRH   =  EE_BIT;									// low
-						status=tLOW1;
-						break;
-					case tLOW1:
-						TIM2->ARR=25;
-						EE_PORT->BSRRL   =  EE_BIT;									// high
-						status=_eePROC;
-						break;
+//					case tLOW0:
+//						TIM2->ARR=16;
+//						EE_PORT->BSRRH   =  EE_BIT;									// low
+//						status=tLOW1;
+//						break;
+//					case tLOW1:
+//						TIM2->ARR=25;
+//						EE_PORT->BSRRL   =  EE_BIT;									// high
+//						status=_eePROC;
+//						break;
 //______________________________________________________________
 					default:
 						break;

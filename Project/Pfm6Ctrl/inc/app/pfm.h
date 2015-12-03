@@ -48,6 +48,7 @@
 
 #define					_mS						(1000*_uS)
 #define					_PWM_RATE_HI	(10*_uS)
+#define					_MAX_PWM_RATE	((_PWM_RATE_HI*90)/100)
 #define					_MAX_ADC_RATE	(1*_uS)
 #define					_FAN_PWM_RATE	(50*_uS)	 
 
@@ -85,11 +86,8 @@ void						_led(int, int),
 #define					_BLUE2(a)			_led(8,a)
 #define					_ORANGE2(a)		_led(9,a)             
 //________________________________________________________________________
-typedef					enum 
-{
-								_SIMMER_LOW, 
-								_SIMMER_HIGH
-} SimmerType; 
+typedef					enum 					{_SIMMER_LOW, _SIMMER_HIGH} SimmerType; 
+typedef					enum					{false=0, true} bool;
 //________________________________________________________________________
 typedef					enum
 {								_TRIGGER,
@@ -127,7 +125,24 @@ typedef					enum
 								_CHANNEL2_DISABLE,				//12
 								_CHANNEL1_SINGLE_TRIGGER,	//13
 								_CHANNEL2_SINGLE_TRIGGER	//14
-} 							_mode;
+} 							mode;
+
+
+typedef struct {
+	int		xlap:3;
+	bool _spare1;
+	bool	simulator;
+	bool	pulse_inproc;
+	bool	long_interval;
+	bool	periodic_trigger;
+	bool _spare2;
+	bool	u_loop;
+	bool	p_loop;
+	bool	channel1_disable;
+	bool	channel2_disable;
+	bool	channel1_single_trigger;
+	bool	channel2_single_trigger;
+} smode;
 
 
 #define					_EVENT(p,a)						(p->events & (1<<(a)))
@@ -268,6 +283,7 @@ char						Ereq;
 short						Pmax,			            
 								Psimm[2],							// simmer pwm, izracunan iz _PFM_simmer_set
 								LowSimm[2],						// simmer pwm freq.
+								LowSimmerMode,				// simmer pwm freq.
 								Pdelay,								// burst interval	pwm
 								Delay,								// -"- delay
 								Einterval,						// cas integracije energije
@@ -292,7 +308,7 @@ short						Status,
 								Um5,				
 								ADCRate;				
 _event					events;				
-int							mode,				
+int							mode,
 								debug;	
 struct {
 	short					delay,
@@ -500,9 +516,29 @@ __inline void dbg3(char *s, int arg1, int arg2) {
 			}
 }
 
+__inline void dbg4(char *s, int arg1, int arg2, int arg3) {
+			if(_DBG(pfm,_DBG_SYS_MSG)) {
+				_io *io=_stdio(__dbug);
+				printf(":%04d ",__time__ % 10000);
+				printf((s),(arg1),(arg2),(arg3));
+				printf("\r\n>");
+				_stdio(io);
+			}
+}
 
-#define	GET_MACRO(_1,_2,_3,NAME,...) NAME
-#define	_DEBUG_MSG(...) GET_MACRO(__VA_ARGS__, dbg3, dbg2, dbg1)(__VA_ARGS__)
+__inline void dbg5(char *s, int arg1, int arg2, int arg3, int arg4) {
+			if(_DBG(pfm,_DBG_SYS_MSG)) {
+				_io *io=_stdio(__dbug);
+				printf(":%04d ",__time__ % 10000);
+				printf((s),(arg1),(arg2),(arg3),(arg4));
+				printf("\r\n>");
+				_stdio(io);
+			}
+}
+
+
+#define	GET_MACRO(_1,_2,_3,_4,_5,NAME,...) NAME
+#define	_DEBUG_MSG(...) GET_MACRO(__VA_ARGS__, dbg5, dbg4, dbg3, dbg2, dbg1)(__VA_ARGS__)
 
 #define	_k_Er	(20.0*20.0)
 #define	_k_Nd	(28.5 * 28.5)

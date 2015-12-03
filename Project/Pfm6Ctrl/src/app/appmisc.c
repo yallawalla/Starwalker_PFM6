@@ -125,20 +125,20 @@ _TIM18DMA
 int		i,j,n;
 int		to			=p->Burst.Time;
 int		tpause	=p->Burst.Length/p->Burst.N - p->Burst.Time;								// dodatek ups....
-
 int		Uo=p->Burst.Pmax;
 int		dUo=0;																															// modif. 2,3,4... pulza, v %
+float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
 //-------wait for prev to finish ---
 			while(_MODE(p,_PULSE_INPROC))
 				Wait(2,App_Loop);
 //-------user shape part -----------																			// 3. koren iz razmerja energij, ajde :)
-			if(*(int *)ushape) {													
-				double k=(6.0/7.0)*pow(pow((7.0/6.0)*p->Burst.Pmax,3)/400000.0*p->Burst.Time*p->Burst.N/(*(int *)ushape),1.0/3.0);		
+			if(*(int *)ushape) {
+				float e2E=pow(pow(P2V*p->Burst.Pmax,3)/400000.0*p->Burst.Time*p->Burst.N/(*(int *)ushape),1.0/3.0)/P2V;
 				p->Burst.Length=0;
 				for(i=1; ushape[i].T && i < _MAX_BURST/(10*_uS)-1 && i<_MAX_USER_SHAPE; ++t,++i) {
 					t->n=2*ushape[i].T/10-1;
-					t->T1=t->T2=_K1*(ushape[i].U*k + p->Burst.Pdelay);
-					t->T3=t->T4=_K2*(ushape[i].U*k + p->Burst.Pdelay);
+					t->T1=t->T2=_K1*(e2E*ushape[i].U + p->Burst.Pdelay);
+					t->T3=t->T4=_K2*(e2E*ushape[i].U + p->Burst.Pdelay);
 					p->Burst.Length+= ushape[i].T;
 				}
 										
@@ -223,25 +223,32 @@ int		dUo=0;																															// modif. 2,3,4... pulza, v %
 						}
 //_______________________________________________________________________________________________________
 // else change parameters & continue to 1.pulse
+//
 						if(p->Burst.Ereq & _SHPMOD_QSWCH) {
 							to=qshape[i].qref;
 							Uo=p->Burst.Pmax;
-							dUo=(int)(pow(pow(Uo,3)*(double)qshape[i].q3/100.0,1.0/3.0)+0.5)-Uo;
+							dUo=pow(p->Burst.Pmax*P2V,3) - 400000000 / qshape[i].qref * qshape[i].q3;				// varianta z zmanjsevanjem za fiksno E(J);
+							if(dUo > 0)
+								dUo=pow(dUo,1.0/3.0)/P2V - Uo;
+							else
+								dUo=-Uo;
+//						dUo=(int)(pow(pow(Uo,3)*(float)qshape[i].q3/100.0,1.0/3.0))-Uo;									// varianta z zmanjsevanjem v % energije
+//						dUo=(Uo * qshape[i].q3)/100 - Uo;																								// varianta z zmanjsevanjem v % napetosti
 						} else {
 							to=qshape[i].q3;
 							Uo=(int)(pow((pow(p->Burst.Pmax,3)*p->Burst.N*qshape[i].qref - pow(qshape[i].q1,3)*qshape[i].q0)/qshape[i].qref/p->Burst.N,1.0/3.0)+0.5);
 							tpause=_minmax(Uo,260,550,20,100);
-						} 
-					}						
+						}
+					}				
 			}
 			if(p->Burst.Ereq & _SHPMOD_MAIN) {
-//-------PULSE----------------------					
-				for(j=0; j<p->Burst.N; ++j) {	
-					for(n=2*((to*_uS + _PWM_RATE_HI/2)/_PWM_RATE_HI)-1; n>0; n -= 255, ++t) {					
+//-------PULSE----------------------
+				for(j=0; j<p->Burst.N; ++j) {
+					for(n=2*((to*_uS + _PWM_RATE_HI/2)/_PWM_RATE_HI)-1; n>0; n -= 255, ++t) {
 						
 						if(j == 0) {
 							t->T1 = t->T2=_K1*(Uo+p->Burst.Pdelay);
-							t->T3 = t->T4=_K2*(Uo+p->Burst.Pdelay);
+							t->T3 = t->T4=_K2*(Uo+p->Burst.Pdelay);				
 						} else {
 							t->T1 = t->T2=_K1*(Uo+dUo+p->Burst.Pdelay);
 							t->T3 = t->T4=_K2*(Uo+dUo+p->Burst.Pdelay);							
@@ -373,15 +380,21 @@ int		r=0,flag;
 void	SetSimmerRate(PFM *p, SimmerType type) {										// #kd890304ri
 int		simmrate;
 	
-			if(type == _SIMMER_HIGH)
+			_CLEAR_MODE(pfm,_XLAP_SINGLE);
+			_CLEAR_MODE(pfm,_XLAP_DOUBLE);
+			_CLEAR_MODE(pfm,_XLAP_QUAD);
+			
+			if(type == _SIMMER_HIGH) {
 				simmrate = _PWM_RATE_HI;
-			else {
+				_SET_MODE(pfm,_XLAP_QUAD);
+			} else {
 				if(PFM_command(NULL,0) &  PFM_STAT_SIMM1)
 					simmrate=p->Burst.LowSimm[0];
 				else
 					simmrate=p->Burst.LowSimm[1];
+				_SET_MODE(pfm,pfm->Burst.LowSimmerMode);
 			}
-			_DEBUG_MSG("simmer rate %3d kHz", _mS/simmrate);
+			_DEBUG_MSG("simmer rate %3d kHz, mode %d", _mS/simmrate,pfm->mode % 0x07);
 
 			while(!(TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
 			while((TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
@@ -419,7 +432,7 @@ int		simmrate;
 				TIM_OC2PolarityConfig(TIM8, TIM_OCPolarity_Low);
 				TIM_OC4PolarityConfig(TIM8, TIM_OCPolarity_Low);
 			}
-			
+
 			if(_MODE(p,_PULSE_INPROC)) {
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
 				TIM_ITConfig(TIM1,TIM_IT_Update,ENABLE);
@@ -427,11 +440,11 @@ int		simmrate;
 			} else {
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
 				TIM_ITConfig(TIM1,TIM_IT_Update,DISABLE);
-			}			
+			}
+
 			TIM_CtrlPWMOutputs(TIM1, ENABLE);
 			TIM_CtrlPWMOutputs(TIM8, ENABLE);
 			TIM_Cmd(TIM1,ENABLE);
-
 //_____________________________________________________________	
 // 		if(!(p->Error  & _CRITICAL_ERR_MASK))
 // 			EnableIgbt();
@@ -495,4 +508,8 @@ short	__f2lin(float u, short exp) {
 }
 /**
 * @}
+*/
+/*
+>1a
++e 0
 */

@@ -342,8 +342,8 @@ int			ki=30,kp=0;
 
 // vpis v timerje
 
-				TIM8->CCR1 = TIM1->CCR1 = __max(0,__min(_PWM_RATE_HI, z1));
-				TIM8->CCR3 = TIM1->CCR3 = __max(0,__min(_PWM_RATE_HI, z2));
+				TIM8->CCR1 = TIM1->CCR1 = __max(0,__min(_MAX_PWM_RATE, z1));
+				TIM8->CCR3 = TIM1->CCR3 = __max(0,__min(_MAX_PWM_RATE, z2));
 				
 				if(_MODE(pfm,_XLAP_SINGLE)) {
 					TIM8->CCR2 = TIM1->CCR2 = TIM1->CCR1;
@@ -360,10 +360,12 @@ int			ki=30,kp=0;
 						TIM_ITConfig(TIM1, TIM_IT_Update,DISABLE);
 						_SET_EVENT(pfm,_PULSE_FINISHED);
 						_CLEAR_MODE(pfm,_PULSE_INPROC);
+						TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);
+						return;
 					}
 				}
 				
-				if(TIM1->CCR1==TIM1->ARR || TIM1->CCR3==TIM8->ARR)				// duty cycle 100% = PSRDYN error
+				if(TIM1->CCR1==_MAX_PWM_RATE || TIM1->CCR3==_MAX_PWM_RATE)				// duty cycle 100% = PSRDYN error
  					_SET_ERROR(pfm,PFM_ERR_PSRDYN);
 				
 				if(TIM18_buf[n].T3 > pfm->Burst.Pdelay && 
@@ -468,7 +470,8 @@ void		Trigger(PFM *p) {
 					ADC_DMARequestAfterLastTransferCmd(ADC1, DISABLE);				// at least ADC conv. time before ADC/DMA change 
 					ADC_DMARequestAfterLastTransferCmd(ADC2, DISABLE);
 					_SET_MODE(p,_PULSE_INPROC);
-					_DEBUG_MSG("trigger...");
+					_DEBUG_MSG("trigger at... U1,I1,U2,I2 %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I),_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I));
+//				_DEBUG_MSG("trigger...");
 					SetSimmerRate(p,_SIMMER_HIGH);
 				}
 }

@@ -51,6 +51,7 @@ RCC_AHB1PeriphClockCmd(
 					pfm->Burst.Imax=0;
 					pfm->Burst.Psimm[0]=pfm->Burst.Psimm[1]=200*_uS/1000;
 					pfm->Burst.LowSimm[0]=pfm->Burst.LowSimm[1]=50*_uS;
+					pfm->Burst.LowSimmerMode=_XLAP_QUAD;
 					pfm->Burst.Pdelay=pfm->Burst.Pmax=_PWM_RATE_HI*0.02;
 					pfm->ADCRate=_uS;
 					
@@ -80,7 +81,7 @@ int				i;
 	#### 		error, no HW defined
 #endif
 					SysTick_init();
-					_SET_MODE(pfm,_XLAP_QUAD);
+					_SET_MODE(pfm,pfm->Burst.LowSimmerMode);
 					SetSimmerRate(pfm,_SIMMER_LOW);
 					SetPwmTab(pfm);
 					Watchdog_init(300);	
@@ -500,7 +501,7 @@ int 			inproc=0;
 										p->Burst.Ereq=*q++;
 // __________________________________________________________________________________________________________
 										p->Burst.Pmax = __max(0,__min(_PWM_RATE_HI, (p->Burst.U *_PWM_RATE_HI)/_AD2HV(10*p->Burst.HVo)));
-// __________________________________________________________________________________________________________									
+// __________________________________________________________________________________________________________
 										if(p->Burst.Pmax > 0 && p->Burst.Pmax < _PWM_RATE_HI) {
 											p->Burst.Imax=__min(4095,_I2AD(p->Burst.U/10 + p->Burst.U/2));
 											SetPwmTab(p);														
@@ -509,19 +510,20 @@ int 			inproc=0;
 											_SET_ERROR(p,PFM_ERR_PSRDYN);
 										}
 										break;
+// __________________________________________________________________________________________________________
 									case _PFM_reset:
 										p->Burst.Repeat=*(short *)q++;q++;
 										p->Burst.N=*q++;
 										p->Burst.Length=*q++*1000;
 										p->Burst.E=*(short *)q;
-										p->Burst.Count=1;															// !!!
+										p->Burst.Count=1;
 // ________________________________________________________________smafu za preverjanje LW protokola ________
 										if(p->Burst.N==0)
 											p->Burst.N=1;
 										if(p->Burst.Length==0)
 											p->Burst.Length=3000;	
 										p->Burst.Erpt = 0;
-// ___________________________
+// __________________________________________________________________________________________________________
 										if(_MODE(p,_LONG_INTERVAL)) {
 											for(n=0; n<8; ++n)
 												if((_ADCRates[n]+12)*(_MAX_BURST/_uS)/15 >  p->Burst.Length)
@@ -620,10 +622,12 @@ int 			inproc=0;
 //______________________________________________________________________________________
 								case _ID_ENG2SYS: 																						// energometer message 
 								{
-									union {unsigned short w[4];} *e = (void *)q; 
-									if(_DBG(p,_DBG_MSG_ENG) && e->w[0]==0xD103) {
+									union {short w[4];} *e = (void *)q; 
+									if(_DBG(p,_DBG_MSG_ENG) && (unsigned short)e->w[0]==0xD103) {
 										_io *io=_stdio(__dbug);				
-										printf(":%04d e1=%.1lf,e2=%.1lf\r\n>",__time__ % 10000, (double)e->w[2]/10,(double)e->w[3]/10);
+										printf(":%04d e1=%.1lf,e2=%.1lf\r\n>",__time__ % 10000, 
+											(double)__max(0,e->w[2])/10,
+												(double)__max(0,e->w[3])/10);
 										_stdio(io);
 									}
 								}

@@ -474,9 +474,5 @@ nobenih sprememb, samo simmer je dvignjen na 40us !
 - sprememba konzolnega ukaza za CAN '_' na '<', vpis v CAN rx buffer"
 - dodan '>' vpis v CAN tx buffer
 
-
-
-
-
-
+q 150,200,45,9,180
 

@@ -201,7 +201,7 @@ FATFS						fs_cpu;
 					n=strscan(++c,cc,',');
 					while(n--) {
 						_CLEAR_MODE(pfm,atoi(cc[n]));	
-						if(atoi(cc[n])==7)
+						if(atoi(cc[n])==_TRIGGER_PERIODIC)
 							pfm->Burst.Count=1;
 					}
 					break;
@@ -241,7 +241,7 @@ int			DecodePlus(char *c) {
 					n=strscan(++c,cc,',');
 					while(n--) {
 						_SET_MODE(pfm,atoi(cc[n]));
-						if(atoi(cc[n])==7)
+						if(atoi(cc[n])==_TRIGGER_PERIODIC)
 							pfm->Burst.Count=-1;
 					}
 					break;
@@ -988,7 +988,6 @@ int				n;
 						pfm->Pockels.width=10*atof(cc[3]);
 						PFM_pockels(pfm);
 					}
-					
 					break;
 //______________________________________________________________________________________
 				case 'd':
@@ -1137,16 +1136,19 @@ extern int	_U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
 						_SET_MODE(pfm,_XLAP_SINGLE);
 						_CLEAR_MODE(pfm,_XLAP_DOUBLE);
 						_CLEAR_MODE(pfm,_XLAP_QUAD);
+						pfm->Burst.LowSimmerMode=_XLAP_SINGLE;
 						break;
 					case 2:
 						_SET_MODE(pfm,_XLAP_DOUBLE);
 						_CLEAR_MODE(pfm,_XLAP_SINGLE);
 						_CLEAR_MODE(pfm,_XLAP_QUAD);
+						pfm->Burst.LowSimmerMode=_XLAP_DOUBLE;
 						break;
 					case 4:
 						_SET_MODE(pfm,_XLAP_QUAD);
 						_CLEAR_MODE(pfm,_XLAP_SINGLE);
 						_CLEAR_MODE(pfm,_XLAP_DOUBLE);
+						pfm->Burst.LowSimmerMode=_XLAP_QUAD;
 						break;
 					default:
 						return _PARSE_ERR_SYNTAX;
@@ -1395,6 +1397,3 @@ fno.lfsize = sizeof lfn;
 /**
 * @}
 */
-
-
-	
