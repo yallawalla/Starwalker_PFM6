@@ -163,8 +163,7 @@ short					m=_STATUS_WORD;
 						_SET_ERROR(p,_PFM_FAN_ERR);		
 					else
 #endif
-						_CLEAR_ERROR(p,_PFM_FAN_ERR);		
-					
+						_CLEAR_ERROR(p,_PFM_FAN_ERR);
 //________processing timed trigger______________________________________________
 					if(_EVENT(p,_TRIGGER)) {																// trigger request
 						_CLEAR_EVENT(p,_TRIGGER);
@@ -178,7 +177,8 @@ short					m=_STATUS_WORD;
 //______________________________________________________________________________
 					if(trigger_count && __time__ >= trigger_time) {
 						Trigger(p);
-						--trigger_count;
+						if(!_MODE(p,_TRIGGER_PERIODIC))
+							--trigger_count;
 						trigger_time = __time__ + p->Burst.Repeat;						// rearm counters		
 					}
 //______________________________________________________________________________

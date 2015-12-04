@@ -258,7 +258,10 @@ float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
 							t->n=255;
 						else {
 							t->n=n;
-							p->Pockels.trigger=n;
+							if(p->Pockels.width)
+								p->Pockels.trigger=n;
+							else
+								p->Pockels.trigger=0;
 						}
 					}
 //-------PAUSE----------------------			

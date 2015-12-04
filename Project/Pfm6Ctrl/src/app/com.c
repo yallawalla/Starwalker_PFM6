@@ -199,11 +199,8 @@ FATFS						fs_cpu;
 //__________________________________________________ mode setup _____________
 				case 'm':
 					n=strscan(++c,cc,',');
-					while(n--) {
+					while(n--)
 						_CLEAR_MODE(pfm,atoi(cc[n]));	
-						if(atoi(cc[n])==_TRIGGER_PERIODIC)
-							pfm->Burst.Count=1;
-					}
 					break;
 //__________________________________________________ error setup _____________
 				case 'E':
@@ -239,11 +236,8 @@ int			DecodePlus(char *c) {
 //__________________________________________________ mode setup _____________
 				case 'm':
 					n=strscan(++c,cc,',');
-					while(n--) {
+					while(n--)
 						_SET_MODE(pfm,atoi(cc[n]));
-						if(atoi(cc[n])==_TRIGGER_PERIODIC)
-							pfm->Burst.Count=-1;
-					}
 					break;
 //__________________________________________________ events setup _____________
 				case 'e':
@@ -963,31 +957,31 @@ int				n;
 						if(pfm->Pockels.delay || pfm->Pockels.width)
 							printf("\r\n>q(swch)  delay,width   ... %.1fus,%.1fus",(float)pfm->Pockels.delay/10,(float)pfm->Pockels.width/10);
 					}
-
+//__________________________________
 					if(n>0)
 						pfm->Burst.Time=atoi(cc[0]);
-
+//__________________________________
 					if(n>1) { 
 						if(atof(cc[1]) >= 1.0)
 							pfm->Burst.Pmax=atof(cc[1])*_PWM_RATE_HI/(float)_AD2HV(pfm->Burst.HVo);
 						else
 							pfm->Burst.Pmax=_PWM_RATE_HI*atof(cc[1]);
 					}
-
+//__________________________________
 					if(n==3)
 						pfm->Burst.Ereq = atoi(cc[2]);
 					else if(*--c == 'P')
 						pfm->Burst.Ereq=7;
 					else
 						pfm->Burst.Ereq=1;
-					
-					SetPwmTab(pfm);
-
+//__________________________________
 					if(n==4) {																		// dodatek za vnos pockelsa 
-						pfm->Pockels.delay=10*atof(cc[2]);									// ndc673476iopj
+						pfm->Pockels.delay=10*atof(cc[2]);					// ndc673476iopj
 						pfm->Pockels.width=10*atof(cc[3]);
 						PFM_pockels(pfm);
 					}
+//__________________________________
+					SetPwmTab(pfm);
 					break;
 //______________________________________________________________________________________
 				case 'd':
@@ -1016,8 +1010,10 @@ int				n;
 						pfm->Burst.Length=atoi(cc[1]);
 					if(n>2)
 						pfm->Burst.Repeat=atoi(cc[2]);
-					if(n>3)
+					if(n>3) {
 						pfm->Burst.Count=atoi(cc[3]);
+						_CLEAR_MODE(pfm,_TRIGGER_PERIODIC);
+					}
 					else
 						pfm->Burst.Count=1;
 					SetPwmTab(pfm);
