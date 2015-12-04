@@ -109,7 +109,7 @@ int			_buffer_len	(_buffer *p) {
 //
 //	stdin prototype
 //
-int			__get (_buffer *p) {
+int			__getIO (_buffer *p) {
 int			i=0;
 				if(_buffer_pull(p,&i,1))
 					return i;
@@ -120,7 +120,7 @@ int			i=0;
 //
 //	stdout prototype
 //
-int			__put (_buffer *p, int c) {
+int			__putIO (_buffer *p, int c) {
 				return(_buffer_push(p,&c,1));
 }
 //
@@ -132,8 +132,8 @@ _io			*p=calloc(1,sizeof(_io));
 				if(p) {
 					p->rx=_buffer_init(rxl);
 					p->tx=_buffer_init(txl);
-					p->get=__get;
-					p->put=__put;
+					p->get=__getIO;
+					p->put=__putIO;
 					p->arg.io=NULL;
 					if(p->rx && p->tx)
 						return(p);

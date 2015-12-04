@@ -9,10 +9,10 @@
 //______________________________________________________________________________________
 char	*cgets(int c, int mode)
 {
-_buffer		*p=__stdin.handle.io->gets;
+_buffer		*p=__stdin.io->gets;
 			
 			if(!p)
-				p=__stdin.handle.io->gets=_buffer_init(__stdin.handle.io->rx->len);
+				p=__stdin.io->gets=_buffer_init(__stdin.io->rx->len);
 			switch(c) {
 				case EOF:		
 					break;
