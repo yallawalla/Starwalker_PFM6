@@ -52,6 +52,7 @@ RCC_AHB1PeriphClockCmd(
 					pfm->Burst.Psimm[0]=pfm->Burst.Psimm[1]=200*_uS/1000;
 					pfm->Burst.LowSimm[0]=pfm->Burst.LowSimm[1]=50*_uS;
 					pfm->Burst.LowSimmerMode=_XLAP_QUAD;
+					pfm->Burst.HighSimmerMode=_XLAP_QUAD;
 					pfm->Burst.Pdelay=pfm->Burst.Pmax=_PWM_RATE_HI*0.02;
 					pfm->ADCRate=_uS;
 					
@@ -81,7 +82,6 @@ int				i;
 	#### 		error, no HW defined
 #endif
 					SysTick_init();
-					_SET_MODE(pfm,pfm->Burst.LowSimmerMode);
 					SetSimmerRate(pfm,_SIMMER_LOW);
 					SetPwmTab(pfm);
 					Watchdog_init(300);	

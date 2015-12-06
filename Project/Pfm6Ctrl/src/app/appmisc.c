@@ -389,7 +389,7 @@ int		simmrate;
 			
 			if(type == _SIMMER_HIGH) {
 				simmrate = _PWM_RATE_HI;
-				_SET_MODE(pfm,_XLAP_QUAD);
+				_SET_MODE(pfm,pfm->Burst.HighSimmerMode);
 			} else {
 				if(PFM_command(NULL,0) &  PFM_STAT_SIMM1)
 					simmrate=p->Burst.LowSimm[0];

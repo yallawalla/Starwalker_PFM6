@@ -284,6 +284,7 @@ short						Pmax,
 								Psimm[2],							// simmer pwm, izracunan iz _PFM_simmer_set
 								LowSimm[2],						// simmer pwm freq.
 								LowSimmerMode,				// simmer pwm freq.
+								HighSimmerMode,				// simmer pwm freq.
 								Pdelay,								// burst interval	pwm
 								Delay,								// -"- delay
 								Einterval,						// cas integracije energije

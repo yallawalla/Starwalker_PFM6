@@ -1129,27 +1129,34 @@ extern int	_U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
 				case 'x':
 					switch(atoi(++c)) {
 					case 1:
-						_SET_MODE(pfm,_XLAP_SINGLE);
-						_CLEAR_MODE(pfm,_XLAP_DOUBLE);
-						_CLEAR_MODE(pfm,_XLAP_QUAD);
 						pfm->Burst.LowSimmerMode=_XLAP_SINGLE;
 						break;
 					case 2:
-						_SET_MODE(pfm,_XLAP_DOUBLE);
-						_CLEAR_MODE(pfm,_XLAP_SINGLE);
-						_CLEAR_MODE(pfm,_XLAP_QUAD);
 						pfm->Burst.LowSimmerMode=_XLAP_DOUBLE;
 						break;
 					case 4:
-						_SET_MODE(pfm,_XLAP_QUAD);
-						_CLEAR_MODE(pfm,_XLAP_SINGLE);
-						_CLEAR_MODE(pfm,_XLAP_DOUBLE);
 						pfm->Burst.LowSimmerMode=_XLAP_QUAD;
 						break;
 					default:
 						return _PARSE_ERR_SYNTAX;
 					}
 					SetSimmerRate(pfm,_SIMMER_LOW);
+					break;
+//______________________________________________________________________________________
+				case 'X':
+					switch(atoi(++c)) {
+					case 1:
+						pfm->Burst.HighSimmerMode=_XLAP_SINGLE;
+						break;
+					case 2:
+						pfm->Burst.HighSimmerMode=_XLAP_DOUBLE;
+						break;
+					case 4:
+						pfm->Burst.HighSimmerMode=_XLAP_QUAD;
+						break;
+					default:
+						return _PARSE_ERR_SYNTAX;
+					}
 					break;
 //______________________________________________________________________________________
 				case 'f':
