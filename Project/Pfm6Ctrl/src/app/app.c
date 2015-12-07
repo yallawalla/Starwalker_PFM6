@@ -548,10 +548,10 @@ int 			inproc=0;
 										Eack(NULL);
 										break;
 									case _PFM_simmer_set:
-										p->Burst.Psimm[0]=*(short *)q/50 + 7;
-										++q;++q;
-										p->Burst.Psimm[1]=*(short *)q/50 + 7;
-										SetSimmerRate(p,_SIMMER_LOW);					
+//										p->Burst.Psimm[0]=*(short *)q/50 + 7;
+//										++q;++q;
+//										p->Burst.Psimm[1]=*(short *)q/50 + 7;
+//										SetSimmerRate(p,_SIMMER_LOW);					
 										break;
 									case _PFM_RevNum_req:
 										n=*(short *)q;
