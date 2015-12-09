@@ -687,6 +687,7 @@ int				i;
 							case '.': memcpy(&tx,u.v,sizeof(tx));	break;							
 							case 'P':	tx.StdId=_ID_PFM2SYS;			break;
 							case 'E':	tx.StdId=_ID_EC2SYS;			break;
+							case 'X':	tx.StdId=*c++;						break;
 							case 'c':	i=sizeof(char);						break;
 							case 'w':	i=sizeof(short);					break;
 							case 'i':	i=sizeof(int);						break;

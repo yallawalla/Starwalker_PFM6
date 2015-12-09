@@ -464,8 +464,10 @@ int			i;
 
 //______________________________________________________________________________
 void		Trigger(PFM *p) {
-				if(_MODE(p,_PULSE_INPROC))
+				if(_MODE(p,_PULSE_INPROC)) {
 					_DEBUG_MSG("trigger aborted...");
+					_SET_EVENT(pfm,_TRIGGER);
+				}
 				else {
 					ADC_DMARequestAfterLastTransferCmd(ADC1, DISABLE);				// at least ADC conv. time before ADC/DMA change 
 					ADC_DMARequestAfterLastTransferCmd(ADC2, DISABLE);
