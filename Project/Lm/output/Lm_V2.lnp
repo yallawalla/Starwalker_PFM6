@@ -1,0 +1,20 @@
+--cpu Cortex-M3
+".\output\lm.o"
+".\output\pyro.o"
+".\output\pump.o"
+".\output\fan.o"
+".\output\spray.o"
+".\output\ec20.o"
+".\output\ee.o"
+".\output\adc.o"
+".\output\tim.o"
+".\output\can.o"
+".\output\dac.o"
+".\output\isr.o"
+".\output\gpio.o"
+"..\lib\MDK-ARM\output\libPfm.lib"
+"..\..\Libraries\DSP-Lib\CMSIS\Lib\ARM\arm_cortexM3l_math.lib"
+--library_type=microlib --strict --scatter ".\output\Lm_V2.sct"
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list ".\list\Lm_V2.map" -o .\output\Lm_V2.axf

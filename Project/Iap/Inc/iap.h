@@ -9,31 +9,31 @@
 	#define			__FILTER_BASE__		14
 #endif
 
-#define			_PAGE_SIZE			FLASH_Sector_1
-#define			_SIGN_PAGE			FLASH_Sector_1
-#define			_FLASH_TOP			0x08008000
-#define			_BOOT_TOP				0x08000000
-#define			_BOOT_SECTOR		FLASH_Sector_0
-#define			_IAP_STRING_LEN	128
-
-#define			ERASE_SIZE		0x20000
-#define			ERASE_COUNT		6
-
-#define			STORAGE_TOP		0x8040000
-/*-----------------------------------------------------------------------*/
-
-#elif defined (__PVC__)
-#include		"stm32f10x.h"
-
-#define			__CAN__						CAN1
-#define			__FILTER_BASE__		0
-
-#define			_PAGE_SIZE			0x800
-#define			_SIGN_PAGE			(_FLASH_TOP-_PAGE_SIZE)
-#define			_FLASH_TOP			0x08004000
-#define			_BOOT_TOP				0x08000000
-#define			_BOOT_SECTOR		_BOOT_TOP
-#define			_IAP_STRING_LEN	128
+#define			_PAGE_SIZE					FLASH_Sector_1
+#define			_SIGN_PAGE					FLASH_Sector_1
+#define			_FLASH_TOP					0x08008000
+#define			_BOOT_TOP						0x08000000
+#define			_BOOT_SECTOR				FLASH_Sector_0
+#define			_IAP_STRING_LEN			128
+		                            
+#define			ERASE_SIZE					0x20000
+#define			ERASE_COUNT					6
+																
+#define			STORAGE_TOP					0x8040000
+/*---------------------------------------------*/
+		                            
+#elif defined (__PVC__)		      
+#include		"stm32f10x.h"		    
+		                            
+#define			__CAN__							CAN1
+#define			__FILTER_BASE__			0
+		                            
+#define			_PAGE_SIZE					0x800
+#define			_SIGN_PAGE					(_FLASH_TOP-_PAGE_SIZE)
+#define			_FLASH_TOP					0x08004000
+#define			_BOOT_TOP						0x08000000
+#define			_BOOT_SECTOR				_BOOT_TOP
+#define			_IAP_STRING_LEN			128
 
 #else
 *** undefined target !!!!

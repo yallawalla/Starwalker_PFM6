@@ -8,9 +8,14 @@
 #include				"adc.h"
 
 #include 				"arm_math.h"
-#if defined   (__IOC_V1__) || defined  (__IOC_V2__)
+#if defined   (__IOC_V1__)
 #define					PYRO_PORT	GPIOA
 #define					PYRO_BIT	GPIO_Pin_0
+#endif
+
+#if defined   (__IOC_V2__)
+#define					PYRO_PORT	GPIOB
+#define					PYRO_BIT	GPIO_Pin_14
 #endif
 
 #if defined   (__DISCO__)

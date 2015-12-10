@@ -129,7 +129,7 @@ void 				App_Init(void) {
 						CAN_Transmit(__CAN__,&tx);
 }
 /*******************************************************************************/
-void			__App_Loop(void)  {
+void				__App_Loop(void)  {
 
 #ifdef WITH_COM_PORT
 static int	t=0;
@@ -149,7 +149,7 @@ static int	t=0;
 						Watchdog();
 }
 /*******************************************************************************/
-void			(*App_Loop)(void)= __App_Loop;
+void				(*App_Loop)(void)= __App_Loop;
 /*******************************************************************************
 * Function Name  : FlashErase
 * Description    : Brisanje flash bloka
@@ -187,6 +187,8 @@ int					FlashProgram32(uint32_t Address, uint32_t Data) {
 int					i;	
 						if(!memcmp((const void *)Address,&Data,4))
 							return(0);
+						else if(Address < (uint32_t)_SIGN_CRC)
+							return(-1);
 						else {
 							FLASH_Unlock();
 #if defined (__PVC__)

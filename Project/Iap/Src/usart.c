@@ -7,7 +7,7 @@
 #define 		RxBufferSize		512
 #define 		TxBufferSize		512
 
-_io*					__this_io;
+_io*				__this_io;
 
 #if  defined (__PVC__)
 //______________________________________________________________________________________
@@ -20,7 +20,7 @@ int					i=0;
 }
 //______________________________________________________________________________________
 int					__put (_buffer *p, int c) {
-int						i=0;
+int					i=0;
 						USART_ITConfig(USART1, USART_IT_TXE, DISABLE);
 						if(USART_GetFlagStatus(USART1, USART_FLAG_TXE) != RESET) {
 							if(_buffer_pull(__this_io->tx,&i,1))

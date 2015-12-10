@@ -45,7 +45,6 @@
 *** error, undefined HW platform
 #endif
 //______________________________________________________
-
 #define					_mS						(1000*_uS)
 #define					_PWM_RATE_HI	(10*_uS)
 #define					_MAX_PWM_RATE	((_PWM_RATE_HI*90)/100)

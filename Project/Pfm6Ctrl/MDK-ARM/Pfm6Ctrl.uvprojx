@@ -448,6 +448,11 @@
               <FilePath>..\src\app\nvic.c</FilePath>
             </File>
             <File>
+              <FileName>timers.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\app\timers.c</FilePath>
+            </File>
+            <File>
               <FileName>can.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\app\can.c</FilePath>
@@ -456,11 +461,6 @@
               <FileName>i2c.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\app\i2c.c</FilePath>
-            </File>
-            <File>
-              <FileName>timers.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\src\app\timers.c</FilePath>
             </File>
             <File>
               <FileName>usart.c</FileName>
@@ -1471,6 +1471,11 @@
               <FilePath>..\src\app\nvic.c</FilePath>
             </File>
             <File>
+              <FileName>timers.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\app\timers.c</FilePath>
+            </File>
+            <File>
               <FileName>can.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\app\can.c</FilePath>
@@ -1479,11 +1484,6 @@
               <FileName>i2c.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\app\i2c.c</FilePath>
-            </File>
-            <File>
-              <FileName>timers.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\src\app\timers.c</FilePath>
             </File>
             <File>
               <FileName>usart.c</FileName>
