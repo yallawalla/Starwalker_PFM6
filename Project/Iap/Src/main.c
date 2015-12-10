@@ -109,7 +109,7 @@ void 				App_Init(void) {
 						SysTick_init();
 						
 #ifdef WITH_COM_PORT
-						__stdin.io=__stdout.io=Initialize_USART();
+						__stdin.handle.io=__stdout.handle.io=Initialize_USART();
 						printf(IAP_MSG);
 						Initialize_LED(leds,9);
 #endif
