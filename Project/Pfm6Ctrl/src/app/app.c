@@ -170,8 +170,10 @@ short					m=_STATUS_WORD;
 						if((p->Error & _CRITICAL_ERR_MASK) || trigger_count)	// if error, trigger mot allowed
 							trigger_count=0;																		// if trigger_time set (multiple triggers), switch it off
 						else {
-							trigger_time = __time__;														// rearm counters
 							trigger_count =  p->Burst.Count;
+							trigger_time = __time__;
+							if(trigger_count > 1)
+								++trigger_time;																		// rearm counters, rounded to next milliseconds to avoid 1ms jitter !!!
 						}
 					}
 //______________________________________________________________________________

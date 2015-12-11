@@ -889,12 +889,14 @@ int				n;
 //______________________________________________________________________________________
 				case 'b':
 					n=strscan(++c,cc,',');
-					if(!n) {
+					if(n==0) {
 						printf("\r>b(urst)  N,len,per     ... %d,%dus,%dms",pfm->Burst.N, pfm->Burst.Length,pfm->Burst.Repeat);
 						break;
 						}
-					if(n>0)
+					if(n>0 && atoi(cc[0]) > 0)
 						pfm->Burst.N=atoi(cc[0]);
+					else
+						return _PARSE_ERR_ILLEGAL;
 					if(n>1)
 						pfm->Burst.Length=atoi(cc[1]);
 					if(n>2)

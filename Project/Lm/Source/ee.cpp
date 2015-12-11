@@ -15,7 +15,7 @@
 #include	"ee.h"
 #include	"isr.h"
 #include	"limits.h"
-static		_EE*	me;
+static		_EE*	me=NULL;
 /*******************************************************************************/
 /**
 	* @brief	TIM3 IC2 ISR
@@ -23,73 +23,91 @@ static		_EE*	me;
 	* @retval : None
 	*/
 /*******************************************************************************/
-#define _tBIT			25																		// transmission bit time. us
-#define _tLOW			16																		// low timing
-#define _tHIGH		2																			// number of bits
-#define _tREAD		2																			// number of bits
-
 void	_EE::ISR(_EE *p) {
-			if(p) {																						// klic za prijavo instance
-				me=p;
+			if(p) {																						
+				me=p;																										// klic za prijavo instance
 				me->buffer=_buffer_init(3*1000*sizeof(short));
-			} else {																					// klic iz ISR, instanca in buffer morata bit ze formirana 																							
+			} else {																									// klic iz ISR, instanca in buffer morata bit ze formirana 																							
 				switch(status) {
-					case _eeIDLE:
-						break;
-//______________________________________________________________					
-					case _eeWRITE:
-						if(nbits < 16) {
-							if(_buffer_pull(buffer,&temp,1)) {
-								if(nbits++ % 2 == 0) {
-									if(temp & 0x80)
-										TIM2->ARR=_tLOW;
-									else
-										TIM2->ARR=_tHIGH;
-									temp <<=1;
-									EE_PORT->BSRRH  =  EE_BIT;						// low
-								} else {
-									TIM2->ARR = _tBIT - TIM2->ARR;
-									EE_PORT->BSRRL  =  EE_BIT;						// high
-								}
-							}
-						} else {
-								if(nbits++ % 2 == 0)
-									TIM2->ARR=_tHIGH;
-								else {
-									TIM2->ARR = _tBIT - TIM2->ARR;
-									EE_PORT->BSRRL  =  EE_BIT;						// high
-								}
-							
+					case _IDLE:
+						switch(phase)
+						{
+							case _tRD:
+							case _tMRS:
+							case _tRCV:
+								break;
 						}
 						break;
-//______________________________________________________________
-					case _eeRESET:
-						TIM2->ARR=500;
-						EE_PORT->BSRRH   =  EE_BIT;									// low
-						status=_tRRT;
+					case _READ:
+						if(nbits) {
+							switch(phase) {
+								case _tRD:
+									EE_PORT->BSRRH   =  EE_BIT;										// _
+									TIM2->ARR=_tRD-1;
+									phase=_tMRS;
+									break;
+								case _tMRS:
+									EE_PORT->BSRRL   =  EE_BIT;										// high
+									TIM2->ARR=_tMRS-1;
+									phase=_tRCV;
+									break;
+								case _tRCV:
+									temp <<= 1;
+									if(GPIO_ReadInputDataBit(EE_PORT,EE_BIT)==SET)
+										temp |= 1;
+									TIM2->ARR=_tRCV-1;
+									if(--nbits == 1)
+										_buffer_push(me->buffer,&temp,sizeof(char));
+									if(nbits == 0) {
+										phase=_tRD;
+										status=_IDLE;
+									}
+									break;
+							}
+						}						
 						break;
-					case _tRRT:
-						TIM2->ARR=10;
-						EE_PORT->BSRRL   =  EE_BIT;									// high
-						status=_eeIDLE;
+						
+					case _WRITE:
+						if(nbits) {
+							switch(phase) {
+								case _tRD:
+									EE_PORT->BSRRH   =  EE_BIT;										//	low
+									if(temp | 0x80)
+										TIM2->ARR=_tRD-1;														//	_---
+									else
+										TIM2->ARR=_tRD + _tMRS-1;										//	___-
+									phase=_tMRS;
+									break;
+								case _tMRS:
+									if(temp | 0x80)
+										TIM2->ARR=_tRCV + _tMRS-1;
+									else
+										TIM2->ARR=
+									TIM2->ARR=_tRCV-1;
+									phase=_tRCV;
+									break;
+								case _tRCV:
+									TIM2->ARR=_tRCV-1;
+									temp <<= 1;
+									phase=_tRD;
+									break;
+							}
+						}
 						break;
-//______________________________________________________________
-//					case tLOW0:
-//						TIM2->ARR=16;
-//						EE_PORT->BSRRH   =  EE_BIT;									// low
-//						status=tLOW1;
-//						break;
-//					case tLOW1:
-//						TIM2->ARR=25;
-//						EE_PORT->BSRRL   =  EE_BIT;									// high
-//						status=_eePROC;
-//						break;
-//______________________________________________________________
-					default:
+						
+					case _RESET:
+						switch(phase)
+						{
+							case _tRD:
+							case _tMRS:
+							case _tRCV:
+								break;
+						}
 						break;
 				}
 			}
-}
+		}
+
 /*******************************************************************************
 * Function Name	: 
 * Description		: 
@@ -100,7 +118,6 @@ _EE::_EE() {
       io=_stdio(NULL);
       _stdio(io);
 			nbits=temp=count=nsamples=0;
-			enabled=false;
 			ISR(this);
 	
 GPIO_InitTypeDef					

@@ -20,9 +20,9 @@
 class	_EE {
 	private:
 		_io		*io;
-		int		status,nbits, temp, count, nsamples;
-		bool	enabled;
-
+		int		nbits, temp, count, nsamples;
+		enum	{_IDLE,_READ,_WRITE,_RESET} status;
+		enum	{_tRD=2,_tMRS=6,_tRCV=4} phase;
 	public:
 		_EE();
 		~_EE();
