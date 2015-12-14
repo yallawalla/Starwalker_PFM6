@@ -14,15 +14,22 @@
 
 #if defined   (__DISCO__)
 #define					EE_PORT	GPIOA
-#define					EE_BIT	GPIO_Pin_15
+#define					EE_BIT	GPIO_Pin_13
 #endif
+
+#define	_tRD		4
+#define _tMRS		5
+#define _tRCV		6
+#define _tRESET	500
+#define _tRRT		10
+#define _tDDR		2
 
 class	_EE {
 	private:
 		_io		*io;
-		int		nbits, temp, count, nsamples;
+		int		nbits, temp, phase;
 		enum	{_IDLE,_WRITE,_RESET} status;
-		enum	{_tRD=2,_tMRS=6,_tRCV=4} phase;
+
 	public:
 		_EE();
 		~_EE();

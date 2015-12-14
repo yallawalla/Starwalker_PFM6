@@ -25,12 +25,11 @@
 #include				"dac.h"
 #include				"can.h"
 #include				"pyro.h"
-#include				"isr.h"
 
 #define					SW_version	10
 
-typedef enum		{DBG_CAN_TX, DBG_CAN_RX, DBG_ERR, DBG_INFO} 																								__DEBUG__;			// debug channels
-typedef enum		{PYRO, PLOT_OFFSET, PLOT_SCALE, PUMP, FAN, SPRAY, EC20, CTRL_A, CTRL_B, CTRL_C, CTRL_D} 		__SELECTED__;		// UI channels
+typedef enum		{DBG_CAN_TX, DBG_CAN_RX, DBG_ERR, DBG_INFO} 																											__DEBUG__;			// debug channels
+typedef enum		{PYRO, PILOT, PLOT_OFFSET, PLOT_SCALE, PUMP, FAN, SPRAY, EC20, CTRL_A, CTRL_B, CTRL_C, CTRL_D} 		__SELECTED__;		// UI channels
 
 //_____________________________________________________________________________
 class	_LM {
@@ -45,6 +44,7 @@ class	_LM {
 		int					MinusDecode(char *c);
 		int					WhatDecode(char *c);
 		int					timeout;
+		int					pilot, pilot_count;
 
 	public:
 		_LM();
@@ -68,7 +68,11 @@ class	_LM {
 		__DEBUG__			debug;
 		__SELECTED__	Selected(void)	{return item; }
 		void 					Select(__SELECTED__);
+		
 		void 					Increment(int, int);
+		void					LoadSettings(FILE *);
+		void					SaveSettings(FILE *);
+		
 		void 					Refresh(void)		{Increment(0,0);}
 		void					ChangeOffset(int);
 		void					ChangeGain(int);

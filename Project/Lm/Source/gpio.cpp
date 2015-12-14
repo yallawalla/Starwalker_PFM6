@@ -30,7 +30,11 @@ _GPIO::_GPIO() {
 			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4;
 			GPIO_Init(GPIOB, &GPIO_InitStructure);
 			GPIO_ResetBits(GPIOB,GPIO_Pin_3 | GPIO_Pin_4);
-
+#if defined(__IOC_V2__)
+			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+			GPIO_Init(GPIOD, &GPIO_InitStructure);
+			GPIO_SetBits(GPIOD,GPIO_Pin_13);
+#endif	
 			GPIO_StructInit(&GPIO_InitStructure);
 			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 			GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;

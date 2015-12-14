@@ -66,14 +66,14 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 |	GPIO_Pin_7 |GPIO_Pin_8 |	GPIO_Pin_9 ;
 			GPIO_Init(GPIOC, &GPIO_InitStructure);
 
-// TIM4, fan && pilot pwm output	
+// TIM4, fan pwm output	
 			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 			GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 			
 			GPIO_PinAFConfig(GPIOD, GPIO_PinSource12, GPIO_AF_TIM4);
-			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13;
+			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
 			GPIO_Init(GPIOD, &GPIO_InitStructure);
 
 // TIM3 pump && fan tacho
@@ -162,7 +162,6 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 			TIM_OCInitStructure.TIM_Pulse=0;
 			TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 			TIM_OC1Init(TIM4, &TIM_OCInitStructure);
-			TIM_OC2Init(TIM4, &TIM_OCInitStructure);
 // ________________________________________________________________________________
 // Startup
 			TIM_CtrlPWMOutputs(TIM1, ENABLE);

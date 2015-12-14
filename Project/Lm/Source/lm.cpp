@@ -26,21 +26,29 @@ _LM::_LM() {
       _stdio(io);
 	
 			_thread_add((void *)Poll,this,(char *)"lm",1);
-			_thread_add((void *)Display,this,(char *)"plot",1);						
+			_thread_add((void *)Display,this,(char *)"plot",1);			
+	
+			pilot=pilot_count=0;
+
 			FIL f;
 			if(f_open(&f,"0:/lm.ini",FA_READ) == FR_OK) {
+// periph. settings
 				pyro.LoadSettings((FILE *)&f);
 				pump.LoadSettings((FILE *)&f);
 				fan.LoadSettings((FILE *)&f);
 				spray.LoadSettings((FILE *)&f);
 				ec20.LoadSettings((FILE *)&f);
+// local settings
+				LoadSettings((FILE *)&f);
+// add. settings parsing
 				while(!f_eof(&f))
-				Parse((FILE *)&f);
+					Parse((FILE *)&f);
 				f_close(&f);	
 			}	else				
 				printf("\r\n setup file error...\r\n:");
 
 			printf("\r\n[F1]  - thermopile");
+			printf("\r\n[F2]  - pilot");
 			printf("\r\n[F4]  - spray on/off");
 			printf("\r\n[F5]  - pump");
 			printf("\r\n[F6]  - fan");
@@ -116,7 +124,15 @@ void	_LM::Poll(void *v) {
 //				self->lcd.Grid();
 #endif
 #endif
-
+			
+#if defined(__IOC_V2__)		
+			if(self->pilot_count < self->pilot)
+				GPIO_ResetBits(GPIOD,GPIO_Pin_13);
+			else
+				GPIO_SetBits(GPIOD,GPIO_Pin_13);
+			self->pilot_count = (self->pilot_count + 5) % 100;
+#endif
+			
 			_stdio(temp);
 }
 /*******************************************************************************
@@ -183,6 +199,11 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 						plot.Add(&plotB,2813,10, LCD_COLOR_CYAN);
 						plot.Add(&plotC,0,1, LCD_COLOR_YELLOW);
 					}
+					break;
+
+				case PILOT:
+					pilot =__min(__max(0,pilot+5*i),100);	
+					printf("\r:pilot       %3d%c",pilot,'%');
 					break;
 			
 				case CTRL_A:
@@ -530,6 +551,7 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 
 				case __F2:
 				case __f2:
+					Select(PILOT);
 					break;
 				case __F3:
 				case __f3:
@@ -577,6 +599,7 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 							fan.SaveSettings((FILE *)&f);
 							spray.SaveSettings((FILE *)&f);
 							ec20.SaveSettings((FILE *)&f);
+							SaveSettings((FILE *)&f);
 							f_sync(&f);
 							f_close(&f);							
 							printf("\r\n saved...\r\n:");
@@ -730,6 +753,26 @@ _io*	temp=_stdio(self->io);
 					self->lcd.Grid();				
 #endif
 			}
+}
+/*******************************************************************************/
+/**
+	* @brief	TIM3 IC2 ISR
+	* @param	: None
+	* @retval : None
+	*/
+void	_LM::LoadSettings(FILE *f) {
+char	c[128];
+			fgets(c,sizeof(c),f);
+			sscanf(c,"%d",&pilot);
+}
+/*******************************************************************************/
+/**
+	* @brief	TIM3 IC2 ISR
+	* @param	: None
+	* @retval : None
+	*/
+void	_LM::SaveSettings(FILE *f) {
+			fprintf(f,"%5d                   /.. pilot\r\n",pilot);
 }
 //Q1   +f 0.00229515,0.00459030,0.00229515,1.89738149,-0.90656211
 //Q05  +f 0.00219271, 0.00438542, 0.00219271, 1.81269433, -0.82146519

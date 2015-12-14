@@ -30,55 +30,56 @@ void	_EE::ISR(_EE *p) {
 			} else {																									// klic iz ISR, instanca in buffer morata bit ze formirana 																							
 				switch(status) {
 					case _IDLE:
-						switch(phase)
-						{
-							case _tRD:
-							case _tMRS:
-							case _tRCV:
-								break;
-						}
+						EE_PORT->BSRRL   =  EE_BIT;	
+						TIM_Cmd(TIM5,DISABLE);
 						break;
-
-						
+	
 					case _WRITE:
-						if(nbits) {
-							switch(phase) {
-								case _tRD:
-									EE_PORT->BSRRH   =  EE_BIT;										//	low
-									if(temp | (1<<nbits))
-										TIM5->ARR=_tRD-1;														//	_---
-									else
-										TIM5->ARR=_tRD + _tMRS-1;										//	___-
-									phase=_tMRS;
-									break;
-								case _tMRS:
-									if(temp | (1<<nbits))
-										TIM5->ARR=_tRCV + _tMRS-1;
-									else
-										TIM5->ARR=_tRCV;
-									phase=_tRCV;
-									break;
-								case _tRCV:
-									if(GPIO_ReadInputDataBit(EE_PORT,EE_BIT)==SET)
-										temp |= 1<<nbits--;
-									else
-										temp &= ~(1<<nbits--);
-									TIM5->ARR=_tRCV-1;
-									phase=_tRD;
-									break;
-							}
-						} else {
-							status=_IDLE;
-							TIM_Cmd(TIM5,DISABLE);
+						switch(phase++) {
+							case 0:	
+								EE_PORT->BSRRH   =  EE_BIT;										//	..low	
+								if(temp | (1<<--nbits))	
+									TIM5->ARR=_tRD-1;														//	_---	
+								else	
+									TIM5->ARR=_tRD + _tMRS-1;										//	___-	
+								break;	
+							case 1:	
+								EE_PORT->BSRRL   =  EE_BIT;										//	..high	
+								if(temp | (1<<nbits))	
+									TIM5->ARR=_tRCV + _tMRS-1;	
+								else	
+									TIM5->ARR=_tRCV;	
+								break;	
+							case 2:	
+								if(GPIO_ReadInputDataBit(EE_PORT,EE_BIT)==SET)	
+									temp |= 1<<nbits;	
+								else	
+									temp &= ~(1<<nbits);	
+								TIM5->ARR=_tRCV-1;	
+								phase=0;	
+								if(!nbits)
+									status=_IDLE;	
+								break;
 						}
 						break;
 						
 					case _RESET:
-						switch(phase)
-						{
-							case _tRD:
-							case _tMRS:
-							case _tRCV:
+						switch(phase++) {
+							case 0:
+								EE_PORT->BSRRH   =  EE_BIT;	
+								TIM5->ARR=_tRESET-1;
+								break;
+							case 1:
+								EE_PORT->BSRRL   =  EE_BIT;	
+								TIM5->ARR=_tRRT-1;
+								break;
+							case 2:
+								EE_PORT->BSRRH   =  EE_BIT;	
+								TIM5->ARR=_tDDR-1;
+								break;
+							case 3:
+								EE_PORT->BSRRL   =  EE_BIT;	
+								status=_IDLE;
 								break;
 						}
 						break;
@@ -92,8 +93,14 @@ void	_EE::ISR(_EE *p) {
 * Return				:
 *******************************************************************************/
 void	_EE::Exchg(char *c) {
-int		i,j,t;
-		while(sscanf(c,"%02X%01d",&i,&j)) {
+int		i,t;
+char	j;
+		if(!*c) {
+			status=_RESET;
+			TIM_Cmd(TIM5,ENABLE);
+			return;
+		}
+		while(sscanf(c,"%02X%c",&i,&j)) {
 			temp=i<<1;
 			if(j=='-')
 				temp |= 1;
@@ -126,7 +133,8 @@ int		i,j,t;
 _EE::_EE() {	
       io=_stdio(NULL);
       _stdio(io);
-			nbits=temp=count=nsamples=0;
+			status=_IDLE;
+			phase=nbits=0;
 			ISR(this);
 	
 GPIO_InitTypeDef					
@@ -134,7 +142,7 @@ GPIO_InitTypeDef
 			GPIO_StructInit(&GPIO_InitStructure);
 			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
+			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 			GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
 			GPIO_InitStructure.GPIO_Pin = EE_BIT;
 			GPIO_Init(EE_PORT, &GPIO_InitStructure);
@@ -151,6 +159,7 @@ GPIO_InitTypeDef
 			TIM_ARRPreloadConfig(TIM5,DISABLE);
 			TIM_ITConfig(TIM5,TIM_IT_Update,ENABLE);
 			NVIC_EnableIRQ(TIM5_IRQn);
+//			TIM_Cmd(TIM5,ENABLE);
 }
 /*******************************************************************************
 * Function Name	: 
@@ -162,6 +171,24 @@ _EE::~_EE() {
 			TIM_ITConfig(TIM5,TIM_IT_Update,DISABLE);
 			NVIC_DisableIRQ(TIM5_IRQn);
 			_buffer_close(buffer);
+}
+
+extern "C" {
+/*******************************************************************************/
+/**
+	* @brief	TIM5_IRQHandler, klice staticni ISR handler, indikacija je NULL pointer,
+	*					sicer pointer vsebuje parent class !!! Mora bit extern C zaradi overridanja 
+						vektorjev v startupu
+	* @param	: None
+	* @retval : None
+	*/
+/*******************************************************************************/
+void	TIM5_IRQHandler(void) {
+			if (TIM_GetITStatus(TIM5,TIM_IT_Update) != RESET) {
+				TIM_ClearITPendingBit(TIM5,TIM_IT_Update);
+				me->ISR(NULL);
+				}
+			}
 }
 /**
 * @}

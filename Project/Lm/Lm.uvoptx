@@ -169,6 +169,7 @@
       </DebugFlag>
       <LintExecutable></LintExecutable>
       <LintConfigFile></LintConfigFile>
+      <bLintAuto>0</bLintAuto>
     </TargetOption>
   </Target>
 
@@ -233,12 +234,12 @@
         <Book>
           <Number>0</Number>
           <Title>Schematics (MCBSTM32F200)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F2xx_DFP\2.2.0\MDK/Boards/Keil/MCBSTM32F200/Documentation/mcbstm32f200-schematics.pdf</Path>
+          <Path>C:\Keil\ARM\PACK\Keil\STM32F2xx_DFP\1.0.7\Documents\mcbstm32f200-schematics.pdf</Path>
         </Book>
         <Book>
           <Number>1</Number>
           <Title>User Manual (MCBSTM32F200)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F2xx_DFP\2.2.0\MDK/Boards/Keil/MCBSTM32F200/Documentation/mcbstm32f200.chm</Path>
+          <Path>C:\Keil\ARM\PACK\Keil\STM32F2xx_DFP\1.0.7\Documents\mcbstm32f200.chm</Path>
         </Book>
         <Book>
           <Number>2</Number>
@@ -268,7 +269,7 @@
         <tRSysVw>1</tRSysVw>
         <sRunDeb>0</sRunDeb>
         <sLrtime>0</sLrtime>
-        <nTsel>11</nTsel>
+        <nTsel>13</nTsel>
         <sDll></sDll>
         <sDllPa></sDllPa>
         <sDlgDll></sDlgDll>
@@ -320,6 +321,7 @@
       </DebugFlag>
       <LintExecutable></LintExecutable>
       <LintConfigFile></LintConfigFile>
+      <bLintAuto>0</bLintAuto>
     </TargetOption>
   </Target>
 
@@ -488,7 +490,7 @@
         <aLa>0</aLa>
         <aPa1>0</aPa1>
         <AscS4>0</AscS4>
-        <aSer4>1</aSer4>
+        <aSer4>0</aSer4>
         <StkLoc>0</StkLoc>
         <TrcWin>0</TrcWin>
         <newCpu>0</newCpu>
@@ -496,6 +498,7 @@
       </DebugFlag>
       <LintExecutable></LintExecutable>
       <LintConfigFile></LintConfigFile>
+      <bLintAuto>0</bLintAuto>
     </TargetOption>
   </Target>
 
