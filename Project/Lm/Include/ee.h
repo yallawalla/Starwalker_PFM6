@@ -21,14 +21,15 @@ class	_EE {
 	private:
 		_io		*io;
 		int		nbits, temp, count, nsamples;
-		enum	{_IDLE,_READ,_WRITE,_RESET} status;
+		enum	{_IDLE,_WRITE,_RESET} status;
 		enum	{_tRD=2,_tMRS=6,_tRCV=4} phase;
 	public:
 		_EE();
 		~_EE();
 		_buffer	*buffer;
 		void		ISR(_EE *);
+		void		Exchg(char *);
+	
 };
 
-typedef enum {_eeIDLE,_eeREAD,_eeWRITE,_eeRESET,_tRRT,tLOW0,tLOW1} _eestat;
 #endif

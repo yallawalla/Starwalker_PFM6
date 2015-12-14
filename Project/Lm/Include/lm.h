@@ -19,6 +19,7 @@
 #include				"pump.h"
 #include				"fan.h"
 #include				"ec20.h"
+#include				"ee.h"
 #include				"adc.h"
 #include				"tim.h"
 #include				"dac.h"
@@ -58,6 +59,7 @@ class	_LM {
 		_PUMP				pump;
 		_FAN				fan;
 		_EC20				ec20;
+		_EE					ee;
 
 #ifdef	__DISCO__
 	_LCD				lcd;

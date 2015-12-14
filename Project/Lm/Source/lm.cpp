@@ -349,6 +349,9 @@ int		_LM::Decode(char *c) {
 					case '.':
 						can.Send(++c);
 						break;
+					case ':':
+						ee.Exchg(++c);
+						break;
 					case '_':
 						can.Recv(++c);
 						break;

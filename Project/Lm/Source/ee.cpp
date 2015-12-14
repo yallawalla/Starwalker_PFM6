@@ -14,7 +14,7 @@
 
 #include	"ee.h"
 #include	"isr.h"
-#include	"limits.h"
+#include	"stdio.h"
 static		_EE*	me=NULL;
 /*******************************************************************************/
 /**
@@ -38,60 +38,38 @@ void	_EE::ISR(_EE *p) {
 								break;
 						}
 						break;
-					case _READ:
-						if(nbits) {
-							switch(phase) {
-								case _tRD:
-									EE_PORT->BSRRH   =  EE_BIT;										// _
-									TIM2->ARR=_tRD-1;
-									phase=_tMRS;
-									break;
-								case _tMRS:
-									EE_PORT->BSRRL   =  EE_BIT;										// high
-									TIM2->ARR=_tMRS-1;
-									phase=_tRCV;
-									break;
-								case _tRCV:
-									temp <<= 1;
-									if(GPIO_ReadInputDataBit(EE_PORT,EE_BIT)==SET)
-										temp |= 1;
-									TIM2->ARR=_tRCV-1;
-									if(--nbits == 1)
-										_buffer_push(me->buffer,&temp,sizeof(char));
-									if(nbits == 0) {
-										phase=_tRD;
-										status=_IDLE;
-									}
-									break;
-							}
-						}						
-						break;
+
 						
 					case _WRITE:
 						if(nbits) {
 							switch(phase) {
 								case _tRD:
 									EE_PORT->BSRRH   =  EE_BIT;										//	low
-									if(temp | 0x80)
-										TIM2->ARR=_tRD-1;														//	_---
+									if(temp | (1<<nbits))
+										TIM5->ARR=_tRD-1;														//	_---
 									else
-										TIM2->ARR=_tRD + _tMRS-1;										//	___-
+										TIM5->ARR=_tRD + _tMRS-1;										//	___-
 									phase=_tMRS;
 									break;
 								case _tMRS:
-									if(temp | 0x80)
-										TIM2->ARR=_tRCV + _tMRS-1;
+									if(temp | (1<<nbits))
+										TIM5->ARR=_tRCV + _tMRS-1;
 									else
-										TIM2->ARR=
-									TIM2->ARR=_tRCV-1;
+										TIM5->ARR=_tRCV;
 									phase=_tRCV;
 									break;
 								case _tRCV:
-									TIM2->ARR=_tRCV-1;
-									temp <<= 1;
+									if(GPIO_ReadInputDataBit(EE_PORT,EE_BIT)==SET)
+										temp |= 1<<nbits--;
+									else
+										temp &= ~(1<<nbits--);
+									TIM5->ARR=_tRCV-1;
 									phase=_tRD;
 									break;
 							}
+						} else {
+							status=_IDLE;
+							TIM_Cmd(TIM5,DISABLE);
 						}
 						break;
 						
@@ -107,7 +85,38 @@ void	_EE::ISR(_EE *p) {
 				}
 			}
 		}
-
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
+void	_EE::Exchg(char *c) {
+int		i,j,t;
+		while(sscanf(c,"%02X%01d",&i,&j)) {
+			temp=i<<1;
+			if(j=='-')
+				temp |= 1;
+			++c;++c;++c;
+			status=_WRITE;
+			phase=_tRD;
+			nbits=9;
+			t=__time__+5;
+			TIM_Cmd(TIM5,ENABLE);
+			while(status != _IDLE)
+				if(__time__ > t)
+					break;
+			if(status == _IDLE) {
+				if(temp % 2)
+					printf(" %02X-",temp>>1);
+				else
+					printf(" %02X_",temp>>1);
+			}	else {
+				printf("... error");
+				break;
+			}
+		}
+}
 /*******************************************************************************
 * Function Name	: 
 * Description		: 
@@ -132,17 +141,16 @@ GPIO_InitTypeDef
 			GPIO_SetBits(EE_PORT,EE_BIT);
 
 			TIM_TimeBaseInitTypeDef TIM;
-			RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);
+			RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5,ENABLE);
 			TIM_TimeBaseStructInit(&TIM);
 			TIM.TIM_Prescaler = (SystemCoreClock/2000000)-1;
-			TIM.TIM_Period = 1000;
+			TIM.TIM_Period = _tRD;
 			TIM.TIM_ClockDivision = 0;
 			TIM.TIM_CounterMode = TIM_CounterMode_Up;
-			TIM_TimeBaseInit(TIM2,&TIM);
-			TIM_ARRPreloadConfig(TIM2,DISABLE);
-			TIM_ITConfig(TIM2,TIM_IT_Update,ENABLE);
-			NVIC_EnableIRQ(TIM2_IRQn);
-			TIM_Cmd(TIM2,ENABLE);
+			TIM_TimeBaseInit(TIM5,&TIM);
+			TIM_ARRPreloadConfig(TIM5,DISABLE);
+			TIM_ITConfig(TIM5,TIM_IT_Update,ENABLE);
+			NVIC_EnableIRQ(TIM5_IRQn);
 }
 /*******************************************************************************
 * Function Name	: 
@@ -151,8 +159,8 @@ GPIO_InitTypeDef
 * Return				:
 *******************************************************************************/
 _EE::~_EE() {	
-			TIM_ITConfig(TIM2,TIM_IT_Update,DISABLE);
-			NVIC_DisableIRQ(TIM2_IRQn);
+			TIM_ITConfig(TIM5,TIM_IT_Update,DISABLE);
+			NVIC_DisableIRQ(TIM5_IRQn);
 			_buffer_close(buffer);
 }
 /**
