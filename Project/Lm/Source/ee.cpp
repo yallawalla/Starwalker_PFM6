@@ -33,30 +33,23 @@ void	_EE::ISR(_EE *p) {
 						EE_PORT->BSRRL   =  EE_BIT;	
 						TIM_Cmd(TIM5,DISABLE);
 						break;
-	
+
 					case _WRITE:
 						switch(phase++) {
-							case 0:	
-								EE_PORT->BSRRH   =  EE_BIT;										//	..low	
-								if(temp | (1<<--nbits))	
-									TIM5->ARR=_tRD-1;														//	_---	
-								else	
-									TIM5->ARR=_tRD + _tMRS-1;										//	___-	
-								break;	
-							case 1:	
-								EE_PORT->BSRRL   =  EE_BIT;										//	..high	
-								if(temp | (1<<nbits))	
-									TIM5->ARR=_tRCV + _tMRS-1;	
-								else	
-									TIM5->ARR=_tRCV;	
-								break;	
-							case 2:	
-								if(GPIO_ReadInputDataBit(EE_PORT,EE_BIT)==SET)	
-									temp |= 1<<nbits;	
-								else	
-									temp &= ~(1<<nbits);	
-								TIM5->ARR=_tRCV-1;	
-								phase=0;	
+							case 0:
+								TIM5->ARR=5;
+								GPIO_ResetBits(EE_PORT,EE_BIT);
+								for(int i=0; i<10; ++i);
+								if(temp & (1<<--nbits))
+									GPIO_ResetBits(EE_PORT,EE_BIT);
+								for(int i=0; i<10; ++i);
+								if(GPIO_ReadInputDataBit(EE_PORT,EE_BIT)==RESET)
+									temp &= ~(1<<nbits);								
+								break;
+							case 2:
+								TIM5->ARR=10;
+								GPIO_SetBits(EE_PORT,EE_BIT);
+								phase=0;
 								if(!nbits)
 									status=_IDLE;	
 								break;
@@ -66,19 +59,17 @@ void	_EE::ISR(_EE *p) {
 					case _RESET:
 						switch(phase++) {
 							case 0:
-								EE_PORT->BSRRH   =  EE_BIT;	
+								GPIO_ResetBits(EE_PORT,EE_BIT);
 								TIM5->ARR=_tRESET-1;
 								break;
 							case 1:
-								EE_PORT->BSRRL   =  EE_BIT;	
+								GPIO_SetBits(EE_PORT,EE_BIT);
 								TIM5->ARR=_tRRT-1;
 								break;
 							case 2:
-								EE_PORT->BSRRH   =  EE_BIT;	
-								TIM5->ARR=_tDDR-1;
-								break;
-							case 3:
-								EE_PORT->BSRRL   =  EE_BIT;	
+								GPIO_ResetBits(EE_PORT,EE_BIT);
+								for(int i=0; i<10; ++i);
+								GPIO_SetBits(EE_PORT,EE_BIT);
 								status=_IDLE;
 								break;
 						}
@@ -92,22 +83,35 @@ void	_EE::ISR(_EE *p) {
 * Output				:
 * Return				:
 *******************************************************************************/
+uint64_t		GetSerial(void) {
+
+	
+	
+	
+}
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
 void	_EE::Exchg(char *c) {
 int		i,t;
 char	j;
 		if(!*c) {
 			status=_RESET;
+			phase=0;
 			TIM_Cmd(TIM5,ENABLE);
 			return;
 		}
-		while(sscanf(c,"%02X%c",&i,&j)) {
+		while(sscanf(c,"%02X%c",&i,&j) > 0) {
 			temp=i<<1;
 			if(j=='-')
 				temp |= 1;
 			++c;++c;++c;
-			status=_WRITE;
-			phase=_tRD;
+			phase=0;
 			nbits=9;
+			status=_WRITE;
 			t=__time__+5;
 			TIM_Cmd(TIM5,ENABLE);
 			while(status != _IDLE)

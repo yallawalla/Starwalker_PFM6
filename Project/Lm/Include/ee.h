@@ -33,10 +33,9 @@ class	_EE {
 	public:
 		_EE();
 		~_EE();
-		_buffer	*buffer;
-		void		ISR(_EE *);
-		void		Exchg(char *);
-	
+		void			ISR(_EE *);
+		void			Exchg(char *);
+		uint64_t	GetSerial(void);	
 };
 
 #endif
