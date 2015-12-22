@@ -320,6 +320,14 @@ int			DecodeWhat(char *c) {
 						printf("\r\n#%d,%d",ushape[n].T,ushape[n].U);
 					break;
 //______________________________________________________________________________________
+				case 'm':
+					printf(" %08X",pfm->mode);
+					break;
+//______________________________________________________________________________________
+				case 's':
+					printf(" %08X",pfm->Status);
+					break;
+//______________________________________________________________________________________
 				case 'e':
 					for(pfm->Burst.Pmax=0; pfm->Burst.Pmax<600; ++pfm->Burst.Pmax) {
 						SetPwmTab(pfm);
@@ -1122,9 +1130,9 @@ int			u=0,umax=0,umin=0;
 					return _PARSE_ERR_NORESP;
 //______________________________________________________________________________________
 				case '!':
-				CanReply("wwwwX",0xC101,PFM_command(NULL,0),40000,pfm->Burst.Time,_ID_SYS2ENG);
+				CanReply("wwwwX",0xC101,PFM_command(NULL,0),40000,pfm->Burst.Time,_ID_SYS2ENRG);
 				Wait(100,App_Loop);
-				CanReply("X",0x1A,_ID_SYS2ENG);
+				CanReply("X",0x1A,_ID_SYS2ENRG);
 				_SET_EVENT(pfm,_TRIGGER);
 				break;
 /*

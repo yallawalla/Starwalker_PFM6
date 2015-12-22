@@ -26,9 +26,9 @@
 
 class	_EE {
 	private:
-		_io		*io;
+		_buffer *rx,*tx;
 		int		nbits, temp, phase;
-		enum	{_IDLE,_WRITE,_RESET} status;
+		enum	{_IDLE,_BUSY,_RESET} status;
 
 	public:
 		_EE();

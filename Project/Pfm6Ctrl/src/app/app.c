@@ -189,10 +189,10 @@ short					m=_STATUS_WORD;
 						SetSimmerRate(p,_SIMMER_LOW);													// reduce simmer
 						if(Eack(p)) {																					// Energ. integrator finished
 							Pref1=Pref2=0;
-							while(!_EVENT(p,_ADC_FINISHED))	{										// wait for end of ADC recording
-									Wait(2,App_Loop);
-							}
-							_CLEAR_EVENT(p,_ADC_FINISHED);
+//							while(!_EVENT(p,_ADC_FINISHED))	{										// wait for end of ADC recording
+//									Wait(2,App_Loop);
+//							}
+//							_CLEAR_EVENT(p,_ADC_FINISHED);
 							ScopeDumpBinary(NULL,0);														// scope printout, for testing(if enabled ?)
 						}
 					}
@@ -550,10 +550,10 @@ int 			inproc=0;
 										Eack(NULL);
 										break;
 									case _PFM_simmer_set:
-//										p->Burst.Psimm[0]=*(short *)q/50 + 7;
-//										++q;++q;
-//										p->Burst.Psimm[1]=*(short *)q/50 + 7;
-//										SetSimmerRate(p,_SIMMER_LOW);					
+										p->Burst.Psimm[0]=*(short *)q/50 + 7;
+										++q;++q;
+										p->Burst.Psimm[1]=*(short *)q/50 + 7;
+										SetSimmerRate(p,_SIMMER_LOW);					
 										break;
 									case _PFM_RevNum_req:
 										n=*(short *)q;
@@ -622,7 +622,7 @@ int 			inproc=0;
 								}
 								break;
 //______________________________________________________________________________________
-								case _ID_ENG2SYS: 																						// energometer message 
+								case _ID_ENRG2SYS: 																						// energometer message 
 								{
 									union {short w[4];} *e = (void *)q; 
 									if(_DBG(p,_DBG_MSG_ENG) && (unsigned short)e->w[0]==0xD103) {

@@ -32,8 +32,8 @@ _io	*__com0,*__com1,*__dbug;
 * Return         : None
 *******************************************************************************/
 #define USART1_DR_Base  USART1_BASE+4
-#define RxBufferSize		128
-#define TxBufferSize		128
+#define RxBufferSize		512
+#define TxBufferSize		512
 /* Private variables ---------------------------------------------------------*/
 USART_InitTypeDef USART_InitStructure;
 void DMA_Configuration(_io *io)

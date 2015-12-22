@@ -14,7 +14,7 @@
 //___________________________________________________________________________
 void	Wait(int t,void (*f)(void)) {
 int		to=__time__+t;
-//			_DEBUG_MSG("waiting %d ms",t);
+			_DEBUG_MSG("waiting %d ms",t);
 			while(to > __time__) {
 				if(f)
 					f();
@@ -395,10 +395,9 @@ int		simmrate;
 					simmrate=p->Burst.LowSimm[0];
 				else
 					simmrate=p->Burst.LowSimm[1];
+				
 				_SET_MODE(pfm,pfm->Burst.LowSimmerMode);
 			}
-			_DEBUG_MSG("simmer rate %3d kHz, mode %d", _mS/simmrate,pfm->mode % 0x07);
-
 			while(!(TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
 			while((TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
 	
@@ -448,6 +447,8 @@ int		simmrate;
 			TIM_CtrlPWMOutputs(TIM1, ENABLE);
 			TIM_CtrlPWMOutputs(TIM8, ENABLE);
 			TIM_Cmd(TIM1,ENABLE);
+
+			_DEBUG_MSG("simmer rate %3d kHz, mode %d", _mS/simmrate,pfm->mode & 0x07);
 //_____________________________________________________________	
 // 		if(!(p->Error  & _CRITICAL_ERR_MASK))
 // 			EnableIgbt();

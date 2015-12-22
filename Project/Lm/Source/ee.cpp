@@ -26,7 +26,8 @@ static		_EE*	me=NULL;
 void	_EE::ISR(_EE *p) {
 			if(p) {																						
 				me=p;																										// klic za prijavo instance
-				me->buffer=_buffer_init(3*1000*sizeof(short));
+				me->rx=_buffer_init(100*sizeof(short));
+				me->tx=_buffer_init(100*sizeof(short));
 			} else {																									// klic iz ISR, instanca in buffer morata bit ze formirana 																							
 				switch(status) {
 					case _IDLE:
@@ -34,19 +35,19 @@ void	_EE::ISR(_EE *p) {
 						TIM_Cmd(TIM5,DISABLE);
 						break;
 
-					case _WRITE:
+					case _BUSY:
 						switch(phase++) {
 							case 0:
 								TIM5->ARR=5;
 								GPIO_ResetBits(EE_PORT,EE_BIT);
 								for(int i=0; i<10; ++i);
 								if(temp & (1<<--nbits))
-									GPIO_ResetBits(EE_PORT,EE_BIT);
+									GPIO_SetBits(EE_PORT,EE_BIT);
 								for(int i=0; i<10; ++i);
 								if(GPIO_ReadInputDataBit(EE_PORT,EE_BIT)==RESET)
 									temp &= ~(1<<nbits);								
 								break;
-							case 2:
+							case 1:
 								TIM5->ARR=10;
 								GPIO_SetBits(EE_PORT,EE_BIT);
 								phase=0;
@@ -83,11 +84,10 @@ void	_EE::ISR(_EE *p) {
 * Output				:
 * Return				:
 *******************************************************************************/
-uint64_t		GetSerial(void) {
-
-	
-	
-	
+uint64_t		_EE::GetSerial(void) {
+			Exchg((char *)"b2-00-");
+			Exchg((char *)"b3-ff_ff_ff_ff_ff_ff_ff_ff-");
+			return 0;
 }
 /*******************************************************************************
 * Function Name	: 
@@ -111,7 +111,7 @@ char	j;
 			++c;++c;++c;
 			phase=0;
 			nbits=9;
-			status=_WRITE;
+			status=_BUSY;
 			t=__time__+5;
 			TIM_Cmd(TIM5,ENABLE);
 			while(status != _IDLE)
@@ -135,8 +135,6 @@ char	j;
 * Return				:
 *******************************************************************************/
 _EE::_EE() {	
-      io=_stdio(NULL);
-      _stdio(io);
 			status=_IDLE;
 			phase=nbits=0;
 			ISR(this);
@@ -163,7 +161,6 @@ GPIO_InitTypeDef
 			TIM_ARRPreloadConfig(TIM5,DISABLE);
 			TIM_ITConfig(TIM5,TIM_IT_Update,ENABLE);
 			NVIC_EnableIRQ(TIM5_IRQn);
-//			TIM_Cmd(TIM5,ENABLE);
 }
 /*******************************************************************************
 * Function Name	: 
@@ -174,7 +171,8 @@ GPIO_InitTypeDef
 _EE::~_EE() {	
 			TIM_ITConfig(TIM5,TIM_IT_Update,DISABLE);
 			NVIC_DisableIRQ(TIM5_IRQn);
-			_buffer_close(buffer);
+			_buffer_close(me->rx);
+			_buffer_close(me->tx);
 }
 
 extern "C" {

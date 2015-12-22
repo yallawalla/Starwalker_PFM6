@@ -365,7 +365,7 @@ int			ki=30,kp=0;
 					}
 				}
 				
-				if(TIM1->CCR1==_MAX_PWM_RATE || TIM1->CCR3==_MAX_PWM_RATE)				// duty cycle 100% = PSRDYN error
+				if(TIM1->CCR1==_MAX_PWM_RATE || TIM1->CCR3==_MAX_PWM_RATE)// duty cycle 100% = PSRDYN error
  					_SET_ERROR(pfm,PFM_ERR_PSRDYN);
 				
 				if(TIM18_buf[n].T3 > pfm->Burst.Pdelay && 

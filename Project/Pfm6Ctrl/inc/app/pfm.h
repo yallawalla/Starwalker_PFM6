@@ -92,7 +92,7 @@ typedef					enum
 {								_TRIGGER,
 								_PULSE_ENABLED,
 								_PULSE_FINISHED,
-								_ADC_FINISHED,
+//								_ADC_FINISHED,
 								_FAN_TACHO
 } 							_event;
 
@@ -258,8 +258,8 @@ int							USBH_Iap(int);
 #define					_PFM_SetHVmode				0x72
 #define 				_PFM_POCKELS					0x73
 
-#define					_ID_SYS2ENG						0x1f
-#define					_ID_ENG2SYS						0x3f
+#define					_ID_SYS2ENRG					0x1f
+#define					_ID_ENRG2SYS					0x3f
 //________________________________________________________________________
 #define					_EC_status_req				0x00
 #define					_EC_command						0x02
@@ -299,7 +299,8 @@ short						Pmax,
 //________________________________________________________________________
 typedef 				struct {
 burst						Burst;
-int							Error;						
+int							Error,						
+								debug;	
 short						Status,	
 								HV,										// Cap1+Cap2	ADC value x ADC3_AVG
 								HV2,									// Cap1			ADC value x ADC3_AVG								
@@ -307,9 +308,8 @@ short						Status,
 								Up20,				
 								Um5,				
 								ADCRate;				
-_event					events;				
-int							mode,
-								debug;	
+volatile _event	events;				
+volatile int		mode;
 struct {
 	short					delay,
 								width,
