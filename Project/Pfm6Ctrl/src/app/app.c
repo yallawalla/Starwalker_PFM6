@@ -184,17 +184,18 @@ short					m=_STATUS_WORD;
 						trigger_time = __time__ + p->Burst.Repeat;						// rearm counters		
 					}
 //______________________________________________________________________________
-					if(_EVENT(p,_PULSE_FINISHED)) {													// end of pulse
-						_CLEAR_EVENT(p,_PULSE_FINISHED);
+					if(_EVENT(p,_PULSE_FINISHED)) {	
+						_CLEAR_EVENT(p,_PULSE_FINISHED);											// end of pulse
 						SetSimmerRate(p,_SIMMER_LOW);													// reduce simmer
 						if(Eack(p)) {																					// Energ. integrator finished
 							Pref1=Pref2=0;
-//							while(!_EVENT(p,_ADC_FINISHED))	{										// wait for end of ADC recording
-//									Wait(2,App_Loop);
-//							}
-//							_CLEAR_EVENT(p,_ADC_FINISHED);
 							ScopeDumpBinary(NULL,0);														// scope printout, for testing(if enabled ?)
 						}
+					}
+//______________________________________________________________________________
+					if(_EVENT(p,_ADC_FINISHED)) {	
+						_CLEAR_EVENT(p,_ADC_FINISHED);												// end of pulse
+						_DEBUG_MSG("adc finished...");
 					}
 //					if(_E1ref || _E2ref) {
 //						_DEBUG_MSG("%d,%d\r\n",_E1ref,_E2ref);

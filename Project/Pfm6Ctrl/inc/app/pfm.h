@@ -92,7 +92,7 @@ typedef					enum
 {								_TRIGGER,
 								_PULSE_ENABLED,
 								_PULSE_FINISHED,
-//								_ADC_FINISHED,
+								_ADC_FINISHED,
 								_FAN_TACHO
 } 							_event;
 
@@ -308,7 +308,7 @@ short						Status,
 								Up20,				
 								Um5,				
 								ADCRate;				
-volatile _event	events;				
+volatile int		events;				
 volatile int		mode;
 struct {
 	short					delay,

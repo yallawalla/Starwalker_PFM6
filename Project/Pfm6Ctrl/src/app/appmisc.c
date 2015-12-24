@@ -14,12 +14,12 @@
 //___________________________________________________________________________
 void	Wait(int t,void (*f)(void)) {
 int		to=__time__+t;
-			_DEBUG_MSG("waiting %d ms",t);
+			_DEBUG_MSG("waiting %d ms ...",t);
 			while(to > __time__) {
 				if(f)
 					f();
 			}
-//			_DEBUG_MSG("... continue");
+			_DEBUG_MSG("... continue");
 }
 /*******************************************************************************
 * Function Name : ScopeDumpBinary
@@ -448,7 +448,11 @@ int		simmrate;
 			TIM_CtrlPWMOutputs(TIM8, ENABLE);
 			TIM_Cmd(TIM1,ENABLE);
 
-			_DEBUG_MSG("simmer rate %3d kHz, mode %d", _mS/simmrate,pfm->mode & 0x07);
+			if(_MODE(p,_PULSE_INPROC)) {
+				_DEBUG_MSG("trigger at... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I),_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I));	
+			} else {
+				_DEBUG_MSG("simmer %3d kHz, mode %d", _mS/simmrate,pfm->mode & 0x07);
+			}
 //_____________________________________________________________	
 // 		if(!(p->Error  & _CRITICAL_ERR_MASK))
 // 			EnableIgbt();

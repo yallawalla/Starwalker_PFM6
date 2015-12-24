@@ -1130,10 +1130,10 @@ int			u=0,umax=0,umin=0;
 					return _PARSE_ERR_NORESP;
 //______________________________________________________________________________________
 				case '!':
-				CanReply("wwwwX",0xC101,PFM_command(NULL,0),40000,pfm->Burst.Time,_ID_SYS2ENRG);
-				Wait(100,App_Loop);
-				CanReply("X",0x1A,_ID_SYS2ENRG);
-				_SET_EVENT(pfm,_TRIGGER);
+					CanReply("wwwwX",0xC101,PFM_command(NULL,0),40000,pfm->Burst.Time,_ID_SYS2ENRG);
+					Wait(100,App_Loop);
+					CanReply("X",0x1A,_ID_SYS2ENRG);
+					_SET_EVENT(pfm,_TRIGGER);
 				break;
 /*
 				

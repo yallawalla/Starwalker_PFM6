@@ -374,7 +374,7 @@ int			ki=30,kp=0;
 					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Repetitive);		// triganje na kakrsnokoli stanje nad delay x 2
 					TIM_Cmd(TIM4,ENABLE);																		// trigger !!!
 				} else
-					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);				// suigle pulse, timer se disabla po zteku
+					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);				// single pulse, timer se disabla po izteku
 }
 /*******************************************************************************/
 /**
@@ -466,14 +466,11 @@ int			i;
 void		Trigger(PFM *p) {
 				if(_MODE(p,_PULSE_INPROC)) {
 					_DEBUG_MSG("trigger aborted...");
-					_SET_EVENT(pfm,_TRIGGER);
 				}
 				else {
 					ADC_DMARequestAfterLastTransferCmd(ADC1, DISABLE);				// at least ADC conv. time before ADC/DMA change 
 					ADC_DMARequestAfterLastTransferCmd(ADC2, DISABLE);
 					_SET_MODE(p,_PULSE_INPROC);
-					_DEBUG_MSG("trigger at... U1,I1,U2,I2 %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I),_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I));
-//				_DEBUG_MSG("trigger...");
 					SetSimmerRate(p,_SIMMER_HIGH);
 				}
 }
