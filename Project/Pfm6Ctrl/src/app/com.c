@@ -22,35 +22,14 @@
 
 // override vektorjev za STM32F401-Discovery.lib
 
-//void DMA1_Stream3_IRQHandler(void) {
-//void SPIx_DMA_RX_IRQ(void);
-//		 SPIx_DMA_RX_IRQ();
+//void	DMA1_Stream3_IRQHandler(void) {
+//void	SPIx_DMA_RX_IRQ(void);
+//			SPIx_DMA_RX_IRQ();
 //}
-//void DMA1_Stream4_IRQHandler(void) {
-//void SPIx_DMA_TX_IRQ(void);
-//		 SPIx_DMA_TX_IRQ();
+//void	DMA1_Stream4_IRQHandler(void) {
+//void	SPIx_DMA_TX_IRQ(void);
+//			SPIx_DMA_TX_IRQ();
 //}
-
-//___________________________________________________________________________
-void		Cfg(_fsdrive n, char *filename) {
-int			i,j;
-FATFS		fs;
-FIL			f;
-_io*		io;
-				if(f_chdrive(n)==FR_OK)
-					if(f_mount(n,&fs)==FR_OK)
-						if(f_open(&f,filename,FA_READ)==FR_OK) {
-							while(!f_eof(&f)) {
-								io=_stdio(__com0);
-								if(f_read(&f,&i,1,(UINT *)&j)==FR_OK && j==1)
-									ungetch(i);
-								_stdio(io);
-								App_Loop();
-							}
-							f_close(&f);
-							f_mount(n,NULL);
-						}
-}
 //___________________________________________________________________________
 void		Initialize_host_msc(void);
 void		Initialize_device_msc(void);
@@ -1135,8 +1114,10 @@ int			u=0,umax=0,umin=0;
 					CanReply("X",0x1A,_ID_SYS2ENRG);
 					_SET_EVENT(pfm,_TRIGGER);
 				break;
+//______________________________________________________________________________________
+				case '@':
+					return batch(++c);
 /*
-				
 >1F01C1010058985E01
 p 100,400
 b 1,1000
@@ -1314,6 +1295,26 @@ fno.lfsize = sizeof lfn;
 						}
 						return(0);
 					}
+//___________________________________________________________________________
+void		Cfg(_fsdrive n, char *filename) {
+int			i,j;
+FATFS		fs;
+FIL			f;
+_io*		io;
+				if(f_chdrive(n)==FR_OK)
+					if(f_mount(n,&fs)==FR_OK)
+						if(f_open(&f,filename,FA_READ)==FR_OK) {
+							while(!f_eof(&f)) {
+								io=_stdio(__com0);
+								if(f_read(&f,&i,1,(UINT *)&j)==FR_OK && j==1)
+									ungetch(i);
+								_stdio(io);
+								App_Loop();
+							}
+							f_close(&f);
+							f_mount(n,NULL);
+						}
+}
 /**
 * @}
 */

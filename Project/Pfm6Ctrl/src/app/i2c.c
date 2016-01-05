@@ -18,7 +18,7 @@ _i2c			*__i2c1;
 void 			Reset_I2C(_i2c *p) {
 GPIO_InitTypeDef	GPIO_InitStructure;
 					if(p) {
-						_SET_ERROR(pfm,_PFM_I2C_ERR);
+						_SET_ERROR(pfm,PFM_I2C_ERR);
 						GPIO_StructInit(&GPIO_InitStructure);
 						GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 						GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
@@ -111,10 +111,20 @@ int				to=__time__+25;
 								return	writeI2C(p, dBuffer, length);
 						}
 						nrpt=3;
-						if(p->ntx)
-							return(0);					
+						if(p->ntx) {
+							return(0);
+						}							
 					}
-					_CLEAR_ERROR(pfm,_PFM_I2C_ERR);
+					_CLEAR_ERROR(pfm,PFM_I2C_ERR);
+					if(_DBG(pfm,_DBG_I2C_TX)) {
+						_io *io=_stdio(__dbug);
+						int i;
+						printf(":%04d",__time__ % 10000);
+						for(i=0;i<length;++i)
+							printf(" %02X",p->txbuf[i]);
+						printf("\r\n>");
+						_stdio(io);
+					}					
 					return(-1);
 }
 //______________________________________________________________________________________
@@ -145,12 +155,22 @@ int				to=__time__+25;
 						}
 						nrpt=3;
 						memcpy(dBuffer,p->rxbuf,length);
-						if(p->nrx)
+						if(p->nrx) {
 							return(0);
+						}
 					} else
 						while(length--)
 								dBuffer[length]=0;
-					_CLEAR_ERROR(pfm,_PFM_I2C_ERR);
+						_CLEAR_ERROR(pfm,PFM_I2C_ERR);
+						if(_DBG(pfm,_DBG_I2C_RX)) {
+							_io *io=_stdio(__dbug);
+							int i;
+							printf(":%04d",__time__ % 10000);
+							for(i=0;i<length;++i)
+								printf(" %02X",p->rxbuf[i]);
+							printf("\r\n>");
+							_stdio(io);
+						}
 						return(-1);
 }
 //______________________________________________________________________________________

@@ -7,7 +7,7 @@
 #include				<math.h>
 #include				"io.h"
 #include				"ff.h"
-#include				"CAN_MAP.h"
+//#include				"CAN_MAP.h"
 
 #include				"usbh_core.h"
 #include				"usbh_msc_usr.h"
@@ -47,7 +47,7 @@
 //______________________________________________________
 #define					_mS						(1000*_uS)
 #define					_PWM_RATE_HI	(10*_uS)
-#define					_MAX_PWM_RATE	((_PWM_RATE_HI*90)/100)
+#define					_MAX_PWM_RATE	((_PWM_RATE_HI*98)/100)
 #define					_MAX_ADC_RATE	(1*_uS)
 #define					_FAN_PWM_RATE	(50*_uS)	 
 
@@ -92,7 +92,7 @@ typedef					enum
 {								_TRIGGER,
 								_PULSE_ENABLED,
 								_PULSE_FINISHED,
-								_ADC_FINISHED,
+//								_ADC_FINISHED,
 								_FAN_TACHO
 } 							_event;
 
@@ -105,6 +105,8 @@ typedef					 enum
 								_DBG_CAN_RX,
 								_DBG_ERR_MSG,
 								_DBG_SYS_MSG,
+								_DBG_I2C_TX,
+								_DBG_I2C_RX,
 								_DBG_MSG_ENG=20
 } 							_debug;
 
@@ -126,28 +128,47 @@ typedef					enum
 								_CHANNEL2_SINGLE_TRIGGER	//14
 } 							mode;
 
+#define 				PFM_STAT_SIMM1						0x0001
+#define 				PFM_STAT_SIMM2						0x0002
+#define 				PFM_STAT_DSCHG						0x0004
+#define 				PFM_STAT_UBHIGH						0x0008
+#define 				PFM_STAT_PSRDY						0x0100
+			                                    
+#define 				PFM_ERR_SIMM1							0x0001
+#define 				PFM_ERR_SIMM2							0x0002
+#define 				PFM_ERR_UB  							0x0004
+#define 				PFM_ERR_LNG 							0x0008
+#define 				PFM_ERR_TEMP							0x0010
+#define 				PFM_ERR_DRVERR						0x0020
+#define 				PFM_SCRFIRED  						0x0040
+#define 				PFM_ERR_PULSEENABLE				0x0080
+#define 				PFM_ERR_PSRDYN						0x0100
+#define 				PFM_ERR_48V  							0x0200
+#define 				PFM_ERR_15V 							0x0400
+#define					PFM_ADCWDG_ERR						0x1000
+#define					PFM_FAN_ERR								0x2000
+#define					PFM_HV2_ERR								0x4000
+#define					PFM_I2C_ERR								0x8000
 
-typedef struct {
-	int		xlap:3;
-	bool _spare1;
-	bool	simulator;
-	bool	pulse_inproc;
-	bool	long_interval;
-	bool	periodic_trigger;
-	bool _spare2;
-	bool	u_loop;
-	bool	p_loop;
-	bool	channel1_disable;
-	bool	channel2_disable;
-	bool	channel1_single_trigger;
-	bool	channel2_single_trigger;
-} smode;
+#define					_EVENT(p,a)					(p->events & (1<<(a)))
+//#define					_SET_EVENT(p,a)			p->events |= (1<<(a))
+//#define					_CLEAR_EVENT(p,a)		p->events &= ~(1<<(a))
+//		
+#define					_MODE(p,a)					(p->mode & (1<<(a)))
+//#define					_SET_MODE(p,a)			p->mode |= (1<<(a))
+//#define					_CLEAR_MODE(p,a)		p->mode &= ~(1<<(a))
+
+#define					_STATUS(p,a)					(p->Status & (a))
+#define					_SET_STATUS(p,a)			(p->Status |= (a))
+#define					_CLEAR_STATUS(p,a)		(p->Status &= ~(a))
+
+#define					_SET_MODE(p,a)				(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 1
+#define					_CLEAR_MODE(p,a)			(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 0
+
+#define					_SET_EVENT(p,a)				(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a)) = 1
+#define					_CLEAR_EVENT(p,a)			(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a)) = 0
 
 
-#define					_EVENT(p,a)						(p->events & (1<<(a)))
-#define					_SET_EVENT(p,a)				 p->events |= (1<<(a))
-#define					_CLEAR_EVENT(p,a)			 p->events &= ~(1<<(a))
-		
 #define					_ERROR(p,a)						(p->Error & (a))
 
 #define					_CLEAR_ERROR(p,a)	do {																												\
@@ -172,14 +193,6 @@ _io 								*io=_stdio(__dbug);																												\
 									}																																						\
 									p->Error |= (a);																														\
 								} while(0)
-
-#define					_STATUS(p,a)					(p->Status & (a))
-#define					_SET_STATUS(p,a)			(p->Status |= (a))
-#define					_CLEAR_STATUS(p,a)		(p->Status &= ~(a))
-
-#define					_MODE(p,a)						(p->mode & (1<<(a)))
-#define					_SET_MODE(p,a)				p->mode |= (1<<(a))
-#define					_CLEAR_MODE(p,a)			p->mode &= ~(1<<(a))
 //________________________________________________________________________
 #define 				ADC3_AVG							4
 #define					_MAX_QSHAPE						8
@@ -437,12 +450,13 @@ float						__lin2f(short);
 short						__f2lin(float, short);
 				        
 extern					uint32_t	__Vectors[];
-extern					int			_PWM_RATE_LO;
+extern					int				_PWM_RATE_LO;
 extern 					int				Pref1,Pref2;
 
 void						SectorQuery(void);
 int 						Defragment(int);
-				        
+int							batch(char *);	        
+	
 #define 				_TRIGGER1			(!GPIO_ReadOutputDataBit(GPIOD,GPIO_Pin_12))				        
 #define 				_TRIGGER2			(!GPIO_ReadOutputDataBit(GPIOD,GPIO_Pin_13))			        
 #define 				_TRIGGER1_ON	do {															\
@@ -469,14 +483,9 @@ int 						Defragment(int);
 #define					_PFM_CWBAR_SENSE	(GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_14)== Bit_RESET)
 #define					_PFM_FAULT_SENSE	(GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_8) == Bit_SET)
 
-#define					_CRITICAL_ERR_MASK		(PFM_ERR_DRVERR | PFM_ERR_PULSEENABLE | _PFM_ADCWDG_ERR | PFM_ERR_PSRDYN | PFM_STAT_UBHIGH | _PFM_HV2_ERR)
-
-#define					_PFM_ADCWDG_ERR		0x1000
-#define					_PFM_FAN_ERR			0x2000
-#define					_PFM_HV2_ERR			0x4000
-#define					_PFM_I2C_ERR			0x8000
 				        
-#define					_PFM_CWBAR_STAT		PFM_ERR_PULSEENABLE
+#define					_CRITICAL_ERR_MASK		(PFM_ERR_DRVERR | PFM_ERR_PULSEENABLE | PFM_ADCWDG_ERR | PFM_ERR_PSRDYN | PFM_STAT_UBHIGH | PFM_HV2_ERR)
+#define					_PFM_CWBAR_STAT				PFM_ERR_PULSEENABLE
 				        
 enum	err_parse	{
 								_PARSE_OK=0,

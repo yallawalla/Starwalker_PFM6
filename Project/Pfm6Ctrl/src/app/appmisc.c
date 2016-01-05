@@ -514,6 +514,27 @@ float	__lin2f(short i) {
 short	__f2lin(float u, short exp) {
 		return ((((int)(u/pow(2,exp>>11)))&0x7ff)  | (exp & 0xf800));
 }
+//___________________________________________________________________________
+int	batch(char *filename) {
+FIL		f;
+FATFS	fs;
+_io		*io;
+				if(f_chdrive(0)==FR_OK && f_mount(0,&fs)==FR_OK && f_open(&f,filename,FA_READ)==FR_OK) {
+					printf("\r\n>");
+					io=_stdio(_io_init(128,128));					
+					__stdin.fil=&f;
+					do
+						App_Loop();
+							while(!f_eof(&f));
+					__stdin.fil=NULL;
+					f_close(&f);
+					f_mount(0,NULL);
+					_io_close(__stdin.io);
+					_stdio(io);
+					return _PARSE_OK;
+				} else
+					return _PARSE_ERR_OPENFILE;
+}
 /**
 * @}
 */

@@ -65,7 +65,7 @@ RCC_AHB1PeriphClockCmd(
 					__can=Initialize_CAN(0);	
 					Initialize_ADC();
 					Initialize_TIM();
-		
+
 #if  			defined (__PFM6__)
 					__charger6=Initialize_I2C(0x58,50000);
 #elif  		defined (__DISCO__)
@@ -139,13 +139,13 @@ int				t,
 						ProcessingStatus(p);																	// status & error filters process
 						ProcessingCharger(p); 																// I2C comm, Charger6 status processing
 //______________________________________________________________________________						
-						if(!(t % 100) && !_ERROR(p,_PFM_I2C_ERR))	{						// 100 ms charger6 scan, stop when i2c comms error !
+						if(!(t % 100) && !_ERROR(p,PFM_I2C_ERR))	{						// 100 ms charger6 scan, stop when i2c comms error !
 short					m=_STATUS_WORD;
 							if(readI2C(__charger6,(char *)&m,2))
 								p->Error = (p->Error & 0xffff) | ((m & 0xff)<<16);// add status word >> error status. byte 3
 						}
 						if(!(t % 3000))																				// clear i2c error every 3 secs
-							_CLEAR_ERROR(p,_PFM_I2C_ERR);	
+							_CLEAR_ERROR(p,PFM_I2C_ERR);	
 					}							
 //______________________________________________________________________________
 //					
@@ -160,10 +160,10 @@ short					m=_STATUS_WORD;
 					}
 #ifndef __DISCO__
 					if((__time__ - lastFanTachoEvent > 200) && (__time__ > 10000))
-						_SET_ERROR(p,_PFM_FAN_ERR);		
+						_SET_ERROR(p,PFM_FAN_ERR);		
 					else
 #endif
-						_CLEAR_ERROR(p,_PFM_FAN_ERR);
+						_CLEAR_ERROR(p,PFM_FAN_ERR);
 //________processing timed trigger______________________________________________
 					if(_EVENT(p,_TRIGGER)) {																// trigger request
 						_CLEAR_EVENT(p,_TRIGGER);
@@ -193,10 +193,10 @@ short					m=_STATUS_WORD;
 						}
 					}
 //______________________________________________________________________________
-					if(_EVENT(p,_ADC_FINISHED)) {	
-						_CLEAR_EVENT(p,_ADC_FINISHED);												// end of pulse
-						_DEBUG_MSG("adc finished...");
-					}
+//					if(_EVENT(p,_ADC_FINISHED)) {	
+//						_CLEAR_EVENT(p,_ADC_FINISHED);												// end of pulse
+//						_DEBUG_MSG("adc finished...");
+//					}
 //					if(_E1ref || _E2ref) {
 //						_DEBUG_MSG("%d,%d\r\n",_E1ref,_E2ref);
 //						_E1ref=_E2ref=0;
@@ -245,9 +245,9 @@ int				error_image=0,
 						_CLEAR_ERROR(p,PFM_ERR_15V);
 //-------------------------------------------------------------------------------
 					if(ADC3_buf[0].HV > 100 && abs(ADC3_buf[0].HV-ADC3_buf[0].HV2) > ADC3_buf[0].HV/5)
-						_SET_ERROR(p,_PFM_HV2_ERR);
+						_SET_ERROR(p,PFM_HV2_ERR);
 					else
-						_CLEAR_ERROR(p,_PFM_HV2_ERR);
+						_CLEAR_ERROR(p,PFM_HV2_ERR);
 //-------------------------------------------------------------------------------
 					if(_STATUS(p,PFM_STAT_SIMM1))	{
 						if(TIM_GetITStatus(TIM1, TIM_IT_Update)==RESET) { 
@@ -313,21 +313,28 @@ short	 		ton=1500,toff=1000,temg=0;
 						ADC_ITConfig(ADC3,ADC_IT_AWD,ENABLE);					
 						_GREEN2(100);
 						toff=0;
+						ton=0;
 					} else {
+						_CLEAR_STATUS(p,PFM_STAT_PSRDY);
 						if(!ton && !toff) {															// sicer timeout
 							if(p->HV > p->Burst.HVo) {										// za previsoko
 								toff=300;
 								ton=3000;
 							} else {																			// za prenizko 
-								toff=3000;
-								ton=3300;
+								toff=2700;
+								ton=3000;
 							}
 						}
-						_CLEAR_STATUS(p,PFM_STAT_PSRDY);
 					}	
 					if(ton)
 						if(!--ton) {
-							int i=_PFC_ON;
+							int i=_VOUT_MODE;
+							writeI2C(__charger6,(char *)&i,2);
+							Wait(5,App_Loop);
+							i = _VOUT+(_AD2HV(pfm->Burst.HVo)<<8);
+							writeI2C(__charger6,(char *)&i,3);
+							Wait(5,App_Loop);
+							i=_PFC_ON;
 							writeI2C(__charger6,(char *)&i,2);
 						}					
 					if(toff)
@@ -740,22 +747,20 @@ int				i,j,k;
 						
 						if(n++ == p->Burst.Erpt) {
 							int e;
-							switch(_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) {
-								case PFM_STAT_SIMM1:
-									e=e1*p->ADCRate/kmJ/_uS;
-									CanReply("cicP",_PFM_E_ack,e,0);	
-									_DEBUG_MSG("E1=%d.%dJ",e/1000,(e%1000)/100);
-									break;
-								case PFM_STAT_SIMM2:
-									e=e2*p->ADCRate/kmJ/_uS;
-									CanReply("cicP",_PFM_E_ack,e,0);					
-									_DEBUG_MSG("E2=%d.%dJ",e/1000,(e%1000)/100);
-									break;
-								case PFM_STAT_SIMM1 | PFM_STAT_SIMM2:
-									e=(e1+e2)*p->ADCRate/kmJ/_uS;
-									CanReply("cicP",_PFM_E_ack,e,0);		
-									_DEBUG_MSG("E1+E2=%d.%dJ",e/1000,(e%1000)/100);
-									break;
+							if(_STATUS(p,PFM_STAT_SIMM1) && !_STATUS(p,PFM_STAT_SIMM2)) {
+								e=e1*p->ADCRate/kmJ/_uS;
+								CanReply("cicP",_PFM_E_ack,e,0);	
+								_DEBUG_MSG("E1=%d.%dJ",e/1000,(e%1000)/100);
+							}
+							if(!_STATUS(p,PFM_STAT_SIMM1) && _STATUS(p,PFM_STAT_SIMM2)) {
+								e=e2*p->ADCRate/kmJ/_uS;
+								CanReply("cicP",_PFM_E_ack,e,0);					
+								_DEBUG_MSG("E2=%d.%dJ",e/1000,(e%1000)/100);
+							}
+							if(_STATUS(p,PFM_STAT_SIMM1) && _STATUS(p,PFM_STAT_SIMM2)) {
+								e=(e1+e2)*p->ADCRate/kmJ/_uS;
+								CanReply("cicP",_PFM_E_ack,e,0);		
+								_DEBUG_MSG("E1+E2=%d.%dJ",e/1000,(e%1000)/100);
 							}
 							e1=e2=n=0;
 							return(-1);
@@ -799,7 +804,8 @@ static		int	count=0,no=0;
 						if(no != n) {																											// simmer status changed ???
 							_TRIGGER1_OFF;																									// kill both triggers
 							_TRIGGER2_OFF;
-							_CLEAR_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2);								// clear status
+							_CLEAR_STATUS(p,PFM_STAT_SIMM1);																// clear status
+							_CLEAR_STATUS(p,PFM_STAT_SIMM2);
 							SetSimmerPw(p);																									// kill both simmers
 							no=n & (PFM_STAT_SIMM1 | PFM_STAT_SIMM2);												// mask filter command
 							Wait(100,App_Loop);																							// wait 100 msecs
