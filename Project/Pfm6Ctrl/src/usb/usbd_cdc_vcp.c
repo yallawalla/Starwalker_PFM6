@@ -125,7 +125,7 @@ int				i=0;
 static uint16_t VCP_Init(void)
 {
 					if(!__com1) {
-						__com1=_io_init(128,128);
+						__com1=_io_init(256,256);
 						__com1->put= putVCP;
 						__com1->get= getVCP;	
 					}

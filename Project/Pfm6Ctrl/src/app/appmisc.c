@@ -11,15 +11,19 @@
 /** @addtogroup PFM6_Application
 * @{
 */
-//___________________________________________________________________________
+/*******************************************************************************
+* Function Name : Wait
+* Description   :	recursive call to main loop !!!
+* Input         :
+* Output        :
+* Return        :
+*******************************************************************************/
 void	Wait(int t,void (*f)(void)) {
 int		to=__time__+t;
-			_DEBUG_MSG("waiting %d ms ...",t);
 			while(to > __time__) {
 				if(f)
 					f();
 			}
-			_DEBUG_MSG("... continue");
 }
 /*******************************************************************************
 * Function Name : ScopeDumpBinary
@@ -521,7 +525,7 @@ FATFS	fs;
 _io		*io;
 				if(f_chdrive(0)==FR_OK && f_mount(0,&fs)==FR_OK && f_open(&f,filename,FA_READ)==FR_OK) {
 					printf("\r\n>");
-					io=_stdio(_io_init(128,128));					
+					io=_stdio(_io_init(256,256));					
 					__stdin.fil=&f;
 					do
 						App_Loop();

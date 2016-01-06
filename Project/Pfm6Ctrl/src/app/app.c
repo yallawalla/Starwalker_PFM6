@@ -6,7 +6,7 @@
   * @date    30-Sept-2013
   * @brief	 Main PFM6 application functionality
   *
-  */ 
+  */
 /** @addtogroup PFM6_Application
 * @{
 */
@@ -147,7 +147,6 @@ short					m=_STATUS_WORD;
 						if(!(t % 3000))																				// clear i2c error every 3 secs
 							_CLEAR_ERROR(p,PFM_I2C_ERR);	
 					}							
-//______________________________________________________________________________
 //					
 //________end of 1ms events loop________________________________________________
 //
@@ -164,6 +163,7 @@ short					m=_STATUS_WORD;
 					else
 #endif
 						_CLEAR_ERROR(p,PFM_FAN_ERR);
+//
 //________processing timed trigger______________________________________________
 					if(_EVENT(p,_TRIGGER)) {																// trigger request
 						_CLEAR_EVENT(p,_TRIGGER);
@@ -793,6 +793,9 @@ int				PFM_status_send(PFM *p, int k) {
   * @retval : None
   *
   */
+//					p 1000,400,0,1200
+//					b 1,1200,330,3
+					
 int				PFM_command(PFM *p, int n) {
 static		int	count=0,no=0;
 					int	Uidle;

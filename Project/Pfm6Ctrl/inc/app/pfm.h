@@ -150,11 +150,11 @@ typedef					enum
 #define					PFM_HV2_ERR								0x4000
 #define					PFM_I2C_ERR								0x8000
 
-#define					_EVENT(p,a)					(p->events & (1<<(a)))
+//#define					_EVENT(p,a)					(p->events & (1<<(a)))
 //#define					_SET_EVENT(p,a)			p->events |= (1<<(a))
 //#define					_CLEAR_EVENT(p,a)		p->events &= ~(1<<(a))
-//		
-#define					_MODE(p,a)					(p->mode & (1<<(a)))
+//
+//#define					_MODE(p,a)					(p->mode & (1<<(a)))
 //#define					_SET_MODE(p,a)			p->mode |= (1<<(a))
 //#define					_CLEAR_MODE(p,a)		p->mode &= ~(1<<(a))
 
@@ -162,9 +162,11 @@ typedef					enum
 #define					_SET_STATUS(p,a)			(p->Status |= (a))
 #define					_CLEAR_STATUS(p,a)		(p->Status &= ~(a))
 
+#define					_MODE(p,a)						(bool)(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a))
 #define					_SET_MODE(p,a)				(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 1
 #define					_CLEAR_MODE(p,a)			(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 0
 
+#define					_EVENT(p,a)						(bool)(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a))
 #define					_SET_EVENT(p,a)				(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a)) = 1
 #define					_CLEAR_EVENT(p,a)			(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a)) = 0
 
