@@ -327,16 +327,21 @@ short	 		ton=1500,toff=1000,temg=0;
 						}
 					}	
 					if(ton)
-						if(!--ton) {
-							int i=_VOUT_MODE;
-							writeI2C(__charger6,(char *)&i,2);
-							Wait(5,App_Loop);
-							i = _VOUT+(_AD2HV(pfm->Burst.HVo)<<8);
-							writeI2C(__charger6,(char *)&i,3);
-							Wait(5,App_Loop);
-							i=_PFC_ON;
-							writeI2C(__charger6,(char *)&i,2);
-						}					
+						switch(--ton) {
+							int i;
+							case 10:
+								i=_VOUT_MODE;																// smafu v chargerju, TODO !!!
+								writeI2C(__charger6,(char *)&i,2);
+							break;
+							case 0:
+								i = _VOUT+(_AD2HV(pfm->Burst.HVo)<<8);
+								writeI2C(__charger6,(char *)&i,3);
+							break;
+							case 200:
+								i=_PFC_ON;
+								writeI2C(__charger6,(char *)&i,2);
+							break;
+					}				
 					if(toff)
 						if(!--toff) {
 							int i=_PFC_OFF;
