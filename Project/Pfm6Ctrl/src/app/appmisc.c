@@ -510,34 +510,73 @@ int		f1=(ft[1]*(t[0]-to)-ft[0]*(t[1]-to)) / (t[0]-t[1]);
 			f2=(f2*(t[1]-to)-f1*(t[2]-to)) / (t[1]-t[2]);
 			return(f3*(t[2]-to)-f2*(t[3]-to)) / (t[2]-t[3]);
 }
-//	ADP1047 linear to float converter_____________________________________________
+/*******************************************************************************
+* Function Name : __lin2f
+* Description   :	ADP1047 linear to float converter
+* Input         :
+* Output        :
+* Return        :
+*******************************************************************************/
 float	__lin2f(short i) {
 		return((i&0x7ff)*pow(2,i>>11));
 }
-//	ADP1047 float to linear converter_____________________________________________
+/*******************************************************************************
+* Function Name : __f2lin
+* Description   : ADP1047 float to linear converter
+* Input         :
+* Output        :
+* Return        :
+*******************************************************************************/
 short	__f2lin(float u, short exp) {
 		return ((((int)(u/pow(2,exp>>11)))&0x7ff)  | (exp & 0xf800));
 }
-//___________________________________________________________________________
+/*******************************************************************************
+* Function Name : SetChargerVoltage
+* Description   :	ADP1047 output voltage setup, using the default format
+* Input         :
+* Output        :
+* Return        :
+*******************************************************************************/
+int		SetChargerVoltage(int u) {
+struct	
+			{signed int e:3;} 
+e3;
+int		i=_VOUT_MODE;
+
+			if(readI2C(__charger6,(char *)&i,1))	{
+				e3.e=i;
+				i = _VOUT+((u<<(8-e3.e))&~0xff);
+					if(writeI2C(__charger6,(char *)&i,3))
+						return _PARSE_OK;
+			}
+			return _PARSE_ERR_NORESP;
+}
+/*******************************************************************************
+* Function Name : batch
+* Description   :	ADP1047 output voltage setup, using the default format
+* Input         :
+* Output        :
+* Return        :
+*******************************************************************************/
 int	batch(char *filename) {
 FIL		f;
 FATFS	fs;
 _io		*io;
-				if(f_chdrive(0)==FR_OK && f_mount(0,&fs)==FR_OK && f_open(&f,filename,FA_READ)==FR_OK) {
-					printf("\r\n>");
-					io=_stdio(_io_init(256,256));					
-					__stdin.fil=&f;
-					do
-						App_Loop();
-							while(!f_eof(&f));
-					__stdin.fil=NULL;
-					f_close(&f);
-					f_mount(0,NULL);
-					_io_close(__stdin.io);
-					_stdio(io);
-					return _PARSE_OK;
-				} else
-					return _PARSE_ERR_OPENFILE;
+			if(f_chdrive(0)==FR_OK && f_mount(0,&fs)==FR_OK && f_open(&f,filename,FA_READ)==FR_OK) {
+				printf("\r\n>");
+				io=_stdio(_io_init(256,256));					
+				__stdin.fil=&f;
+				do
+					App_Loop();
+						while(!f_eof(&f));
+				__stdin.fil=NULL;
+				f_close(&f);
+				f_mount(0,NULL);
+				_io_close(__stdin.io);
+				_stdio(io);
+				return _PARSE_OK;
+			} else
+				return _PARSE_ERR_OPENFILE;
 }
 /**
 * @}

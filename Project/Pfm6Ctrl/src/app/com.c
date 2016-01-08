@@ -1055,7 +1055,6 @@ extern int	_U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
 //______________________________________________________________________________________
 				case 'u':
 {
-struct	{signed int e:3;} e3;
 int			u=0,umax=0,umin=0;
 					switch(strscan(++c,cc,',')) {
 						case 0:
@@ -1081,15 +1080,7 @@ int			u=0,umax=0,umin=0;
 						
 					ADC_ITConfig(ADC3,ADC_IT_AWD,DISABLE);
 					ADC_AnalogWatchdogThresholdsConfig(ADC3,_HV2AD(umax)/ADC3_AVG,_HV2AD(umin)/ADC3_AVG);
-
-					m=_VOUT_MODE;
-					if(readI2C(__charger6,(char *)&m,1))	{
-						e3.e=m;
-						m = _VOUT+((u<<(8-e3.e))&~0xff);
-						if(writeI2C(__charger6,(char *)&m,3))
-							break;
-					}
-					return _PARSE_ERR_NORESP;
+					return SetChargerVoltage(u);
 }
 //______________________________________________________________________________________
 				case 'U':

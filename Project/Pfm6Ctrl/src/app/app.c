@@ -127,25 +127,17 @@ void			(*App_Loop)(void)= __App_Loop;													// mainloop func. pointer
   */
 void			ProcessingEvents(PFM *p) {
 //______________________________________________________________________________
-static	
-int				t,
+static int
+					ms,
 					lastFanTachoEvent=0,
 					trigger_time=0,
 					trigger_count=0;
 //________1 ms periodic events__________________________________________________
-					if(t != __time__) {
-						t = __time__;
+					if(__time__ >= ms) {
+						ms = __time__ + 1;
 						_led(-1,-1);																					// led indicator timing process
 						ProcessingStatus(p);																	// status & error filters process
 						ProcessingCharger(p); 																// I2C comm, Charger6 status processing
-//______________________________________________________________________________						
-						if(!(t % 100) && !_ERROR(p,PFM_I2C_ERR))	{						// 100 ms charger6 scan, stop when i2c comms error !
-short					m=_STATUS_WORD;
-							if(readI2C(__charger6,(char *)&m,2))
-								p->Error = (p->Error & 0xffff) | ((m & 0xff)<<16);// add status word >> error status. byte 3
-						}
-						if(!(t % 3000))																				// clear i2c error every 3 secs
-							_CLEAR_ERROR(p,PFM_I2C_ERR);	
 					}							
 //					
 //________end of 1ms events loop________________________________________________
@@ -286,24 +278,34 @@ int				error_image=0,
   *
 ______________________________________________________________________________*/
 void			ProcessingCharger(PFM *p) {
-static	
-short	 		ton=1500,toff=1000,temg=0;
+static		int	ton=1500,toff=1000,terr=0,tpoll=10000;
 //-------------------------------------------------------------------------------
+					if(__time__ >= tpoll) {
+						tpoll = __time__ + 100;
+						if(_ERROR(p,PFM_I2C_ERR))
+							_CLEAR_ERROR(p,PFM_I2C_ERR);									// clear any previous i2c error 
+						else {																					// 100 ms charger6 scan, stop when i2c comms error !
+int						i=_STATUS_WORD;
+							if(readI2C(__charger6,(char *)&i,2))					// add status word >> error status. byte 3
+								p->Error = (p->Error & 0xffff) | ((i & 0xff)<<16);
+						}
+					}
+//-------------------------------------------------------------------------------						
 					if(p->Error  & _CRITICAL_ERR_MASK) {
-						if(!temg--) {
+						if(!terr--) {
 							int i=_PFC_OFF;
 							writeI2C(__charger6,(char *)&i,2);	
 							ADC_ITConfig(ADC3,ADC_IT_AWD,DISABLE);	
-							temg=500;
+							terr=500;
 							ton=300;
 							_RED2(100);
-							if(PFM_command(NULL,0))												// ugasni simmerje, ce je error
+							if(PFM_command(NULL,0))												// on error... simmer off
 								PFM_command(p,0);
 						}
 						return;
 					}
 //-------------------------------------------------------------------------------
-					temg=0;
+					terr=0;
 					if(p->Error)
 						_RED2(100);
 //-------------------------------------------------------------------------------
@@ -313,37 +315,30 @@ short	 		ton=1500,toff=1000,temg=0;
 						ADC_ITConfig(ADC3,ADC_IT_AWD,ENABLE);					
 						_GREEN2(100);
 						toff=0;
-						ton=0;
 					} else {
 						_CLEAR_STATUS(p,PFM_STAT_PSRDY);
-						if(!ton && !toff) {															// sicer timeout
-							if(p->HV > p->Burst.HVo) {										// za previsoko
+						if(!ton && !toff) {															// skip. if contdown running
+							if(p->HV > p->Burst.HVo) {										// set countdown on output overshot...
 								toff=300;
 								ton=3000;
-							} else {																			// za prenizko 
+							} else {																			// set countdown on output too low...
 								toff=2700;
 								ton=3000;
 							}
 						}
 					}	
-					if(ton)
-						switch(--ton) {
-							int i;
-							case 10:
-								i=_VOUT_MODE;																// smafu v chargerju, TODO !!!
-								writeI2C(__charger6,(char *)&i,2);
-							break;
-							case 0:
-								i = _VOUT+(_AD2HV(pfm->Burst.HVo)<<8);
-								writeI2C(__charger6,(char *)&i,3);
-							break;
-							case 200:
-								i=_PFC_ON;
-								writeI2C(__charger6,(char *)&i,2);
-							break;
-					}				
+											
+					if(ton) {
+						if(!--ton) {																		// switch on countdown
+							int i=_PFC_ON;
+							writeI2C(__charger6,(char *)&i,2);	
+						}		
+						if(ton==10)																			// load output voltage 10 ms prior to switch-on
+							SetChargerVoltage(_AD2HV(pfm->Burst.HVo));
+					}
+						
 					if(toff)
-						if(!--toff) {
+						if(!--toff) {																		// switch off countdown
 							int i=_PFC_OFF;
 							writeI2C(__charger6,(char *)&i,2);	
 						}			

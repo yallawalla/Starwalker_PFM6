@@ -458,7 +458,8 @@ extern 					int				Pref1,Pref2;
 void						SectorQuery(void);
 int 						Defragment(int);
 int							batch(char *);	        
-	
+int							SetChargerVoltage(int);
+
 #define 				_TRIGGER1			(!GPIO_ReadOutputDataBit(GPIOD,GPIO_Pin_12))				        
 #define 				_TRIGGER2			(!GPIO_ReadOutputDataBit(GPIOD,GPIO_Pin_13))			        
 #define 				_TRIGGER1_ON	do {															\
