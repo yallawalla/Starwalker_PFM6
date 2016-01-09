@@ -129,10 +129,11 @@ void			ProcessingEvents(PFM *p) {
 //______________________________________________________________________________
 static int
 					ms,
-					lastFanTachoEvent=0,
 					trigger_time=0,
 					trigger_count=0;
+//
 //________1 ms periodic events__________________________________________________
+//
 					if(__time__ >= ms) {
 						ms = __time__ + 1;
 						_led(-1,-1);																					// led indicator timing process
@@ -140,23 +141,29 @@ static int
 						ProcessingCharger(p); 																// I2C comm, Charger6 status processing
 					}							
 //					
-//________end of 1ms events loop________________________________________________
 //
+//_______Fan tacho processing context___________________________________________
+{
+static 
+	int			LastTachoEvent=0,
+					TachoEventDivider=0;
+
 					if(_EVENT(p,_FAN_TACHO)) {															// fan timeout counter reset
-						static int n=0;
 						_CLEAR_EVENT(p,_FAN_TACHO);
-						lastFanTachoEvent = __time__;
-						if(++n % 5 == 0)
+						LastTachoEvent = __time__;
+						if(++TachoEventDivider % 5 == 0)
 							_BLUE2(20);
 					}
 #ifndef __DISCO__
-					if((__time__ - lastFanTachoEvent > 200) && (__time__ > 10000))
+					if((__time__ - LastTachoEvent > 200) && (__time__ > 10000))
 						_SET_ERROR(p,PFM_FAN_ERR);		
 					else
-#endif
 						_CLEAR_ERROR(p,PFM_FAN_ERR);
+#endif
+}
 //
 //________processing timed trigger______________________________________________
+//
 					if(_EVENT(p,_TRIGGER)) {																// trigger request
 						_CLEAR_EVENT(p,_TRIGGER);
 						if((p->Error & _CRITICAL_ERR_MASK) || trigger_count)	// if error, trigger mot allowed
@@ -204,10 +211,10 @@ static int
 ______________________________________________________________________________*/
 void			ProcessingStatus(PFM *p) {
 int 			i,j,k;
-static	
-short	 		status_image=0; 
 static
-int				error_image=0,
+	short		status_image=0; 
+static
+	int			error_image=0,
 					bounce=0;
 					
 					for(i=j=k=0; i<ADC3_AVG; ++i) {
@@ -278,8 +285,14 @@ int				error_image=0,
   *
 ______________________________________________________________________________*/
 void			ProcessingCharger(PFM *p) {
-static		int	ton=1500,toff=1000,terr=0,tpoll=10000;
+static
+	int			ton=1500,					// _PFC_ON command delay
+					toff=1000,				// _PFC_OFF command delay
+					terr=0,						// shutdown repetition timer
+					tpoll=10000;			// 10Hz pfc status polling timer
 //-------------------------------------------------------------------------------
+// status polling context
+//
 					if(__time__ >= tpoll) {
 						tpoll = __time__ + 100;
 						if(_ERROR(p,PFM_I2C_ERR))
@@ -291,30 +304,32 @@ int						i=_STATUS_WORD;
 						}
 					}
 //-------------------------------------------------------------------------------						
+//	critical PFM error handling
+//
 					if(p->Error  & _CRITICAL_ERR_MASK) {
-						if(!terr--) {
-							int i=_PFC_OFF;
+						if(!terr--) {																		// elapsed ?
+							int i=_PFC_OFF;																// PFC off
 							writeI2C(__charger6,(char *)&i,2);	
 							ADC_ITConfig(ADC3,ADC_IT_AWD,DISABLE);	
-							terr=500;
-							ton=300;
-							_RED2(100);
-							if(PFM_command(NULL,0))												// on error... simmer off
+							terr=500;																			// nest handler delay
+							ton=300;																			// recovery delay
+							_RED2(100);																		// indicator !!!
+							if(PFM_command(NULL,0))												// on error = simmer off
 								PFM_command(p,0);
 						}
 						return;
 					}
 //-------------------------------------------------------------------------------
-					terr=0;
-					if(p->Error)
+					terr=0;																						// clear pending handler
+					if(p->Error)																			// non crirical error indicator
 						_RED2(100);
 //-------------------------------------------------------------------------------
-					if(abs(p->HV - p->Burst.HVo) < _HV2AD(50.0))	{		// +/- 50V !!!
+					if(abs(p->HV - p->Burst.HVo) < _HV2AD(50.0))	{		// HV +/- 50V limits !!!
 						_SET_STATUS(p,PFM_STAT_PSRDY);
-						ADC_ClearITPendingBit(ADC3, ADC_IT_AWD);
+						ADC_ClearITPendingBit(ADC3, ADC_IT_AWD);				// enable HW voltage watchdog
 						ADC_ITConfig(ADC3,ADC_IT_AWD,ENABLE);					
-						_GREEN2(100);
-						toff=0;
+						_GREEN2(100);																		// PSREADY indicator 
+						toff=0;																					// clear any pending PFC off events
 					} else {
 						_CLEAR_STATUS(p,PFM_STAT_PSRDY);
 						if(!ton && !toff) {															// skip. if contdown running
@@ -398,7 +413,7 @@ _io				*io;
 						if(!v->arg.parse)																// first call init
 							v->arg.parse=DecodeCom;
 						io=_stdio(v);
-						if(io != v) {
+						if(io != v) {																		// recursion lock
 							i=fgetc(&__stdin);
 							switch(i) {
 								case _Eof:																	// empty usart
@@ -408,7 +423,7 @@ _io				*io;
 								case _CtrlY:																// call system reset
 									NVIC_SystemReset();
 								case _Esc:
-									_SET_EVENT(pfm,_TRIGGER);									// ... no ja!!
+									_SET_EVENT(pfm,_TRIGGER);									// console esc +-	trigger... no ja!!
 									break;
 								default:
 									p=cgets(i,EOF);
