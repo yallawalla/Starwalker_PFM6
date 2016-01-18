@@ -929,6 +929,42 @@ int				PFM_pockels(PFM *p) {
 					TIM_Cmd(TIM4, DISABLE);
 					return 0;
 }
+
+
+
+typedef	void *func(void *);
+
+typedef struct {
+	void *f;
+	void 	*arg;
+	int		t;
+	int		dt;
+} task;
+
+task list[] = {
+	{ParseCom,&__com0,0,0},
+	{ParseCom,&__com1,0,0},
+	{ParseCan,&pfm,0,0},
+	{ProcessingEvents,&pfm,0,0}
+};
+
+void	AppLoop(void) {
+static	
+	task	*p = list;
+	func	*f;
+	
+	if(p->f && __time__ >= p->t) {
+		f=(func *)p->f;
+		p->f=NULL;
+		f(p->arg);
+		p->f=f;
+		p->t = __time__ + p->dt;
+	}
+
+
+	
+
+}
 /**
 * @}
 */ 
