@@ -450,6 +450,8 @@ int							asc2hex(int);
 int							__fit(int,const int[],const int[]);
 float						__lin2f(short);
 short						__f2lin(float, short);
+
+int							_batch(char *);	        
 				        
 extern					uint32_t	__Vectors[];
 extern					int				_PWM_RATE_LO;
@@ -457,7 +459,6 @@ extern 					int				Pref1,Pref2;
 
 void						SectorQuery(void);
 int 						Defragment(int);
-int							batch(char *);	        
 int							SetChargerVoltage(int);
 
 #define 				_TRIGGER1			(!GPIO_ReadOutputDataBit(GPIOD,GPIO_Pin_12))				        
@@ -548,6 +549,7 @@ __inline void dbg5(char *s, int arg1, int arg2, int arg3, int arg4) {
 			}
 }
 
+void	taskList(void);
 
 #define	GET_MACRO(_1,_2,_3,_4,_5,NAME,...) NAME
 #define	_DEBUG_MSG(...) GET_MACRO(__VA_ARGS__, dbg5, dbg4, dbg3, dbg2, dbg1)(__VA_ARGS__)

@@ -101,8 +101,10 @@ int				i;
 					{} else
 						{}
 					RCC_ClearFlag();   
+							
+					_batch("cfg.ini");
 					_stdio(NULL);
-					Cfg(FSDRIVE_CPU, "cfg.ini");
+	//				Cfg(FSDRIVE_CPU, "cfg.ini");
 }
 /*______________________________________________________________________________
 * Function Name : App_Loop
@@ -119,7 +121,6 @@ void			__App_Loop(void) {
 					USBHost();
 					Watchdog();
 }
-void			(*App_Loop)(void)= __App_Loop;													// mainloop func. pointer
 /*______________________________________________________________________________
   * @brief	ISR events polling, main loop
   * @param	PFM object
@@ -128,20 +129,8 @@ void			(*App_Loop)(void)= __App_Loop;													// mainloop func. pointer
 void			ProcessingEvents(PFM *p) {
 //______________________________________________________________________________
 static int
-					ms,
 					trigger_time=0,
 					trigger_count=0;
-//
-//________1 ms periodic events__________________________________________________
-//
-					if(__time__ >= ms) {
-						ms = __time__ + 1;
-						_led(-1,-1);																					// led indicator timing process
-						ProcessingStatus(p);																	// status & error filters process
-						ProcessingCharger(p); 																// I2C comm, Charger6 status processing
-					}							
-//					
-//
 //_______Fan tacho processing context___________________________________________
 {
 static 
@@ -272,6 +261,7 @@ static
 						bounce=25;
 					}
 //-------------------------------------------------------------------------------
+					_led(-1,-1);
 					k=PFM_command(NULL,1);	
 					if(bounce && !--bounce) 
 						PFM_status_send(p,k);
@@ -412,29 +402,27 @@ _io				*io;
 					if(v) {
 						if(!v->arg.parse)																// first call init
 							v->arg.parse=DecodeCom;
-						io=_stdio(v);
-						if(io != v) {																		// recursion lock
-							i=fgetc(&__stdin);
-							switch(i) {
-								case _Eof:																	// empty usart
-									break;
-								case _CtrlZ:																// call watchdog reset
-									while(1);
-								case _CtrlY:																// call system reset
-									NVIC_SystemReset();
-								case _Esc:
-									_SET_EVENT(pfm,_TRIGGER);									// console esc +-	trigger... no ja!!
-									break;
-								default:
-									p=cgets(i,EOF);
-									if(p) {
-										while(*p==' ') ++p;
-										i=v->arg.parse(p);
-										if(*p && i)
-											printf("... WTF(%d)",i);							// error message
-										v->arg.parse(NULL);											// call newline
-									}
-							}
+						io=_stdio(v);																	// recursion lock
+						i=fgetc(&__stdin);
+						switch(i) {
+							case _Eof:																	// empty usart
+								break;
+							case _CtrlZ:																// call watchdog reset
+								while(1);
+							case _CtrlY:																// call system reset
+								NVIC_SystemReset();
+							case _Esc:
+								_SET_EVENT(pfm,_TRIGGER);									// console esc +-	trigger... no ja!!
+								break;
+							default:
+								p=cgets(i,EOF);
+								if(p) {
+									while(*p==' ') ++p;
+									i=v->arg.parse(p);
+									if(*p && i)
+										printf("... WTF(%d)",i);							// error message
+									v->arg.parse(NULL);											// call newline
+								}
 						}
 						_stdio(io);
 					}
@@ -454,8 +442,7 @@ union			{
 
 char			*q=(char *)Can.rx.Data;
 short			n;
-static		
-int 			inproc=0;	
+/*
 //________ flushing CAN buffer ____________________________ 
 					while((__CAN__->TSR & CAN_TSR_TME) && !_buffer_empty(__can->tx) && _buffer_pull(__can->tx,&Can.tx,sizeof(CanTxMsg))) {
 							CAN_Transmit(__CAN__,&Can.tx);
@@ -469,7 +456,8 @@ int 			inproc=0;
 								printf("\r\n>");
 								_stdio(io);
 							}
-					}
+					}			
+*/					
 //__________________________________________________________ fill intm. rx buffer, ISR replacement
 //					if(CAN_MessagePending(__CAN__, CAN_FIFO0)) {
 //						CAN_Receive(__CAN__,CAN_FIFO0, &Can.rx);
@@ -477,8 +465,7 @@ int 			inproc=0;
 //					}
 //________flushing CAN <> COM buffer ______________________ 
 //
-					putCAN(NULL,0);
-					if(!inproc++) {																		 //kuwf8823hu
+//					putCAN(NULL,0);
 //______________________________________________________________________________________					
 					if(_buffer_pull(__can->rx,&Can.rx,sizeof(CanRxMsg))) {
 						q=(char *)Can.rx.Data;
@@ -678,8 +665,6 @@ int 			inproc=0;
 //______________________________________________________________________________________
 							}
 						}
-					}
-					--inproc;
 }
 /*______________________________________________________________________________
   * @brief  CAN data transmission reply
@@ -731,7 +716,10 @@ int				i;
 						io=_stdio(io);						
 					}
 
-					return _buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
+					CAN_ITConfig(__CAN__, CAN_IT_TME, DISABLE);	
+					i=_buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
+					CAN_ITConfig(__CAN__, CAN_IT_TME, ENABLE);	
+					return i;
 }
 /*______________________________________________________________________________
   * @brief  Interprets the PFM command message
@@ -933,38 +921,51 @@ int				PFM_pockels(PFM *p) {
 
 
 typedef	void *func(void *);
+typedef	void *arg;
 
 typedef struct {
-	void *f;
-	void 	*arg;
-	int		t;
-	int		dt;
+	func 	*f;
+	arg 	*arg;
+	int		t,dt,to;
+	char	*name;
 } task;
 
-task list[] = {
-	{ParseCom,&__com0,0,0},
-	{ParseCom,&__com1,0,0},
-	{ParseCan,&pfm,0,0},
-	{ProcessingEvents,&pfm,0,0}
+task list[10] = {
+	{(func *)ParseCom,					(arg *)&__com0,0,0,0,"ParseCOM"},
+	{(func *)ParseCom,					(arg *)&__com1,0,0,0,"ParseUSB"},
+	{(func *)ParseCan,					(arg *)&pfm,0,0,0,"ParseCAN"},
+	{(func *)ProcessingEvents,	(arg *)&pfm,0,0,0,"events"},
+	{(func *)ProcessingStatus,	(arg *)&pfm,0,1,0,"status"},
+	{(func *)ProcessingCharger,	(arg *)&pfm,0,1,0,"charger6"},
+	{(func *)USBHost,						(arg *)NULL,0,0,0,"host USB"},
+	{(func *)Watchdog,					(arg *)NULL,0,0,0,"Watchdog"},
+	{(func *)_lightshow,				(arg *)NULL,0,0,0,"leds"}
 };
 
-void	AppLoop(void) {
-static	
-	task	*p = list;
-	func	*f;
-	
-	if(p->f && __time__ >= p->t) {
-		f=(func *)p->f;
-		p->f=NULL;
-		f(p->arg);
-		p->f=f;
-		p->t = __time__ + p->dt;
-	}
-
-
-	
-
+void	taskList(void) {
+task	*p;
+			for(p=list; p->f; ++p)
+				if(p->dt >= 0)
+					printf("\r\n%08X,%08X,%s,%d",(int)p->f,(int)p->arg,p->name,p->to);
+				else
+					printf("\r\n%08X,%08X,%s,---",(int)p->f,(int)p->arg,p->name);
 }
+
+void	AppLoop(void) {
+task	*p;
+			for(p=list; p->f; ++p)
+			if(p->dt >= 0 && __time__ >= p->t) {
+				int		dt=p->dt;
+				p->dt = -1;
+				p->to=__time__;
+				p->f(*p->arg);
+				p->to=__time__-p->to;
+				p->dt=dt;
+				p->t = __time__ + dt;
+			}
+}
+
+void	(*App_Loop)(void)= AppLoop;													// mainloop func. pointer
 /**
 * @}
 */ 

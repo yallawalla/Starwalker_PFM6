@@ -66,12 +66,7 @@ void	Initialize_host_msc(void) {
 
 int		(*USBH_App)(int);
 void	USBHost (void) {
-static volatile 
-int 	recr=0;
-			if(!recr++) {
-				USBH_Process(&USB_OTG_Core, &USB_Host);
-				recr=0;
-			}
+	USBH_Process(&USB_OTG_Core, &USB_Host);
 }
 /**
 * @}

@@ -293,6 +293,10 @@ int			DecodeWhat(char *c) {
 					printf("\r\n%d,%d,%d\r\n>",m,TIM18_buf[n-1].T1,TIM18_buf[n-1].T3);
 					break;
 //______________________________________________________________________________________
+				case 'a':
+					taskList();
+					break;
+//______________________________________________________________________________________
 				case '#':
 					printf("%d",*(int *)ushape);
 					for(n=1; ushape[n].T && n<_MAX_USER_SHAPE;++n)
@@ -759,13 +763,18 @@ int				n;
 //__________________________________________________submit CAN message(SYS to __)______
 				case '>': {
 CanTxMsg	tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
-int				n;
+int				i;
 					tx.StdId=getHEX(++c,2);
 					++c;++c;
-					for(n=0; n<strlen(c);++n,++n)
-						tx.Data[n/2]=getHEX(&c[n],2);
-					tx.DLC=n/2;
-					_buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
+					for(i=0; i<strlen(c);++i,++i)
+						tx.Data[i/2]=getHEX(&c[i],2);
+					tx.DLC=i/2;
+
+					CAN_ITConfig(__CAN__, CAN_IT_TME, DISABLE);	
+					i=_buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
+					CAN_ClearFlag(__CAN__,CAN_FLAG_RQCP0 | CAN_FLAG_RQCP1 | CAN_FLAG_RQCP2);
+					CAN_ClearITPendingBit(__CAN__,CAN_IT_TME);
+					CAN_ITConfig(__CAN__, CAN_IT_TME, ENABLE);							
 					break;
 				}
 //__________________________________________________i2c read_________________
@@ -1107,7 +1116,7 @@ int			u=0,umax=0,umin=0;
 				break;
 //______________________________________________________________________________________
 				case '@':
-					return batch(++c);
+					return _batch(++c);
 /*
 >1F01C1010058985E01
 p 100,400
@@ -1117,7 +1126,6 @@ s 1
 >1A
 +e 0
 */
-				
 //______________________________________________________________________________________
 				case '-':
 					return DecodeMinus(++c);
@@ -1287,25 +1295,25 @@ fno.lfsize = sizeof lfn;
 						return(0);
 					}
 //___________________________________________________________________________
-void		Cfg(_fsdrive n, char *filename) {
-int			i,j;
-FATFS		fs;
-FIL			f;
-_io*		io;
-				if(f_chdrive(n)==FR_OK)
-					if(f_mount(n,&fs)==FR_OK)
-						if(f_open(&f,filename,FA_READ)==FR_OK) {
-							while(!f_eof(&f)) {
-								io=_stdio(__com0);
-								if(f_read(&f,&i,1,(UINT *)&j)==FR_OK && j==1)
-									ungetch(i);
-								_stdio(io);
-								App_Loop();
-							}
-							f_close(&f);
-							f_mount(n,NULL);
-						}
-}
+//void		Cfg(_fsdrive n, char *filename) {
+//int			i,j;
+//FATFS		fs;
+//FIL			f;
+//_io*		io;
+//				if(f_chdrive(n)==FR_OK)
+//					if(f_mount(n,&fs)==FR_OK)
+//						if(f_open(&f,filename,FA_READ)==FR_OK) {
+//							while(!f_eof(&f)) {
+//								io=_stdio(__com0);
+//								if(f_read(&f,&i,1,(UINT *)&j)==FR_OK && j==1)
+//									ungetch(i);
+//								_stdio(io);
+//								App_Loop();
+//							}
+//							f_close(&f);
+//							f_mount(n,NULL);
+//						}
+//}
 /**
 * @}
 */

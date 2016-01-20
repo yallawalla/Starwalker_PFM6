@@ -76,24 +76,19 @@ static 	int 	t[]={1,1,1,1,1,1,1,1,1,1};
 #define	Nk 4
 extern volatile int __time__;
 //______________________________________________________________________
-void		_lightshow() {
-static 
-void	(*f)(void)=NULL;
+void		_lightshow(void) {
 static	int	
 				t1=0,
 				t2=0,
 				t3=0;
-				
-				if(f==NULL) {
-					f=App_Loop;
-					App_Loop=_lightshow;
-				}
+
 				if(__time__ < 10000) {
 					if(!(++t1 % NN)) {
 						_led(t3,0);
-						t2=++t2 % Nk;
+						++t2;
+						t2 %= Nk;
 						if(t2==t3)
-								_led((t3+1)%Nk,20);
+							_led((t3+1)%Nk,20);
 					}
 					if(!(t1 % ((NN*Nk)+1))) {
 						t3=t2;
@@ -101,7 +96,6 @@ static	int
 						_led((t3+1)%Nk,0);
 					}			
 				}
-				f();
 }
 //______________________________________________________________________________________
 //
@@ -120,9 +114,9 @@ int		i;
 #else
 	#### error, no HW defined
 #endif
-			if(!n)
-				_lightshow();
-			else
+//			if(!n)
+//				_lightshow();
+//			else
 				for(i=0; i<n; ++i) {
 					switch(*p[i]) {
 						case 'a':gpio[i]=GPIOA;break;
