@@ -90,7 +90,7 @@ int	i=0;
 	}		
 #else
 	if(DMA2_Stream2->NDTR)
-		rx->_push=&(rx->_buf[rx->len - DMA2_Stream2->NDTR]);
+		rx->_push=&(rx->_buf[rx->size - DMA2_Stream2->NDTR]);
 	else
 		rx->_push=rx->_buf;
 #endif
@@ -199,7 +199,7 @@ char		*cgets(int c, int mode)
 _buffer		*p=__stdin.io->gets;
 			
 			if(!p)
-				p=__stdin.io->gets=_buffer_init(__stdin.io->rx->len);
+				p=__stdin.io->gets=_buffer_init(__stdin.io->rx->size);
 			switch(c) {
 				case EOF:		
 					break;
@@ -217,7 +217,7 @@ _buffer		*p=__stdin.io->gets;
 					}
 					break;
 				default:
-					if(p->_push != &p->_buf[p->len-1])
+					if(p->_push != &p->_buf[p->size-1])
 						*p->_push++ = c;
 					else  {
 						*p->_push=c;

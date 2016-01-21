@@ -13,7 +13,7 @@ typedef struct _buffer
 				*_pull;
 	int		(* push)(struct _buffer *, char *);
 	int		(* pull)(struct _buffer *);
-	int		len;
+	int		size;
 } _buffer;	
 //______________________________________________________________________________________
 typedef struct _io

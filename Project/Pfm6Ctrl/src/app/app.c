@@ -19,6 +19,83 @@ PFM				*pfm;
 int				_I1off=0,_I2off=0,
 					_U1off=0,_U2off=0,
 					_E1ref=0,_E2ref=0;
+
+
+
+typedef	void *func(void *);
+typedef	void *arg;
+
+typedef struct {
+	func 	*f;
+	arg 	*arg;
+	int		t,dt,to;
+	char	*name;
+} task;
+
+task list[20] = {
+	{(func *)ParseCom,					(arg *)&__com0,0,0,0,"ParseCOM"},
+	{(func *)ParseCom,					(arg *)&__com1,0,0,0,"ParseUSB"},
+	{(func *)ParseCanTx,				(arg *)&pfm,0,0,0,"txCAN"},
+	{(func *)ParseCanRx,				(arg *)&pfm,0,0,0,"rxCAN"},
+	{(func *)ProcessingEvents,	(arg *)&pfm,0,0,0,"events"},
+	{(func *)ProcessingStatus,	(arg *)&pfm,0,1,0,"status"},
+	{(func *)ProcessingCharger,	(arg *)&pfm,0,1,0,"charger6"},
+	{(func *)USBHost,						(arg *)NULL,0,0,0,"host USB"},
+	{(func *)Watchdog,					(arg *)NULL,0,0,0,"Watchdog"},
+	{(func *)_lightshow,				(arg *)NULL,0,0,0,"leds"}
+};
+
+void	taskList(void) {
+int		i;
+			for(i=0; i<sizeof(list)/sizeof(task); ++i) {
+				if(list[i].f == 0)
+					continue;
+				if(list[i].dt >= 0)
+					printf("\r\n%08X,%08X,%s,%d",(int)list[i].f,(int)list[i].arg,list[i].name,list[i].to);
+				else
+					printf("\r\n%08X,%08X,%s,---",(int)list[i].f,(int)list[i].arg,list[i].name);
+			}
+}
+
+void	AppLoop(void) {
+	
+int		i;
+			for(i=0; i<sizeof(list)/sizeof(task); ++i)
+				if(list[i].f && list[i].dt >= 0 && __time__ >= list[i].t) {
+					int		dt=list[i].dt;
+					list[i].dt = -1;
+					list[i].to=__time__;
+					list[i].f(*list[i].arg);
+					list[i].to=__time__-list[i].to;
+					list[i].dt=dt;
+					list[i].t = __time__ + dt;
+				}
+}
+
+void	AppAdd(func *f,arg *a,char *name, int dt) {
+int		i;
+			for(i=0; i<sizeof(list)/sizeof(task); ++i)
+				if(list[i].f == NULL) {
+						list[i].t=list[i].to=0;
+						list[i].f=f;
+						list[i].arg=a;
+						list[i].name=name;
+						list[i].dt=dt;
+						return;
+				}
+}
+
+void	AppRemove(func *f,arg *a) {
+int		i;
+			for(i=0; i<sizeof(list)/sizeof(task); ++i)
+				if(list[i].f == f && list[i].arg == a)
+					list[i].f=NULL;
+}
+
+
+
+void	(*App_Loop)(void)= AppLoop;													// mainloop func. pointer
+
 /*______________________________________________________________________________
 * Function Name : App_Init
 * Description   : Initialize PFM object
@@ -113,14 +190,14 @@ int				i;
 * Output        : None
 * Return        : None
 ______________________________________________________________________________*/
-void			__App_Loop(void) {
-					ParseCom(__com0);
-					ParseCom(__com1);
-					ParseCan(pfm);
-					ProcessingEvents(pfm);
-					USBHost();
-					Watchdog();
-}
+//void			__App_Loop(void) {
+//					ParseCom(__com0);
+//					ParseCom(__com1);
+//					ParseCan(pfm);
+//					ProcessingEvents(pfm);
+//					USBHost();
+//					Watchdog();
+//}
 /*______________________________________________________________________________
   * @brief	ISR events polling, main loop
   * @param	PFM object
@@ -348,51 +425,6 @@ int						i=_STATUS_WORD;
 							writeI2C(__charger6,(char *)&i,2);	
 						}			
 }
-/*______________________________________________________________________________
-  * @brief  	__com0 port replacement driver if CAN redirection activated
-  * @param p:	transmit buffer or NULL(if redirection signal ...)
-	* @param c:	character to output or address of rx message
-  * @retval : character written or EOF if full
-	*
-	*
-  */
-int				putCAN(_buffer *p, int	c) {
-static		
-int				(* _replaced)(_buffer *, int)=NULL;
-static
-CanTxMsg	tx={_ID_PFMcom2SYS,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
-CanRxMsg* rx=(CanRxMsg *)c;
-					if(p) {																						// TX part, if p <> NULL
-						if(tx.DLC < 8 && _replaced(p,c) != EOF) {				// if enough place in both buffers,	
-							tx.Data[tx.DLC++]=c;													// push character onto output buffer
-							if(tx.DLC != 8)
-								return c;
-						}
-						if(tx.DLC == 8)
-							return putCAN(NULL,0);
-						return EOF;
-					}	else {																					// RX part, p==NULL, c= rx message of NULL(flush signal ...)
-						if(rx) {																				// rx=message struct
-							if(rx->DLC > 0) {															// empty message ...
-								if(__com0->put != putCAN) {
-										_replaced=__com0->put;									// deactivate redirection
-										__com0->put=putCAN;
-								}																
-								_buffer_LIFO(__com0->rx,rx->Data,rx->DLC);	// submit rx message, last-in-first-out
-							} else {	
-								if(__com0->put == putCAN)										// xchange drivers ...
-									__com0->put=_replaced;
-							}	
-						} else {
-							if(tx.DLC > 0 && CanReply(".",&tx) != EOF) {	// flush CAN if anything in the buffer ....
-								tx.DLC=0;																		// reset counter
-								return 0;
-							} else
-								return EOF;	
-						}
-						return(0);	
-					}
-}
 //______________________________________________________________________________________
 void			ParseCom(_io *v) {
 char 			*p;
@@ -428,59 +460,65 @@ _io				*io;
 					}
 }
 /*______________________________________________________________________________
+  * @brief  CAN transmit parser
+  * @param:
+  * @retval : None
+	*
+	*
+  */
+void			ParseCanTx(PFM *p) {	
+CanTxMsg	tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
+
+					while((__CAN__->TSR & CAN_TSR_TME)) {
+						if(_buffer_pull(__can->tx,&tx,sizeof(CanTxMsg)))	
+							CAN_Transmit(__CAN__,&tx);
+						else if(__can->arg.io) {
+							tx.DLC=_buffer_pull(__can->arg.io->tx,tx.Data,8);
+							if(tx.DLC > 0) {
+								tx.StdId=_ID_PFMcom2SYS;
+								CAN_Transmit(__CAN__,&tx);
+							} else
+								break;
+						} else
+							break;
+						
+						if(_DBG(pfm,_DBG_CAN_TX) && tx.StdId) {
+							_io *io=_stdio(__dbug);
+							int i;
+							printf(":%04d >%02X ",__time__ % 10000,tx.StdId);
+							for(i=0;i<tx.DLC;++i)
+								printf(" %02X",tx.Data[i]);
+							printf("\r\n>");
+							_stdio(io);
+						}
+					}			
+}					
+/*______________________________________________________________________________
   * @brief  CAN message parser for PFM data as defined in CAN protocol  ICD 
   * @param rx: pointer to CanRxMsg structure
   * @retval : None
 	*
 	*
   */
-void			ParseCan(PFM *p) {	
-union			{
-					CanRxMsg	rx;
-					CanTxMsg	tx;
-					} Can;
-
-char			*q=(char *)Can.rx.Data;
+void			ParseCanRx(PFM *p) {	
+CanRxMsg	rx;
 short			n;
-/*
-//________ flushing CAN buffer ____________________________ 
-					while((__CAN__->TSR & CAN_TSR_TME) && !_buffer_empty(__can->tx) && _buffer_pull(__can->tx,&Can.tx,sizeof(CanTxMsg))) {
-							CAN_Transmit(__CAN__,&Can.tx);
-//______________________________________________________________________________________
-							if(_DBG(pfm,_DBG_CAN_TX) && Can.tx.StdId != _ID_PFMcom2SYS) {
-								_io *io=_stdio(__dbug);
-								int i;
-								printf(":%04d %02X ",__time__ % 10000,Can.tx.StdId);
-								for(i=0;i<Can.tx.DLC;++i)
-									printf(" %02X",Can.tx.Data[i]);
-								printf("\r\n>");
-								_stdio(io);
-							}
-					}			
-*/					
-//__________________________________________________________ fill intm. rx buffer, ISR replacement
-//					if(CAN_MessagePending(__CAN__, CAN_FIFO0)) {
-//						CAN_Receive(__CAN__,CAN_FIFO0, &Can.rx);
-//						_buffer_push(__can->rx,&Can.rx,sizeof(CanRxMsg));
-//					}
-//________flushing CAN <> COM buffer ______________________ 
-//
-//					putCAN(NULL,0);
+char			*q=(char *)rx.Data;
 //______________________________________________________________________________________					
-					if(_buffer_pull(__can->rx,&Can.rx,sizeof(CanRxMsg))) {
-						q=(char *)Can.rx.Data;
+					if(_buffer_pull(__can->rx,&rx,sizeof(CanRxMsg))) {
+						q=(char *)rx.Data;
 //______________________________________________________________________________________
-						if(_DBG(p,_DBG_CAN_RX) && Can.rx.StdId != _ID_PFMcom2SYS)
+						if(_DBG(p,_DBG_CAN_RX))
 						{
 							_io *io=_stdio(__dbug);
-							printf(":%04d %02X ",__time__ % 10000,Can.rx.StdId);
-							for(n=0;n<Can.rx.DLC;++n)
-								printf(" %02X",Can.rx.Data[n]);
+							printf(":%04d <%02X ",__time__ % 10000,rx.StdId);
+							for(n=0;n<rx.DLC;++n)
+								printf(" %02X",rx.Data[n]);
 							printf("\r\n>");
 							_stdio(io);
 						}
 //______________________________________________________________________________________
-						switch(Can.rx.StdId) {
+						switch(rx.StdId) {
 							case _ID_SYS_TRIGG:
 								_SET_EVENT(p,_TRIGGER);
 							break;				
@@ -489,7 +527,18 @@ short			n;
 								break;
 //______________________________________________________________________________________
 							case _ID_SYS2PFMcom:
-								putCAN(NULL,(int)&Can.rx);
+								if(rx.DLC) {
+									if(__can->arg.io == NULL) {
+										__can->arg.io=_io_init(128,128);
+										AppAdd((func *)ParseCom,(arg*)&__can->arg.io,"ParseCAN-IO",0);
+									}
+									while(__can->arg.io->rx->size - _buffer_len(__can->arg.io->rx) < 8)
+										Wait(2,App_Loop);
+									_buffer_push(__can->arg.io->rx,rx.Data,rx.DLC);
+								} else {
+									__can->arg.io=_io_close(__can->arg.io);
+									AppRemove((func *)ParseCom,(arg*)&__can->arg.io);
+								}
 								break;												
 //______________________________________________________________________________________
 							case _ID_SYS2PFM:
@@ -504,7 +553,7 @@ short			n;
 										CanReply("cwP",_PFM_U_req,p->Burst.U);
 										break;
 									case _PFM_command:
-										PFM_command(p,Can.rx.Data[1]);
+										PFM_command(p,rx.Data[1]);
 										Eack(NULL);
 										break;
 									case _PFM_set:
@@ -716,9 +765,9 @@ int				i;
 						io=_stdio(io);						
 					}
 
-					CAN_ITConfig(__CAN__, CAN_IT_TME, DISABLE);	
+//					CAN_ITConfig(__CAN__, CAN_IT_TME, DISABLE);	
 					i=_buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
-					CAN_ITConfig(__CAN__, CAN_IT_TME, ENABLE);	
+//					CAN_ITConfig(__CAN__, CAN_IT_TME, ENABLE);	
 					return i;
 }
 /*______________________________________________________________________________
@@ -917,55 +966,6 @@ int				PFM_pockels(PFM *p) {
 					TIM_Cmd(TIM4, DISABLE);
 					return 0;
 }
-
-
-
-typedef	void *func(void *);
-typedef	void *arg;
-
-typedef struct {
-	func 	*f;
-	arg 	*arg;
-	int		t,dt,to;
-	char	*name;
-} task;
-
-task list[10] = {
-	{(func *)ParseCom,					(arg *)&__com0,0,0,0,"ParseCOM"},
-	{(func *)ParseCom,					(arg *)&__com1,0,0,0,"ParseUSB"},
-	{(func *)ParseCan,					(arg *)&pfm,0,0,0,"ParseCAN"},
-	{(func *)ProcessingEvents,	(arg *)&pfm,0,0,0,"events"},
-	{(func *)ProcessingStatus,	(arg *)&pfm,0,1,0,"status"},
-	{(func *)ProcessingCharger,	(arg *)&pfm,0,1,0,"charger6"},
-	{(func *)USBHost,						(arg *)NULL,0,0,0,"host USB"},
-	{(func *)Watchdog,					(arg *)NULL,0,0,0,"Watchdog"},
-	{(func *)_lightshow,				(arg *)NULL,0,0,0,"leds"}
-};
-
-void	taskList(void) {
-task	*p;
-			for(p=list; p->f; ++p)
-				if(p->dt >= 0)
-					printf("\r\n%08X,%08X,%s,%d",(int)p->f,(int)p->arg,p->name,p->to);
-				else
-					printf("\r\n%08X,%08X,%s,---",(int)p->f,(int)p->arg,p->name);
-}
-
-void	AppLoop(void) {
-task	*p;
-			for(p=list; p->f; ++p)
-			if(p->dt >= 0 && __time__ >= p->t) {
-				int		dt=p->dt;
-				p->dt = -1;
-				p->to=__time__;
-				p->f(*p->arg);
-				p->to=__time__-p->to;
-				p->dt=dt;
-				p->t = __time__ + dt;
-			}
-}
-
-void	(*App_Loop)(void)= AppLoop;													// mainloop func. pointer
 /**
 * @}
 */ 

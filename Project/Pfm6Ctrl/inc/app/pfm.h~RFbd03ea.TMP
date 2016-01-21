@@ -421,8 +421,6 @@ int							DecodeCom(char *),
 
 
 void 						ParseCan(PFM *),
-								ParseCanRx(PFM *),
-								ParseCanTx(PFM *),
 								ParseCom(_io *);
 								
 int							ScopeDumpBinary(_ADCDMA *, int);

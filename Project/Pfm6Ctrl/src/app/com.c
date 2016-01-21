@@ -71,6 +71,13 @@ int			DecodeMinus(char *c) {
 				if(strscan(c,cc,' ')==2)
 					__can=Initialize_CAN(*cc[1]-'n');
 				break;
+//__________________________________________________soft crowbar reset_______
+				case 'r':
+					_SET_STATUS(pfm,_PFM_CWBAR_STAT);
+					_CLEAR_ERROR(pfm, _CRITICAL_ERR_MASK);
+					TIM_CtrlPWMOutputs(TIM1, ENABLE);
+					TIM_CtrlPWMOutputs(TIM8, ENABLE);		
+				break;
 //__________________________________________________defragment ______________
 				case 'P':
 				{
@@ -770,11 +777,9 @@ int				i;
 						tx.Data[i/2]=getHEX(&c[i],2);
 					tx.DLC=i/2;
 
-					CAN_ITConfig(__CAN__, CAN_IT_TME, DISABLE);	
+//					CAN_ITConfig(__CAN__, CAN_IT_TME, DISABLE);	
 					i=_buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
-					CAN_ClearFlag(__CAN__,CAN_FLAG_RQCP0 | CAN_FLAG_RQCP1 | CAN_FLAG_RQCP2);
-					CAN_ClearITPendingBit(__CAN__,CAN_IT_TME);
-					CAN_ITConfig(__CAN__, CAN_IT_TME, ENABLE);							
+//					CAN_ITConfig(__CAN__, CAN_IT_TME, ENABLE);							
 					break;
 				}
 //__________________________________________________i2c read_________________
