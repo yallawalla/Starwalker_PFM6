@@ -72,7 +72,7 @@
 #define					__charger6		__i2c1
 
 void						_led(int, int),
-								_lightshow(void);
+								Lightshow(void);
 
 #define					_RED1(a)			_led(0,a)
 #define					_GREEN1(a)		_led(1,a)
@@ -107,7 +107,8 @@ typedef					 enum
 								_DBG_SYS_MSG,
 								_DBG_I2C_TX,
 								_DBG_I2C_RX,
-								_DBG_MSG_ENG=20
+								_DBG_MSG_ENG=20,
+								_DBG_CAN_COM=21
 } 							_debug;
 
 typedef					enum
@@ -176,7 +177,7 @@ typedef					enum
 #define					_CLEAR_ERROR(p,a)	do {																												\
 									if(_DBG(p,_DBG_ERR_MSG) && (p->Error & (a))) {															\
 _io 								*io=_stdio(__dbug);																												\
-										printf(":%04d error %04X,%04X, clear\r\n>",__time__ % 10000,p->Error,a);	\
+										__print(":%04d error %04X,%04X, clear\r\n>",__time__ % 10000,p->Error,a);	\
 										_stdio(io);																																\
 									}																																						\
 									p->Error &= ~(a);																														\
@@ -189,8 +190,8 @@ _io 								*io=_stdio(__dbug);																												\
 									}																																						\
 									if(_DBG(p,_DBG_ERR_MSG) && !(p->Error & (a))) {															\
 _io 								*io=_stdio(__dbug);																												\
-										printf(":%04d error %04X,%04X, set\r\n>",__time__ % 10000,p->Error,a);		\
-										printf(":%04d stats %04X\r\n>",__time__ % 10000,p->Status);		\
+										__print(":%04d error %04X,%04X, set\r\n>",__time__ % 10000,p->Error,a);		\
+										__print(":%04d stats %04X\r\n>",__time__ % 10000,p->Status);		\
 										_stdio(io);																																\
 									}																																						\
 									p->Error |= (a);																														\
@@ -509,7 +510,7 @@ enum	err_parse	{
 __inline void dbg1(char *s) {
 			if(_DBG(pfm,_DBG_SYS_MSG)) {
 				_io *io=_stdio(__dbug);
-				printf(":%04d %s\r\n>",__time__ % 10000, s);
+				__print(":%04d %s\r\n>",__time__ % 10000, s);
 				_stdio(io);
 			}
 }
@@ -517,9 +518,9 @@ __inline void dbg1(char *s) {
 __inline void dbg2(char *s, int arg1) {
 			if(_DBG(pfm,_DBG_SYS_MSG)) {
 				_io *io=_stdio(__dbug);
-				printf(":%04d ",__time__ % 10000);
-				printf((s),(arg1));
-				printf("\r\n>");
+				__print(":%04d ",__time__ % 10000);
+				__print((s),(arg1));
+				__print("\r\n>");
 				_stdio(io);
 			}
 }
@@ -527,9 +528,9 @@ __inline void dbg2(char *s, int arg1) {
 __inline void dbg3(char *s, int arg1, int arg2) {
 			if(_DBG(pfm,_DBG_SYS_MSG)) {
 				_io *io=_stdio(__dbug);
-				printf(":%04d ",__time__ % 10000);
-				printf((s),(arg1),(arg2));
-				printf("\r\n>");
+				__print(":%04d ",__time__ % 10000);
+				__print((s),(arg1),(arg2));
+				__print("\r\n>");
 				_stdio(io);
 			}
 }
@@ -537,9 +538,9 @@ __inline void dbg3(char *s, int arg1, int arg2) {
 __inline void dbg4(char *s, int arg1, int arg2, int arg3) {
 			if(_DBG(pfm,_DBG_SYS_MSG)) {
 				_io *io=_stdio(__dbug);
-				printf(":%04d ",__time__ % 10000);
-				printf((s),(arg1),(arg2),(arg3));
-				printf("\r\n>");
+				__print(":%04d ",__time__ % 10000);
+				__print((s),(arg1),(arg2),(arg3));
+				__print("\r\n>");
 				_stdio(io);
 			}
 }
@@ -547,9 +548,9 @@ __inline void dbg4(char *s, int arg1, int arg2, int arg3) {
 __inline void dbg5(char *s, int arg1, int arg2, int arg3, int arg4) {
 			if(_DBG(pfm,_DBG_SYS_MSG)) {
 				_io *io=_stdio(__dbug);
-				printf(":%04d ",__time__ % 10000);
-				printf((s),(arg1),(arg2),(arg3),(arg4));
-				printf("\r\n>");
+				__print(":%04d ",__time__ % 10000);
+				__print((s),(arg1),(arg2),(arg3),(arg4));
+				__print("\r\n>");
 				_stdio(io);
 			}
 }

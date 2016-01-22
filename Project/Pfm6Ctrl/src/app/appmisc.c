@@ -51,7 +51,7 @@ union	{
 				return 0;
 			} else if(io && p && m) {
 					io=_stdio(io);
-					printf("-! %d,%d\r\n",m,4*pfm->ADCRate);
+					__print("-! %d,%d\r\n",m,4*pfm->ADCRate);
 					io=_stdio(io);
 					for(i=0;i<m;++i) {
 						_ADC.adc.U += p[i].U;
@@ -61,7 +61,7 @@ union	{
 							_ADC.adc.I /=4;
 							io=_stdio(io);
 							for(j=0; j<sizeof(_ADCDMA); ++j)
-								printf("%c",_ADC.c[j]);
+								__print("%c",_ADC.c[j]);
 								io=_stdio(io);
 								_ADC.adc.U =0;
 								_ADC.adc.I =0;
@@ -402,6 +402,7 @@ int		simmrate;
 				
 				_SET_MODE(pfm,pfm->Burst.LowSimmerMode);
 			}
+			
 			while(!(TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
 			while((TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
 	
@@ -563,7 +564,7 @@ FIL		f;
 FATFS	fs;
 
 			if(f_chdrive(0)==FR_OK && f_mount(0,&fs)==FR_OK && f_open(&f,filename,FA_READ)==FR_OK) {
-				printf("\r\n>");
+				__print("\r\n>");
 				__stdin.fil=&f;
 				do {
 					App_Loop();
@@ -575,6 +576,27 @@ FATFS	fs;
 				return _PARSE_OK;
 			} else
 				return _PARSE_ERR_OPENFILE;
+}
+/*******************************************************************************
+* Function Name : batch
+* Description   :	ADP1047 output voltage setup, using the default format
+* Input         :
+* Output        :
+* Return        :
+*******************************************************************************/
+int			__print(char *format, ...) {
+
+	char 		buf[128],*p;
+	va_list	aptr;
+	int			ret;
+	
+	va_start(aptr, format);
+	ret = vsnprintf(buf, sizeof(buf), format, aptr);
+	va_end(aptr);
+	for(p=buf; *p; ++p)
+		while(fputc(*p,&__stdout)==EOF)
+			Wait(2,App_Loop);
+  return(ret);
 }
 /**
 * @}

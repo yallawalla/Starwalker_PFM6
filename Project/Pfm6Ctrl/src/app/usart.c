@@ -213,7 +213,7 @@ _buffer		*p=__stdin.io->gets;
 					if(p->_push != p->_pull) {
 						--p->_push;
 						if(mode)
-							printf("\b \b");
+							__print("\b \b");
 					}
 					break;
 				default:
@@ -228,7 +228,7 @@ _buffer		*p=__stdin.io->gets;
 						if(isprint(c))
 							fputc(c,&__stdout);
 						else
-							printf("%c%02X%c",'<',c,'>');
+							__print("%c%02X%c",'<',c,'>');
 					}
 					break;
 			}
@@ -314,7 +314,7 @@ int			sDump(char *p,int n)
 				j=252;
 			n -= j;
 			i += (j+3);
-			printf("\r\nS1%02X%04X",j+3,(int)p);
+			__print("\r\nS1%02X%04X",j+3,(int)p);
 #endif
 
 #ifdef	HEXREC2
@@ -325,7 +325,7 @@ int			sDump(char *p,int n)
 				j=250;
 			n -= j;
 			i += (j+4);
-			printf("\r\nS2%02X%06X",j+4,(int)p);
+			__print("\r\nS2%02X%06X",j+4,(int)p);
 #endif
 
 #ifdef	HEXREC3
@@ -336,7 +336,7 @@ int			sDump(char *p,int n)
 				j=248;
 			n -= j;
 			i += (j+5);
-			printf("\r\nS3%02X%08X",j+5,(int)p);
+			__print("\r\nS3%02X%08X",j+5,(int)p);
 #endif
 //_____________________________________________________________________________________
 			while(j--)
@@ -363,7 +363,7 @@ int			iDump(int *p,int n)
 				j=(255-3)/sizeof(int);
 			n -= j;
 			i += (sizeof(int)*j+3);
-			printf("\r\nS1%02X%04X",sizeof(int)*j+3,(int)p);
+			__print("\r\nS1%02X%04X",sizeof(int)*j+3,(int)p);
 #endif
 
 #ifdef	HEXREC2
@@ -374,7 +374,7 @@ int			iDump(int *p,int n)
 				j=(255-5)/sizeof(int);
 			n -= j;
 			i += (sizeof(int)*j+4);
-			printf("\r\nS2%02X%06X",sizeof(int)*j+4,(int)p);
+			__print("\r\nS2%02X%06X",sizeof(int)*j+4,(int)p);
 #endif
 
 #ifdef	HEXREC3
@@ -385,7 +385,7 @@ int			iDump(int *p,int n)
 				j=(255-7)/sizeof(int);
 			n -= j;
 			i += (sizeof(int)*j+5);
-			printf("\r\nS3%02X%08X",sizeof(int)*j+5,(int)p);
+			__print("\r\nS3%02X%08X",sizeof(int)*j+5,(int)p);
 #endif
 //_____________________________________________________________________________________
 			while(j--)
@@ -417,7 +417,7 @@ int			sLoad(char *p)
 				++q;++q;
 			}
 			if(((~err) & 0xff) != getHEX(q,2))
-				printf("...checksum error !");
+				__print("...checksum error !");
 			else {
 				n=getHEX(p,2);				++p;++p;
 				switch(k) {

@@ -63,7 +63,7 @@ extern uint32_t USBD_OTG_EP1OUT_ISR_Handler (USB_OTG_CORE_HANDLE *pdev);
 void NMI_Handler(void)
 {
 	_stdio(__com0);
-	printf(":%04d NMI_Handler\r\n>",__time__ % 10000);
+	__print(":%04d NMI_Handler\r\n>",__time__ % 10000);
 	while(1);
 }
 
@@ -75,7 +75,7 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
 	_stdio(__com0);
-	printf(":%04d HardFault_Handler\r\n>",__time__ % 10000);
+	__print(":%04d HardFault_Handler\r\n>",__time__ % 10000);
 	while(1);
 }
 
@@ -87,7 +87,7 @@ void HardFault_Handler(void)
 void MemManage_Handler(void)
 {
 	_stdio(__com0);
-	printf(":%04d MemManage_Handler\r\n>",__time__ % 10000);
+	__print(":%04d MemManage_Handler\r\n>",__time__ % 10000);
 	while(1);
 }
 
@@ -99,7 +99,7 @@ void MemManage_Handler(void)
 void BusFault_Handler(void)
 {
 	_stdio(__com0);
-	printf(":%04d BusFault_Handler\r\n>",__time__ % 10000);
+	__print(":%04d BusFault_Handler\r\n>",__time__ % 10000);
 	while(1);
 }
 
@@ -111,7 +111,7 @@ void BusFault_Handler(void)
 void UsageFault_Handler(void)
 {
 	_stdio(__com0);
-	printf(":%04d UsageFault_Handler\r\n>",__time__ % 10000);
+	__print(":%04d UsageFault_Handler\r\n>",__time__ % 10000);
 	while(1);
 }
 

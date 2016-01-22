@@ -160,7 +160,7 @@ void		Initialize_device_vcp(void) {
 void USBD_MSC_DeviceInit(void)
 {
 #ifdef __PRINTDBG__
-	printf("..MSC initialized\r\n");
+	__print("..MSC initialized\r\n");
 #endif
 }
 
@@ -173,7 +173,7 @@ void USBD_MSC_DeviceInit(void)
 void USBD_MSC_DeviceReset(uint8_t speed)
 {
 #ifdef __PRINTDBG__
-	printf("..MSC reset\r\n");
+	__print("..MSC reset\r\n");
 #endif
 }
 
@@ -187,7 +187,7 @@ void USBD_MSC_DeviceReset(uint8_t speed)
 void USBD_MSC_DeviceConfigured (void)
 {
 #ifdef __PRINTDBG__
-	printf("..MSC configured\r\n");
+	__print("..MSC configured\r\n");
 #endif
 }
 /**
@@ -198,7 +198,7 @@ void USBD_MSC_DeviceConfigured (void)
 void USBD_MSC_DeviceSuspended(void)
 {
 #ifdef __PRINTDBG__
-	printf("..MSC suspended\r\n");
+	__print("..MSC suspended\r\n");
 #endif
 }
 
@@ -211,7 +211,7 @@ void USBD_MSC_DeviceSuspended(void)
 void USBD_MSC_DeviceResumed(void)
 {
 	#ifdef __PRINTDBG__
-	printf("..MSC resumed\r\n");
+	__print("..MSC resumed\r\n");
 #endif
 }
 
@@ -224,7 +224,7 @@ void USBD_MSC_DeviceResumed(void)
 void USBD_MSC_DeviceConnected (void)
 {
 #ifdef __PRINTDBG__
-	printf("..MSC connected\r\n");
+	__print("..MSC connected\r\n");
 #endif
 }
 
@@ -238,7 +238,7 @@ void USBD_MSC_DeviceConnected (void)
 void USBD_MSC_DeviceDisconnected (void)
 {
 #ifdef __PRINTDBG__
-	printf("..MSC disconnected\r\n");
+	__print("..MSC disconnected\r\n");
 #endif
 }
 /*****************************************************************************/
@@ -251,7 +251,7 @@ void USBD_MSC_DeviceDisconnected (void)
 void USBD_VCP_DeviceInit(void)
 {
 #ifdef __PRINTDBG__
-	printf("..VCP initialized\r\n");
+	__print("..VCP initialized\r\n");
 #endif
 }
 
@@ -264,7 +264,7 @@ void USBD_VCP_DeviceInit(void)
 void USBD_VCP_DeviceReset(uint8_t speed)
 {
 #ifdef __PRINTDBG__
-	printf("..VCP reset\r\n");
+	__print("..VCP reset\r\n");
 #endif	
 }
 
@@ -278,7 +278,7 @@ void USBD_VCP_DeviceReset(uint8_t speed)
 void USBD_VCP_DeviceConfigured (void)
 {
 #ifdef __PRINTDBG__
-printf("..VCP configured\r\n");
+__print("..VCP configured\r\n");
 #endif
 }
 /**
@@ -289,7 +289,7 @@ printf("..VCP configured\r\n");
 void USBD_VCP_DeviceSuspended(void)
 {
 #ifdef __PRINTDBG__
-	printf("..VCP suspended\r\n");
+	__print("..VCP suspended\r\n");
 #endif
 }
 
@@ -302,7 +302,7 @@ void USBD_VCP_DeviceSuspended(void)
 void USBD_VCP_DeviceResumed(void)
 {
 #ifdef __PRINTDBG__
-	printf("..VCP resumed\r\n");
+	__print("..VCP resumed\r\n");
 #endif
 }
 
@@ -315,7 +315,7 @@ void USBD_VCP_DeviceResumed(void)
 void USBD_VCP_DeviceConnected (void)
 {
 #ifdef __PRINTDBG__
-	printf("..VCP connected\r\n");
+	__print("..VCP connected\r\n");
 #endif
 }
 
@@ -329,7 +329,7 @@ void USBD_VCP_DeviceConnected (void)
 void USBD_VCP_DeviceDisconnected (void)
 {
 #ifdef __PRINTDBG__
-	printf("..VCP disconnected\r\n");
+	__print("..VCP disconnected\r\n");
 #endif
 }
 /**

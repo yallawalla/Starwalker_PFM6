@@ -20,8 +20,6 @@ int				_I1off=0,_I2off=0,
 					_U1off=0,_U2off=0,
 					_E1ref=0,_E2ref=0;
 
-
-
 typedef	void *func(void *);
 typedef	void *arg;
 
@@ -42,7 +40,7 @@ task list[20] = {
 	{(func *)ProcessingCharger,	(arg *)&pfm,0,1,0,"charger6"},
 	{(func *)USBHost,						(arg *)NULL,0,0,0,"host USB"},
 	{(func *)Watchdog,					(arg *)NULL,0,0,0,"Watchdog"},
-	{(func *)_lightshow,				(arg *)NULL,0,0,0,"leds"}
+	{(func *)Lightshow,					(arg *)NULL,0,0,0,"Leds"}
 };
 
 void	taskList(void) {
@@ -51,25 +49,28 @@ int		i;
 				if(list[i].f == 0)
 					continue;
 				if(list[i].dt >= 0)
-					printf("\r\n%08X,%08X,%s,%d",(int)list[i].f,(int)list[i].arg,list[i].name,list[i].to);
+					__print("\r\n%08X,%08X,%s,%d",(int)list[i].f,(int)list[i].arg,list[i].name,list[i].to);
 				else
-					printf("\r\n%08X,%08X,%s,---",(int)list[i].f,(int)list[i].arg,list[i].name);
+					__print("\r\n%08X,%08X,%s,---",(int)list[i].f,(int)list[i].arg,list[i].name);
 			}
 }
 
 void	AppLoop(void) {
-	
-int		i;
-			for(i=0; i<sizeof(list)/sizeof(task); ++i)
-				if(list[i].f && list[i].dt >= 0 && __time__ >= list[i].t) {
-					int		dt=list[i].dt;
-					list[i].dt = -1;
-					list[i].to=__time__;
-					list[i].f(*list[i].arg);
-					list[i].to=__time__-list[i].to;
-					list[i].dt=dt;
-					list[i].t = __time__ + dt;
-				}
+static 
+	int	current_job=-1;
+int		i=current_job;
+			if(++current_job >= sizeof(list)/sizeof(task))
+				current_job=0;				
+			if(list[i].f && list[i].dt >= 0 && __time__ >= list[i].t) {
+				int		dt=list[i].dt;
+				list[i].dt = -1;
+				list[i].to=__time__;
+				list[i].f(*list[i].arg);
+				list[i].to=__time__-list[i].to;
+				list[i].dt=dt;
+				list[i].t = __time__ + dt;
+			}
+
 }
 
 void	AppAdd(func *f,arg *a,char *name, int dt) {
@@ -91,8 +92,6 @@ int		i;
 				if(list[i].f == f && list[i].arg == a)
 					list[i].f=NULL;
 }
-
-
 
 void	(*App_Loop)(void)= AppLoop;													// mainloop func. pointer
 
@@ -167,13 +166,13 @@ int				i;
 					_stdio(__com0);
 					SystemCoreClockUpdate();
 					if(RCC_GetFlagStatus(RCC_FLAG_SFTRST) == SET)
-						printf("\r ... SWR reset, %dMHz\r\n>",SystemCoreClock/1000000);
+						__print("\r ... SWR reset, %dMHz\r\n>",SystemCoreClock/1000000);
 					else if(RCC_GetFlagStatus(RCC_FLAG_IWDGRST) == SET)
-						printf("\r ... IWDG reset\r\n>");
+						__print("\r ... IWDG reset\r\n>");
 					else if(RCC_GetFlagStatus(RCC_FLAG_WWDGRST) == SET)
-						printf("\r ... WWDG reset\r\n>");
+						__print("\r ... WWDG reset\r\n>");
 					else if(RCC_GetFlagStatus(RCC_FLAG_PORRST) == SET)
-						printf("\r ... power on reset\r\n>");
+						__print("\r ... power on reset\r\n>");
 					else if(RCC_GetFlagStatus(RCC_FLAG_PINRST) == SET)
 					{} else
 						{}
@@ -181,7 +180,6 @@ int				i;
 							
 					_batch("cfg.ini");
 					_stdio(NULL);
-	//				Cfg(FSDRIVE_CPU, "cfg.ini");
 }
 /*______________________________________________________________________________
 * Function Name : App_Loop
@@ -432,7 +430,7 @@ int 			i;
 _io				*io;
 
 					if(v) {
-						if(!v->arg.parse)																// first call init
+						if(!v->arg.parse)															// first call init
 							v->arg.parse=DecodeCom;
 						io=_stdio(v);																	// recursion lock
 						i=fgetc(&__stdin);
@@ -452,7 +450,7 @@ _io				*io;
 									while(*p==' ') ++p;
 									i=v->arg.parse(p);
 									if(*p && i)
-										printf("... WTF(%d)",i);							// error message
+										__print("... WTF(%d)",i);							// error message
 									v->arg.parse(NULL);											// call newline
 								}
 						}
@@ -485,10 +483,10 @@ CanTxMsg	tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 						if(_DBG(pfm,_DBG_CAN_TX) && tx.StdId) {
 							_io *io=_stdio(__dbug);
 							int i;
-							printf(":%04d >%02X ",__time__ % 10000,tx.StdId);
+							__print(":%04d >%02X ",__time__ % 10000,tx.StdId);
 							for(i=0;i<tx.DLC;++i)
-								printf(" %02X",tx.Data[i]);
-							printf("\r\n>");
+								__print(" %02X",tx.Data[i]);
+							__print("\r\n>");
 							_stdio(io);
 						}
 					}			
@@ -511,10 +509,10 @@ char			*q=(char *)rx.Data;
 						if(_DBG(p,_DBG_CAN_RX))
 						{
 							_io *io=_stdio(__dbug);
-							printf(":%04d <%02X ",__time__ % 10000,rx.StdId);
+							__print(":%04d <%02X ",__time__ % 10000,rx.StdId);
 							for(n=0;n<rx.DLC;++n)
-								printf(" %02X",rx.Data[n]);
-							printf("\r\n>");
+								__print(" %02X",rx.Data[n]);
+							__print("\r\n>");
 							_stdio(io);
 						}
 //______________________________________________________________________________________
@@ -524,6 +522,12 @@ char			*q=(char *)rx.Data;
 							break;				
 //______________________________________________________________________________________
 							case _ID_PFMcom2SYS:
+								if(_DBG(p,_DBG_CAN_COM))	{
+									_io *io=_stdio(__dbug);
+									for(n=0;n<rx.DLC;++n)
+										fputc(rx.Data[n],&__stdout);
+									_stdio(io);
+								}
 								break;
 //______________________________________________________________________________________
 							case _ID_SYS2PFMcom:
@@ -686,7 +690,7 @@ char			*q=(char *)rx.Data;
 									union {short w[4];} *e = (void *)q; 
 									if(_DBG(p,_DBG_MSG_ENG) && (unsigned short)e->w[0]==0xD103) {
 										_io *io=_stdio(__dbug);				
-										printf(":%04d e1=%.1lf,e2=%.1lf\r\n>",__time__ % 10000, 
+										__print(":%04d e1=%.1lf,e2=%.1lf\r\n>",__time__ % 10000, 
 											(double)__max(0,e->w[2])/10,
 												(double)__max(0,e->w[3])/10);
 										_stdio(io);
@@ -758,10 +762,10 @@ int				i;
 //______________________________________________________________________________________
 					if(io) {
 						io=_stdio(io);
-						printf("%02X.<<.",tx.StdId);
+						__print("%02X.<<.",tx.StdId);
 						for(i=0; i<tx.DLC; ++i)
-							printf("%c%02X",'.',tx.Data[i]);
-						printf("\r\n>");	
+							__print("%c%02X",'.',tx.Data[i]);
+						__print("\r\n>");	
 						io=_stdio(io);						
 					}
 

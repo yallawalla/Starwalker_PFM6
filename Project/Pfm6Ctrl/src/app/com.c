@@ -83,12 +83,12 @@ int			DecodeMinus(char *c) {
 				{
 					int i;
 					i=Defragment(0);
-					printf("\r\n>Packing sectors... %d%c",i,'%');
+					__print("\r\n>Packing sectors... %d%c",i,'%');
 					if(i>10) {
 						Watchdog_init(4000);
 						Defragment(-1);
 					}
-					printf(" Done");
+					__print(" Done");
 					Watchdog_init(300);
 				}
 				break;
@@ -99,7 +99,7 @@ int			DecodeMinus(char *c) {
 					switch(*cc[1]) {
 FATFS				fs_usb;	
 						case 'u':
-							printf("\rFormat usb ...[y/n]");
+							__print("\rFormat usb ...[y/n]");
 							do {
 								Wait(5,App_Loop);
 								m=fgetc(&__stdin);
@@ -112,7 +112,7 @@ FATFS				fs_usb;
 							break;
 
 						case 'f':
-							printf("\rFormat flash ...[y/n]");
+							__print("\rFormat flash ...[y/n]");
 							Watchdog_init(4000);
 							do {
 								Wait(5,App_Loop);
@@ -120,12 +120,12 @@ FATFS				fs_usb;
 							} while(m==-1);
 							if(m == 'y') {
 FATFS						fs_cpu;				
-								printf(" erasing ");
+								__print(" erasing ");
 								for(n=0; n<6; ++n)
 									if(FLASH_Erase(FATFS_SECTOR+n*FLASH_Sector_1)==FLASH_COMPLETE)
-										printf(".");
+										__print(".");
 									else
-										printf("?");
+										__print("?");
 								f_mount(FSDRIVE_CPU,&fs_cpu);
 								f_mkfs(FSDRIVE_CPU,1,4096);
 								f_mount(FSDRIVE_CPU,NULL);
@@ -146,17 +146,17 @@ FATFS						fs_cpu;
 						for(p=(int *)FATFS_ADDRESS; p[512/4] != -1; p=&p[512/4+1]) {
 							if(p[512/4] == getHEX(cc[0],EOF)) {
 								for(m=0; m<512; m+=16) {
-									printf("\r\n");
+									__print("\r\n");
 									for(n=0,c=(char *)p; n<16; ++n)
-										printf("%02X ",(~(c[m+n]))&0xff);
+										__print("%02X ",(~(c[m+n]))&0xff);
 									for(n=0; n<16; ++n) {
 										if((((~(c[m+n]))&0xff)>0x20) && (((~(c[m+n]))&0xff)<0x7f))
-											printf("%c",(~(c[m+n]))&0xff);
+											__print("%c",(~(c[m+n]))&0xff);
 										else
-											printf(".");
+											__print(".");
 									}
 								}
-								printf("\r\n----------------------------------------------------------------");
+								__print("\r\n----------------------------------------------------------------");
 								for(m=-1;m==-1;m=fgetc(&__stdin))
 									App_Loop();
 								if(m==0x1b)
@@ -292,12 +292,12 @@ int			DecodeWhat(char *c) {
 //______________________________________________________________________________________
 				case 't':
 					for(n=m=0; TIM18_buf[n].n; ++n) {
-						printf("\r\n%d,%d,%d",m,TIM18_buf[n].T1,TIM18_buf[n].T3);
+						__print("\r\n%d,%d,%d",m,TIM18_buf[n].T1,TIM18_buf[n].T3);
 						m+= 10*(1+TIM18_buf[n].n)/2;
-						printf("\r\n%d,%d,%d",m,TIM18_buf[n].T1,TIM18_buf[n].T3);
+						__print("\r\n%d,%d,%d",m,TIM18_buf[n].T1,TIM18_buf[n].T3);
 					}
 					m+= 10*(1+TIM18_buf[n].n)/2;
-					printf("\r\n%d,%d,%d\r\n>",m,TIM18_buf[n-1].T1,TIM18_buf[n-1].T3);
+					__print("\r\n%d,%d,%d\r\n>",m,TIM18_buf[n-1].T1,TIM18_buf[n-1].T3);
 					break;
 //______________________________________________________________________________________
 				case 'a':
@@ -305,17 +305,17 @@ int			DecodeWhat(char *c) {
 					break;
 //______________________________________________________________________________________
 				case '#':
-					printf("%d",*(int *)ushape);
+					__print("%d",*(int *)ushape);
 					for(n=1; ushape[n].T && n<_MAX_USER_SHAPE;++n)
-						printf("\r\n#%d,%d",ushape[n].T,ushape[n].U);
+						__print("\r\n#%d,%d",ushape[n].T,ushape[n].U);
 					break;
 //______________________________________________________________________________________
 				case 'm':
-					printf(" %08X",pfm->mode);
+					__print(" %08X",pfm->mode);
 					break;
 //______________________________________________________________________________________
 				case 's':
-					printf(" %08X",pfm->Status);
+					__print(" %08X",pfm->Status);
 					break;
 //______________________________________________________________________________________
 				case 'e':
@@ -326,9 +326,9 @@ int			DecodeWhat(char *c) {
 							n+= pow((float)TIM18_buf[k].T3*7.0/6.0,3)/400.0*10.0*(float)(1+TIM18_buf[k].n)/2+0.5;
 						}
 						Watchdog();
-						printf("\r\n%d,%d,%d",pfm->Burst.Pmax*7/6,m/1000,n/1000);
+						__print("\r\n%d,%d,%d",pfm->Burst.Pmax*7/6,m/1000,n/1000);
 					}
-					printf("\r\n>");
+					__print("\r\n>");
 					break;
 //______________________________________________________________________________________
 				default:
@@ -367,7 +367,7 @@ FIL			*f=NULL;																// file object pointer
 						}	
 				}
 				if(!c)																	// eol parser entry...
-					printf("\r\n");	
+					__print("\r\n");	
 				else
 //______________________________________________________________________________________
 				switch(*c) {
@@ -443,14 +443,14 @@ static 		FATFS	fatfs;
 					fno.lfsize = sizeof lfn;
 
 					if(!c) {
-						printf("\r\n");
+						__print("\r\n");
 						if(f_getcwd(lfn,_MAX_LFN)==FR_OK && f_opendir(&dir,lfn)==FR_OK) {
 							if(lfn[strlen(lfn)-1]=='/')
-								printf("%s",lfn);
+								__print("%s",lfn);
 							else
-								printf("%s/",lfn);
+								__print("%s/",lfn);
 						} else
-							printf("?:/"); 		
+							__print("?:/"); 		
 					} else if(*c) {
 //______________________________________________________________________________________
 						int n=strscan(c,sc,' ');
@@ -487,9 +487,9 @@ static 		FATFS	fatfs;
 							if(n == 2) {
 								FIL	f;
 								if(f_open(&f,sc[1],FA_READ)==FR_OK) {
-									printf("\r\n");
+									__print("\r\n");
 									while(!f_eof(&f)) 
-										printf("%c",f_getc(&f));
+										__print("%c",f_getc(&f));
 									f_close(&f);
 								} else
 								return _PARSE_ERR_OPENFILE;
@@ -593,13 +593,13 @@ static 		FATFS	fatfs;
 								if(!dir.sect)
 									break;
 								if(dir.lfn_idx != (WORD)-1) {
-									printf("\r\n%-16s",fno.lfname);
+									__print("\r\n%-16s",fno.lfname);
 								} else
-									printf("\r\n%-16s",fno.fname);
+									__print("\r\n%-16s",fno.fname);
 								if (fno.fattrib & AM_DIR)
-									printf("/");
+									__print("/");
 								else
-									printf("%d",(int)fno.fsize);
+									__print("%d",(int)fno.fsize);
 							}
 						}
 //______________________________________________________________________________________
@@ -627,7 +627,7 @@ static 		FATFS	fatfs;
 //			if(!spi)
 //				spi=InitializeSpi();
 //			if(!spi) {
-//				printf(" not initialized ");
+//				__print(" not initialized ");
 //				return _PARSE_ERR_NORESP;
 //			}
 //			switch(*c) {
@@ -642,7 +642,7 @@ static 		FATFS	fatfs;
 //					ExchgSpi(i, 4);
 //					Wait(2,App_Loop);
 //					i=ExchgSpi(0x00000000, 4);
-//					printf(" >> %02X,%02X",i&0xff,(i>>16)&0xff);
+//					__print(" >> %02X,%02X",i&0xff,(i>>16)&0xff);
 //					break;
 ////________reset register________________________________________________________________
 //				case '!':
@@ -676,7 +676,7 @@ int	DecodeCom(char *c) {
 		char 		*cc[8];
 		int		 	m,n,k;
 		if(!c)
-			printf("\r\n>");
+			__print("\r\n>");
 		else
 
 		switch(*c) {
@@ -685,7 +685,7 @@ int	DecodeCom(char *c) {
 				case 'V':
 					RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
 					CRC_ResetDR();
-					printf(" %d.%02d %s, <%08X>",
+					__print(" %d.%02d %s, <%08X>",
 						SW_version/100,SW_version%100,
 						__DATE__,
 							CRC_CalcBlockCRC(__Vectors, (FATFS_ADDRESS-(int)__Vectors)/sizeof(int)));			//crc od vektorjev do zacetka FS
@@ -697,7 +697,7 @@ int	DecodeCom(char *c) {
 						if(n>1)
 							*(char *)strtol(cc[0],NULL,16)=(char)strtol(cc[1],NULL,16);
 						else
-							printf(",%02X",*(unsigned char *)strtol(cc[0],NULL,16));
+							__print(",%02X",*(unsigned char *)strtol(cc[0],NULL,16));
 						break;
 					}
 					return _PARSE_ERR_SYNTAX;
@@ -708,7 +708,7 @@ int	DecodeCom(char *c) {
 						if(n>1)
 							*(short *)strtol(cc[0],NULL,16)=(short)strtol(cc[1],NULL,16);
 						else
-							printf(",%04X",*(unsigned short *)strtol(cc[0],NULL,16));
+							__print(",%04X",*(unsigned short *)strtol(cc[0],NULL,16));
 						break;
 					}
 					return _PARSE_ERR_SYNTAX;
@@ -719,7 +719,7 @@ int	DecodeCom(char *c) {
 						if(n>1)
 							*(int *)strtol(cc[0],NULL,16)=(int)strtol(cc[1],NULL,16);
 						else
-							printf(",%08X",*(unsigned int *)strtol(cc[0],NULL,16));
+							__print(",%08X",*(unsigned int *)strtol(cc[0],NULL,16));
 						break;
 					}
 					return _PARSE_ERR_SYNTAX;
@@ -795,10 +795,10 @@ int				i;
 							n=((n>>8)&0x00ff) | ((n<<8)&0xff00);
 						if(!readI2C(__charger6,(char *)(&n),m))
 						{
-							printf(" ...I2C error(%02X)",_PARSE_ERR_NORESP);
+							__print(" ...I2C error(%02X)",_PARSE_ERR_NORESP);
 						} else {
-							printf(",");
-							printf("%0*X",2*m,n & ((1<<(m*8))-1));
+							__print(",");
+							__print("%0*X",2*m,n & ((1<<(m*8))-1));
 						}
 						break;
 					}
@@ -815,7 +815,7 @@ int				i;
 						else
 							n |= (getHEX(cc[1],EOF)<<8);
 						if(!writeI2C(__charger6,(char *)(&n),strlen(cc[0])/2+strlen(cc[1])/2))
-							printf(" ...I2C error(%02X)",_PARSE_ERR_NORESP);	
+							__print(" ...I2C error(%02X)",_PARSE_ERR_NORESP);	
 					} else
 						return _PARSE_ERR_SYNTAX;
 					break;
@@ -843,9 +843,9 @@ int				i;
 				case 'p':
 					n=strscan(++c,cc,',');
 					if(n==0) {
-						printf("\r>p(ulse)  T,U           ... %dus,%dV",pfm->Burst.Time,pfm->Burst.Pmax*_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI);
+						__print("\r>p(ulse)  T,U           ... %dus,%dV",pfm->Burst.Time,pfm->Burst.Pmax*_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI);
 						if(pfm->Pockels.delay || pfm->Pockels.width)
-							printf("\r\n>q(swch)  delay,width   ... %.1fus,%.1fus",(float)pfm->Pockels.delay/10,(float)pfm->Pockels.width/10);
+							__print("\r\n>q(swch)  delay,width   ... %.1fus,%.1fus",(float)pfm->Pockels.delay/10,(float)pfm->Pockels.width/10);
 					}
 //__________________________________
 					if(n>0)
@@ -878,7 +878,7 @@ int				i;
 					n=strscan(++c,cc,',');
 
 					if(!n) {
-						printf("\r>d(elay)  T,PW          ... %dus,%.2f",pfm->Burst.Delay,(float)pfm->Burst.Pdelay/_PWM_RATE_HI);
+						__print("\r>d(elay)  T,PW          ... %dus,%.2f",pfm->Burst.Delay,(float)pfm->Burst.Pdelay/_PWM_RATE_HI);
 						break;
 						}
 					if(n>0)
@@ -891,7 +891,7 @@ int				i;
 				case 'b':
 					n=strscan(++c,cc,',');
 					if(n==0) {
-						printf("\r>b(urst)  N,len,per     ... %d,%dus,%dms",pfm->Burst.N, pfm->Burst.Length,pfm->Burst.Repeat);
+						__print("\r>b(urst)  N,len,per     ... %d,%dus,%dms",pfm->Burst.N, pfm->Burst.Length,pfm->Burst.Repeat);
 						break;
 						}
 					if(n>0 && atoi(cc[0]) > 0)
@@ -915,9 +915,9 @@ int				i;
 				{
 					n=strscan(++c,cc,',');
 					if(!n) {
-							printf("\r>q(shape) w,U,td,to,tref ...");
+							__print("\r>q(shape) w,U,td,to,tref ...");
 							for(k=0; qshape[k].qref && k<_MAX_QSHAPE; ++k)
-								printf("\r\n%d,%d,%d,%d,%d",				qshape[k].q0,
+								__print("\r\n%d,%d,%d,%d,%d",				qshape[k].q0,
 																										(qshape[k].q1*_AD2HV(pfm->Burst.HVo) + _PWM_RATE_HI/2)/_PWM_RATE_HI,
 																										qshape[k].q2,
 																										qshape[k].q3,
@@ -940,7 +940,7 @@ int				i;
 				case 's':
 					switch(strscan(++c,cc,',')) {
 						case 0:
-							printf("\r>s(immer) n // t1,t2,f1,f2..%dns,%dns,%dus,%dus",
+							__print("\r>s(immer) n // t1,t2,f1,f2..%dns,%dns,%dus,%dus",
 									(int)(1000*pfm->Burst.Psimm[0])/_uS,
 										(int)(1000*pfm->Burst.Psimm[1])/_uS,
 											pfm->Burst.LowSimm[0]/_uS,
@@ -980,9 +980,9 @@ int				i;
 					switch(strscan(++c,cc,',')) {
 extern int	_U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
 						case 0:
-							printf("  \r>a(dc)    U1,I1,U2,I2   ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I),_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I));
-							printf("\n\r>a(dc)    idle          ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*_U1off),_AD2I(_I1off),_AD2HV(ADC3_AVG*_U2off),_AD2I(_I2off));
-							printf("\n\r>a(dc)    Isimm,I,Uh,Ul ... %dA,%dA,%dV,%dV",_AD2I(pfm->Burst.Isimm),_AD2I(pfm->Burst.Imax),ADC3_AVG*_AD2HV(ADC3->HTR),ADC3_AVG*_AD2HV(ADC3->LTR));
+							__print("  \r>a(dc)    U1,I1,U2,I2   ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I),_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I));
+							__print("\n\r>a(dc)    idle          ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*_U1off),_AD2I(_I1off),_AD2HV(ADC3_AVG*_U2off),_AD2I(_I2off));
+							__print("\n\r>a(dc)    Isimm,I,Uh,Ul ... %dA,%dA,%dV,%dV",_AD2I(pfm->Burst.Isimm),_AD2I(pfm->Burst.Imax),ADC3_AVG*_AD2HV(ADC3->HTR),ADC3_AVG*_AD2HV(ADC3->LTR));
 							break;
 						case 2:
 							pfm->Burst.Isimm=_I2AD(atoi(cc[0]));
@@ -1004,7 +1004,7 @@ extern int	_U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
 				case 'i':							
 					switch(strscan(++c,cc,',')) {
 						case 0:
-							printf("\r>i(DAC)   i1,i2         ... %d%c,%d%c",(DAC_GetDataOutputValue(DAC_Channel_1)*100+0x7ff)/0xfff,'%',(DAC_GetDataOutputValue(DAC_Channel_2)*100+0x7ff)/0xfff,'%');
+							__print("\r>i(DAC)   i1,i2         ... %d%c,%d%c",(DAC_GetDataOutputValue(DAC_Channel_1)*100+0x7ff)/0xfff,'%',(DAC_GetDataOutputValue(DAC_Channel_2)*100+0x7ff)/0xfff,'%');
 							break;
 						case 2:
 							DAC_SetDualChannelData(DAC_Align_12b_R,(atoi(cc[1])*0xfff+50)/100,(atoi(cc[0])*0xfff+50)/100);
@@ -1054,7 +1054,7 @@ extern int	_U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
 				case 'f':
 					n=strscan(++c,cc,',');
 					if(!n) {
-						printf("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%d",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',pfm->Temp);
+						__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%d",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',pfm->Temp);
 						break;
 					} else {
 						if(n==4) {
@@ -1072,7 +1072,7 @@ extern int	_U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
 int			u=0,umax=0,umin=0;
 					switch(strscan(++c,cc,',')) {
 						case 0:
-							printf("\r>u(bank)  Uc,Uc/2,20,-5 ... %dV,%dV,%.1fV,%.1fV",_AD2HV(pfm->HV),_AD2HV(pfm->HV2)/2,_AD2p20V(pfm->Up20),_AD2m5V(pfm->Um5));
+							__print("\r>u(bank)  Uc,Uc/2,20,-5 ... %dV,%dV,%.1fV,%.1fV",_AD2HV(pfm->HV),_AD2HV(pfm->HV2)/2,_AD2p20V(pfm->Up20),_AD2m5V(pfm->Um5));
 							return _PARSE_OK;
 						case 3:
 							umax=atoi(cc[2]);
@@ -1100,13 +1100,13 @@ int			u=0,umax=0,umin=0;
 				case 'U':
 					m=_READ_VIN;
 					if(readI2C(__charger6,(char *)&m,2))	{
-						printf("\r>Vin=%.1f, ",__lin2f(m));
+						__print("\r>Vin=%.1f, ",__lin2f(m));
 						m=_READ_VOUT;
 						if(readI2C(__charger6,(char *)&m,2)) {
-							printf("Vout=%.1f, ",__lin2f(m));
+							__print("Vout=%.1f, ",__lin2f(m));
 							m=_READ_PIN;
 							if(readI2C(__charger6,(char *)&m,2)) {
-								printf("Pout=%.1f",__lin2f(m));
+								__print("Pout=%.1f",__lin2f(m));
 								break;
 							}
 						}

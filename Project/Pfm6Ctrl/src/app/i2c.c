@@ -119,10 +119,10 @@ int				to=__time__+25;
 					if(_DBG(pfm,_DBG_I2C_TX)) {
 						_io *io=_stdio(__dbug);
 						int i;
-						printf(":%04d",__time__ % 10000);
+						__print(":%04d",__time__ % 10000);
 						for(i=0;i<length;++i)
-							printf(" %02X",p->txbuf[i]);
-						printf("\r\n>");
+							__print(" %02X",p->txbuf[i]);
+						__print("\r\n>");
 						_stdio(io);
 					}					
 					return(-1);
@@ -165,10 +165,10 @@ int				to=__time__+25;
 						if(_DBG(pfm,_DBG_I2C_RX)) {
 							_io *io=_stdio(__dbug);
 							int i;
-							printf(":%04d",__time__ % 10000);
+							__print(":%04d",__time__ % 10000);
 							for(i=0;i<length;++i)
-								printf(" %02X",p->rxbuf[i]);
-							printf("\r\n>");
+								__print(" %02X",p->rxbuf[i]);
+							__print("\r\n>");
 							_stdio(io);
 						}
 						return(-1);

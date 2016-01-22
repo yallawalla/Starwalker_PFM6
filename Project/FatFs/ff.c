@@ -3808,10 +3808,10 @@ FRESULT f_mkfs (
 		if (disk_write(pdrv, tbl, wsect++, 1) != RES_OK)
 			return FR_DISK_ERR;
 		mem_set(tbl, 0, SS(fs));			/* Fill following FAT entries with zero */
-		printf(" formatting");
+		__print(" formatting");
 		for (n = 1; n < n_fat; n++) {		/* This loop may take a time on FAT32 volume due to many single sector writes */
 			if (disk_write(pdrv, tbl, wsect++, 1) != RES_OK) {
-				printf(" error!");
+				__print(" error!");
 				return FR_DISK_ERR;
 			}
 #if defined(__PFM6__) || defined (__DISCO__) 
@@ -3824,9 +3824,9 @@ void	Wait(int,void (*)(void));
 }
 #endif
 			if((n*100+n_fat/2)/n_fat % 10 == 0)
-				printf(".");
+				__print(".");
 		}
-				printf(" done!");
+				__print(" done!");
 	}
 
 	/* Initialize root directory */

@@ -282,20 +282,20 @@ int		i,j,*p,*q;
 			p=(int *)FATFS_ADDRESS;
 			for(i=0; i<SECTOR_COUNT; ++i) {
 				if(!((i%255)%16))
-					printf("\r\n");
+					__print("\r\n");
 				if(!(i%255))
-					printf("\r\n");		
+					__print("\r\n");		
 				if(p[SECTOR_SIZE/4] == -1)
-					printf(" ---");
+					__print(" ---");
 				else {
 					q=&p[SECTOR_SIZE/4+1];
 					j=i;
 					while(++j<SECTOR_COUNT && p[SECTOR_SIZE/4] != q[SECTOR_SIZE/4])
 						q=&q[SECTOR_SIZE/4+1];
 					if(j==SECTOR_COUNT)
-						printf(" %-3d",p[SECTOR_SIZE/4]);
+						__print(" %-3d",p[SECTOR_SIZE/4]);
 					else
-						printf("%c%-3d",'*',p[SECTOR_SIZE/4]);
+						__print("%c%-3d",'*',p[SECTOR_SIZE/4]);
 				}
 				p=&p[SECTOR_SIZE/4+1];
 			}

@@ -76,7 +76,7 @@ static 	int 	t[]={1,1,1,1,1,1,1,1,1,1};
 #define	Nk 4
 extern volatile int __time__;
 //______________________________________________________________________
-void		_lightshow(void) {
+void		Lightshow(void) {
 static	int	
 				t1=0,
 				t2=0,
@@ -114,25 +114,22 @@ int		i;
 #else
 	#### error, no HW defined
 #endif
-//			if(!n)
-//				_lightshow();
-//			else
-				for(i=0; i<n; ++i) {
-					switch(*p[i]) {
-						case 'a':gpio[i]=GPIOA;break;
-						case 'b':gpio[i]=GPIOB;break;
-						case 'c':gpio[i]=GPIOC;break;
-						case 'd':gpio[i]=GPIOD;break;
-						case 'e':gpio[i]=GPIOE;break;
-						case 'f':gpio[i]=GPIOF;break;
-						case 'g':gpio[i]=GPIOG;break;
-						case 'h':gpio[i]=GPIOH;break;
-						case 'i':gpio[i]=GPIOI;break;
-						default:gpio[i]=NULL;
-					}
-					GPIO_InitStructure.GPIO_Pin = pin[i]=1<<(atoi(++p[i]));
-					GPIO_Init(gpio[i], &GPIO_InitStructure);		
-					__LED_OFF(gpio[i],pin[i]);
+			for(i=0; i<n; ++i) {
+				switch(*p[i]) {
+					case 'a':gpio[i]=GPIOA;break;
+					case 'b':gpio[i]=GPIOB;break;
+					case 'c':gpio[i]=GPIOC;break;
+					case 'd':gpio[i]=GPIOD;break;
+					case 'e':gpio[i]=GPIOE;break;
+					case 'f':gpio[i]=GPIOF;break;
+					case 'g':gpio[i]=GPIOG;break;
+					case 'h':gpio[i]=GPIOH;break;
+					case 'i':gpio[i]=GPIOI;break;
+					default:gpio[i]=NULL;
 				}
+				GPIO_InitStructure.GPIO_Pin = pin[i]=1<<(atoi(++p[i]));
+				GPIO_Init(gpio[i], &GPIO_InitStructure);		
+				__LED_OFF(gpio[i],pin[i]);
+			}
 #endif
 }

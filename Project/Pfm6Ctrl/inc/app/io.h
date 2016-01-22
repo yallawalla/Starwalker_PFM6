@@ -1,10 +1,13 @@
+#ifndef _IO_H
+#define _IO_H
+
 #include		<stdio.h>
 #include		<stdlib.h>
+#include		<stdarg.h>
 #include		"ffconf.h"
 #include		"ff.h"
 
-#ifndef _IO_H
-#define _IO_H
+int			__print(char *format, ...);
 //______________________________________________________________________________________
 typedef struct _buffer
 {
