@@ -7,6 +7,7 @@
   * @brief	 Main PFM6 application functionality
   *
   */
+	
 /** @addtogroup PFM6_Application
 * @{
 */
@@ -19,82 +20,6 @@ PFM				*pfm;
 int				_I1off=0,_I2off=0,
 					_U1off=0,_U2off=0,
 					_E1ref=0,_E2ref=0;
-
-typedef	void *func(void *);
-typedef	void *arg;
-
-typedef struct {
-	func 	*f;
-	arg 	*arg;
-	int		t,dt,to;
-	char	*name;
-} task;
-
-task list[20] = {
-	{(func *)ParseCom,					(arg *)&__com0,0,0,0,"ParseCOM"},
-	{(func *)ParseCom,					(arg *)&__com1,0,0,0,"ParseUSB"},
-	{(func *)ParseCanTx,				(arg *)&pfm,0,0,0,"txCAN"},
-	{(func *)ParseCanRx,				(arg *)&pfm,0,0,0,"rxCAN"},
-	{(func *)ProcessingEvents,	(arg *)&pfm,0,0,0,"events"},
-	{(func *)ProcessingStatus,	(arg *)&pfm,0,1,0,"status"},
-	{(func *)ProcessingCharger,	(arg *)&pfm,0,1,0,"charger6"},
-	{(func *)USBHost,						(arg *)NULL,0,0,0,"host USB"},
-	{(func *)Watchdog,					(arg *)NULL,0,0,0,"Watchdog"},
-	{(func *)Lightshow,					(arg *)NULL,0,0,0,"Leds"}
-};
-
-void	taskList(void) {
-int		i;
-			for(i=0; i<sizeof(list)/sizeof(task); ++i) {
-				if(list[i].f == 0)
-					continue;
-				if(list[i].dt >= 0)
-					__print("\r\n%08X,%08X,%s,%d",(int)list[i].f,(int)list[i].arg,list[i].name,list[i].to);
-				else
-					__print("\r\n%08X,%08X,%s,---",(int)list[i].f,(int)list[i].arg,list[i].name);
-			}
-}
-
-void	AppLoop(void) {
-static 
-	int	current_job=-1;
-int		i=current_job;
-			if(++current_job >= sizeof(list)/sizeof(task))
-				current_job=0;				
-			if(list[i].f && list[i].dt >= 0 && __time__ >= list[i].t) {
-				int		dt=list[i].dt;
-				list[i].dt = -1;
-				list[i].to=__time__;
-				list[i].f(*list[i].arg);
-				list[i].to=__time__-list[i].to;
-				list[i].dt=dt;
-				list[i].t = __time__ + dt;
-			}
-
-}
-
-void	AppAdd(func *f,arg *a,char *name, int dt) {
-int		i;
-			for(i=0; i<sizeof(list)/sizeof(task); ++i)
-				if(list[i].f == NULL) {
-						list[i].t=list[i].to=0;
-						list[i].f=f;
-						list[i].arg=a;
-						list[i].name=name;
-						list[i].dt=dt;
-						return;
-				}
-}
-
-void	AppRemove(func *f,arg *a) {
-int		i;
-			for(i=0; i<sizeof(list)/sizeof(task); ++i)
-				if(list[i].f == f && list[i].arg == a)
-					list[i].f=NULL;
-}
-
-void	(*App_Loop)(void)= AppLoop;													// mainloop func. pointer
-
 /*______________________________________________________________________________
 * Function Name : App_Init
 * Description   : Initialize PFM object
@@ -534,14 +459,14 @@ char			*q=(char *)rx.Data;
 								if(rx.DLC) {
 									if(__can->arg.io == NULL) {
 										__can->arg.io=_io_init(128,128);
-										AppAdd((func *)ParseCom,(arg*)&__can->arg.io,"ParseCAN-IO",0);
+										App_Add((func *)ParseCom,(arg*)&__can->arg.io,"ParseCAN-IO",0);
 									}
 									while(__can->arg.io->rx->size - _buffer_len(__can->arg.io->rx) < 8)
 										Wait(2,App_Loop);
 									_buffer_push(__can->arg.io->rx,rx.Data,rx.DLC);
 								} else {
 									__can->arg.io=_io_close(__can->arg.io);
-									AppRemove((func *)ParseCom,(arg*)&__can->arg.io);
+									App_Remove((func *)ParseCom,(arg*)&__can->arg.io);
 								}
 								break;												
 //______________________________________________________________________________________

@@ -1,9 +1,6 @@
-
 #include "usb_conf.h"
 #include "diskio.h"
 #include "usbh_msc_core.h"
-
-//#include "app.h"
 /*--------------------------------------------------------------------------
 
 Module Private Functions and Variables

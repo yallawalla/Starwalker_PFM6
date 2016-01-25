@@ -6,9 +6,8 @@
 #include				<stdio.h>
 #include				<math.h>
 #include				"io.h"
-#include 				"proc.h"
 #include				"ff.h"
-//#include			"CAN_MAP.h"
+//#include				"CAN_MAP.h"
 
 #include				"usbh_core.h"
 #include				"usbh_msc_usr.h"
@@ -403,7 +402,7 @@ _io 						*Initialize_USART(int),
 _i2c*						Initialize_I2C(int, int);
 				
 extern int			fanPmin,fanPmax,fanTL,fanTH;
-extern void			App_Loop(void);
+extern void			(*App_Loop)(void),__App_Loop(void);
 void						Wait(int,void (*)(void));
 
 extern _io			*__com0,
@@ -555,6 +554,8 @@ __inline void dbg5(char *s, int arg1, int arg2, int arg3, int arg4) {
 				_stdio(io);
 			}
 }
+
+void	taskList(void);
 
 #define	GET_MACRO(_1,_2,_3,_4,_5,NAME,...) NAME
 #define	_DEBUG_MSG(...) GET_MACRO(__VA_ARGS__, dbg5, dbg4, dbg3, dbg2, dbg1)(__VA_ARGS__)
