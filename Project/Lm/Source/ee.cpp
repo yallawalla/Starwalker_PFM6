@@ -15,6 +15,7 @@
 #include	"ee.h"
 #include	"isr.h"
 #include	"stdio.h"
+#include	"string.h"
 static		_EE*	me=NULL;
 /*******************************************************************************/
 /**
@@ -24,14 +25,12 @@ static		_EE*	me=NULL;
 	*/
 /*******************************************************************************/
 void	_EE::ISR(_EE *p) {
-			if(p) {																						
+			if(p) {
 				me=p;																										// klic za prijavo instance
-				me->rx=_buffer_init(100*sizeof(short));
-				me->tx=_buffer_init(100*sizeof(short));
-			} else {																									// klic iz ISR, instanca in buffer morata bit ze formirana 																							
+			} else {																									// klic iz ISR, instanca in buffer morata bit ze formirana
 				switch(status) {
 					case _IDLE:
-						EE_PORT->BSRRL   =  EE_BIT;	
+						GPIO_SetBits(EE_PORT,EE_BIT);
 						TIM_Cmd(TIM5,DISABLE);
 						break;
 
@@ -52,11 +51,11 @@ void	_EE::ISR(_EE *p) {
 								GPIO_SetBits(EE_PORT,EE_BIT);
 								phase=0;
 								if(!nbits)
-									status=_IDLE;	
+									status=_IDLE;
 								break;
 						}
 						break;
-						
+
 					case _RESET:
 						switch(phase++) {
 							case 0:
@@ -84,10 +83,13 @@ void	_EE::ISR(_EE *p) {
 * Output				:
 * Return				:
 *******************************************************************************/
-uint64_t		_EE::GetSerial(void) {
-			Exchg((char *)"b2-00-");
-			Exchg((char *)"b3-ff_ff_ff_ff_ff_ff_ff_ff-");
-			return 0;
+char	*_EE::getSerial(char *c) {
+			sprintf(c,"b2-00-");
+			Exchg(c);
+			_wait(2,_thread_loop);
+			sprintf(c,"b3-ff_ff_ff_ff_ff_ff_ff_ff-");
+			Exchg(c);
+			return c;
 }
 /*******************************************************************************
 * Function Name	: 
@@ -95,20 +97,68 @@ uint64_t		_EE::GetSerial(void) {
 * Output				:
 * Return				:
 *******************************************************************************/
-void	_EE::Exchg(char *c) {
-int		i,t;
-char	j;
-		if(!*c) {
+char	*_EE::getPage(int n, char *c) {
+			sprintf(c,"a2-%02X-",8*n);
+			Exchg(c);
+			_wait(2,_thread_loop);
+			sprintf(c,"a3-ff_ff_ff_ff_ff_ff_ff_ff-");
+			return Exchg(c);
+}
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
+char	*_EE::putPage(int n, char *c) {
+char	cc[128];
+	
+			sprintf(cc,"a2-%02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X-",8*n,c[0],c[1],c[2],c[3],c[4],c[5],c[6],c[7]);
+			Exchg(cc);
+			strcpy(c,cc);
+			return c;
+}
+
+/*
+
+:b2-00-
+:b3-ff_ff_ff_ff_ff_ff_ff_ff-
+
+:a2-00-
+:a3-ff_ff_ff_ff_ff_ff_ff_ff-
+:a2-08-
+:a3-ff_ff_ff_ff_ff_ff_ff_ff-
+:a2-10-
+:a3-ff_ff_ff_ff_ff_ff_ff_ff-
+:a2-18-
+:a3-ff_ff_ff_ff_ff_ff_ff_ff-
+
+
+:a2-00-01-02-03-04-05-06-07-08-
+:a2-08-11-12-13-14-15-16-17-18-
+:a2-10-21-22-23-24-25-26-27-28-
+:a2-18-31-32-33-34-35-36-37-38-
+
+*/
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
+char	*_EE::Exchg(char *p) {
+int		i,j,t;
+char	k,q[128];
+		if(!*p) {
 			status=_RESET;
 			phase=0;
 			TIM_Cmd(TIM5,ENABLE);
-			return;
+			return NULL;
 		}
-		while(sscanf(c,"%02X%c",&i,&j) > 0) {
+		for(j=0; sscanf(&p[j],"%02X%c",&i,&k) > 0; j+=3) {
 			temp=i<<1;
-			if(j=='-')
+			if(k=='-')
 				temp |= 1;
-			++c;++c;++c;
 			phase=0;
 			nbits=9;
 			status=_BUSY;
@@ -119,14 +169,16 @@ char	j;
 					break;
 			if(status == _IDLE) {
 				if(temp % 2)
-					printf(" %02X-",temp>>1);
+					sprintf(&q[j],"%02X-",temp>>1);
 				else
-					printf(" %02X_",temp>>1);
+					sprintf(&q[j],"%02X_",temp>>1);
 			}	else {
-				printf("... error");
+				sprintf(&q[j],"---");
 				break;
 			}
 		}
+		strcpy(p,q);
+		return p;
 }
 /*******************************************************************************
 * Function Name	: 
@@ -171,8 +223,6 @@ GPIO_InitTypeDef
 _EE::~_EE() {	
 			TIM_ITConfig(TIM5,TIM_IT_Update,DISABLE);
 			NVIC_DisableIRQ(TIM5_IRQn);
-			_buffer_close(me->rx);
-			_buffer_close(me->tx);
 }
 
 extern "C" {

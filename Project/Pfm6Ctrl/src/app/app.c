@@ -62,7 +62,7 @@ RCC_AHB1PeriphClockCmd(
 					pfm->Pockels.trigger=0;
 
 					Initialize_NVIC();
-					__com0=Initialize_USART(921600);		
+					__com0=Initialize_USART(921600);			
 					__can=Initialize_CAN(0);	
 					Initialize_ADC();
 					Initialize_TIM();
@@ -106,21 +106,6 @@ int				i;
 					_batch("cfg.ini");
 					_stdio(NULL);
 }
-/*______________________________________________________________________________
-* Function Name : App_Loop
-* Description   : Calls/polling of the system tasks w/ main loop
-* Input         : None
-* Output        : None
-* Return        : None
-______________________________________________________________________________*/
-//void			__App_Loop(void) {
-//					ParseCom(__com0);
-//					ParseCom(__com1);
-//					ParseCan(pfm);
-//					ProcessingEvents(pfm);
-//					USBHost();
-//					Watchdog();
-//}
 /*______________________________________________________________________________
   * @brief	ISR events polling, main loop
   * @param	PFM object

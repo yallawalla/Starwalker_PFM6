@@ -1299,26 +1299,6 @@ fno.lfsize = sizeof lfn;
 						}
 						return(0);
 					}
-//___________________________________________________________________________
-//void		Cfg(_fsdrive n, char *filename) {
-//int			i,j;
-//FATFS		fs;
-//FIL			f;
-//_io*		io;
-//				if(f_chdrive(n)==FR_OK)
-//					if(f_mount(n,&fs)==FR_OK)
-//						if(f_open(&f,filename,FA_READ)==FR_OK) {
-//							while(!f_eof(&f)) {
-//								io=_stdio(__com0);
-//								if(f_read(&f,&i,1,(UINT *)&j)==FR_OK && j==1)
-//									ungetch(i);
-//								_stdio(io);
-//								App_Loop();
-//							}
-//							f_close(&f);
-//							f_mount(n,NULL);
-//						}
-//}
 /**
 * @}
 */

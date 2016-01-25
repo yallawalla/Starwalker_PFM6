@@ -23,8 +23,8 @@
 #include "ff.h"
 #include "io.h"
 
-void			Wait(int,void (*)(void));
-extern void (*App_Loop)(void);
+extern void			App_Loop(void);
+void						Wait(int,void (*)(void));
 //_________________________________________________________________________________
 FILE 		__stdout;
 FILE 		__stdin;

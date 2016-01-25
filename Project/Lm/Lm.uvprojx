@@ -14,7 +14,7 @@
         <TargetCommonOption>
           <Device>STM32F207VG</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.3.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.1.0.7</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IROM(0x08000000,0x100000) IRAM(0x20000000,0x20000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -229,7 +229,6 @@
             <useUlib>1</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
-            <nSecure>0</nSecure>
             <RoSelD>3</RoSelD>
             <RwSelD>3</RwSelD>
             <CodeSel>0</CodeSel>
@@ -366,8 +365,6 @@
             <useXO>0</useXO>
             <v6Lang>0</v6Lang>
             <v6LangP>0</v6LangP>
-            <vShortEn>0</vShortEn>
-            <vShortWch>0</vShortWch>
             <VariousControls>
               <MiscControls>--exceptions</MiscControls>
               <Define>USE_STDPERIPH_DRIVER, ARM_MATH_CM3,__IOC_V1__</Define>
@@ -520,8 +517,6 @@
                     <useXO>2</useXO>
                     <v6Lang>0</v6Lang>
                     <v6LangP>0</v6LangP>
-                    <vShortEn>0</vShortEn>
-                    <vShortWch>0</vShortWch>
                     <VariousControls>
                       <MiscControls></MiscControls>
                       <Define></Define>
@@ -536,6 +531,11 @@
               <FileName>gpio.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\Source\gpio.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>pilot.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\pilot.cpp</FilePath>
             </File>
           </Files>
         </Group>
@@ -598,7 +598,7 @@
         <TargetCommonOption>
           <Device>STM32F207VG</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.3.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.1.0.7</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IROM(0x08000000,0x100000) IRAM(0x20000000,0x20000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -733,7 +733,7 @@
             <RestoreSysVw>1</RestoreSysVw>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
-          <TargetSelection>11</TargetSelection>
+          <TargetSelection>13</TargetSelection>
           <SimDlls>
             <CpuDll></CpuDll>
             <CpuDllArguments></CpuDllArguments>
@@ -813,7 +813,6 @@
             <useUlib>1</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
-            <nSecure>0</nSecure>
             <RoSelD>3</RoSelD>
             <RwSelD>3</RwSelD>
             <CodeSel>0</CodeSel>
@@ -950,8 +949,6 @@
             <useXO>0</useXO>
             <v6Lang>0</v6Lang>
             <v6LangP>0</v6LangP>
-            <vShortEn>0</vShortEn>
-            <vShortWch>0</vShortWch>
             <VariousControls>
               <MiscControls>--exceptions</MiscControls>
               <Define>USE_STDPERIPH_DRIVER, ARM_MATH_CM3,__IOC_V2__</Define>
@@ -1104,8 +1101,6 @@
                     <useXO>2</useXO>
                     <v6Lang>0</v6Lang>
                     <v6LangP>0</v6LangP>
-                    <vShortEn>0</vShortEn>
-                    <vShortWch>0</vShortWch>
                     <VariousControls>
                       <MiscControls></MiscControls>
                       <Define></Define>
@@ -1120,6 +1115,11 @@
               <FileName>gpio.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\Source\gpio.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>pilot.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\pilot.cpp</FilePath>
             </File>
           </Files>
         </Group>
@@ -1182,7 +1182,7 @@
         <TargetCommonOption>
           <Device>STM32F207VG</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.3.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.1.0.7</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IROM(0x08000000,0x100000) IRAM(0x20000000,0x20000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -1397,7 +1397,6 @@
             <useUlib>1</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
-            <nSecure>0</nSecure>
             <RoSelD>3</RoSelD>
             <RwSelD>3</RwSelD>
             <CodeSel>0</CodeSel>
@@ -1534,8 +1533,6 @@
             <useXO>0</useXO>
             <v6Lang>0</v6Lang>
             <v6LangP>0</v6LangP>
-            <vShortEn>0</vShortEn>
-            <vShortWch>0</vShortWch>
             <VariousControls>
               <MiscControls>--exceptions</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,__DISCO__,__SIMULATION__,USE_LCD,ARM_MATH_CM3</Define>
@@ -1657,6 +1654,11 @@
               <FileName>gpio.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\Source\gpio.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>pilot.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\pilot.cpp</FilePath>
             </File>
           </Files>
         </Group>

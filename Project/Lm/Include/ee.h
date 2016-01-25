@@ -26,7 +26,6 @@
 
 class	_EE {
 	private:
-		_buffer *rx,*tx;
 		int		nbits, temp, phase;
 		enum	{_IDLE,_BUSY,_RESET} status;
 
@@ -34,8 +33,10 @@ class	_EE {
 		_EE();
 		~_EE();
 		void			ISR(_EE *);
-		void			Exchg(char *);
-		uint64_t	GetSerial(void);	
+		char			*Exchg(char *);
+		char			*getSerial(char *);	
+		char			*getPage(int, char *);
+		char			*putPage(int, char *);
 };
 
 #endif

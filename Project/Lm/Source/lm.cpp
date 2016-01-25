@@ -28,8 +28,6 @@ _LM::_LM() {
 			_thread_add((void *)Poll,this,(char *)"lm",1);
 			_thread_add((void *)Display,this,(char *)"plot",1);			
 	
-			pilot=pilot_count=0;
-
 			FIL f;
 			if(f_open(&f,"0:/lm.ini",FA_READ) == FR_OK) {
 // periph. settings
@@ -38,8 +36,7 @@ _LM::_LM() {
 				fan.LoadSettings((FILE *)&f);
 				spray.LoadSettings((FILE *)&f);
 				ec20.LoadSettings((FILE *)&f);
-// local settings
-				LoadSettings((FILE *)&f);
+				pilot.LoadSettings((FILE *)&f);
 // add. settings parsing
 				while(!f_eof(&f))
 					Parse((FILE *)&f);
@@ -60,7 +57,7 @@ _LM::_LM() {
 			printf("\r\nCtrlY - reset");	
 
 			_12Voff_ENABLE;
-			debug=(__DEBUG__)0;
+			debug=(_DEBUG_)0;
 			
 // not used in the application
 //
@@ -108,6 +105,7 @@ void	_LM::Poll(void *v) {
 	
 			self->can.Parse(self);
 			self->spray.Poll();
+			self->pilot.Poll();
 
 			_ADC::Instance()->Status();
 	
@@ -116,23 +114,14 @@ void	_LM::Poll(void *v) {
 				self->pump.Poll();
 				_TIM::Instance()->Poll();
 			}
-
+			
 #ifdef __SIMULATION__
 			self->spray.Simulator();
 #ifdef USE_LCD
 //			if(!(++self->zzz % 10) && self->plot.Refresh())
 //				self->lcd.Grid();
 #endif
-#endif
-			
-#if defined(__IOC_V2__)		
-			if(self->pilot_count < self->pilot)
-				GPIO_ResetBits(GPIOD,GPIO_Pin_13);
-			else
-				GPIO_SetBits(GPIOD,GPIO_Pin_13);
-			self->pilot_count = (self->pilot_count + 5) % 100;
-#endif
-			
+#endif			
 			_stdio(temp);
 }
 /*******************************************************************************
@@ -156,7 +145,7 @@ void	_LM::Print(void *v) {
 * Output				:	
 * Return				:
 *******************************************************************************/
-void	_LM::Select(__SELECTED__ i) {
+void	_LM::Select(_SELECTED_ i) {
 			if(i != item)
 				printf("\r\n");
 			item = i;
@@ -202,8 +191,8 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 					break;
 
 				case PILOT:
-					pilot =__min(__max(0,pilot+5*i),100);	
-					printf("\r:pilot       %3d%c",pilot,'%');
+					pilot.value =__min(__max(0,pilot.value+5*i),100);	
+					printf("\r:pilot       %3d%c",pilot.value,'%');
 					break;
 			
 				case CTRL_A:
@@ -245,7 +234,7 @@ extern "C" {
 * Output				:
 * Return				: _thread_add((void *)poll_callback,this,(char *)"lm",10);
 *******************************************************************************/
-int		_LM::PlusDecode(char *c) {
+int		_LM::DecodePlus(char *c) {
 			if(*c) {
 				switch(*c) {
 					case 'P':
@@ -271,7 +260,7 @@ int		_LM::PlusDecode(char *c) {
 						break;
 					case 'D':
 						while(*c)
-							debug = (__DEBUG__)(debug | (1<<strtoul(++c,&c,10)));
+							debug = (_DEBUG_)(debug | (1<<strtoul(++c,&c,10)));
 						break;
 					case 'f':
 						pyro.addFilter(++c);
@@ -293,7 +282,7 @@ int		_LM::PlusDecode(char *c) {
 * Output				:
 * Return				: _thread_add((void *)poll_callback,this,(char *)"lm",10);
 *******************************************************************************/
-int		_LM::WhatDecode(char *c) {
+int		_LM::DecodeWhat(char *c) {
 			if(*c) {
 				switch(*c) {
 					case 'f':
@@ -319,7 +308,7 @@ int		_LM::WhatDecode(char *c) {
 * Output				:
 * Return				: _thread_add((void *)poll_callback,this,(char *)"lm",10);
 *******************************************************************************/
-int		_LM::MinusDecode(char *c) {
+int		_LM::DecodeMinus(char *c) {
 			if(*c) {
 				switch(*c) {
 					case 'P':
@@ -330,7 +319,7 @@ int		_LM::MinusDecode(char *c) {
 						break;
 					case 'D':
 						while(*c)
-							debug = (__DEBUG__)(debug & ~(1<<strtoul(++c,&c,10)));
+							debug = (_DEBUG_)(debug & ~(1<<strtoul(++c,&c,10)));
 						break;
 					default:
 						*c=0;
@@ -356,11 +345,11 @@ int		_LM::Decode(char *c) {
 						PrintVersion(SW_version);
 						break;
 					case '?':
-						return WhatDecode(++c);
+						return DecodeWhat(++c);
 					case '+':
-						return PlusDecode(++c);
+						return DecodePlus(++c);
 					case '-':
-						return MinusDecode(++c);
+						return DecodeMinus(++c);
 					case 'L':
 						printf(" %08X",*(int *)strtoul(++c,NULL,0));
 						break;
@@ -370,8 +359,17 @@ int		_LM::Decode(char *c) {
 					case '.':
 						can.Send(++c);
 						break;
-					case ':':
-						ee.Exchg(++c);
+					case 'r':
+						char s[128];
+						if(*++c) {
+						int i=strtoul(c,&c,0);
+						if(*c) {
+							for(int j=0; *c++; s[j]=strtoul(c,&c,0), ++j);
+							ee.putPage(i,s);
+						} else
+							printf("   %s",ee.getPage(i,s));
+						} else
+							printf("   %s",ee.getSerial(s));
 						break;
 					case '_':
 						can.Recv(++c);
@@ -599,7 +597,7 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 							fan.SaveSettings((FILE *)&f);
 							spray.SaveSettings((FILE *)&f);
 							ec20.SaveSettings((FILE *)&f);
-							SaveSettings((FILE *)&f);
+							pilot.SaveSettings((FILE *)&f);
 							f_sync(&f);
 							f_close(&f);							
 							printf("\r\n saved...\r\n:");
@@ -753,26 +751,6 @@ _io*	temp=_stdio(self->io);
 					self->lcd.Grid();				
 #endif
 			}
-}
-/*******************************************************************************/
-/**
-	* @brief	TIM3 IC2 ISR
-	* @param	: None
-	* @retval : None
-	*/
-void	_LM::LoadSettings(FILE *f) {
-char	c[128];
-			fgets(c,sizeof(c),f);
-			sscanf(c,"%d",&pilot);
-}
-/*******************************************************************************/
-/**
-	* @brief	TIM3 IC2 ISR
-	* @param	: None
-	* @retval : None
-	*/
-void	_LM::SaveSettings(FILE *f) {
-			fprintf(f,"%5d                   /.. pilot\r\n",pilot);
 }
 //Q1   +f 0.00229515,0.00459030,0.00229515,1.89738149,-0.90656211
 //Q05  +f 0.00219271, 0.00438542, 0.00219271, 1.81269433, -0.82146519

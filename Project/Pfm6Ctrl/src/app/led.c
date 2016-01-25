@@ -23,7 +23,6 @@
 *** undefined target !!!!
 #endif
 
-extern void			(*App_Loop)(void);
 #if		defined (__PFM6__)
 	#define	__LED_ON(a,b)			GPIO_ResetBits(a,b);
 	#define	__LED_OFF(a,b)		GPIO_SetBits(a,b);
