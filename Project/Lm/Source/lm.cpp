@@ -198,22 +198,22 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 				case CTRL_A:
 					offset->cooler+=10*i;
 					gain->cooler+=10*j;
-					printf("\r:cooler.....  %5d,%5d",offset->cooler,gain->cooler);
+					printf("\r:cooler....... %5d,%5d",offset->cooler,gain->cooler);
 					break;
 				case CTRL_B:
 					offset->bottle+=10*i;
 					gain->bottle+=10*j;
-					printf("\r:bottle.....  %5d,%5d",offset->bottle,gain->bottle);
+					printf("\r:bottle....... %5d,%5d",offset->bottle,gain->bottle);
 					break;
 				case CTRL_C:
 					offset->compressor+=10*i;
 					gain->compressor+=10*j;
-				printf("\r:compressor...  %5d,%5d",offset->compressor,gain->compressor);
+					printf("\r:compressor... %5d,%5d",offset->compressor,gain->compressor);
 					break;
 				case CTRL_D:
 					offset->air+=10*i;
 					gain->air+=10*j;
-					printf("\r:air........  %5d,%5d",offset->air,gain->air);
+					printf("\r:air.......... %5d,%5d",offset->air,gain->air);
 					break;
 				
 				case PLOT_OFFSET:
@@ -283,8 +283,12 @@ int		_LM::DecodePlus(char *c) {
 * Return				: _thread_add((void *)poll_callback,this,(char *)"lm",10);
 *******************************************************************************/
 int		_LM::DecodeWhat(char *c) {
+_ADCDMA	*adf		=&_ADC::Instance()->adf;
 			if(*c) {
 				switch(*c) {
+					case 'a':
+						printf("\r\nV5=%4.1f,V12=%4.1f,V24=%4.1f",_16XtoV5(adf->V5),_16XtoV12(adf->V12),_16XtoV24(adf->V24));			
+						break;
 					case 'f':
 						pyro.printFilter();
 						break;
@@ -682,6 +686,7 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 					printf("\b \b");
 					}
 					break;
+					
 				case 0x0d:
 					*VT100.clp=0;
 					VT100.clp=VT100.cl;
@@ -691,8 +696,10 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 					else
 						printf("\r\n:");						
 					break;
+					
 				case 0x0a:
 					break;
+				
 				default:
 					if(i & 0xff00)
 						printf("<%X>\r\n:",i);

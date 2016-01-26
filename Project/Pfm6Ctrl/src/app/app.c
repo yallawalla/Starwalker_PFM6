@@ -104,7 +104,7 @@ int				i;
 					RCC_ClearFlag();   
 							
 					_batch("cfg.ini");
-					_stdio(NULL);
+//					_stdio(NULL);
 }
 /*______________________________________________________________________________
   * @brief	ISR events polling, main loop
