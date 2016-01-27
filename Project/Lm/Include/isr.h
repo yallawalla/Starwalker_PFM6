@@ -129,5 +129,4 @@ _io			*ParseCom(_io *);
 #define	__minmax(x,x1,x2,y1,y2)	__min(__max(((y2-y1)*(x-x1))/(x2-x1)+y1,y1),y2)
 
 
-
 #endif

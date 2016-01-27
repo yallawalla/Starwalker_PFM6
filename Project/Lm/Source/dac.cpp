@@ -50,7 +50,7 @@ _DAC::_DAC() {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
 	DAC_DeInit();
 	DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_None;
-	DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Disable;
+	DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
 	DAC_Init(DAC_Channel_1, &DAC_InitStructure);
 	Dac1=0x7fff;
 	DAC_Cmd(DAC_Channel_1, ENABLE);

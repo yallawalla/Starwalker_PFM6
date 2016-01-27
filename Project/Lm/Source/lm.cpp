@@ -50,6 +50,7 @@ _LM::_LM() {
 			printf("\r\n[F5]  - pump");
 			printf("\r\n[F6]  - fan");
 			printf("\r\n[F7]  - spray");
+			printf("\r\n[F8]  - EC20 console");
 			printf("\r\n[F11] - save settings");	
 			printf("\r\n[F12] - exit app.    ");	
 			printf("\r\nCtrlE - EC20 console ");	
@@ -57,7 +58,7 @@ _LM::_LM() {
 			printf("\r\nCtrlY - reset");	
 
 			_12Voff_ENABLE;
-			debug=(_DEBUG_)0;
+			debug=0;
 			
 // not used in the application
 //
@@ -166,12 +167,15 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 				case PUMP:
 					pump.Increment(i,j);
 					break;
+				
 				case FAN:
 					fan.Increment(i,j);
 					break;
+				
 				case SPRAY:
 					spray.Increment(i,j);
 					break;
+				
 				case EC20:
 					ec20.Increment(i,j,this);
 					break;
@@ -200,16 +204,19 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 					gain->cooler+=10*j;
 					printf("\r:cooler....... %5d,%5d",offset->cooler,gain->cooler);
 					break;
+				
 				case CTRL_B:
 					offset->bottle+=10*i;
 					gain->bottle+=10*j;
 					printf("\r:bottle....... %5d,%5d",offset->bottle,gain->bottle);
 					break;
+				
 				case CTRL_C:
 					offset->compressor+=10*i;
 					gain->compressor+=10*j;
 					printf("\r:compressor... %5d,%5d",offset->compressor,gain->compressor);
 					break;
+				
 				case CTRL_D:
 					offset->air+=10*i;
 					gain->air+=10*j;
@@ -219,8 +226,12 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 				case PLOT_OFFSET:
 					plot.Offset(i,j);
 					break;
+				
 				case PLOT_SCALE:
 					plot.Scale(i,j);
+					break;
+				
+				default:
 					break;
 			}
 }
@@ -286,8 +297,11 @@ int		_LM::DecodeWhat(char *c) {
 _ADCDMA	*adf		=&_ADC::Instance()->adf;
 			if(*c) {
 				switch(*c) {
-					case 'a':
+					case 'v':
 						printf("\r\nV5=%4.1f,V12=%4.1f,V24=%4.1f",_16XtoV5(adf->V5),_16XtoV12(adf->V12),_16XtoV24(adf->V24));			
+						break;
+					case 'V':
+						printf("\r\nV5=%hu,V12=%hu,V24=%hu",adf->V5,adf->V12,adf->V24);			
 						break;
 					case 'f':
 						pyro.printFilter();
@@ -363,7 +377,7 @@ int		_LM::Decode(char *c) {
 					case '.':
 						can.Send(++c);
 						break;
-					case 'r':
+					case 'e':
 						char s[128];
 						if(*++c) {
 						int i=strtoul(c,&c,0);
@@ -624,13 +638,32 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 					break;				
 				case __Right:
 					Increment(0, 1);
-					break;	
-		
-				case __CtrlE:
-					Decode((char *)".BA");
-					printf("\r\n:");
-					break;	
+					break;
 
+				case __CtrlE: 
+				{
+char			c[128];
+int				i,j;
+					_SET_BIT(debug, DBG_REMOTE_CONSOLE);
+					Select(NONE);
+					sprintf(c,"%02X%02X%02X",Can2ComEc20,'v','\r');
+					can.Send(c);
+					do {
+						for(i=0; i<8; ++i) {
+							j=getchar();
+							if(j == EOF || j == __CtrlE)
+								break;
+							sprintf(&c[2*i+2],"%02X",j);
+						}
+						if(i > 0)
+							can.Send(c);
+						_thread_loop();
+					} while (j != __CtrlE);
+					printf("\r\n:");
+				}
+				_CLEAR_BIT(debug, DBG_REMOTE_CONSOLE);
+				break;
+		
 				case __CtrlV:
 					if(spray.vibrate)
 						spray.vibrate=false;

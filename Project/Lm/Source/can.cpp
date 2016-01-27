@@ -154,32 +154,14 @@ int				n;
 CanTxMsg	txbuf={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 					sscanf(msg,"%02X",&txbuf.StdId);	
 					++msg,++msg;
-					if(txbuf.StdId == Can2ComEc20) {
-int					i='\r';
-						txbuf.Data[0]='v';
-						txbuf.DLC=1;
-						do {
-							if(i != EOF) {
-								if(i != __CtrlE)
-									txbuf.Data[txbuf.DLC++]=i;
-								CAN_ITConfig(__CAN__, CAN_IT_FMP0, DISABLE);
-								_buffer_push(tx,&txbuf,sizeof(txbuf));
-								CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
-								txbuf.DLC=0;
-							} else
-								_thread_loop();
-							i=getchar();
-						} while (i != __CtrlE);
-					} else {
-						do {
-							for(n=0; *msg && n<16; ++n,++n,++msg,++msg)
-								sscanf(msg,"%02X",(unsigned int *)&txbuf.Data[n/2]);
-							txbuf.DLC=n/2;
-							CAN_ITConfig(__CAN__, CAN_IT_FMP0, DISABLE);
-							_buffer_push(tx,&txbuf,sizeof(txbuf));
-							CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);	
-						} while(*msg);
-					}
+					do {
+						for(n=0; *msg && n<16; ++n,++n,++msg,++msg)
+							sscanf(msg,"%02X",(unsigned int *)&txbuf.Data[n/2]);
+						txbuf.DLC=n/2;
+						CAN_ITConfig(__CAN__, CAN_IT_FMP0, DISABLE);
+						_buffer_push(tx,&txbuf,sizeof(txbuf));
+						CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);	
+					} while(*msg);
 }
 /*******************************************************************************
 * Function Name	: 
@@ -227,17 +209,17 @@ CanMsg		*m=(CanMsg *)msg.Data;
 _LM 			*lm = (_LM *)v;
 //________ flushing CAN buffer ____________________________ 
 					while((__CAN__->TSR & CAN_TSR_TME) && _buffer_len(tx) &&
-							_buffer_pull(tx,&msg,sizeof(CanTxMsg))) {
-							CAN_Transmit(__CAN__,&msg);
+						_buffer_pull(tx,&msg,sizeof(CanTxMsg))) {
+						CAN_Transmit(__CAN__,&msg);
 							
 //________ debug print__________________________________________________________________
-							if(lm->debug & (1<<DBG_CAN_TX)) {
-								printf("\r\n:%04d %02X ",__time__ % 10000,msg.StdId);
-								for(int i=0;i<msg.DLC;++i)
-									printf(" %02X",msg.Data[i]);
-								printf("\r\n:");
-								_stdio(io);
-							}
+						if(_BIT(lm->debug, DBG_CAN_TX)) {
+							printf("\r\n:%04d %02X ",__time__ % 10000,msg.StdId);
+							for(int i=0;i<msg.DLC;++i)
+								printf(" %02X",msg.Data[i]);
+							printf("\r\n:");
+							_stdio(io);
+						}
 					}
 //________ flushing com buffer/not echoed if debug_________ 
 					if(io) {
@@ -252,7 +234,7 @@ _LM 			*lm = (_LM *)v;
 //______________________________________________________________________________________					
 					if(_buffer_len(rx)  && _buffer_pull(rx,&msg,sizeof(CanTxMsg)) && _buffer_pull(rx,&tstamp,sizeof(unsigned int))) {
 //________ debug print__________________________________________________________________
-						if(lm->debug & (1<<DBG_CAN_RX)) {
+						if(_BIT(lm->debug, DBG_CAN_RX)) {
 							printf("\r\n:%04d %02X ",__time__ % 10000,msg.StdId);
 							for(int i=0;i<msg.DLC;++i)
 								printf(" %02X",msg.Data[i]);
@@ -267,8 +249,9 @@ _LM 			*lm = (_LM *)v;
 //______________________________________________________________________________________							
 							case Com2CanEc20:
 							{
-								for(int i=0; i<msg.DLC; ++i)
-									putchar(msg.Data[i]);
+								if(_BIT(lm->debug, DBG_REMOTE_CONSOLE))
+									for(int i=0; i<msg.DLC; ++i)
+										putchar(msg.Data[i]);
 							}
 							break;
 //______________________________________________________________________________________

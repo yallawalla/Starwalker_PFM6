@@ -68,9 +68,9 @@ _DAC		*dac=_DAC::Instance();
 					tau=INT_MAX;
 
 #if defined (__DISCO__) || defined (__IOC_V1__)
-				if(200000/__minmax(_ADC::Instance()->Th2o,ftl*100,fth*100,fpl,fph) < tau)
+				if(220000/__minmax(_ADC::Instance()->Th2o,ftl*100,fth*100,fpl,fph) < tau)
 #elif defined (__IOC_V2__)
-				if(200000/__minmax(_ADC::Instance()->Th2o,ftl*100,fth*100,fpl,fph) > tau)
+				if(220000/__minmax(_ADC::Instance()->Th2o,ftl*100,fth*100,fpl,fph) > tau)
 #else
 	***error: HW platform not defined
 #endif
