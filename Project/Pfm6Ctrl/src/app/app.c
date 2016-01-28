@@ -101,10 +101,9 @@ int				i;
 					else if(RCC_GetFlagStatus(RCC_FLAG_PINRST) == SET)
 					{} else
 						{}
-					RCC_ClearFlag();   
-							
+					RCC_ClearFlag();   	
 					_batch("cfg.ini");
-//					_stdio(NULL);
+					_stdio(NULL);
 }
 /*______________________________________________________________________________
   * @brief	ISR events polling, main loop
@@ -340,30 +339,34 @@ int 			i;
 _io				*io;
 
 					if(v) {
-						if(!v->arg.parse)															// first call init
+						if(!v->arg.parse)																// first call init
 							v->arg.parse=DecodeCom;
-						io=_stdio(v);																	// recursion lock
-						i=fgetc(&__stdin);
-						switch(i) {
-							case _Eof:																	// empty usart
-								break;
-							case _CtrlZ:																// call watchdog reset
-								while(1);
-							case _CtrlY:																// call system reset
-								NVIC_SystemReset();
-							case _Esc:
-								_SET_EVENT(pfm,_TRIGGER);									// console esc +-	trigger... no ja!!
-								break;
-							default:
-								p=cgets(i,EOF);
-								if(p) {
-									while(*p==' ') ++p;
-									i=v->arg.parse(p);
-									if(*p && i)
-										__print("... WTF(%d)",i);							// error message
-									v->arg.parse(NULL);											// call newline
+						io=_stdio(v);																		// recursion lock
+//						if(io != v) {
+							i=fgetc(&__stdin);
+							switch(i) {
+								case _Eof:																	// empty usart
+									break;
+								case _CtrlZ:																// call watchdog reset
+									while(1);
+								case _CtrlY:																// call system reset
+									NVIC_SystemReset();
+								case _CtrlE:																// can console - maintenance only
+									CAN_console();
+								case _Esc:
+									_SET_EVENT(pfm,_TRIGGER);									// console esc +-	trigger... no ja!!
+									break;
+								default:
+									p=cgets(i,EOF);
+									if(p) {
+										while(*p==' ') ++p;
+										i=v->arg.parse(p);
+										if(*p && i)
+											__print("... WTF(%d)",i);							// error message
+										v->arg.parse(NULL);											// call newline
+									}
 								}
-						}
+//							}
 						_stdio(io);
 					}
 }

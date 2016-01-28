@@ -283,6 +283,7 @@ int							USBH_Iap(int);
 #define					_EC_RevNum_req				0x0A
 #define					_EC_Ping							0x0C
 //________________________________________________________________________
+#define					_CtrlE								0x05
 #define					_CtrlY								0x19
 #define					_CtrlZ								0x1A
 #define					_Esc									0x1B
@@ -456,7 +457,8 @@ float						__lin2f(short);
 short						__f2lin(float, short);
 
 int							_batch(char *);	        
-				        
+void						CAN_console(void);
+
 extern					uint32_t	__Vectors[];
 extern					int				_PWM_RATE_LO;
 extern 					int				Pref1,Pref2;

@@ -644,8 +644,7 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 				{
 char			c[128];
 int				i,j;
-					_SET_BIT(debug, DBG_REMOTE_CONSOLE);
-					Select(NONE);
+					Select(REMOTE_CONSOLE);
 					sprintf(c,"%02X%02X%02X",Can2ComEc20,'v','\r');
 					can.Send(c);
 					do {
@@ -661,7 +660,7 @@ int				i,j;
 					} while (j != __CtrlE);
 					printf("\r\n:");
 				}
-				_CLEAR_BIT(debug, DBG_REMOTE_CONSOLE);
+				Select(NONE);
 				break;
 		
 				case __CtrlV:

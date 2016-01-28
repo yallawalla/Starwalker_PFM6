@@ -29,12 +29,13 @@
 
 #define					SW_version	10
 
-typedef enum		{DBG_CAN_TX, DBG_CAN_RX, DBG_ERR, DBG_INFO, DBG_REMOTE_CONSOLE} 																											_DEBUG_;			// debug channels
-typedef enum		{PYRO, PILOT, PLOT_OFFSET, PLOT_SCALE, PUMP, FAN, SPRAY, EC20, CTRL_A, CTRL_B, CTRL_C, CTRL_D, NONE} 		_SELECTED_;		// UI channels
+typedef enum		{DBG_CAN_TX, DBG_CAN_RX, DBG_ERR, DBG_INFO}	_DEBUG_;
+typedef enum		{PYRO, PILOT, PLOT_OFFSET, PLOT_SCALE, PUMP, FAN, SPRAY, 
+									EC20, CTRL_A, CTRL_B, CTRL_C, CTRL_D, REMOTE_CONSOLE, NONE} _SELECTED_;
 
-#define	_SET_BIT(p,a)				(*(char *)(0x22000000 + ((int)&p - 0x20000000) * 32 + 4*a)) = 1
-#define	_CLEAR_BIT(p,a)			(*(char *)(0x22000000 + ((int)&p - 0x20000000) * 32 + 4*a)) = 0
-#define	_BIT(p,a)						(*(char *)(0x22000000 + ((int)&p - 0x20000000) * 32 + 4*a))
+#define	_SET_BIT(p,a)			(*(char *)(0x22000000 + ((int)&p - 0x20000000) * 32 + 4*a)) = 1
+#define	_CLEAR_BIT(p,a)		(*(char *)(0x22000000 + ((int)&p - 0x20000000) * 32 + 4*a)) = 0
+#define	_BIT(p,a)					(*(char *)(0x22000000 + ((int)&p - 0x20000000) * 32 + 4*a))
 
 //_____________________________________________________________________________
 class	_LM {
@@ -73,7 +74,6 @@ class	_LM {
 		int						debug;
 		_SELECTED_		Selected(void)	{return item; }
 		void 					Select(_SELECTED_);
-		
 		void 					Increment(int, int);
 		
 		void 					Refresh(void)		{Increment(0,0);}

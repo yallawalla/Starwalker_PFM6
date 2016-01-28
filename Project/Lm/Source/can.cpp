@@ -247,9 +247,9 @@ _LM 			*lm = (_LM *)v;
 								lm->pyro.sync=tstamp;
 							break;
 //______________________________________________________________________________________							
-							case Com2CanEc20:
+							case Com2CanEc20: 
 							{
-								if(_BIT(lm->debug, DBG_REMOTE_CONSOLE))
+								if(lm->Selected() == REMOTE_CONSOLE)
 									for(int i=0; i<msg.DLC; ++i)
 										putchar(msg.Data[i]);
 							}

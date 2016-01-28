@@ -61,11 +61,11 @@ union	{
 							_ADC.adc.I /=4;
 							io=_stdio(io);
 							for(j=0; j<sizeof(_ADCDMA); ++j)
-								__print("%c",_ADC.c[j]);
-								io=_stdio(io);
-								_ADC.adc.U =0;
-								_ADC.adc.I =0;
-							}
+								fputc(_ADC.c[j],&__stdout);
+							io=_stdio(io);
+							_ADC.adc.U =0;
+							_ADC.adc.I =0;
+						}
 					}
 				}
 			return -1;
@@ -576,6 +576,38 @@ FATFS	fs;
 				return _PARSE_OK;
 			} else
 				return _PARSE_ERR_OPENFILE;
+}
+/*******************************************************************************
+* Function Name : batch
+* Description   :	ADP1047 output voltage setup, using the default format
+* Input         :
+* Output        :
+* Return        :
+*******************************************************************************/
+void	CAN_console(void) {
+char	c[128];
+int		i,j;
+			__dbug=__stdin.io;
+			_SET_DBG(pfm,_DBG_CAN_COM);
+			printf("\r\n remote console open... \r\n>");
+			sprintf(c,">%02X%02X%02X",_ID_SYS2PFMcom,'v','\r');
+			DecodeCom(c);
+			do {
+				for(i=0; i<8; ++i) {
+					j=getchar();
+					if(j == EOF || j == _CtrlE)
+						break;
+					sprintf(&c[2*i+3],"%02X",j);
+				}
+				if(i > 0)
+					DecodeCom(c);
+				App_Loop();
+			} while (j != _CtrlE);
+			sprintf(c,">%02X",_ID_SYS2PFMcom);
+			DecodeCom(c);
+			_CLEAR_DBG(pfm,_DBG_CAN_COM);
+			__dbug=NULL;
+			printf("\r\n ....remote console closed\r\n>");
 }
 /*******************************************************************************
 * Function Name : batch
