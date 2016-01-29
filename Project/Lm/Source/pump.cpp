@@ -28,8 +28,8 @@ _PUMP::_PUMP() {
 				ftl=25;
 				fth=40;
 
-				_ADC::Instance()->offset.cooler=15500;
-				_ADC::Instance()->gain.cooler=15500;
+				_ADC::Instance()->offset.cooler=12500;
+				_ADC::Instance()->gain.cooler=13300;
 	
 #if defined (__DISCO__) || defined (__IOC_V1__)
 				_DAC::Instance()->Dac1=0xfff;
@@ -74,9 +74,9 @@ _DAC		*dac=_DAC::Instance();
 #else
 	***error: HW platform not defined
 #endif
-					dac->Dac1=__max(0x1ff,--dac->Dac1);
-				else
-					dac->Dac1=__min(0xaff,++dac->Dac1);
+				dac->Dac1=__max(0x1ff,--dac->Dac1);
+					else 
+				dac->Dac1=__min(0xaff,++dac->Dac1);
 				dac->Refresh();
 	
 				if(tau==INT_MAX)
