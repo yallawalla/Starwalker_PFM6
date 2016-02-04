@@ -196,19 +196,18 @@ char			s[16];
 		    
 						if(updown || leftright) {
 							E=0;
-							if(idx < 3)
-								{
-									msg.EC20set.Code=Id_EC20Set;
-									msg.EC20set.Uo=Uo*10;
-									msg.EC20set.To=width;
-									msg.EC20set.Mode=2;																																		 //??
-									lm->can.Send(Sys2Ec,&msg,sizeof(EC20set));
-		    
-									msg.EC20reset.Code=Id_EC20Reset;
-									msg.EC20reset.Period=1000/repeat;
-									msg.EC20reset.Pw=pw;
-									msg.EC20reset.Fo=Fo;
-									lm->can.Send(Sys2Ec,&msg,sizeof(EC20reset));
+							if(idx < 3) {
+								msg.EC20set.Code=Id_EC20Set;
+								msg.EC20set.Uo=Uo*10;
+								msg.EC20set.To=width;
+								msg.EC20set.Mode=3;																																		 //??
+								lm->can.Send(Sys2Ec,&msg,sizeof(EC20set));
+	    
+								msg.EC20reset.Code=Id_EC20Reset;
+								msg.EC20reset.Period=1000/repeat;
+								msg.EC20reset.Pw=pw;
+								msg.EC20reset.Fo=Fo;
+								lm->can.Send(Sys2Ec,&msg,sizeof(EC20reset));
 								}
 						}
 						

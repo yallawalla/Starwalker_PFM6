@@ -456,8 +456,8 @@ char			*q=(char *)rx.Data;
 									__can->arg.io=_io_close(__can->arg.io);
 									App_Remove((func *)ParseCom,(arg*)&__can->arg.io);
 								}
-								break;												
-//______________________________________________________________________________________
+								break;
+//__________________________________________________________________
 							case _ID_SYS2PFM:
 								switch(*(uint8_t *)q++) {
 									case _PFM_status_req:
@@ -544,9 +544,9 @@ char			*q=(char *)rx.Data;
 //
 // Pfm6 add..
 //
-// ________________________________________________________________________________
-									case _PFM_POCKELS: 																					// 0x73, _PFM_POCKELS #ghdg78236u
-										p->Pockels.delay=*(short *)q++;q++;
+//___________________________________________________________________________________________________________								
+									case _PFM_POCKELS: 																					// 0x73, _PFM_POCKELS
+										p->Pockels.delay=*(short *)q++;q++;												// 0.1uS delay , width
 										p->Pockels.width=*(short *)q++;q++;
 										PFM_pockels(p);
 										break;
@@ -871,11 +871,11 @@ int				PFM_pockels(PFM *p) {
 															
 					TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
 					TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
-					TIM_OCInitStructure.TIM_Pulse=p->Pockels.delay + 1;
+					TIM_OCInitStructure.TIM_Pulse=p->Pockels.delay;
 					TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 					TIM_OC1Init(TIM4, &TIM_OCInitStructure);		
 					
-					TIM_TimeBaseStructure.TIM_Period = p->Pockels.delay + p->Pockels.width + 1;
+					TIM_TimeBaseStructure.TIM_Period = p->Pockels.delay + p->Pockels.width;
 					TIM_TimeBaseStructure.TIM_Prescaler = _uS/10-1;
 					TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 					TIM_TimeBaseInit(TIM4,&TIM_TimeBaseStructure);

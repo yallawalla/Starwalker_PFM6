@@ -162,7 +162,7 @@ float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
 				return;
 			}
 //-------DELAY----------------------
-			for(n=2*((p->Burst.Delay*_uS)/_PWM_RATE_HI)-1; n>0; n -= 255, ++t) {
+			for(n=2*((p->Burst.Delay*_uS)/_PWM_RATE_HI)-1; n>0; n -= 256, ++t) {
 				t->T1=t->T2=_K1*p->Burst.Pdelay;
 				t->T3=t->T4=_K2*p->Burst.Pdelay;
 				if(n > 255)
@@ -207,7 +207,7 @@ float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
 									++to;
 								}
 
-								for(n=2*((p->Burst.Length*_uS/p->Burst.N-to*_uS)/_PWM_RATE_HI)-1;n>0;n -= 255,++t)	{
+								for(n=2*((p->Burst.Length*_uS/p->Burst.N-to*_uS)/_PWM_RATE_HI)-1;n>0;n -= 256,++t)	{
 									t->T1=t->T2=_K1*p->Burst.Pdelay;
 									t->T3=t->T4=_K2*p->Burst.Pdelay;
 									if(n > 255)
@@ -249,7 +249,7 @@ float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
 			if(p->Burst.Ereq & _SHPMOD_MAIN) {
 //-------PULSE----------------------
 				for(j=0; j<p->Burst.N; ++j) {
-					for(n=2*((to*_uS + _PWM_RATE_HI/2)/_PWM_RATE_HI)-1; n>0; n -= 255, ++t) {
+					for(n=2*((to*_uS + _PWM_RATE_HI/2)/_PWM_RATE_HI)-1; n>0; n -= 256, ++t) {
 						
 						if(j == 0) {
 							t->T1 = t->T2=_K1*(Uo+p->Burst.Pdelay);
@@ -263,14 +263,14 @@ float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
 							t->n=255;
 						else {
 							t->n=n;
-							if(p->Pockels.width)
+//							if(p->Pockels.width)
 								p->Pockels.trigger=n;
-							else
-								p->Pockels.trigger=0;
+//							else
+//								p->Pockels.trigger=0;
 						}
 					}
 //-------PAUSE----------------------			
-					for(n=2*((tpause*_uS)/_PWM_RATE_HI)-1;n>0;n -= 255,++t)	{
+					for(n=2*((tpause*_uS)/_PWM_RATE_HI)-1;n>0;n -= 256,++t)	{
 						t->T1=t->T2=_K1*p->Burst.Pdelay;
 						t->T3=t->T4=_K2*p->Burst.Pdelay;
 						if(n > 255)
@@ -282,7 +282,7 @@ float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
 			}
 //------- fill seq. till end, except in user mode--------		
 			if(p->Burst.Ereq != _SHPMOD_OFF) {
-				for(n=2*((p->Burst.Length*_uS - p->Burst.N*(to+tpause)*_uS)/_PWM_RATE_HI)-1;n>0;n -= 255,++t)	{
+				for(n=2*((p->Burst.Length*_uS - p->Burst.N*(to+tpause)*_uS)/_PWM_RATE_HI)-1;n>0;n -= 256,++t)	{
 					t->T1=t->T2=_K1*p->Burst.Pdelay;
 					t->T3=t->T4=_K2*p->Burst.Pdelay;
 					if(n > 255)

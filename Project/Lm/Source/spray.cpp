@@ -94,7 +94,6 @@ static int acc=0,accin=0,accout=0;
 					Bottle_ref	= offset->bottle + AirLevel*gain->bottle*(100+4*WaterLevel)/100/10;
 					
 
-
 					if(!BottleIn->Busy() && !BottleOut->Busy()) {
 						if(accin) {
 //						printf("\r\n in  %d,%d",adf.bottle-acc,adf.bottle);
