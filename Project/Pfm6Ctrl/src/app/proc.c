@@ -45,11 +45,25 @@ int		i=current_job;
 * Output				:
 * Return				:
 *******************************************************************************/
+app		*App_Find(func *f,arg *a) {
+int		i;
+			for(i=0; i<sizeof(list)/sizeof(app); ++i)
+				if(list[i].f == f && list[i].arg == a) 
+					return &list[i];
+			return NULL;
+}
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
 void	App_Add(func *f,arg *a,char *name, int dt) {
 int		i;
 			for(i=0; i<sizeof(list)/sizeof(app); ++i)
 				if(list[i].f == NULL) {
-						list[i].t=list[i].to=0;
+						list[i].to=0;
+						list[i].t=__time__+dt;
 						list[i].f=f;
 						list[i].arg=a;
 						list[i].name=name;

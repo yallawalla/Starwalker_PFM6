@@ -56,11 +56,8 @@
 #define					_Rdiv(a,b)		((a)/(a+b))
 #define					_Rpar(a,b)		((a)*(b)/(a+b))
 			          
-#define					_R1	7.5e3																								// 5.6e3 stari HW?
-#define					_R2	2e6
-
-#define					_AD2HV(a)			((int)(((a)*_UREF)/4096.0/ADC3_AVG/_Rdiv(_R1,_R2)+0.5))
-#define					_HV2AD(a)			((int)(((a)*4096.0*ADC3_AVG*_Rdiv(_R1,_R2))/_UREF+0.5))
+#define					_AD2HV(a)			((int)(((a)*_UREF)/4096.0/ADC3_AVG/_Rdiv(7.5e3,2e6)+0.5))
+#define					_HV2AD(a)			((int)(((a)*4096.0*ADC3_AVG*_Rdiv(7.5e3,2e6))/_UREF+0.5))
 #define					_I2AD(a)			(((a)*4096)/(int)(3.3/2.9999/0.001+0.5))
 #define					_AD2I(a)			(((a)*(int)(3.3/2.9999/0.001+0.5))/4096)
 
@@ -436,7 +433,8 @@ int							getHEX(char *, int);
 void						putHEX(unsigned int,int);
 int							hex2asc(int);
 void						putHEX(unsigned int,int);
-int							strscan(char *,char *[],int);
+int							strscan(char *,char *[],int),
+								numscan(char *,char *[],int);
 int							hex2asc(int);
 void						putHEX(unsigned int,int);
 int							sLoad(char *);

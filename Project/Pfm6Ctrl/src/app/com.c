@@ -841,7 +841,7 @@ int				i;
 //______________________________________________________________________________________
 				case 'P':
 				case 'p':
-					n=strscan(++c,cc,',');
+					n=numscan(++c,cc,',');
 					if(n==0) {
 						__print("\r>p(ulse)  T,U           ... %dus,%dV",pfm->Burst.Time,pfm->Burst.Pmax*_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI);
 						if(pfm->Pockels.delay || pfm->Pockels.width)
@@ -875,7 +875,7 @@ int				i;
 					break;
 //______________________________________________________________________________________
 				case 'd':
-					n=strscan(++c,cc,',');
+					n=numscan(++c,cc,',');
 
 					if(!n) {
 						__print("\r>d(elay)  T,PW          ... %dus,%.2f",pfm->Burst.Delay,(float)pfm->Burst.Pdelay/_PWM_RATE_HI);
@@ -889,7 +889,7 @@ int				i;
 					break;
 //______________________________________________________________________________________
 				case 'b':
-					n=strscan(++c,cc,',');
+					n=numscan(++c,cc,',');
 					if(n==0) {
 						__print("\r>b(urst)  N,len,per     ... %d,%dus,%dms",pfm->Burst.N, pfm->Burst.Length,pfm->Burst.Repeat);
 						break;
@@ -913,7 +913,7 @@ int				i;
 //______________________________________________________________________________________
 				case 'q':
 				{
-					n=strscan(++c,cc,',');
+					n=numscan(++c,cc,',');
 					if(!n) {
 							__print("\r>q(shape) w,U,td,to,tref ...");
 							for(k=0; qshape[k].qref && k<_MAX_QSHAPE; ++k)
@@ -938,7 +938,7 @@ int				i;
 					break;
 //______________________________________________________________________________________
 				case 's':
-					switch(strscan(++c,cc,',')) {
+					switch(numscan(++c,cc,',')) {
 						case 0:
 							__print("\r>s(immer) n // t1,t2,f1,f2..%dns,%dns,%dus,%dus",
 									(int)(1000*pfm->Burst.Psimm[0])/_uS,
@@ -977,7 +977,7 @@ int				i;
 					break;
 //______________________________________________________________________________________
 				case 'a':
-					switch(strscan(++c,cc,',')) {
+					switch(numscan(++c,cc,',')) {
 extern int	_U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
 						case 0:
 							__print("  \r>a(dc)    U1,I1,U2,I2   ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I),_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I));
@@ -1002,7 +1002,7 @@ extern int	_U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
 					break;	
 //______________________________________________________________________________________
 				case 'i':							
-					switch(strscan(++c,cc,',')) {
+					switch(numscan(++c,cc,',')) {
 						case 0:
 							__print("\r>i(DAC)   i1,i2         ... %d%c,%d%c",(DAC_GetDataOutputValue(DAC_Channel_1)*100+0x7ff)/0xfff,'%',(DAC_GetDataOutputValue(DAC_Channel_2)*100+0x7ff)/0xfff,'%');
 							break;
@@ -1052,7 +1052,7 @@ extern int	_U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
 					break;
 //______________________________________________________________________________________
 				case 'f':
-					n=strscan(++c,cc,',');
+					n=numscan(++c,cc,',');
 					if(!n) {
 						__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%d",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',pfm->Temp);
 						break;
@@ -1070,7 +1070,7 @@ extern int	_U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
 				case 'u':
 {
 int			u=0,umax=0,umin=0;
-					switch(strscan(++c,cc,',')) {
+					switch(numscan(++c,cc,',')) {
 						case 0:
 							__print("\r>u(bank)  Uc,Uc/2,20,-5 ... %dV,%dV,%.1fV,%.1fV",_AD2HV(pfm->HV),_AD2HV(pfm->HV2)/2,_AD2p20V(pfm->Up20),_AD2m5V(pfm->Um5));
 							return _PARSE_OK;

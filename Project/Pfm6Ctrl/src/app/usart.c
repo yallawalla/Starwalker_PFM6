@@ -22,8 +22,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "io.h"
-
-_io	*__com0,*__com1,*__dbug;
+_io	*__com0, *__com1, *__dbug;
 /*******************************************************************************
 * Function Name  : DMA_Configuration
 * Description    : Configures the DMA.
@@ -156,7 +155,7 @@ _io 										*io;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 
  	GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_USART1);		
- 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource7, GPIO_AF_USART1);	
+ 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource7, GPIO_AF_USART1);		
 #else
 	#### error, no HW defined
 #endif
@@ -235,8 +234,7 @@ _buffer		*p=__stdin.io->gets;
 			return(NULL);
 }
 //______________________________________________________________________________________
-int			strscan(char *s,char *ss[],int c)
-{
+int			strscan(char *s,char *ss[],int c) {
 			int		i=0;
 			while(1)
 			{
@@ -255,6 +253,12 @@ int			strscan(char *s,char *ss[],int c)
 					return(i);
 				*s++=0;
 			}
+}
+//______________________________________________________________________________________
+int		numscan(char *s,char *ss[],int c) {
+			while(*s && !isdigit(*s)) 
+				++s;
+			return(strscan(s,ss,c));
 }
 //______________________________________________________________________________________
 int			hex2asc(int i)
