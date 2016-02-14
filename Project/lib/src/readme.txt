@@ -17,3 +17,4 @@ FIL iz stdin,stdout v IO !!!
 ungetch, ungets
 batch, ungets na startu...
 _io_init v initVCP
++/-L lcd output 
