@@ -238,7 +238,6 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 
 typedef	enum {PARSE_OK,PARSE_SYNTAX,PARSE_ILLEGAL,PARSE_MISSING,PARSE_MEM} ERR_MSG;
 
-extern "C" {
 /*******************************************************************************
 * Function Name	: 
 * Description		: 
@@ -517,21 +516,6 @@ char									str[16];
 * Output				:
 * Return				:
 *******************************************************************************/
-int		lm() {
-_LM 	lm;
-			printf("\r\n:");						
-			do
-				_thread_loop();
-			while(lm.Parse()==true);
-			return 0;
-}
-}
-/*******************************************************************************
-* Function Name	: 
-* Description		: 
-* Output				:
-* Return				:
-*******************************************************************************/
 bool	_LM::Parse() {
 			_stdio(io);
 			return Parse(VT100.Escape());
@@ -790,6 +774,22 @@ _io*	temp=_stdio(self->io);
 					self->lcd.Grid();				
 #endif
 			}
+}
+extern "C" {
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
+int		lm() {
+_LM 	lm;
+			printf("\r\n:");						
+			do
+				_thread_loop();
+			while(lm.Parse()==true);
+			return 0;
+}
 }
 //Q1   +f 0.00229515,0.00459030,0.00229515,1.89738149,-0.90656211
 //Q05  +f 0.00219271, 0.00438542, 0.00219271, 1.81269433, -0.82146519

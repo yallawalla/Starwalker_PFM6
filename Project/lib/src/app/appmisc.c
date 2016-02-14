@@ -184,7 +184,7 @@ int		putLCD(_buffer *p, int c) {
 		if(!t) {
 			l = malloc(sizeof(lcd));
 			l->io=NULL;
-		_thread_add(refreshLCD,l,"Lcd",5000);
+		_thread_add(refreshLCD,l,"Lcd",20000);
 		} else
 			l=t->arg;
 
