@@ -53,8 +53,8 @@ _LM::_LM() {
 			printf("\r\n[F8]  - EC20 console");
 			printf("\r\n[F11] - save settings");	
 			printf("\r\n[F12] - exit app.    ");	
-			printf("\r\nCtrlE - EC20 console ");	
 			printf("\r\n");	
+			printf("\r\nCtrlE - EC20 console ");	
 			printf("\r\nCtrlY - reset");	
 
 			_12Voff_ENABLE;
@@ -751,7 +751,7 @@ int				i,j;
 void	_LM::Display(void *v) {
 _LM 	*self = static_cast<_LM *>(v);	
 _io*	temp=_stdio(self->io);
-			while(_buffer_len(self->pyro.buffer) > 3*sizeof(short)) {
+			while(_buffer_left(self->pyro.buffer) > 3*sizeof(short)) {
 				short 	ta,tp,t;
 //______ buffer pull from ISR __________________________________________________					
 				_buffer_pull(self->pyro.buffer,&t,sizeof(short));							

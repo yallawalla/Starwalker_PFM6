@@ -95,25 +95,23 @@ int			(*get)(_buffer *),
 int			(*parse)(char *);
 } _io;
 
-_buffer	*_buffer_init(int),
-				*_buffer_close(_buffer *);
-int			_buffer_len(_buffer *);
 	
 _io			*_io_init(int, int),
 				*_io_close(_io *),
 				*_stdio(_io	*);
 
+_buffer	*_buffer_init(int),
+				*_buffer_close(_buffer *);
 int			_buffer_push(_buffer *, void *,int),
 				_buffer_pull(_buffer *, void *,int),
-				_buffer_len(_buffer *),
-				_buffer_LIFO(_buffer *, void *, int);
+				_buffer_left(_buffer *);
 				
 void		_thread_init(void),
 				_thread_loop(void),
 				_thread_list(void),
 				_thread_add(void *,void *,char *,int),
 				_thread_remove(void *,void *),	
-				*_thread_active(void *,void *);
+				*_thread_find(void *,void *);
 void		_wait(int,void (*)(void));
 _io			*ParseCom(_io *);
 	

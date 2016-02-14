@@ -132,18 +132,29 @@ void						SysTick_init(void),
 										
 								USBD_Vcp_Init(void),
 								Initialize_LED(char *[], int),
-								Initialize_NVIC(void),
-								batch(char *);
+								Initialize_NVIC(void);
+int							batch(char *);
 										
 _io 						*Initialize_USART(int);
 
+#define 	_THREAD_BUFFER_SIZE 128
+
+ typedef	void *func(void *);
+ 
+typedef	struct {
+func			*f;
+void			*arg;
+char			*name;
+int				t,dt,to;
+} _thread;
 
 extern					_buffer 	*_thread_buf;
 void						_thread_init(void),
 								_thread_loop(void),
 								_thread_list(void),
-								_thread_add(void *,void *,char *,int),
 								_thread_remove(void *,void *);
+_thread					*_thread_add(void *,void *,char *,int),
+								*_thread_find(void *,void *);
 								
 void						_wait(int,void (*)(void));
 								
@@ -196,6 +207,7 @@ int							sDump(char *,int);
 int							hex2asc(int);
 int							asc2hex(int);
 void						PrintVersion(int);
+int							putLCD(_buffer *, int);
 
 
 #ifndef	__max				

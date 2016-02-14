@@ -11,7 +11,7 @@ typedef struct _buffer
 	char	*_buf, *_push, *_pull;
 	int		(* push)(struct _buffer *, char *);
 	int		(* pull)(struct _buffer *);
-	int		len;
+	int		size;
 } _buffer;	
 //______________________________________________________________________________________
 typedef struct _io
@@ -20,8 +20,9 @@ _buffer	*rx,
 				*tx,
 				*cmdline;
 int			(*get)(_buffer *),
-				(*put)(int, _buffer *);
+				(*put)(_buffer *, int);
 int			(*parse)(char *);
+FIL 		*FIL;
 } _io;
 //______________________________________________________________________________________
 _buffer	*_buffer_init(int),
@@ -33,17 +34,16 @@ _io			*_io_init(int, int),
 
 int			_buffer_push(_buffer *, void *,int),
 				_buffer_pull(_buffer *, void *,int),
-				_buffer_len(_buffer *);
+				_buffer_left(_buffer *);
 				
-int			putch(int), 
-				getch(void);
-		
+int			ungets(_buffer *, void *, int);
+int 		ungetch(int);
+	
 int 		f_getc (FIL*);		
 void		Watchdog(void);
 
 struct	__FILE
 {
 	_io		*IO;
-	FIL 	*FIL;
 };
 #endif

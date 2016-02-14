@@ -1,4 +1,5 @@
 #include	"app.h"
+#include "stm32f4_discovery_lcd.h"
 /**
   ******************************************************************************
   * @file    appmisc.c
@@ -11,19 +12,9 @@
 /** @addtogroup PFM6_Application
 * @{
 */
-#define 	_THREAD_BUFFER_SIZE 128
-
 _buffer 	*_thread_buf=NULL;
- typedef	void *func(void *);
- 
-typedef	struct {
-func			*f;
-void			*arg;
-char			*name;
-int				t,dt,to;
-} _thread;
 //______________________________________________________________________________
-void			_thread_add(void *f,void *arg,char *name, int dt) {
+_thread		*_thread_add(void *f,void *arg,char *name, int dt) {
 _thread		*p=malloc(sizeof(_thread));
 					if(p != NULL) {
 						p->f=(func *)f;
@@ -35,6 +26,7 @@ _thread		*p=malloc(sizeof(_thread));
 							_thread_buf=_buffer_init(_THREAD_BUFFER_SIZE*sizeof(_thread *));
 						_buffer_push(_thread_buf,&p,sizeof(_thread *));
 					}
+					return p;
 }
 //______________________________________________________________________________
 void			_thread_loop(void) {
@@ -51,7 +43,7 @@ _thread		*p;
 }
 //______________________________________________________________________________
 void			_thread_remove(void  *f,void *arg) {
-int				i=_buffer_len(_thread_buf)/sizeof(_thread *);
+int				i=_buffer_left(_thread_buf)/sizeof(_thread *);
 _thread		*p;
 					while(i--) {
 						_buffer_pull(_thread_buf,&p,sizeof(_thread *));
@@ -62,12 +54,12 @@ _thread		*p;
 					}
 }
 //______________________________________________________________________________
-_thread		*_thread_active(void  *f,void *arg) {
-int				i=_buffer_len(_thread_buf)/sizeof(_thread *);
+_thread		*_thread_find(void  *f,void *arg) {
+int				i=_buffer_left(_thread_buf)/sizeof(_thread *);
 _thread		*p,*q=NULL;
 					while(i--) {
 						_buffer_pull(_thread_buf,&p,sizeof(_thread *));
-						if(f == p->f && arg == p->arg)
+						if(f == p->f && (arg == p->arg || !arg))
 							q=p;
 						_buffer_push(_thread_buf,&p,sizeof(_thread *));
 					}
@@ -75,25 +67,13 @@ _thread		*p,*q=NULL;
 }
 //______________________________________________________________________________
 void			_thread_list(void) {
-int i			=_buffer_len(_thread_buf)/sizeof(_thread *);
+int i			=_buffer_left(_thread_buf)/sizeof(_thread *);
 _thread		*p;	
 					printf("...\r\n");
 					while(i--) {
 						_buffer_pull(_thread_buf,&p,sizeof(_thread *));
 						printf("%08X,%08X,%s,%d\r\n",(int)p->f,(int)p->arg,p->name,p->to);
 						_buffer_push(_thread_buf,&p,sizeof(_thread *));
-					}
-}
-//___________________________________________________________________________
-void			batch(char *filename) {
-FIL				f;
-					if(f_open(&f,filename,FA_READ)==FR_OK) {
-						__stdin.FIL=&f;
-						do
-							_thread_loop();
-							while(!f_eof(&f));
-						__stdin.FIL=NULL;
-						f_close(&f);
 					}
 }
 //___________________________________________________________________________
@@ -113,6 +93,129 @@ void			PrintVersion(int v) {
 						__DATE__,
 							CRC_CalcBlockCRC(__Vectors, (FATFS_ADDRESS-(int)__Vectors)/sizeof(int)));
 }
+/*******************************************************************************
+* Function Name : batch
+* Description   :	ADP1047 output voltage setup, using the default format
+* Input         :
+* Output        :
+* Return        :
+*******************************************************************************/
+int	batch(char *filename) {
+FIL		f;
+
+			if(f_open(&f,filename,FA_READ)==FR_OK) {
+				__stdin.IO->FIL=&f;
+				do {
+//					_thread_loop();
+					ParseCom(__stdin.IO);
+				} while(!f_eof(&f));
+				__stdin.IO->FIL=NULL;
+				f_close(&f);
+				return _PARSE_OK;
+			} else
+				return _PARSE_ERR_OPENFILE;
+}
+/*******************************************************************************
+* Function Name : batch
+* Description   :	ADP1047 output voltage setup, using the default format
+* Input         :
+* Output        :
+* Return        :
+*******************************************************************************/
+#define maxx 40
+#define maxy 20
+
+typedef struct {
+	char data[maxy][maxx];
+	int	x,y;
+	int	(*put)(_buffer *, int);
+	_io	*io;
+} lcd;
+
+void	*refreshLCD(void *v) {
+			int x,y;
+lcd		*p=v;
+sFONT *fnt = LCD_GetFont();
+			for(y=0;y<maxy;++y)
+				for(x=0;x<maxx;++x)
+					LCD_DisplayChar(y*fnt->Height,x*fnt->Width,p->data[y][x]);
+			_thread_find(refreshLCD,v)->t=__time__+5000;
+	return v;
+}
+
+int		putLCD(_buffer *p, int c) {
+	_thread	*t=_thread_find(refreshLCD,NULL);
+	lcd *l;
+	int x,y;
+
+	if(p && t) {
+		l=t->arg;
+		if(l->put(p,c)==EOF)
+			return EOF;
+		switch(c) {
+			case '\r':
+				l->x=0;
+				break;
+			
+			case '\n':
+				if(l->y == maxy-1) {
+					for(y=0;y<maxy-1;++y)
+						for(x=0;x<maxx;++x)
+							l->data[y][x]=l->data[y+1][x];
+					for(x=0;x<maxx;++x)
+						l->data[y][x]=' ';
+				} else
+					++l->y;			
+				break;
+				
+			case '\b':
+				if(l->x)
+					--l->x;
+				break;
+					
+			default:
+				l->data[l->y][l->x++]=c;
+				if(l->x == maxx)
+					--l->x;
+				break;
+		}
+		t->t=__time__+5;
+	} else {
+		if(!t) {
+			l = malloc(sizeof(lcd));
+			l->io=NULL;
+		_thread_add(refreshLCD,l,"Lcd",5000);
+		} else
+			l=t->arg;
+
+		if(l->io != stdout->IO) {
+			if(l->io)
+				l->io->put=l->put;
+			l->io=stdout->IO;
+			l->put=stdout->IO->put;
+			stdout->IO->put=putLCD;
+		}
+		
+		for(y=0;y<maxy;++y)
+			for(x=0;x<maxx;++x)
+				l->data[y][x]=' ';
+		l->x=l->y=0;
+		STM32f4_Discovery_LCD_Init();
+		LCD_SetBackColor(LCD_COLOR_BLACK);
+		LCD_SetTextColor(LCD_COLOR_YELLOW);
+		LCD_SetFont(&Font8x12);
+		
+		if(c==EOF) {
+			l->io->put=l->put;	
+			_thread_remove(refreshLCD,l);
+			free(l);
+			l=NULL;
+		}
+	}
+	return c;
+}
+
+
 /**
 * @}
 */

@@ -219,9 +219,9 @@ void			_SPRAY::Simulator() {
 					buf->bottle=(pBott+iBott*RbottIn*0.1)*_BAR(1);
 					buf->air=(pAir + iAir*RairIn)*_BAR(1);
 					
-					buf->V5					= _V5;
-					buf->V12				= _V12;
-					buf->V24				= _V24;
+					buf->V5					= _V5to16X;
+					buf->V12				= _V12to16X;
+					buf->V24				= _V24to16X;
 						
 					buf->T2=(unsigned short)0xafff;
 }

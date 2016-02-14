@@ -37,11 +37,11 @@ _io			*io=__stdin.IO;
 int 		fputc(int c, FILE *f) {
 				if(f==stdout) {
 					if(f->IO) {
-						while(f->IO->put(c,f->IO->tx) == 0)
-							_wait(10,_thread_loop);
-					}
-					if(f->FIL) {
-						f_putc(c,f->FIL);
+						while(f->IO->put(f->IO->tx, c) == EOF)
+							_wait(2,_thread_loop);
+						if(f->IO->FIL) {
+							f_putc(c,f->IO->FIL);
+						}
 					}
 					return c;
 				}
@@ -51,10 +51,11 @@ int 		fputc(int c, FILE *f) {
 int 		fgetc(FILE *f) {
 int			c=EOF;
 				if(f==stdin) {
-					if(f->IO)
+					if(f->IO) {
 						c=f->IO->get(f->IO->rx);
-					if(f->FIL && c==EOF)
-						c=f_getc(f->FIL);
+						if(f->IO->FIL && c==EOF)
+							c=f_getc(f->IO->FIL);
+					}
 					return c;
 				}
 				return f_getc((FIL *)f);
@@ -62,12 +63,12 @@ int			c=EOF;
 //_________________________________________________________________________________
 int 		fclose(FILE* f) 
 {
-				return((int)f_close(f->FIL));
+				return((int)f_close(f->IO->FIL));
 }
 //_________________________________________________________________________________
 int 		feof(FILE* f) 
 {	
-				return((int)f_eof(f->FIL));
+				return((int)f_eof(f->IO->FIL));
 }
 //_________________________________________________________________________________
 FILE 		*fopen(const char *filename, const char *att) {
@@ -140,22 +141,22 @@ FILE 		*freopen(const char *filename, const char *mode, FILE *stream)
 int 		fseek (FILE *f, long nPos, int nMode)  {
 				switch(nMode) {
 					case SEEK_SET:
-						return(f_lseek(f->FIL,nPos));
+						return(f_lseek(f->IO->FIL,nPos));
 					case SEEK_CUR:
-						return(f_lseek(f->FIL, f_tell(f->FIL)+nPos));
+						return(f_lseek(f->IO->FIL, f_tell(f->IO->FIL)+nPos));
 					case SEEK_END:
-						return(f_lseek(f->FIL, f_size(f->FIL)-nPos));
+						return(f_lseek(f->IO->FIL, f_size(f->IO->FIL)-nPos));
 					default:
 						return EOF;
 				}
 }
 //_________________________________________________________________________________
 int 		fflush (FILE *f)  {
-				return	f_sync(f->FIL);
+				return	f_sync(f->IO->FIL);
 }
 //_________________________________________________________________________________
 int 		ferror(FILE *f) {
-				return	f_error(f->FIL);
+				return	f_error(f->IO->FIL);
 }
 //_________________________________________________________________________________
 void 		_ttywrch(int c) {

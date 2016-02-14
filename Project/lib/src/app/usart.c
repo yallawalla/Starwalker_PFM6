@@ -100,14 +100,7 @@ int	i=0;
 		return EOF;
 }
 //______________________________________________________________________________________
-int	putCOMisr(int	c, void *p) {
-int i;
-	i=_buffer_push(__com0->tx,&c,1);	
-	USART_ITConfig(USART1, USART_IT_TXE, ENABLE);
-	return(i);
-}
-//______________________________________________________________________________________
-int	putCOM(int	c, _buffer *p) {
+int	putCOM(_buffer *p, int	c) {
 #ifdef __DISCO__
 	return	ITM_SendChar(c);
 #else
@@ -117,7 +110,7 @@ static
 	if(DMA2_Stream7->NDTR==0)																					// end of buffer reached
 		n=0;																														// reset static index
 	if(n == TxBufferSize-1)																						// buffer full ?
-		return(0);	
+		return(EOF);	
 	
 	DMA2_Stream7->CR &= ~0x00000001;																	// stream 7 off
 	while(DMA2_Stream7->CR & 0x00000001);															// wait for HW
@@ -128,8 +121,15 @@ static
 	
 	DMA2->HIFCR = 0x0F400000;																					// clear all flags
 	DMA2_Stream7->CR |= 0x00000001;																		// stream 7 on
-	return(1);
+	return(c);
 #endif
+}
+//______________________________________________________________________________________
+int	putCOMisr(void *p, int	c) {
+int i;
+	i=_buffer_push(__com0->tx,&c,1);	
+	USART_ITConfig(USART1, USART_IT_TXE, ENABLE);
+	return(i);
 }
 /*******************************************************************************
 * Function Name  : USART1_IRQHandler
@@ -230,7 +230,7 @@ _io				*io=__stdin.IO;
 _buffer		*p=io->cmdline;
 			
 			if(!p)
-				p=io->cmdline=_buffer_init(((_buffer *)io->rx)->len);
+				p=io->cmdline=_buffer_init(((_buffer *)io->rx)->size);
 			switch(c) {
 				case EOF:		
 					break;
@@ -248,7 +248,7 @@ _buffer		*p=io->cmdline;
 					}
 					break;
 				default:
-					if(p->_push != &p->_buf[p->len-1])
+					if(p->_push != &p->_buf[p->size-1])
 						*p->_push++ = c;
 					else  {
 						*p->_push=c;

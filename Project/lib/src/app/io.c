@@ -38,7 +38,7 @@ _buffer	*_buffer_init(int length) {
 					_buffer	*p=calloc(1,sizeof(_buffer));
 					if(p) {
 						p->_buf=p->_push=p->_pull=calloc(length,sizeof(char));
-						p->len=length;
+						p->size=length;
 						if(p->_buf)
 							return(p);
 						free(p);
@@ -64,10 +64,10 @@ int			i;
 				for(i=0; i<n; ++i) {
 					if((int)p->_pull - (int)t == 1)
 						break;
-					if((int)t - (int)p->_pull == p->len-1)
+					if((int)t - (int)p->_pull == p->size-1)
 						break;
 					*t++ = *r++;
-					if(t == &p->_buf[p->len])
+					if(t == &p->_buf[p->size])
 						t = p->_buf;
 				}
 				p->_push=t;
@@ -82,19 +82,19 @@ char		*t=p->_pull,
 				*r=(char *)q;
 				while(n-- && t != p->_push) {
 					r[i++] = *t++;
-					if(t == &p->_buf[p->len])
+					if(t == &p->_buf[p->size])
 						t=p->_buf;
 				}
 				p->_pull=t;
 				return(i);				
 }
 //______________________________________________________________________________________
-int			_buffer_len	(_buffer *p) {
+int			_buffer_left	(_buffer *p) {
 				if(p) {
 					if(p->_pull <= p->_push)
 						return((int)p->_push - (int)p->_pull);
 					else
-						return(p->len - (int)p->_pull + (int)p->_push);
+						return(p->size - (int)p->_pull + (int)p->_push);
 				}
 				return(0);
 }
@@ -113,8 +113,11 @@ int			i=0;
 //
 //	stdout prototype
 //
-int			__put (int c, _buffer *p) {
-				return(_buffer_push(p,&c,1));
+int			__put (_buffer *p, int c) {
+				if(_buffer_push(p,&c,1) == 1)
+					return c;
+				else
+					return EOF;
 }
 //______________________________________________________________________________________
 //
@@ -150,6 +153,26 @@ _io			*_io_close(_io *io) {
 					free(io);
 				}
 				return NULL;
+}
+//______________________________________________________________________________________
+int			ungets(_buffer *p, void *q, int n) {
+char		*t=p->_pull;
+				while(n--) {
+					if(t == p->_buf)
+						t = &p->_buf[p->size];
+					if(--t == p->_push)
+						return EOF;
+					*t = ((char *)q)[n];
+				}
+				p->_pull=t;
+				return *(char *)q;
+}
+//______________________________________________________________________________________
+int 		ungetch(int c) {
+				if(__stdin.IO)
+					return ungets(__stdin.IO->rx,&c,1);
+				else
+					return EOF;
 }
 /*-----------------------------------------------------------------------*/
 /* Get a character from the file                                          */

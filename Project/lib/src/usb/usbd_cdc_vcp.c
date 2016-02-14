@@ -101,11 +101,11 @@ uint16_t	VCP_DataRx (uint8_t* Buf, uint32_t Len)
 					return USBD_OK;
 }
 //_____________________________________________________________________________________
-int				putVCP (int	c,_buffer *p) {
+int				putVCP (_buffer *p, int	c) {
 					if(VCP_DataTx((uint8_t *)&c,1)==USBD_OK)
 						return(c);
 					else
-						return(0);
+						return(EOF);
 }
 //_____________________________________________________________________________________
 int				getVCP (_buffer *p) {

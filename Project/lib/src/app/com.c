@@ -28,7 +28,7 @@ int				DecodeMinus(char *c) {
 					switch(*c) {
 //__________________________________________________ debug setup _____________
 					case 't':
-#if	defined(__DISCO__)
+#if	defined(__TCP__)
 					TcpServerInit();
 #endif
 					break;
@@ -71,6 +71,10 @@ int				DecodeMinus(char *c) {
 //__________________________________________________defragment ______________
 					case 'A':
 						_thread_list();
+					break;
+//__________________________________________________kill lcd output _________
+					case 'L':
+						putLCD(NULL,EOF);
 					break;
 //__________________________________________________formatting flash drive___
 					case 'F':
@@ -182,12 +186,9 @@ int				DecodePlus(char *c) {
 						if(strscan(++c,cc,','))
 							Watchdog_init(atoi(cc[0]));
 					break;
-//__________________________________________________ debug setup _____________
-					case 'D':
-						__dbug=__stdin.IO;
-						n=strscan(++c,cc,',');
-						while(n--)
-							_SET_DBG(strtol(cc[n],NULL,0));
+//__________________________________________________ add lcd output _____________
+					case 'L':
+						putLCD(NULL,0);
 					break;
 //______________________________________________________________________________________
 					default:
@@ -546,10 +547,11 @@ int				DecodeCom(char *c) {
 						break;
 //______________________________________________________________________________________
 					case '@':
-						while(*++c == ' ');
-						strcat(c,".bat");
-						batch(c);
-						break;
+//						while(*++c == ' ');
+//						strcat(c,".bat");
+//						batch(c);
+//					break; 
+						return batch(++c);
 //______________________________________________________________________________________
 					case 'x':
 					{

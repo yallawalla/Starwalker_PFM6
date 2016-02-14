@@ -11,3 +11,9 @@ _____ v example projektu__________________
 USE_STDPERIPH_DRIVER,STM32F2XX,USE_USB_OTG_FS,__PFM6__,HSE_VALUE=25000000
 USE_STDPERIPH_DRIVER,STM32F2XX,USE_USB_OTG_FS,__DISCO__,HSE_VALUE=8000000
 
+14.2.2016
+
+FIL iz stdin,stdout v IO !!!
+ungetch, ungets
+batch, ungets na startu...
+_io_init v initVCP

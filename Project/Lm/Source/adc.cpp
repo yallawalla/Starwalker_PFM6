@@ -140,7 +140,7 @@ void		_ADC::Status() {
 
 				error.V5 =(abs(adf.V5  - _V5to16X)	 > _V5to16X/10);
 				error.V12=(abs(adf.V12 - _V12to16X) > _V12to16X/5);
-				error.V24=(abs(adf.V24 - _V24to16) > _V24to16/10);
+				error.V24=(abs(adf.V24 - _V24to16X) > _V24to16X/10);
 				error.InputPressure=(abs(adf.compressor - 4*offset.compressor) > offset.compressor/2);
 				error.Overheat=(Th2o > 50*100);
 
