@@ -88,7 +88,7 @@ int			_buffer_empty	(_buffer *p) {
 					return(EOF);
 }
 //______________________________________________________________________________________
-int			_buffer_len	(_buffer *p) {
+int			_buffer_count	(_buffer *p) {
 				if(p) {
 					if(p->_pull <= p->_push)
 						return((int)p->_push - (int)p->_pull);
@@ -164,7 +164,7 @@ _io			*_io_close(_io *io) {
 				return NULL;
 }
 //______________________________________________________________________________________
-int			_buffer_LIFO(_buffer *p, void *q, int n) {
+int			_buffer_put(_buffer *p, void *q, int n) {
 char		*t=p->_pull;
 				while(n--) {
 					if(t == p->_buf)
@@ -177,9 +177,16 @@ char		*t=p->_pull;
 				return *(char *)q;
 }
 //______________________________________________________________________________________
+int 		ungets(char *c) {
+				if(__stdin.io)
+					return _buffer_put(__stdin.io->rx,c,strlen(c));
+				else
+					return EOF;
+}
+//______________________________________________________________________________________
 int 		ungetch(int c) {
 				if(__stdin.io)
-					return _buffer_LIFO(__stdin.io->rx,&c,1);
+					return _buffer_put(__stdin.io->rx,&c,1);
 				else
 					return EOF;
 }

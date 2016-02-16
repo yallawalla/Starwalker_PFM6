@@ -35,49 +35,14 @@ _io			*io=__stdin.io;
 				__stdin.io=__stdout.io=p;
 				return(io);
 }
-////_________________________________________________________________________________
-//extern	_io	*__com0,*__com1,*__can;
-////_________________________________________________________________________________
-//int 		fputc(int c, FILE *f) {
-//				int n;
-//				if(f==&__stdout) {
-//_io				*io=__stdout.handle.io;
-//					if(io == __com0 || io == __com1 || io == __can) {
-//						while(io->put(io->tx,c) == EOF)
-//							Watchdog();	
-//						return	c;
-//					} else 
-//						return fputc(c,f->handle.file);
-//				}
-//				if(!f || f_write((FIL *)f, &c, 1, (UINT *)&n)!=FR_OK || n!=1)
-//					return(EOF);
-//				else
-//					return(c);
-//}
-////_________________________________________________________________________________
-//int 		fgetc(FILE *f) {
-//				int n,c=0;
-//				if(f==&__stdin) {
-//_io				*io=__stdin.handle.io;
-//					if(io == __com0 || io == __com1 || io == __can)
-//						return io->get(io->rx);
-//					else
-//						return fgetc(f->handle.file);
-//				}
-//				if(f && f_read((FIL *)f, &c, 1, (UINT *)&n)==FR_OK && n==1)
-//					return(c);
-//				else
-//					return(EOF);
-//}
 //__________________________________________________________________________________
 int 		fputc(int c, FILE *f) {
 				if(f==stdout) {
 					if(f->io) {
 						while(f->io->put(f->io->tx,c) == EOF)
 							Wait(10,App_Loop);
-					}
-					if(f->fil) {
-						f_putc(c,f->fil);
+						if(f->io->file)
+							f_putc(c,f->io->file);
 					}
 					return c;
 				}
@@ -89,8 +54,8 @@ int			c=EOF;
 				if(f==stdin) {
 					if(f->io)
 						c=f->io->get(f->io->rx);
-					if(f->fil && c==EOF)
-						c=f_getc(f->fil);
+					if(f->io->file && c==EOF)
+						c=f_getc(f->io->file);
 					return c;
 				}
 				return f_getc((FIL *)f);
@@ -98,7 +63,7 @@ int			c=EOF;
 //_________________________________________________________________________________
 int 		fclose(FILE* f) 
 {	
-				return((int)f_close(f->fil));
+				return((int)f_close(f->io->file));
 }
 //_________________________________________________________________________________
 FILE 		*fopen(const char *filename, const char *att) {
@@ -127,22 +92,22 @@ FILE 		*fopen(const char *filename, const char *att) {
 int 		fseek (FILE *f, long nPos, int nMode)  {
 				switch(nMode) {
 					case SEEK_SET:
-						return(f_lseek(f->fil,nPos));
+						return(f_lseek(f->io->file,nPos));
 					case SEEK_CUR:
-						return(f_lseek(f->fil, f_tell(f->fil)+nPos));
+						return(f_lseek(f->io->file, f_tell(f->io->file)+nPos));
 					case SEEK_END:
-						return(f_lseek(f->fil, f_size(f->fil)-nPos));
+						return(f_lseek(f->io->file, f_size(f->io->file)-nPos));
 					default:
 						return EOF;
 				}
 }
 //_________________________________________________________________________________
 int 		fflush (FILE *f)  {
-				return	f_sync(f->fil);
+				return	f_sync(f->io->file);
 }
 //_________________________________________________________________________________
 int 		ferror(FILE *f) {
-				return	f_error(f->fil);
+				return	f_error(f->io->file);
 }
 //_________________________________________________________________________________
 void 		_ttywrch(int c) {

@@ -90,7 +90,7 @@ int	i=0;
 	}		
 #else
 	if(DMA2_Stream2->NDTR)
-		p->_push=&(p->_buf[p->len - DMA2_Stream2->NDTR]);
+		p->_push=&(p->_buf[p->size - DMA2_Stream2->NDTR]);
 	else
 		p->_push=p->_buf;
 #endif
@@ -226,7 +226,7 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 //______________________________________________________________________________________
 char		*cgets(int c, int mode)
 {
-_io				*io=__stdin.IO;
+_io				*io=__stdin.io;
 _buffer		*p=io->cmdline;
 			
 			if(!p)

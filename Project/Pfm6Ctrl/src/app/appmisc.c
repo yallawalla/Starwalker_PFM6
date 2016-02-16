@@ -560,18 +560,17 @@ int		i=_VOUT_MODE;
 * Output        :
 * Return        :
 *******************************************************************************/
-int	_batch(char *filename) {
+int	batch(char *filename) {
 FIL		f;
 FATFS	fs;
 
 			if(f_chdrive(0)==FR_OK && f_mount(0,&fs)==FR_OK && f_open(&f,filename,FA_READ)==FR_OK) {
 				__print("\r\n>");
-				__stdin.fil=&f;
-				do {
-					App_Loop();
+				__stdin.io->file=&f;
+				do
 					ParseCom(__stdin.io);
-				} while(!f_eof(&f));
-				__stdin.fil=NULL;
+				while(!f_eof(&f));
+				__stdin.io->file=NULL;
 				f_close(&f);
 				f_mount(0,NULL);
 				return _PARSE_OK;

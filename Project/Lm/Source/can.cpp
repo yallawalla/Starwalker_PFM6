@@ -208,7 +208,7 @@ CanTxMsg	msg={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 CanMsg		*m=(CanMsg *)msg.Data;
 _LM 			*lm = (_LM *)v;
 //________ flushing CAN buffer ____________________________ 
-					while((__CAN__->TSR & CAN_TSR_TME) && _buffer_left(tx) &&
+					while((__CAN__->TSR & CAN_TSR_TME) && _buffer_count(tx) &&
 						_buffer_pull(tx,&msg,sizeof(CanTxMsg))) {
 						CAN_Transmit(__CAN__,&msg);
 							
@@ -218,7 +218,6 @@ _LM 			*lm = (_LM *)v;
 							for(int i=0;i<msg.DLC;++i)
 								printf(" %02X",msg.Data[i]);
 							printf("\r\n:");
-							_stdio(io);
 						}
 					}
 //________ flushing com buffer/not echoed if debug_________ 
@@ -232,14 +231,13 @@ _LM 			*lm = (_LM *)v;
 						}
 					}
 //______________________________________________________________________________________					
-					if(_buffer_left(rx)  && _buffer_pull(rx,&msg,sizeof(CanTxMsg)) && _buffer_pull(rx,&tstamp,sizeof(unsigned int))) {
+					if(_buffer_count(rx)  && _buffer_pull(rx,&msg,sizeof(CanTxMsg)) && _buffer_pull(rx,&tstamp,sizeof(unsigned int))) {
 //________ debug print__________________________________________________________________
 						if(_BIT(lm->debug, DBG_CAN_RX)) {
 							printf("\r\n:%04d %02X ",__time__ % 10000,msg.StdId);
 							for(int i=0;i<msg.DLC;++i)
 								printf(" %02X",msg.Data[i]);
 							printf("\r\n:");
-							_stdio(io);
 						}
 //______________________________________________________________________________________
 						switch(msg.StdId) {

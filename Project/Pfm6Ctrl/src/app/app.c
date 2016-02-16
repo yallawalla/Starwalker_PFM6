@@ -102,7 +102,7 @@ int				i;
 					{} else
 						{}
 					RCC_ClearFlag();   	
-					_batch("cfg.ini");
+					ungets("@cfg.ini\r");
 					_stdio(NULL);
 }
 /*______________________________________________________________________________
@@ -449,7 +449,7 @@ char			*q=(char *)rx.Data;
 										__can->arg.io=_io_init(128,128);
 										App_Add((func *)ParseCom,(arg*)&__can->arg.io,"ParseCAN-IO",0);
 									}
-									while(__can->arg.io->rx->size - _buffer_len(__can->arg.io->rx) < 8)
+									while(__can->arg.io->rx->size - _buffer_count(__can->arg.io->rx) < 8)
 										Wait(2,App_Loop);
 									_buffer_push(__can->arg.io->rx,rx.Data,rx.DLC);
 								} else {

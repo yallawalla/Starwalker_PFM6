@@ -44,7 +44,7 @@
 typedef 			void *func(void*);
 int						_buffer_push(void *, void *,int),
 							_buffer_pull(void *, void *,int),
-							_buffer_left(void *);
+							_buffer_count(void *);
 							
 void					_io_close(void *),
 							_tcp_flush(void *),
@@ -358,7 +358,7 @@ void 	_tcp_flush(void *v) {
 				tcp_recved(es->pcb,n);																// free raw input
 			}																														
 																										
-			n=_buffer_left(es->io[1]);																// koliko je v buferju za izpis ...
+			n=_buffer_count(es->io[1]);																// koliko je v buferju za izpis ...
 			if(n > tcp_sndbuf(es->pcb))															// ne sme biti vec kot je placa na raw output ....
 				n = tcp_sndbuf(es->pcb);	
 			if(n > 256)																							// ne sme bit vec kot 1024.... glej c[1024]

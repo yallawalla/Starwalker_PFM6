@@ -48,7 +48,7 @@ int		i=current_job;
 app		*App_Find(func *f,arg *a) {
 int		i;
 			for(i=0; i<sizeof(list)/sizeof(app); ++i)
-				if(list[i].f == f && list[i].arg == a) 
+				if(list[i].f == f && (!a || list[i].arg == a)) 
 					return &list[i];
 			return NULL;
 }

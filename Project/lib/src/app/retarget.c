@@ -29,18 +29,18 @@ FILE 		__stdin;
 FILE 		__stderr;
 //_________________________________________________________________________________
 _io			*_stdio(_io	*p) {
-_io			*io=__stdin.IO;
-				__stdin.IO=__stdout.IO=p;
+_io			*io=__stdin.io;
+				__stdin.io=__stdout.io=p;
 				return(io);
 }
 //__________________________________________________________________________________
 int 		fputc(int c, FILE *f) {
 				if(f==stdout) {
-					if(f->IO) {
-						while(f->IO->put(f->IO->tx, c) == EOF)
+					if(f->io) {
+						while(f->io->put(f->io->tx, c) == EOF)
 							_wait(2,_thread_loop);
-						if(f->IO->FIL) {
-							f_putc(c,f->IO->FIL);
+						if(f->io->file) {
+							f_putc(c,f->io->file);
 						}
 					}
 					return c;
@@ -51,10 +51,10 @@ int 		fputc(int c, FILE *f) {
 int 		fgetc(FILE *f) {
 int			c=EOF;
 				if(f==stdin) {
-					if(f->IO) {
-						c=f->IO->get(f->IO->rx);
-						if(f->IO->FIL && c==EOF)
-							c=f_getc(f->IO->FIL);
+					if(f->io) {
+						c=f->io->get(f->io->rx);
+						if(f->io->file && c==EOF)
+							c=f_getc(f->io->file);
 					}
 					return c;
 				}
@@ -63,12 +63,12 @@ int			c=EOF;
 //_________________________________________________________________________________
 int 		fclose(FILE* f) 
 {
-				return((int)f_close(f->IO->FIL));
+				return((int)f_close(f->io->file));
 }
 //_________________________________________________________________________________
 int 		feof(FILE* f) 
 {	
-				return((int)f_eof(f->IO->FIL));
+				return((int)f_eof(f->io->file));
 }
 //_________________________________________________________________________________
 FILE 		*fopen(const char *filename, const char *att) {
@@ -141,22 +141,22 @@ FILE 		*freopen(const char *filename, const char *mode, FILE *stream)
 int 		fseek (FILE *f, long nPos, int nMode)  {
 				switch(nMode) {
 					case SEEK_SET:
-						return(f_lseek(f->IO->FIL,nPos));
+						return(f_lseek(f->io->file,nPos));
 					case SEEK_CUR:
-						return(f_lseek(f->IO->FIL, f_tell(f->IO->FIL)+nPos));
+						return(f_lseek(f->io->file, f_tell(f->io->file)+nPos));
 					case SEEK_END:
-						return(f_lseek(f->IO->FIL, f_size(f->IO->FIL)-nPos));
+						return(f_lseek(f->io->file, f_size(f->io->file)-nPos));
 					default:
 						return EOF;
 				}
 }
 //_________________________________________________________________________________
 int 		fflush (FILE *f)  {
-				return	f_sync(f->IO->FIL);
+				return	f_sync(f->io->file);
 }
 //_________________________________________________________________________________
 int 		ferror(FILE *f) {
-				return	f_error(f->IO->FIL);
+				return	f_error(f->io->file);
 }
 //_________________________________________________________________________________
 void 		_ttywrch(int c) {

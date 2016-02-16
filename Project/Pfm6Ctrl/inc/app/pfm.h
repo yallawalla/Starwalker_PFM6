@@ -70,18 +70,18 @@
 #define					__charger6		__i2c1
 
 void						_led(int, int),
-								Lightshow(void);
+								*Lightshow(void *v);
 
-#define					_RED1(a)			_led(0,a)
-#define					_GREEN1(a)		_led(1,a)
-#define					_YELLOW1(a)		_led(2,a)
-#define					_BLUE1(a)			_led(3,a)
-#define					_ORANGE1(a)		_led(4,a)
-#define					_RED2(a)			_led(5,a)
-#define					_GREEN2(a)		_led(6,a)
-#define					_YELLOW2(a)		_led(7,a)
-#define					_BLUE2(a)			_led(8,a)
-#define					_ORANGE2(a)		_led(9,a)             
+#define					_RED1(a)			if(__time__ > 10000) _led(0,a)
+#define					_GREEN1(a)		if(__time__ > 10000) _led(1,a)
+#define					_YELLOW1(a)		if(__time__ > 10000) _led(2,a)
+#define					_BLUE1(a)			if(__time__ > 10000) _led(3,a)
+#define					_ORANGE1(a)		if(__time__ > 10000) _led(4,a)
+#define					_RED2(a)			if(__time__ > 10000) _led(5,a)
+#define					_GREEN2(a)		if(__time__ > 10000) _led(6,a)
+#define					_YELLOW2(a)		if(__time__ > 10000) _led(7,a)
+#define					_BLUE2(a)			if(__time__ > 10000) _led(8,a)
+#define					_ORANGE2(a)		if(__time__ > 10000) _led(9,a)             
 //________________________________________________________________________
 typedef					enum 					{_SIMMER_LOW, _SIMMER_HIGH} SimmerType; 
 typedef					enum					{false=0, true} bool;
@@ -454,7 +454,7 @@ int							__fit(int,const int[],const int[]);
 float						__lin2f(short);
 short						__f2lin(float, short);
 
-int							_batch(char *);	        
+int							batch(char *);	        
 void						CAN_console(void);
 
 extern					uint32_t	__Vectors[];

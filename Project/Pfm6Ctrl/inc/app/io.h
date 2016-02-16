@@ -28,6 +28,7 @@ typedef struct _io
 				int		(*parse)(char *);
 				struct _io *io;
 	}			 arg;
+	FIL		*file;
 } _io;
 //______________________________________________________________________________________
 _buffer	*_buffer_init(int),
@@ -37,10 +38,11 @@ _io			*_io_init(int, int),
 				*_stdio(_io	*);
 
 int			_buffer_push(_buffer *, void *,int),
+				_buffer_put(_buffer *, void *,int),
 				_buffer_pull(_buffer *, void *,int),
-				_buffer_len	(_buffer *),
-				_buffer_empty(_buffer *),
-				_buffer_LIFO(_buffer *, void *, int);
+				_buffer_count(_buffer *),
+				_buffer_empty(_buffer *);
+				
 				
 int			putch(int),
 				getch(void),
@@ -53,7 +55,5 @@ void		Watchdog(void);
 struct	__FILE 
 { 
 				_io		*io;
-				FIL 	*fil; 
-				int err;
 };
 #endif

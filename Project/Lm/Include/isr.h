@@ -104,7 +104,7 @@ _buffer	*_buffer_init(int),
 				*_buffer_close(_buffer *);
 int			_buffer_push(_buffer *, void *,int),
 				_buffer_pull(_buffer *, void *,int),
-				_buffer_left(_buffer *);
+				_buffer_count(_buffer *);
 				
 void		_thread_init(void),
 				_thread_loop(void),

@@ -152,7 +152,7 @@ int				DecodeMinus(char *c) {
 					break;
 //__________________________________________________ debug setup _____________
 					case 'D':
-						__dbug=__stdin.IO;
+						__dbug=__stdin.io;
 						n=strscan(++c,cc,',');
 						while(n--)
 							_CLEAR_DBG(strtol(cc[n],NULL,0));
@@ -239,7 +239,7 @@ FIL 			*f=NULL;																	// file object pointer
 						if(f_open(f,c,FA_READ|FA_WRITE|FA_OPEN_ALWAYS)==FR_OK &&
 							f_lseek(f,f_size(f))==FR_OK) {				// open & pointer to eof
 								fprintf((FILE *)f,"\r");						// init. needed kwdf???
-								__stdin.IO->parse=EnterFile;				// parser redirect
+								__stdin.io->parse=EnterFile;				// parser redirect
 								return _PARSE_OK;
 							} else {
 								free(f);														// free & error exit othw
@@ -256,7 +256,7 @@ FIL 			*f=NULL;																	// file object pointer
 						f_close(f);
 						free(f);
 						f=NULL;																// null pointer
-						__stdin.IO->parse=DecodeFs;						// parser redirect
+						__stdin.io->parse=DecodeFs;						// parser redirect
 					break;
 //______________________________________________________________________________________
 					default:
@@ -335,7 +335,7 @@ static 		DIR		dir;
 								f_getcwd(lfn,_MAX_LFN)!=FR_OK ||
 									f_opendir(&dir,lfn)!=FR_OK)
 										return _PARSE_ERR_SYNTAX;
-						__stdin.IO->parse=DecodeFs;
+						__stdin.io->parse=DecodeFs;
 						}
 //__delete file________________________________________________________________________
 						if(!strncmp("delete",sc[0],len)) {
@@ -477,7 +477,7 @@ static 		DIR		dir;
 						}
 //______________________________________________________________________________________
 						if(!strncmp(">",sc[0],len)) {
-							__stdin.IO->parse=DecodeCom;
+							__stdin.io->parse=DecodeCom;
 							return(DecodeCom(NULL));
 						}
 		}
@@ -546,11 +546,11 @@ int				DecodeCom(char *c) {
 						}
 						break;
 //______________________________________________________________________________________
+					case 'w':
+						_wait(strtoul(++c,NULL,0),_thread_loop);
+						break;
+//______________________________________________________________________________________
 					case '@':
-//						while(*++c == ' ');
-//						strcat(c,".bat");
-//						batch(c);
-//					break; 
 						return batch(++c);
 //______________________________________________________________________________________
 					case 'x':

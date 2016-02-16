@@ -22,9 +22,6 @@
 
 _LM::_LM() {
 	
-      io=_stdio(NULL);
-      _stdio(io);
-	
 			_thread_add((void *)Poll,this,(char *)"lm",1);
 			_thread_add((void *)Display,this,(char *)"plot",1);			
 	
@@ -81,6 +78,7 @@ _LM::_LM() {
 //
 //
 //
+      io=_stdio(NULL);
 }
 /*******************************************************************************
 * Function Name	: 
@@ -135,9 +133,7 @@ void	_LM::Print(void *v) {
 			_LM *self = static_cast<_LM *>(v);	
 			_io*	temp=_stdio(self->io);
 			_ADCDMA *adf=&_ADC::Instance()->adf;
-
 			printf("%d,%d,%d,%d\r\n",adf->cooler,adf->bottle,adf->compressor,adf->air);
-
 			_stdio(temp);
 }
 /*******************************************************************************
@@ -373,6 +369,9 @@ int		_LM::Decode(char *c) {
 					case 'W':
 						printf(" %04X",*(int *)strtoul(++c,NULL,0));
 						break;
+					case 'w':
+						_wait(strtoul(++c,NULL,0),_thread_loop);
+						break;
 					case '.':
 						can.Send(++c);
 						break;
@@ -517,8 +516,10 @@ char									str[16];
 * Return				:
 *******************************************************************************/
 bool	_LM::Parse() {
-			_stdio(io);
-			return Parse(VT100.Escape());
+_io		*temp=_stdio(io);
+bool	ret=Parse(VT100.Escape());
+			_stdio(temp);
+			return ret;
 }
 /*******************************************************************************
 * Function Name	: 
@@ -735,7 +736,7 @@ int				i,j;
 void	_LM::Display(void *v) {
 _LM 	*self = static_cast<_LM *>(v);	
 _io*	temp=_stdio(self->io);
-			while(_buffer_left(self->pyro.buffer) > 3*sizeof(short)) {
+			while(_buffer_count(self->pyro.buffer) > 3*sizeof(short)) {
 				short 	ta,tp,t;
 //______ buffer pull from ISR __________________________________________________					
 				_buffer_pull(self->pyro.buffer,&t,sizeof(short));							
@@ -774,6 +775,7 @@ _io*	temp=_stdio(self->io);
 					self->lcd.Grid();				
 #endif
 			}
+			_stdio(temp);
 }
 extern "C" {
 /*******************************************************************************

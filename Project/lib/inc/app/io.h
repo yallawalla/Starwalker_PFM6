@@ -22,7 +22,7 @@ _buffer	*rx,
 int			(*get)(_buffer *),
 				(*put)(_buffer *, int);
 int			(*parse)(char *);
-FIL 		*FIL;
+FIL 		*file;
 } _io;
 //______________________________________________________________________________________
 _buffer	*_buffer_init(int),
@@ -33,10 +33,11 @@ _io			*_io_init(int, int),
 				*_stdio(_io	*);
 
 int			_buffer_push(_buffer *, void *,int),
+				_buffer_put(_buffer *, void *,int),
 				_buffer_pull(_buffer *, void *,int),
-				_buffer_left(_buffer *);
+				_buffer_count(_buffer *);
 				
-int			ungets(_buffer *, void *, int);
+int			ungets(char *);
 int 		ungetch(int);
 	
 int 		f_getc (FIL*);		
@@ -44,6 +45,6 @@ void		Watchdog(void);
 
 struct	__FILE
 {
-	_io		*IO;
+	_io		*io;
 };
 #endif

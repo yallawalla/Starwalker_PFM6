@@ -43,7 +43,7 @@ _thread		*p;
 }
 //______________________________________________________________________________
 void			_thread_remove(void  *f,void *arg) {
-int				i=_buffer_left(_thread_buf)/sizeof(_thread *);
+int				i=_buffer_count(_thread_buf)/sizeof(_thread *);
 _thread		*p;
 					while(i--) {
 						_buffer_pull(_thread_buf,&p,sizeof(_thread *));
@@ -55,7 +55,7 @@ _thread		*p;
 }
 //______________________________________________________________________________
 _thread		*_thread_find(void  *f,void *arg) {
-int				i=_buffer_left(_thread_buf)/sizeof(_thread *);
+int				i=_buffer_count(_thread_buf)/sizeof(_thread *);
 _thread		*p,*q=NULL;
 					while(i--) {
 						_buffer_pull(_thread_buf,&p,sizeof(_thread *));
@@ -67,7 +67,7 @@ _thread		*p,*q=NULL;
 }
 //______________________________________________________________________________
 void			_thread_list(void) {
-int i			=_buffer_left(_thread_buf)/sizeof(_thread *);
+int i			=_buffer_count(_thread_buf)/sizeof(_thread *);
 _thread		*p;	
 					printf("...\r\n");
 					while(i--) {
@@ -104,12 +104,11 @@ int	batch(char *filename) {
 FIL		f;
 
 			if(f_open(&f,filename,FA_READ)==FR_OK) {
-				__stdin.IO->FIL=&f;
+				__stdin.io->file=&f;
 				do {
-//					_thread_loop();
-					ParseCom(__stdin.IO);
+					ParseCom(__stdin.io);
 				} while(!f_eof(&f));
-				__stdin.IO->FIL=NULL;
+				__stdin.io->file=NULL;
 				f_close(&f);
 				return _PARSE_OK;
 			} else
@@ -188,12 +187,12 @@ int		putLCD(_buffer *p, int c) {
 		} else
 			l=t->arg;
 
-		if(l->io != stdout->IO) {
+		if(l->io != stdout->io) {
 			if(l->io)
 				l->io->put=l->put;
-			l->io=stdout->IO;
-			l->put=stdout->IO->put;
-			stdout->IO->put=putLCD;
+			l->io=stdout->io;
+			l->put=stdout->io->put;
+			stdout->io->put=putLCD;
 		}
 		
 		for(y=0;y<maxy;++y)

@@ -142,8 +142,8 @@ _ADC		*adc=_ADC::Instance();
 				
 				printf("\r:pump        %3d%c,%4.1lf'C,%4.1lf",Rpm(),'%',(double)adc->Th2o/100,(double)(adc->adf.cooler-adc->offset.cooler)/adc->gain.cooler);
 				if(idx>0)
-					printf("    %2d%c-%2d%c,%2d'C-%2d'C,%4.3lf",fpl,'%',fph,'%',ftl,fth,(double)adc->adf.Ipump/4096.0*3.3/2.1/16);		
-				for(int i=4*(6-idx);idx && i--;printf("\b"));
+					printf("   %2d%c-%2d%c,%2d'C-%2d'C,%4.3lf",fpl,'%',fph,'%',ftl,fth,(double)adc->adf.Ipump/4096.0*3.3/2.1/16);		
+				for(int i=4*(5-idx)+6;idx && i--;printf("\b"));
 				return Rpm();
 }
 /**

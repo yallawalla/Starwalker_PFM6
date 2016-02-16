@@ -54,8 +54,8 @@ void 			_thread_init(void) {
 					else if(RCC_GetFlagStatus(RCC_FLAG_PINRST) == SET)
 					{} else {}
 					RCC_ClearFlag();
+					ungets("@cfg.ini\r");
 					_stdio(NULL);
-					ungets(__com0->rx,"@cfg.ini\r",9);
 }
 //______________________________________________________________________________________
 _io				*ParseCom(_io *v) {

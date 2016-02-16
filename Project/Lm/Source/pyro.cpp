@@ -68,8 +68,6 @@ void	_PYRO::ISR(_PYRO *p) {
 * Return				:
 *******************************************************************************/
 _PYRO::_PYRO() {	
-      io=_stdio(NULL);
-      _stdio(io);
 			nbits=temp=count=nsamples=0;
 			period=10;
 			sync=0;
