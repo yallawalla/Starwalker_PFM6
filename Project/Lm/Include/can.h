@@ -101,7 +101,7 @@ class	_CAN {
 		int				debug;
 	
 	public:
-		_CAN	(bool=false);
+		_CAN	(bool=true);
 		void	RX_ISR(_CAN *), TX_ISR(_CAN *);
 		void 	Parse(void *);
 		void	Send(CanTxMsg *);

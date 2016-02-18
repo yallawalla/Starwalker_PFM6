@@ -17,11 +17,9 @@
 #include	"math.h"
 //______________________________________________________________________________
 int				main(void) { 
-
-
 					_thread_init();
 					while(1)
-						_thread_loop();
+p						_thread_loop();
 } 
 /** 
 * @}

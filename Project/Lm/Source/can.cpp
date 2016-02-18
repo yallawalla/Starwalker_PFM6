@@ -128,6 +128,12 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 }
 /*******************************************************************************/
 static		_CAN	*me;
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
 void			_CAN::RX_ISR(_CAN *p) {
 CanRxMsg	buf;
 					if(p) {																					// klic za prijavo instance
@@ -139,7 +145,12 @@ CanRxMsg	buf;
 						_buffer_push(me->rx,(void *)&__time__,sizeof(unsigned int));
 					}
 }
-/*******************************************************************************/
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
 void			_CAN::TX_ISR(_CAN *p) {
 CanTxMsg	buf={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 					if(p) {																					// klic za prijavo instance
@@ -288,30 +299,36 @@ _LM				*lm = (_LM *)v;
 //____________EC20 to Sys message ______________________________________________________
 							case Ec2Sys:
 								switch(*msg.Data) {
+//____________EC20 to Sys status  ______________________________________________________
 									case Id_EC20Status:
 										lm->ec20.status = m->EC20status.Status;
 										lm->ec20.error  = m->EC20status.Error;
 										if(lm->Selected() == EC20)
 											lm->Refresh();
 									break;	
+//____________EC20 to Sys energy  ______________________________________________________
 									case Id_EC20Energy:
 										lm->ec20.E 			= m->EC20energy.C;
 									break;
 								}
+								break;
 //____________Sys to EC20 message ______________________________________________________
 							case Sys2Ec:
 								switch(msg.Data[0]) {
+//____________Sys to EC20 Uo, To, mode__________________________________________________
 									case Id_EC20Set:
 										lm->ec20.Uo			= m->EC20set.Uo;
 										lm->ec20.width	= m->EC20set.To;
 										lm->ec20.mode		= m->EC20set.Mode;
 									break;
+//____________Sys to EC20 repetition, PW, fo ___________________________________________
 									case Id_EC20Reset:
 										lm->ec20.repeat = 1000/m->EC20reset.Period;
 										lm->ec20.pw  		= m->EC20reset.Pw;
 										lm->ec20.Fo 		= m->EC20reset.Fo;
 									break;
 								}
+								break;
 							}
 					}
 }
@@ -334,7 +351,12 @@ CanRxMsg	rxbuf={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 							_buffer_push(rx,(void *)&__time__,sizeof(unsigned int));
 					} while(*msg);
 }
-/*******************************************************************************/
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
 extern 		"C" {
 void 			CAN1_TX_IRQHandler() {
 					me->TX_ISR(NULL);

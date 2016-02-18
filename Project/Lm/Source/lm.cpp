@@ -145,7 +145,7 @@ void	_LM::Print(void *v) {
 *******************************************************************************/
 void	_LM::Select(_SELECTED_ i) {
 			if(i != item)
-				printf("\r\n");
+				printf("\r\n:");
 			item = i;
 			Refresh();
 }
@@ -517,10 +517,8 @@ char									str[16];
 * Return				:
 *******************************************************************************/
 bool	_LM::Parse() {
-_io		*temp=_stdio(io);
-bool	ret=Parse(VT100.Escape());
-			_stdio(temp);
-			return ret;
+			_stdio(io);
+			return Parse(VT100.Escape());
 }
 /*******************************************************************************
 * Function Name	: 
@@ -656,7 +654,7 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 					break;
 					
 				case __FOOT_OFF:
-					printf("footswitch disconnected \r\n:");
+					printf("\r\n:\r\n:footswitch disconnected \r\n:");
 					spray.mode.On=false;
 					Decode((char *)".2200");
 					break;	
@@ -782,7 +780,6 @@ char	c[128];
 					can.Send(c);
 				_thread_loop();
 			} while (j != ctrl);
-			printf("\r\n:");
 			Select(NONE);
 }
 
@@ -794,11 +791,11 @@ extern "C" {
 * Return				:
 *******************************************************************************/
 int		lm() {
-_LM 	lm;
-			printf("\r\n:");						
-			do
+_LM 	lm;						
+			do {
+				_stdio(NULL);
 				_thread_loop();
-			while(lm.Parse()==true);
+			} while(lm.Parse()==true);
 			return 0;
 }
 }
