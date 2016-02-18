@@ -29,7 +29,7 @@
 
 #define					SW_version	10
 
-typedef enum		{DBG_CAN_TX, DBG_CAN_RX, DBG_ERR, DBG_INFO}	_DEBUG_;
+typedef enum		{DBG_CAN_TX, DBG_CAN_RX, DBG_ERR, DBG_INFO, DBG_CAN_COM=21}	_DEBUG_;
 typedef enum		{PYRO, PILOT, PLOT_OFFSET, PLOT_SCALE, PUMP, FAN, SPRAY, 
 									EC20, CTRL_A, CTRL_B, CTRL_C, CTRL_D, REMOTE_CONSOLE, NONE} _SELECTED_;
 
@@ -72,17 +72,16 @@ class	_LM {
 #endif
 
 		int						debug;
-		_SELECTED_		Selected(void)	{return item; }
-		void 					Select(_SELECTED_);
 		void 					Increment(int, int);
+		void 					Select(_SELECTED_);
+		_SELECTED_		Selected(void)	{return item; }
 		
 		void 					Refresh(void)		{Increment(0,0);}
-		void					ChangeOffset(int);
-		void					ChangeGain(int);
 		bool					Parse(FILE *);
 		bool					Parse(void);
 		bool					Parse(int);
-
+		void					RemoteConsole(int, int);
+		
 		static void		Poll(void *),
 									Print(void *),
 									Display(void *);

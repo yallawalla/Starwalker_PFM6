@@ -453,8 +453,8 @@ char			*q=(char *)rx.Data;
 										Wait(2,App_Loop);
 									_buffer_push(__can->arg.io->rx,rx.Data,rx.DLC);
 								} else {
-									__can->arg.io=_io_close(__can->arg.io);
 									App_Remove((func *)ParseCom,(arg*)&__can->arg.io);
+									__can->arg.io=_io_close(__can->arg.io);
 								}
 								break;
 //__________________________________________________________________

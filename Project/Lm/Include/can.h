@@ -27,10 +27,10 @@ typedef enum {
 	Sys2Ec				=0x21,
 	Ec2Sys				=0x41,
 	Ec2Sync				=0x42,					// sync. 300u prior to laser
-	Can2ComEc20		=0xBA,					// ec20 console access req. transmit only, no filter
 	Can2ComIoc		=0xB0,					// local console access req.
-	Com2CanEc20		=0xB3,					// ec20 console data
   Com2CanIoc		=0xB1,					// local console data, transmit only, no filter
+	Com2CanEc20		=0xB3,					// ec20 console data
+	Can2ComEc20		=0xBA,					// ec20 console access req. transmit only, no filter
 	Footswch			=0x22,					// footswitch req. to ec20, transmit only, no filter
 	SprayStatus		=0x23,					
 	SprayCommand	=0x24					
@@ -96,14 +96,15 @@ typedef union CanMsg {
 //
 class	_CAN {
 	private:
-		_buffer		*rx;
-		_buffer		*tx;
-		_io				*io;
+		_buffer		*rx,*tx;
+		_io				*com;
+		int				debug;
+	
 	public:
 		_CAN	(bool=false);
-		void	RX_ISR(_CAN *);
-		void	TX_ISR(_CAN *);
+		void	RX_ISR(_CAN *), TX_ISR(_CAN *);
 		void 	Parse(void *);
+		void	Send(CanTxMsg *);
 		void	Send(char *);
 		void	Send(_stdid, CanMsg *, size_t dlc);
 		void	Recv(char *);

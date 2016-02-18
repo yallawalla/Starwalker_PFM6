@@ -40,7 +40,7 @@ int 		fputc(int c, FILE *f) {
 				if(f==stdout) {
 					if(f->io) {
 						while(f->io->put(f->io->tx,c) == EOF)
-							Wait(10,App_Loop);
+							Wait(2,App_Loop);
 						if(f->io->file)
 							f_putc(c,f->io->file);
 					}

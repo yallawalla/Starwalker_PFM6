@@ -100,6 +100,7 @@ _LM::~_LM() {																			// destructor
 *******************************************************************************/
 void	_LM::Poll(void *v) {
 			_LM *self = static_cast<_LM *>(v);
+	
 			_io *temp=_stdio(self->io);
 	
 			self->can.Parse(self);
@@ -372,7 +373,7 @@ int		_LM::Decode(char *c) {
 					case 'w':
 						_wait(strtoul(++c,NULL,0),_thread_loop);
 						break;
-					case '.':
+					case '>':
 						can.Send(++c);
 						break;
 					case 'e':
@@ -387,7 +388,7 @@ int		_LM::Decode(char *c) {
 						} else
 							printf("   %s",ee.getSerial(s));
 						break;
-					case '_':
+					case '<':
 						can.Recv(++c);
 						break;
 					case '#':	
@@ -624,30 +625,24 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 				case __Right:
 					Increment(0, 1);
 					break;
-
+				case __CtrlA:
+					Select(CTRL_A);
+					break;
+				case __CtrlB:
+					Select(CTRL_B);
+					break;
+				case __CtrlC:
+					Select(CTRL_C);
+					break;
+				case __CtrlD:
+					Select(CTRL_D);
+					break;
 				case __CtrlE: 
-				{
-char			c[128];
-int				i,j;
-					Select(REMOTE_CONSOLE);
-					sprintf(c,"%02X%02X%02X",Can2ComEc20,'v','\r');
-					can.Send(c);
-					do {
-						for(i=0; i<8; ++i) {
-							j=getchar();
-							if(j == EOF || j == __CtrlE)
-								break;
-							sprintf(&c[2*i+2],"%02X",j);
-						}
-						if(i > 0)
-							can.Send(c);
-						_thread_loop();
-					} while (j != __CtrlE);
-					printf("\r\n:");
-				}
-				Select(NONE);
-				break;
-		
+					RemoteConsole(Can2ComEc20,__CtrlE);
+					break;
+				case __CtrlF: 
+					RemoteConsole(Can2ComIoc,__CtrlF);
+					break;	
 				case __CtrlV:
 					if(spray.vibrate)
 						spray.vibrate=false;
@@ -682,19 +677,6 @@ int				i,j;
 					NVIC_SystemReset();
 				case __CtrlZ:
 					while(1);
-
-				case __CtrlA:
-					Select(CTRL_A);
-					break;
-				case __CtrlB:
-					Select(CTRL_B);
-					break;
-				case __CtrlC:
-					Select(CTRL_C);
-					break;
-				case __CtrlD:
-					Select(CTRL_D);
-					break;
 
 				case 0x08:
 				case 0x7f:
@@ -777,6 +759,33 @@ _io*	temp=_stdio(self->io);
 			}
 			_stdio(temp);
 }
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
+void	_LM::RemoteConsole(int k, int ctrl) {
+int		i,j;
+char	c[128];
+			Select(REMOTE_CONSOLE);
+			sprintf(c,"%02X%02X%02X",k,'v','\r');
+			can.Send(c);
+			do {
+				for(i=0; i<8; ++i) {
+					j=getchar();
+					if(j == EOF || j == ctrl)
+						break;
+					sprintf(&c[2*i+2],"%02X",j);
+				}
+				if(i > 0)
+					can.Send(c);
+				_thread_loop();
+			} while (j != ctrl);
+			printf("\r\n:");
+			Select(NONE);
+}
+
 extern "C" {
 /*******************************************************************************
 * Function Name	: 

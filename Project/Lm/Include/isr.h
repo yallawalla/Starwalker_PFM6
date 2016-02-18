@@ -2,6 +2,7 @@
 #define					ISR_H
 #include				"stm32f2xx.h"
 #include				<stdio.h>
+#include				"ff.h"
 
 extern "C" {
 extern					volatile int __time__;
@@ -29,6 +30,7 @@ void						Watchdog(void);
 #define					__CtrlC				0x03
 #define					__CtrlD				0x04
 #define					__CtrlE				0x05
+#define					__CtrlF				0x06
 
 #define					__CtrlI				0x09
 #define					__CtrlO				0x0f
@@ -82,7 +84,7 @@ typedef struct _buffer
 	char	*_buf, *_push, *_pull;
 	int		(* push)(struct _buffer *, char *);
 	int		(* pull)(struct _buffer *);
-	int		len;
+	int		size;
 } _buffer;	
 
 typedef struct _io
@@ -91,7 +93,7 @@ _buffer	*rx,
 				*tx,
 				*cmdline;
 int			(*get)(_buffer *),
-				(*put)(int, _buffer *);
+				(*put)(_buffer *, int);
 int			(*parse)(char *);
 } _io;
 
