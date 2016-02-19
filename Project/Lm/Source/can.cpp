@@ -123,7 +123,7 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 					NVIC_Init(&NVIC_InitStructure);
 					
 					CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
-					com=NULL;
+					prior=NULL;
 					debug=0;
 }
 /*******************************************************************************/
@@ -229,9 +229,9 @@ _LM				*lm = (_LM *)v;
 					debug = lm->debug;
 //
 //________ flushing com buffer/not echoed if debug_________ 
-					if(com &&  tx->size - _buffer_count(tx) > sizeof(CanTxMsg)) {
+					if(prior &&  tx->size - _buffer_count(lm->Io()->tx) > sizeof(CanTxMsg)) {
 						msg.StdId=Com2CanIoc;
-						msg.DLC=_buffer_pull(com->tx,msg.Data,sizeof(msg.Data));
+						msg.DLC=_buffer_pull(lm->Io()->tx,msg.Data,sizeof(msg.Data));
 						if(msg.DLC)
 							Send(&msg);
 					}
@@ -264,14 +264,15 @@ _LM				*lm = (_LM *)v;
 //______________________________________________________________________________________
 							case Can2ComIoc:
 								if(msg.DLC) {
-									if(com == NULL) {
-										com=_io_init(128,128);
-										_thread_add((void *)ParseCom,com,(char *)"ParseCom CAN",0);	
+									if(prior == NULL) {
+										prior=lm->Io();
+										lm->Io(_io_init(128,128));
 									}
-									_buffer_push(com->rx,msg.Data,msg.DLC);
+									_buffer_push(lm->Io()->rx,msg.Data,msg.DLC);
 								} else {
-									_thread_remove((void *)ParseCom,com);	
-									com=_io_close(com);
+									_io_close(lm->Io());
+									lm->Io(prior);
+									prior = NULL;
 								}
 								break;
 //______________________________________________________________________________________

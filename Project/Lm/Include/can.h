@@ -97,11 +97,11 @@ typedef union CanMsg {
 class	_CAN {
 	private:
 		_buffer		*rx,*tx;
-		_io				*com;
+		_io				*prior;
 		int				debug;
 	
 	public:
-		_CAN	(bool=true);
+		_CAN	(bool=false);
 		void	RX_ISR(_CAN *), TX_ISR(_CAN *);
 		void 	Parse(void *);
 		void	Send(CanTxMsg *);

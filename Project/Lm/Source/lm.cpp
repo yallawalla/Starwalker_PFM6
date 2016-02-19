@@ -100,7 +100,6 @@ _LM::~_LM() {																			// destructor
 *******************************************************************************/
 void	_LM::Poll(void *v) {
 			_LM *self = static_cast<_LM *>(v);
-	
 			_io *temp=_stdio(self->io);
 	
 			self->can.Parse(self);

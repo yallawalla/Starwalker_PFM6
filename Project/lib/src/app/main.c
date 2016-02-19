@@ -19,7 +19,7 @@
 int				main(void) { 
 					_thread_init();
 					while(1)
-p						_thread_loop();
+						_thread_loop();
 } 
 /** 
 * @}
