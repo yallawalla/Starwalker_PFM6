@@ -78,13 +78,13 @@ class	_LM {
 		
 		void 					Refresh(void)		{Increment(0,0);}
 		bool					Parse(FILE *);
-		bool					Parse(void);
 		bool					Parse(int);
 		void					RemoteConsole(int, int);
 		_io						*Io(void) 			{return io;}
 		_io						*Io(_io *p) 		{io=p; return _stdio(p);}
-		static void		Poll(void *),
-									Print(void *),
-									Display(void *);
+		static void		Parse(_LM *),
+									Poll(_LM *),
+									Print(_LM *),
+									Display(_LM *);
 	};
 #endif

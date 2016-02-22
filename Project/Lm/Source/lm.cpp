@@ -22,7 +22,7 @@
 
 _LM::_LM() {
 	
-			_thread_add((void *)Poll,this,(char *)"lm",1);
+//			_thread_add((void *)Poll,this,(char *)"lm",1);
 			_thread_add((void *)Display,this,(char *)"plot",1);			
 	
 			FIL f;
@@ -98,27 +98,27 @@ _LM::~_LM() {																			// destructor
 
 * Return				:
 *******************************************************************************/
-void	_LM::Poll(void *v) {
-			_LM *self = static_cast<_LM *>(v);
-			_io *temp=_stdio(self->io);
+void	_LM::Poll(_LM *me) {
+			_io *temp=_stdio(me->io);
 	
-			self->can.Parse(self);
-			self->spray.Poll();
-			self->pilot.Poll();
+			me->Parse(me->VT100.Escape());
+			me->can.Parse(me);
+			me->spray.Poll();
+			me->pilot.Poll();
 
 			_ADC::Instance()->Status();
 	
 			if(_ADC::Instance()->error.V24 == false) {
-				self->fan.Poll();
-				self->pump.Poll();
+				me->fan.Poll();
+				me->pump.Poll();
 				_TIM::Instance()->Poll();
 			}
 			
 #ifdef __SIMULATION__
-			self->spray.Simulator();
+			me->spray.Simulator();
 #ifdef USE_LCD
-//			if(!(++self->zzz % 10) && self->plot.Refresh())
-//				self->lcd.Grid();
+//			if(!(++me->zzz % 10) && me->plot.Refresh())
+//				me->lcd.Grid();
 #endif
 #endif			
 			_stdio(temp);
@@ -129,9 +129,8 @@ void	_LM::Poll(void *v) {
 * Output				:
 * Return				:
 *******************************************************************************/
-void	_LM::Print(void *v) {
-			_LM *self = static_cast<_LM *>(v);	
-			_io*	temp=_stdio(self->io);
+void	_LM::Print(_LM *me) {
+			_io*	temp=_stdio(me->io);
 			_ADCDMA *adf=&_ADC::Instance()->adf;
 			printf("%d,%d,%d,%d\r\n",adf->cooler,adf->bottle,adf->compressor,adf->air);
 			_stdio(temp);
@@ -515,16 +514,6 @@ char									str[16];
 * Output				:
 * Return				:
 *******************************************************************************/
-bool	_LM::Parse() {
-			_stdio(io);
-			return Parse(VT100.Escape());
-}
-/*******************************************************************************
-* Function Name	: 
-* Description		: 
-* Output				:
-* Return				:
-*******************************************************************************/
 bool	_LM::Parse(FILE *f) {
 			return Parse(fgetc(f));
 }
@@ -712,46 +701,45 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 * Output				:
 * Return				:
 *******************************************************************************/
-void	_LM::Display(void *v) {
-_LM 	*self = static_cast<_LM *>(v);	
-_io*	temp=_stdio(self->io);
-			while(_buffer_count(self->pyro.buffer) > 3*sizeof(short)) {
+void	_LM::Display(_LM *me) {
+_io*	temp=_stdio(me->io);
+			while(_buffer_count(me->pyro.buffer) > 3*sizeof(short)) {
 				short 	ta,tp,t;
 //______ buffer pull from ISR __________________________________________________					
-				_buffer_pull(self->pyro.buffer,&t,sizeof(short));							
-				_buffer_pull(self->pyro.buffer,&ta,sizeof(short));
-				_buffer_pull(self->pyro.buffer,&tp,sizeof(short));
+				_buffer_pull(me->pyro.buffer,&t,sizeof(short));							
+				_buffer_pull(me->pyro.buffer,&ta,sizeof(short));
+				_buffer_pull(me->pyro.buffer,&tp,sizeof(short));
 //______ filter ________________________________________________________________			
-				self->plotA=ta;
-				self->plotB=self->pyro.addSample(ta+tp);
+				me->plotA=ta;
+				me->plotB=me->pyro.addSample(ta+tp);
 //______ print at F1____________________________________________________________							
-				if(self->pyro.enabled && self->item == PYRO) {
-//					printf("%4d,%5d,%3.1lf,%hu,%u",ta,(int)tp+0x8000,(double)_ADC::Instance()->Th2o/100,t,self->pyro.sync);
+				if(me->pyro.enabled && me->item == PYRO) {
+//					printf("%4d,%5d,%3.1lf,%hu,%u",ta,(int)tp+0x8000,(double)_ADC::Instance()->Th2o/100,t,me->pyro.sync);
 					printf("%4d,%5d,%3.1lf,%hu",ta,(int)tp+0x8000,(double)_ADC::Instance()->Th2o/100,t);
-					if(self->ec20.E) {
+					if(me->ec20.E) {
 						//printf(".");								
-						if(__time__ > self->timeout) {
+						if(__time__ > me->timeout) {
 							//printf(".");				
-							self->ec20.E=0;
+							me->ec20.E=0;
 						}
 					}	else 
-						self->timeout = __time__ + 180;
+						me->timeout = __time__ + 180;
 					printf("\r\n");					
 				}
 //______ print at F8 ___________________________________________________________							
-				if(self->pyro.enabled && self->item == EC20) {
-					if(self->ec20.E) {							
-						if(__time__ > self->timeout) {
-							self->Refresh();
-							self->ec20.E=0;
+				if(me->pyro.enabled && me->item == EC20) {
+					if(me->ec20.E) {							
+						if(__time__ > me->timeout) {
+							me->Refresh();
+							me->ec20.E=0;
 						}
 					}	else 
-						self->timeout = __time__ + 180;	
+						me->timeout = __time__ + 180;	
 				}
 //______________________________________________________________________________							
 #ifdef	USE_LCD
-				if(self->plot.Refresh())
-					self->lcd.Grid();				
+				if(me->plot.Refresh())
+					me->lcd.Grid();				
 #endif
 			}
 			_stdio(temp);
@@ -783,6 +771,21 @@ char	c[128];
 }
 
 extern "C" {
+///*******************************************************************************
+//* Function Name	: 
+//* Description		: 
+//* Output				:
+//* Return				:
+//*******************************************************************************/
+//int		lm() {
+//_LM 	lm;						
+//			do {
+//				_stdio(NULL);
+//				_thread_loop();
+//			} while(lm.Parse()==true);
+//			return 0;
+//}
+//}
 /*******************************************************************************
 * Function Name	: 
 * Description		: 
@@ -790,11 +793,8 @@ extern "C" {
 * Return				:
 *******************************************************************************/
 int		lm() {
-_LM 	lm;						
-			do {
-				_stdio(NULL);
-				_thread_loop();
-			} while(lm.Parse()==true);
+_LM 	*instance=new _LM();	
+			_thread_add((void *)instance->Poll,instance,(char *)"lm",1);
 			return 0;
 }
 }
