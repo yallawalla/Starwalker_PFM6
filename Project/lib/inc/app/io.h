@@ -42,7 +42,9 @@ int 		ungetch(int);
 	
 int 		f_getc (FIL*);		
 void		Watchdog(void);
-
+				
+#define __STDIN				stdin->io
+#define __STDOUT			stdout->io
 struct	__FILE
 {
 	_io		*io;

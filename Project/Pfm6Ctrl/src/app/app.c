@@ -546,10 +546,14 @@ char			*q=(char *)rx.Data;
 //
 //___________________________________________________________________________________________________________								
 									case _PFM_POCKELS: 																					// 0x73, _PFM_POCKELS
-										p->Pockels.delay=*(short *)q++;q++;												// 0.1uS delay , width
-										p->Pockels.width=*(short *)q++;q++;
-										PFM_pockels(p);
-										break;
+										p->Pockels.delay=	*(short *)q++;q++;											// 0.1uS delay , 0.1uS width	(short)
+										p->Pockels.width=	*(short *)q++;q++;
+										p->Burst.Length=	*(short *)q++;q++;											// interval energije v uS			(short)
+										p->Burst.N=*q;																						// stevilo pulzov v intervalu	(byte)
+										PFM_pockels(p);																						// pockels timer setup
+										SetPwmTab(p);																							// pulse buildup...
+										Eack(NULL);																								// reset integratorja energije
+									break;
 
 									case _PFM_SetHVmode:																				// 0x72, _PFM_SetHVmode 
 									{																														// HV & mode configuration modif. by host

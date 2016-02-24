@@ -226,7 +226,7 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 //______________________________________________________________________________________
 char		*cgets(int c, int mode)
 {
-_io				*io=__stdin.io;
+_io				*io=__STDIN;
 _buffer		*p=io->cmdline;
 			
 			if(!p)

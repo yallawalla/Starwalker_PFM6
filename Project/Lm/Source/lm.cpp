@@ -22,11 +22,12 @@
 
 _LM::_LM() {
 	
-//			_thread_add((void *)Poll,this,(char *)"lm",1);
+			_thread_add((void *)Poll,this,(char *)"lm",1);
 			_thread_add((void *)Display,this,(char *)"plot",1);			
 	
 			FIL f;
 			if(f_open(&f,"0:/lm.ini",FA_READ) == FR_OK) {
+				
 // periph. settings
 				pyro.LoadSettings((FILE *)&f);
 				pump.LoadSettings((FILE *)&f);
@@ -34,6 +35,7 @@ _LM::_LM() {
 				spray.LoadSettings((FILE *)&f);
 				ec20.LoadSettings((FILE *)&f);
 				pilot.LoadSettings((FILE *)&f);
+				
 // add. settings parsing
 				while(!f_eof(&f))
 					Parse((FILE *)&f);
@@ -73,11 +75,6 @@ _LM::_LM() {
 
 #endif
 #endif
-//
-//
-//
-//
-//
       io=_stdio(NULL);
 }
 /*******************************************************************************
@@ -98,10 +95,11 @@ _LM::~_LM() {																			// destructor
 
 * Return				:
 *******************************************************************************/
-void	_LM::Poll(_LM *me) {
+void	_LM::Poll(void *v) {
+			_LM *me = static_cast<_LM *>(v);
+	
 			_io *temp=_stdio(me->io);
 	
-			me->Parse(me->VT100.Escape());
 			me->can.Parse(me);
 			me->spray.Poll();
 			me->pilot.Poll();
@@ -129,7 +127,8 @@ void	_LM::Poll(_LM *me) {
 * Output				:
 * Return				:
 *******************************************************************************/
-void	_LM::Print(_LM *me) {
+void	_LM::Print(void *v) {
+			_LM *me = static_cast<_LM *>(v);	
 			_io*	temp=_stdio(me->io);
 			_ADCDMA *adf=&_ADC::Instance()->adf;
 			printf("%d,%d,%d,%d\r\n",adf->cooler,adf->bottle,adf->compressor,adf->air);
@@ -514,6 +513,16 @@ char									str[16];
 * Output				:
 * Return				:
 *******************************************************************************/
+bool	_LM::Parse() {
+			_stdio(io);
+			return Parse(VT100.Escape());
+}
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
 bool	_LM::Parse(FILE *f) {
 			return Parse(fgetc(f));
 }
@@ -701,7 +710,8 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 * Output				:
 * Return				:
 *******************************************************************************/
-void	_LM::Display(_LM *me) {
+void	_LM::Display(void *v) {
+_LM 	*me = static_cast<_LM *>(v);	
 _io*	temp=_stdio(me->io);
 			while(_buffer_count(me->pyro.buffer) > 3*sizeof(short)) {
 				short 	ta,tp,t;
@@ -771,21 +781,6 @@ char	c[128];
 }
 
 extern "C" {
-///*******************************************************************************
-//* Function Name	: 
-//* Description		: 
-//* Output				:
-//* Return				:
-//*******************************************************************************/
-//int		lm() {
-//_LM 	lm;						
-//			do {
-//				_stdio(NULL);
-//				_thread_loop();
-//			} while(lm.Parse()==true);
-//			return 0;
-//}
-//}
 /*******************************************************************************
 * Function Name	: 
 * Description		: 
@@ -793,8 +788,11 @@ extern "C" {
 * Return				:
 *******************************************************************************/
 int		lm() {
-_LM 	*instance=new _LM();	
-			_thread_add((void *)instance->Poll,instance,(char *)"lm",1);
+_LM 	lm;						
+			do {
+				_stdio(NULL);
+				_thread_loop();
+			} while(lm.Parse()==true);
 			return 0;
 }
 }

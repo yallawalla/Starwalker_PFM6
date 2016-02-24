@@ -170,15 +170,15 @@ char		*t=p->_pull;
 }
 //______________________________________________________________________________________
 int 		ungets(char *c) {
-				if(__stdin.io)
-					return _buffer_put(__stdin.io->rx,c,strlen(c));
+				if(__STDIN)
+					return _buffer_put(__STDIN->rx,c,strlen(c));
 				else
 					return EOF;
 }
 //______________________________________________________________________________________
 int 		ungetch(int c) {
-				if(__stdin.io)
-					return _buffer_put(__stdin.io->rx,&c,1);
+				if(__STDIN)
+					return _buffer_put(__STDIN->rx,&c,1);
 				else
 					return EOF;
 }

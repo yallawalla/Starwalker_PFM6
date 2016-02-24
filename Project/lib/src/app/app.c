@@ -57,6 +57,37 @@ void 			_thread_init(void) {
 					ungets("@cfg.ini\r");
 					_stdio(NULL);
 }
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
+int				Escape(void) {
+static	
+int 			timeout,seq;
+int				i=getchar();
+	
+					if(i==EOF) {
+						if(timeout && (__time__ > abs(timeout))) {
+							timeout=0;
+							return seq;
+							}
+					} else if(timeout > 0) {
+						seq=(seq<<8) | i;
+						if(i=='~' || i=='A' || i=='B' || i=='C' || i=='D') {
+							timeout=0;
+							return seq;
+						}
+					} else if(i==__Esc) {
+						timeout=__time__+5;
+						seq=i;
+					} else {
+						timeout=0;
+						return i;
+					}
+					return EOF;
+}
 //______________________________________________________________________________________
 _io				*ParseCom(_io *v) {
 char 			*p;
@@ -68,15 +99,24 @@ _io				*io;
 							v->parse=DecodeCom;
 						io=_stdio(v);
 						do {
-							i=fgetc(&__stdin);
+							i=Escape();
 							switch(i) {
-								case _Eof:
+								case EOF:
 									break;
-								case _CtrlZ:
+								case __CtrlZ:
 									while(1);
-								case _CtrlY:
+								case __CtrlY:
 									NVIC_SystemReset();
 								break;
+								case __f12:
+								case __F12:
+									{
+									int lm(void);
+									_thread_remove(_lightshow,NULL);
+									lm();
+									v->parse(NULL);	
+									break;
+									}
 								default:
 									p=cgets(i,EOF);
 									if(p) {
@@ -84,10 +124,10 @@ _io				*io;
 										j=v->parse(p);
 										if(*p && j)
 											printf("... WTF(%d)",j);						// error message
-										v->parse(NULL);													// call newline
+										v->parse(NULL);												// call newline
 									}
 							}
-						} while(i != _Eof);
+						} while(i != EOF);
 						_stdio(io);
 					}
 					return v;

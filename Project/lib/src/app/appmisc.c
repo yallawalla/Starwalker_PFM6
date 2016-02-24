@@ -104,11 +104,11 @@ int	batch(char *filename) {
 FIL		f;
 
 			if(f_open(&f,filename,FA_READ)==FR_OK) {
-				__stdin.io->file=&f;
+				__STDIN->file=&f;
 				do {
-					ParseCom(__stdin.io);
+					ParseCom(__STDIN);
 				} while(!f_eof(&f));
-				__stdin.io->file=NULL;
+				__STDIN->file=NULL;
 				f_close(&f);
 				return _PARSE_OK;
 			} else
@@ -187,12 +187,12 @@ int		putLCD(_buffer *p, int c) {
 		} else
 			l=t->arg;
 
-		if(l->io != stdout->io) {
+		if(l->io != __STDOUT) {
 			if(l->io)
 				l->io->put=l->put;
-			l->io=stdout->io;
-			l->put=stdout->io->put;
-			stdout->io->put=putLCD;
+			l->io=__STDOUT;
+			l->put=__STDOUT->put;
+			__STDOUT->put=putLCD;
 		}
 		
 		for(y=0;y<maxy;++y)

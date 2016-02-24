@@ -476,10 +476,6 @@ nobenih sprememb, samo simmer je dvignjen na 40us !
 
 q 150,200,45,9,180
 
-
-
-
-
 6.12.2015
 - X (1..2..4), nov konzolni ukaz, analogen <x>, nastavi igbt mode med intervalom. Oba rezima 
 torej je mozno kontrolirati loceno z velikim in malim X
@@ -487,4 +483,7 @@ torej je mozno kontrolirati loceno z velikim in malim X
 4.2.2016
 - bug pri generiranju timinga na 1280us (RCR > 255),  popravek v SetPwmTab
 
+24.2.2016
+v 2.12 Feb 24 2016, <EFF7B41B>
+- dodatek na pockels can protokol, interval meritve + stevilo pulzov, PFM reset je obsolete
 

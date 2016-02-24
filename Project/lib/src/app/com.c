@@ -152,7 +152,7 @@ int				DecodeMinus(char *c) {
 					break;
 //__________________________________________________ debug setup _____________
 					case 'D':
-						__dbug=__stdin.io;
+						__dbug=__STDIN;
 						n=strscan(++c,cc,',');
 						while(n--)
 							_CLEAR_DBG(strtol(cc[n],NULL,0));
@@ -239,7 +239,7 @@ FIL 			*f=NULL;																	// file object pointer
 						if(f_open(f,c,FA_READ|FA_WRITE|FA_OPEN_ALWAYS)==FR_OK &&
 							f_lseek(f,f_size(f))==FR_OK) {				// open & pointer to eof
 								fprintf((FILE *)f,"\r");						// init. needed kwdf???
-								__stdin.io->parse=EnterFile;				// parser redirect
+								__STDIN->parse=EnterFile;				// parser redirect
 								return _PARSE_OK;
 							} else {
 								free(f);														// free & error exit othw
@@ -251,12 +251,12 @@ FIL 			*f=NULL;																	// file object pointer
 					else
 //______________________________________________________________________________________
 				switch(*c) {
-					case _CtrlD:
+					case __CtrlD:
 						f_sync(f);														// buffer flush, close file and memfree ...
 						f_close(f);
 						free(f);
 						f=NULL;																// null pointer
-						__stdin.io->parse=DecodeFs;						// parser redirect
+						__STDIN->parse=DecodeFs;						// parser redirect
 					break;
 //______________________________________________________________________________________
 					default:
@@ -335,7 +335,7 @@ static 		DIR		dir;
 								f_getcwd(lfn,_MAX_LFN)!=FR_OK ||
 									f_opendir(&dir,lfn)!=FR_OK)
 										return _PARSE_ERR_SYNTAX;
-						__stdin.io->parse=DecodeFs;
+						__STDIN->parse=DecodeFs;
 						}
 //__delete file________________________________________________________________________
 						if(!strncmp("delete",sc[0],len)) {
@@ -477,7 +477,7 @@ static 		DIR		dir;
 						}
 //______________________________________________________________________________________
 						if(!strncmp(">",sc[0],len)) {
-							__stdin.io->parse=DecodeCom;
+							__STDIN->parse=DecodeCom;
 							return(DecodeCom(NULL));
 						}
 		}
