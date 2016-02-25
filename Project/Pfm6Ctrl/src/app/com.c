@@ -1141,27 +1141,15 @@ int			u=0,umax=0,umin=0;
 //______________________________________________________________________________________
 				case '*':																					//75 = 21+54
 { 
-	int buf[300];
-	void	init_TIM(int *, int),trigger_TIM(int);
-	int i;
-	
-				init_TIM(buf,1024);
+	void	init_TIM(),trigger_TIM();
+
+				init_TIM();
 				srand(123456);
 				while(1) {
 					switch(getchar()) {
 						case 0x1b:
-							
-							for(i=0; i<240; ++i) {
-								if(rand() % 2)
-									buf[i]=21;
-								else
-									buf[i]=54;
-							}
-							buf[i]=0;
-
-							trigger_TIM(241);
+							trigger_TIM();
 						break;
-							
 						case 0x20:
 							return _PARSE_OK;
 					}

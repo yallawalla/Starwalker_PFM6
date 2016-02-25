@@ -2,7 +2,24 @@
 
 // PB10, TIM2, ch 3
 
-void 	init_TIM(int *p, int len) {
+void		trigger(void);
+
+#define N 16
+struct  {
+	int r[8],g[8],b[8];
+} __rgb[N];
+// ________________________________________________________________________________
+void	rgb(int n, int r,int g,int b) {
+int i;
+	for(i=0; i<8; ++i) {
+		(r & (1<i)) ? (__rgb[n].r[i]=53) : (__rgb[n].r[i]=20);
+		(g & (1<i)) ? (__rgb[n].g[i]=53) : (__rgb[n].g[i]=20);
+		(b & (1<i)) ? (__rgb[n].b[i]=53) : (__rgb[n].b[i]=20);
+	}
+	trigger();
+}
+// ________________________________________________________________________________
+void 	init_TIM() {
 TIM_TimeBaseInitTypeDef		TIM_TimeBaseStructure;
 TIM_OCInitTypeDef					TIM_OCInitStructure;
 DMA_InitTypeDef						DMA_InitStructure;
@@ -23,9 +40,9 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 		DMA_StructInit(&DMA_InitStructure);
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
 		DMA_DeInit(DMA1_Stream1);
-		DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)p;
+		DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)__rgb;
 		DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
-		DMA_InitStructure.DMA_BufferSize = len;	// 5 transferji v burstu (sic!)
+		DMA_InitStructure.DMA_BufferSize = sizeof(__rgb)/sizeof(int);
 		DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
 		DMA_InitStructure.DMA_Priority = DMA_Priority_High;
 		DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
@@ -68,7 +85,6 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 //			TIM_OC4PreloadConfig(TIM2, TIM_OCPreload_Disable);
 			TIM_DMACmd(TIM2, TIM_DMA_Update, ENABLE);
 		}
-
 /*******************************************************************************/
 /**
 	* @brief	Trigger call
@@ -76,10 +92,28 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 	* @retval : None
 	*/
 /*******************************************************************************/
-void		trigger_TIM(int n) {
+void		trigger() {
 				DMA_Cmd(DMA1_Stream1, DISABLE);
 				while(DMA_GetCmdStatus(DMA1_Stream1) != DISABLE);
-				DMA_SetCurrDataCounter(DMA1_Stream1,n);
+				DMA_SetCurrDataCounter(DMA1_Stream1,sizeof(__rgb)/sizeof(int));
 				DMA_ClearFlag(DMA1_Stream1, DMA_FLAG_HTIF1 | DMA_FLAG_TEIF1 | DMA_FLAG_DMEIF1	| DMA_FLAG_FEIF1 | DMA_FLAG_TCIF1);
 				DMA_Cmd(DMA1_Stream1, ENABLE);
+}
+/*******************************************************************************/
+/**
+	* @brief	Trigger call
+	* @param	: None
+	* @retval : None
+	*/
+/*******************************************************************************/
+void		triggerTIM() {
+	static int n=0;
+	int i;
+	if(n)
+		for(i=0; i<N; ++i)
+			rgb(i,10,10,10);
+	else
+		for(i=0; i<N; ++i)
+			rgb(i,100,100,100);
+
 }
