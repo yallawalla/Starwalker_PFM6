@@ -14,7 +14,7 @@
         <TargetCommonOption>
           <Device>STM32F205VG</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.3.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.2.2.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IROM(0x08000000,0x100000) IRAM(0x20000000,0x20000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -84,8 +84,6 @@
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
-            <nStopA1X>0</nStopA1X>
-            <nStopA2X>0</nStopA2X>
           </AfterMake>
           <SelectedForBatchBuild>0</SelectedForBatchBuild>
           <SVCSIdString></SVCSIdString>
@@ -229,7 +227,6 @@
             <useUlib>1</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
-            <nSecure>0</nSecure>
             <RoSelD>3</RoSelD>
             <RwSelD>3</RwSelD>
             <CodeSel>0</CodeSel>
@@ -364,10 +361,6 @@
             <uSurpInc>0</uSurpInc>
             <uC99>0</uC99>
             <useXO>0</useXO>
-            <v6Lang>0</v6Lang>
-            <v6LangP>0</v6LangP>
-            <vShortEn>0</vShortEn>
-            <vShortWch>0</vShortWch>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__PFM6__,HSE_VALUE=25000000</Define>
@@ -648,10 +641,6 @@
                 <uSurpInc>2</uSurpInc>
                 <uC99>2</uC99>
                 <useXO>2</useXO>
-                <v6Lang>0</v6Lang>
-                <v6LangP>0</v6LangP>
-                <vShortEn>0</vShortEn>
-                <vShortWch>0</vShortWch>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -742,10 +731,6 @@
                 <uSurpInc>2</uSurpInc>
                 <uC99>2</uC99>
                 <useXO>2</useXO>
-                <v6Lang>0</v6Lang>
-                <v6LangP>0</v6LangP>
-                <vShortEn>0</vShortEn>
-                <vShortWch>0</vShortWch>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -1026,12 +1011,11 @@
       <TargetName>Pfm6Discovery</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060020::V5.06 (build 20)::ARMCC</pCCUsed>
       <TargetOption>
         <TargetCommonOption>
           <Device>STM32F205VG</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.3.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.2.2.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IROM(0x08000000,0x100000) IRAM(0x20000000,0x20000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -1101,8 +1085,6 @@
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
-            <nStopA1X>0</nStopA1X>
-            <nStopA2X>0</nStopA2X>
           </AfterMake>
           <SelectedForBatchBuild>0</SelectedForBatchBuild>
           <SVCSIdString></SVCSIdString>
@@ -1246,7 +1228,6 @@
             <useUlib>1</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
-            <nSecure>0</nSecure>
             <RoSelD>3</RoSelD>
             <RwSelD>3</RwSelD>
             <CodeSel>0</CodeSel>
@@ -1381,10 +1362,6 @@
             <uSurpInc>0</uSurpInc>
             <uC99>0</uC99>
             <useXO>0</useXO>
-            <v6Lang>0</v6Lang>
-            <v6LangP>0</v6LangP>
-            <vShortEn>0</vShortEn>
-            <vShortWch>0</vShortWch>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__DISCO__,HSE_VALUE=8000000</Define>
@@ -1665,10 +1642,6 @@
                 <uSurpInc>2</uSurpInc>
                 <uC99>2</uC99>
                 <useXO>2</useXO>
-                <v6Lang>0</v6Lang>
-                <v6LangP>0</v6LangP>
-                <vShortEn>0</vShortEn>
-                <vShortWch>0</vShortWch>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -1759,10 +1732,6 @@
                 <uSurpInc>2</uSurpInc>
                 <uC99>2</uC99>
                 <useXO>2</useXO>
-                <v6Lang>0</v6Lang>
-                <v6LangP>0</v6LangP>
-                <vShortEn>0</vShortEn>
-                <vShortWch>0</vShortWch>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>

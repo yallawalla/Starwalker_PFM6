@@ -1,22 +1,22 @@
 #include	"pfm.h"
+#include <math.h>
 
 // PB10, TIM2, ch 3
 
 void		trigger(void);
 
-#define N 16
+#define N 24
 struct  {
-	int r[8],g[8],b[8];
-} __rgb[N];
+	int g[8],r[8],b[8];
+} __rgb[N+1];
 // ________________________________________________________________________________
 void	rgb(int n, int r,int g,int b) {
 int i;
 	for(i=0; i<8; ++i) {
-		(r & (1<i)) ? (__rgb[n].r[i]=53) : (__rgb[n].r[i]=20);
-		(g & (1<i)) ? (__rgb[n].g[i]=53) : (__rgb[n].g[i]=20);
-		(b & (1<i)) ? (__rgb[n].b[i]=53) : (__rgb[n].b[i]=20);
+		(r & (0x80>>i)) ? (__rgb[n].r[i]=53) : (__rgb[n].r[i]=20);
+		(g & (0x80>>i)) ? (__rgb[n].g[i]=53) : (__rgb[n].g[i]=20);
+		(b & (0x80>>i)) ? (__rgb[n].b[i]=53) : (__rgb[n].b[i]=20);
 	}
-	trigger();
 }
 // ________________________________________________________________________________
 void 	init_TIM() {
@@ -27,7 +27,7 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 // ________________________________________________________________________________
 // TIM2
 
-			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
+			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 			GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
@@ -37,26 +37,26 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 			GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
 // DMA setup _____________________________________________________________________
-		DMA_StructInit(&DMA_InitStructure);
-		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
-		DMA_DeInit(DMA1_Stream1);
-		DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)__rgb;
-		DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
-		DMA_InitStructure.DMA_BufferSize = sizeof(__rgb)/sizeof(int);
-		DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
-		DMA_InitStructure.DMA_Priority = DMA_Priority_High;
-		DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-		DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-		DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
-		DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Word;
-		DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Enable;
-		DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_HalfFull;
-		DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
-		DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+			DMA_StructInit(&DMA_InitStructure);
+			RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
+			DMA_DeInit(DMA1_Stream1);
+			DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)__rgb;
+			DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
+			DMA_InitStructure.DMA_BufferSize = sizeof(__rgb)/sizeof(int)+1;
+			DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
+			DMA_InitStructure.DMA_Priority = DMA_Priority_High;
+			DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+			DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+			DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
+			DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Word;
+			DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Enable;
+			DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_HalfFull;
+			DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
+			DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
 
-		DMA_InitStructure.DMA_Channel = DMA_Channel_3;
-		DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)TIM2_BASE + 0x4C;	//~~~
-		DMA_Init(DMA1_Stream1, &DMA_InitStructure);
+			DMA_InitStructure.DMA_Channel = DMA_Channel_3;
+			DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)TIM2_BASE + 0x4C;	//~~~
+			DMA_Init(DMA1_Stream1, &DMA_InitStructure);
 // ________________________________________________________________________________
 // TIMebase setup
 			TIM_DeInit(TIM2);
@@ -75,6 +75,7 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 			TIM_OCInitStructure.TIM_Pulse=0;
 			TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 			TIM_OC3Init(TIM2, &TIM_OCInitStructure);
+			TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Disable);
 // ________________________________________________________________________________
 // Startup
 
@@ -106,14 +107,9 @@ void		trigger() {
 	* @retval : None
 	*/
 /*******************************************************************************/
-void		triggerTIM() {
-	static int n=0;
-	int i;
-	if(n)
-		for(i=0; i<N; ++i)
-			rgb(i,10,10,10);
-	else
-		for(i=0; i<N; ++i)
-			rgb(i,100,100,100);
-
+void		trigger_TIM() {
+	int j;
+			for(j=0; j<N; ++j)
+				rgb(j,10*j,0,0);
+			trigger();
 }

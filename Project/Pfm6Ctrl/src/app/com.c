@@ -1144,7 +1144,6 @@ int			u=0,umax=0,umin=0;
 	void	init_TIM(),trigger_TIM();
 
 				init_TIM();
-				srand(123456);
 				while(1) {
 					switch(getchar()) {
 						case 0x1b:
