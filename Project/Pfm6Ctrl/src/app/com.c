@@ -1126,15 +1126,6 @@ int			u=0,umax=0,umin=0;
 //______________________________________________________________________________________
 				case '@':
 					return batch(++c);
-/*
->1F01C1010058985E01
-p 100,400
-b 1,1000
-s 1
-
->1A
-+e 0
-*/
 //______________________________________________________________________________________
 				case '-':
 					return DecodeMinus(++c);
@@ -1148,8 +1139,35 @@ s 1
 				case ':':
 					return DecodeFs(++c);
 //______________________________________________________________________________________
-				case '*':
-//					return DecodeSpi(++c);
+				case '*':																					//75 = 21+54
+{ 
+	int buf[300];
+	void	init_TIM(int *, int),trigger_TIM(int);
+	int i;
+	
+				init_TIM(buf,1024);
+				srand(123456);
+				while(1) {
+					switch(getchar()) {
+						case 0x1b:
+							
+							for(i=0; i<240; ++i) {
+								if(rand() % 2)
+									buf[i]=21;
+								else
+									buf[i]=54;
+							}
+							buf[i]=0;
+
+							trigger_TIM(241);
+						break;
+							
+						case 0x20:
+							return _PARSE_OK;
+					}
+					Watchdog();
+				}
+}
 //______________________________________________________________________________________
 				default:
 					return _PARSE_ERR_SYNTAX;

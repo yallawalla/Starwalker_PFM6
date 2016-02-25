@@ -1006,6 +1006,11 @@
               <FileType>5</FileType>
               <FilePath>..\src\readme.txt</FilePath>
             </File>
+            <File>
+              <FileName>xxx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\xxx.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
@@ -2009,6 +2014,11 @@
               <FileName>readme.txt</FileName>
               <FileType>5</FileType>
               <FilePath>..\src\readme.txt</FilePath>
+            </File>
+            <File>
+              <FileName>xxx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\xxx.c</FilePath>
             </File>
           </Files>
         </Group>
