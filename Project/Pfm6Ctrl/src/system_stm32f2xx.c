@@ -146,22 +146,21 @@
 #define VECT_TAB_OFFSET  0x00 /*!< Vector Table base offset field. 
                                    This value must be a multiple of 0x200. */
 
-
 /* PLL_VCO = (HSE_VALUE or HSI_VALUE / PLL_M) * PLL_N */
 
 #define PLL_M      HSE_VALUE/1000000
 
-#ifdef __DISCO__
-#define PLL_N      336							
-#define PLL_P      4
-#define PLL_Q      7
-#endif
+//#ifdef __DISCO__
+//#define PLL_N      336							
+//#define PLL_P      4
+//#define PLL_Q      7
+//#endif
 
-#ifdef __PFM6__
+//#ifdef __PFM6__
 #define PLL_N      240
 #define PLL_P      2
 #define PLL_Q      5
-#endif
+//#endif
 
 /**
   * @}

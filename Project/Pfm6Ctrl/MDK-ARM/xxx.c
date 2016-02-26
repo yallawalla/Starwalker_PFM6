@@ -9,7 +9,8 @@ void		trigger(void);
 struct  {
 	int g[8],r[8],b[8];
 } __rgb[N+1];
-// ________________________________________________________________________________
+//
+//_________________________________________________________________________________
 void	rgb(int n, int r,int g,int b) {
 int i;
 	for(i=0; i<8; ++i) {
@@ -18,7 +19,8 @@ int i;
 		(b & (0x80>>i)) ? (__rgb[n].b[i]=53) : (__rgb[n].b[i]=20);
 	}
 }
-// ________________________________________________________________________________
+//
+//_________________________________________________________________________________
 void 	init_TIM() {
 TIM_TimeBaseInitTypeDef		TIM_TimeBaseStructure;
 TIM_OCInitTypeDef					TIM_OCInitStructure;
@@ -75,7 +77,7 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 			TIM_OCInitStructure.TIM_Pulse=0;
 			TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 			TIM_OC3Init(TIM2, &TIM_OCInitStructure);
-			TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Disable);
+			TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Enable);
 // ________________________________________________________________________________
 // Startup
 
@@ -83,7 +85,6 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 			TIM_Cmd(TIM2,ENABLE);
 
 			TIM_DMAConfig(TIM2, TIM_DMABase_CCR3, TIM_DMABurstLength_1Transfer);
-//			TIM_OC4PreloadConfig(TIM2, TIM_OCPreload_Disable);
 			TIM_DMACmd(TIM2, TIM_DMA_Update, ENABLE);
 		}
 /*******************************************************************************/
@@ -94,11 +95,15 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 	*/
 /*******************************************************************************/
 void		trigger() {
+				
 				DMA_Cmd(DMA1_Stream1, DISABLE);
+				TIM_Cmd(TIM2,DISABLE);
+				TIM_SetCounter(TIM2,0);
 				while(DMA_GetCmdStatus(DMA1_Stream1) != DISABLE);
 				DMA_SetCurrDataCounter(DMA1_Stream1,sizeof(__rgb)/sizeof(int));
 				DMA_ClearFlag(DMA1_Stream1, DMA_FLAG_HTIF1 | DMA_FLAG_TEIF1 | DMA_FLAG_DMEIF1	| DMA_FLAG_FEIF1 | DMA_FLAG_TCIF1);
 				DMA_Cmd(DMA1_Stream1, ENABLE);
+				TIM_Cmd(TIM2,ENABLE);
 }
 /*******************************************************************************/
 /**
@@ -108,8 +113,62 @@ void		trigger() {
 	*/
 /*******************************************************************************/
 void		trigger_TIM() {
-	int j;
-			for(j=0; j<N; ++j)
-				rgb(j,10*j,0,0);
-			trigger();
+	
+	int			i,j,k;
+	int			r[N],g[N],b[N];
+//	double	vr[N],vg[N],vb[N];
+	
+		do {
+			for(i=1; i<8; ++i) {
+				for(j=0; j<N; ++j) {
+					(i & 1) ? (r[j]=j*5+5) : (r[j]=0);
+					(i & 2) ? (g[j]=j*5+5) : (g[j]=0);
+					(i & 4) ? (b[j]=j*5+5) : (b[j]=0);
+					rgb(j,r[j],g[j],b[j]);
+					trigger();
+					Wait(50,App_Loop);
+				}
+				do {
+					k=0;
+					for(j=0; j<N; ++j) {
+						(--r[j] < 0)?(r[j] = 0):(++k);
+						(--g[j] < 0)?(g[j] = 0):(++k);
+						(--b[j] < 0)?(b[j] = 0):(++k);
+						rgb(j,r[j],g[j],b[j]);
+					}
+					trigger();
+					Wait(10,App_Loop);
+				} while(k);
+			}		
+			
+//			for(i=0; i<N; ++i)
+//				r[i]=g[i]=b[i]=vr[i]=vg[i]=vb[i]=0;				
+//			r[0]=250;	
+
+//			do {					
+//					for(j=0; j<N-1; ++j) {
+//						vr[j]+=((r[j]-r[j+1])-2.0*vr[j])*0.001;
+//						vg[j]+=((g[j]-g[j+1])-2.0*vg[j])*0.001;
+//						vb[j]+=((b[j]-b[j+1])-2.0*vb[j])*0.001;
+//					}
+//					for(j=0; j<N-1; ++j) {
+//						r[j]-=vr[j];
+//						g[j]-=vg[j];
+//						b[j]-=vb[j];
+//					}
+//					for(j=0; j<N-1; ++j) {
+//						r[j+1]+=vr[j];
+//						g[j+1]+=vg[j];
+//						b[j+1]+=vb[j];
+//					}
+//					for(j=0; j<N; ++j)
+//						rgb(j,__max(0,r[j]),__max(0,g[j]),__max(0,b[j]));
+//					trigger();
+//					Wait(10,App_Loop);
+//				}  while(getchar()==EOF);
+//				for(j=0; j<N; ++j)
+//					rgb(j,0,0,0);
+//				trigger();
+				} while(getchar()==EOF);
+
 }

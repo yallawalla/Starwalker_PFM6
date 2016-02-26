@@ -1141,19 +1141,11 @@ int			u=0,umax=0,umin=0;
 //______________________________________________________________________________________
 				case '*':																					//75 = 21+54
 { 
-	void	init_TIM(),trigger_TIM();
+	void	init_TIM(void),trigger_TIM(void);
 
 				init_TIM();
-				while(1) {
-					switch(getchar()) {
-						case 0x1b:
-							trigger_TIM();
-						break;
-						case 0x20:
-							return _PARSE_OK;
-					}
-					Watchdog();
-				}
+				trigger_TIM();
+				break;
 }
 //______________________________________________________________________________________
 				default:
