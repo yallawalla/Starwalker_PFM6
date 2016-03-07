@@ -393,7 +393,7 @@ CanTxMsg	tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 						} else
 							break;
 						
-						if(_DBG(pfm,_DBG_CAN_TX) && tx.StdId) {
+						if(_DBG(pfm,_DBG_CAN_TX)) {
 							_io *io=_stdio(__dbug);
 							int i;
 							__print(":%04d >%02X ",__time__ % 10000,tx.StdId);

@@ -1,17 +1,23 @@
-#include	"pfm.h"
+#include "pfm.h"
 #include <math.h>
 
 // PB10, TIM2, ch 3
 
 void		trigger(void);
 
-#define N 24
-struct  {
+#define N 80
+int _r=0,_g=0,_b=0;				//active color;
+struct _rgb {
 	int g[8],r[8],b[8];
 } __rgb[N+1];
+
+typedef struct  {
+	int size;
+	struct _rgb *p;
+} rgb;
 //
 //_________________________________________________________________________________
-void	rgb(int n, int r,int g,int b) {
+void	SetRgb(int n, int r,int g,int b) {
 int i;
 	for(i=0; i<8; ++i) {
 		(r & (0x80>>i)) ? (__rgb[n].r[i]=53) : (__rgb[n].r[i]=20);
@@ -114,61 +120,69 @@ void		trigger() {
 /*******************************************************************************/
 void		trigger_TIM() {
 	
-	int			i,j,k;
-	int			r[N],g[N],b[N];
-//	double	vr[N],vg[N],vb[N];
+//	int			i,j,k;
+//	int			r[N],g[N],b[N];
+
 	
-		do {
-			for(i=1; i<8; ++i) {
+	
+/*	
+	do {
+		for(i=1; i<8; ++i) {
+			for(j=0; j<N; ++j) {
+				(i & 1) ? (r[j]=j*5+5) : (r[j]=0);
+				(i & 2) ? (g[j]=j*5+5) : (g[j]=0);
+				(i & 4) ? (b[j]=j*5+5) : (b[j]=0);
+				rgb(j,r[j],g[j],b[j]);
+				trigger();
+				Wait(5,App_Loop);
+			}
+			do {
+				k=0;
 				for(j=0; j<N; ++j) {
-					(i & 1) ? (r[j]=j*5+5) : (r[j]=0);
-					(i & 2) ? (g[j]=j*5+5) : (g[j]=0);
-					(i & 4) ? (b[j]=j*5+5) : (b[j]=0);
+					(--r[j] < 0)?(r[j] = 0):(++k);
+					(--g[j] < 0)?(g[j] = 0):(++k);
+					(--b[j] < 0)?(b[j] = 0):(++k);
 					rgb(j,r[j],g[j],b[j]);
-					trigger();
-					Wait(50,App_Loop);
 				}
-				do {
-					k=0;
-					for(j=0; j<N; ++j) {
-						(--r[j] < 0)?(r[j] = 0):(++k);
-						(--g[j] < 0)?(g[j] = 0):(++k);
-						(--b[j] < 0)?(b[j] = 0):(++k);
-						rgb(j,r[j],g[j],b[j]);
+				trigger();
+				Wait(10,App_Loop);
+			} while(k);
+		}
+	} while(getchar()==EOF);
+*/
+}
+
+//______________________________________________________________________________________
+//_________________________________75 = 21+54___________________________________________
+int				SetColor(char *c) {
+					char		*cc[8];
+					if(!c) {
+						__print("\r\ncolor>");
+						__stdin.io->arg.parse=DecodeFs;
+						init_TIM();
+					} else {
+						switch(*c) {
+//__________________________________________________
+						case 'd':
+							if(numscan(++c,cc,',')==3) {
+								_r=atoi(cc[0]);
+								_g=atoi(cc[1]);
+								_b=atoi(cc[2]);
+							}	else
+								return _PARSE_ERR_SYNTAX;
+							break;
+//__________________________________________________
+						case 'l':
+							if(numscan(++c,cc,',')==1) {
+								n=atoi(cc[0]);
+
+							}	else
+								return _PARSE_ERR_SYNTAX;
+							break;
+//______________________________________________________________________________________
+						case '>':
+							__stdin.io->arg.parse=DecodeCom;
+							return(DecodeCom(NULL));
 					}
-					trigger();
-					Wait(10,App_Loop);
-				} while(k);
-			}		
-			
-//			for(i=0; i<N; ++i)
-//				r[i]=g[i]=b[i]=vr[i]=vg[i]=vb[i]=0;				
-//			r[0]=250;	
-
-//			do {					
-//					for(j=0; j<N-1; ++j) {
-//						vr[j]+=((r[j]-r[j+1])-2.0*vr[j])*0.001;
-//						vg[j]+=((g[j]-g[j+1])-2.0*vg[j])*0.001;
-//						vb[j]+=((b[j]-b[j+1])-2.0*vb[j])*0.001;
-//					}
-//					for(j=0; j<N-1; ++j) {
-//						r[j]-=vr[j];
-//						g[j]-=vg[j];
-//						b[j]-=vb[j];
-//					}
-//					for(j=0; j<N-1; ++j) {
-//						r[j+1]+=vr[j];
-//						g[j+1]+=vg[j];
-//						b[j+1]+=vb[j];
-//					}
-//					for(j=0; j<N; ++j)
-//						rgb(j,__max(0,r[j]),__max(0,g[j]),__max(0,b[j]));
-//					trigger();
-//					Wait(10,App_Loop);
-//				}  while(getchar()==EOF);
-//				for(j=0; j<N; ++j)
-//					rgb(j,0,0,0);
-//				trigger();
-				} while(getchar()==EOF);
-
+		return _PARSE_OK;
 }

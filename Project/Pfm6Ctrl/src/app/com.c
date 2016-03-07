@@ -380,7 +380,7 @@ FIL			*f=NULL;																// file object pointer
 					f_close(f);
 					free(f);
 					f=NULL;																// null pointer
-					__stdin.io->arg.parse=DecodeFs;		// parser redirect
+					__stdin.io->arg.parse=DecodeFs;				// parser redirect
 					break;
 //______________________________________________________________________________________
 				default:
@@ -770,7 +770,7 @@ int				n;
 					_buffer_push(__can->rx,&tx,sizeof(CanTxMsg));
 					CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
 					break;
-				}
+				}				
 //__________________________________________________submit CAN message(SYS to __)______
 				case '>': {
 CanTxMsg	tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
@@ -780,7 +780,6 @@ int				i;
 					for(i=0; i<strlen(c);++i,++i)
 						tx.Data[i/2]=getHEX(&c[i],2);
 					tx.DLC=i/2;
-
 //					CAN_ITConfig(__CAN__, CAN_IT_TME, DISABLE);	
 					i=_buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
 //					CAN_ITConfig(__CAN__, CAN_IT_TME, ENABLE);							
@@ -1139,13 +1138,10 @@ int			u=0,umax=0,umin=0;
 				case ':':
 					return DecodeFs(++c);
 //______________________________________________________________________________________
-				case '*':																					//75 = 21+54
-{ 
-	void	init_TIM(void),trigger_TIM(void);
-
-				init_TIM();
-				trigger_TIM();
-				break;
+				case '*':
+{
+int			SetColor(char *);
+				return SetColor(NULL);
 }
 //______________________________________________________________________________________
 				default:
