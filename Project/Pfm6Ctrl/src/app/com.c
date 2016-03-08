@@ -1138,11 +1138,13 @@ int			u=0,umax=0,umin=0;
 				case ':':
 					return DecodeFs(++c);
 //______________________________________________________________________________________
+#ifdef __DISCO__
 				case '*':
 {
 int			SetColor(char *);
 				return SetColor(NULL);
 }
+#endif
 //______________________________________________________________________________________
 				default:
 					return _PARSE_ERR_SYNTAX;
