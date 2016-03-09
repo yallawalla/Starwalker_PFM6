@@ -3,50 +3,55 @@
 //
 //_________________________________________________________________________________
 // PB10, TIM2, ch 3
-//
-//
+//______________________________________________________________________________________
+typedef struct	{unsigned char r; unsigned char g; unsigned char b; }	RGB_set;
+typedef struct	{signed short h; unsigned char s; unsigned char v; }	HSV_set;
+void 		RGB2HSV( RGB_set, HSV_set *);
+void		HSV2RGB( HSV_set, RGB_set *);
+//______________________________________________________________________________________
 void		trigger(void);
 void		*procLeds(void *);
 
-#define N 80
-typedef enum {NONE, FILL, FILL_FROM_LEFT, FILL_FROM_RIGH} rgbcom;
+typedef enum		{NONE, FILL, FILL_LEFT, FILL_RIGHT,ROTATE}	command;
+typedef struct	{int g[8]; int r[8]; int b[8];} dma;
 
-struct _dma {
-	int g[8],r[8],b[8];
-} dma[N+1];
-
-struct		rgb {
-	int			size,t,dt;
-	union		{
-		int		i; 
-		char	c[4];
-	} color, *color_buffer;
-	rgbcom	command;
-	struct _dma *dma;
-} rgb[] = {	
-	{8,0,0,0,NULL,NONE,&dma[0]},
-	{24,0,0,0,NULL,NONE,&dma[8]},
-	{8,0,0,0,NULL,NONE,&dma[32]},
-	{8,0,0,0,NULL,NONE,&dma[40]},
-	{24,0,0,0,NULL,NONE,&dma[48]},
-	{8,0,0,0,NULL,NONE,&dma[72]},
-	{0,0,0,0,NULL,NONE,NULL}
+struct {
+	int				size,t,dt;
+	HSV_set		color, *cbuf;
+	command		mode;
+	dma 			*lbuf;
+} Led[] = {	
+	{8,0,0,{0,0,0},NULL,NONE,NULL},
+	{24,0,0,{0,0,0},NULL,NONE,NULL},
+	{8,0,0,{0,0,0},NULL,NONE,NULL},
+	{8,0,0,{0,0,0},NULL,NONE,NULL},
+	{24,0,0,{0,0,0},NULL,NONE,NULL},
+	{8,0,0,{0,0,0},NULL,NONE,NULL},
+	{0,0,0,{0,0,0},NULL,NONE,NULL}
 };
-//_________________________________________________________________________________
-void	SetRgb(int n, int r,int g,int b) {
-int i;
-	for(i=0; i<8; ++i) {
-		(r & (0x80>>i)) ? (dma[n].r[i]=53) : (dma[n].r[i]=20);
-		(g & (0x80>>i)) ? (dma[n].g[i]=53) : (dma[n].g[i]=20);
-		(b & (0x80>>i)) ? (dma[n].b[i]=53) : (dma[n].b[i]=20);
-	}
-}
+dma					*dma_buffer;
+int					dma_size;
 //_________________________________________________________________________________
 void 	init_TIM() {
 TIM_TimeBaseInitTypeDef		TIM_TimeBaseStructure;
 TIM_OCInitTypeDef					TIM_OCInitStructure;
 DMA_InitTypeDef						DMA_InitStructure;
 GPIO_InitTypeDef					GPIO_InitStructure;
+//
+// ________________________________________________________________________________
+			if(!dma_buffer) {																			// first entry
+				int i,j;
+				for(i=j=0; Led[i].size; ++i)												// count number of leds
+					j+=Led[i].size;
+				dma_buffer=calloc(j+1,sizeof(dma));									// allocate dma buffer
+				dma_size=j*sizeof(dma)/sizeof(int)+1;
+				for(i=j=0; Led[i].size; ++i) {
+					Led[i].cbuf=calloc(Led[i].size,sizeof(HSV_set));	// alloc color buffer
+					Led[i].lbuf=&dma_buffer[j];												// pointer to dma tab
+					j+=Led[i].size;
+				}
+				App_Add(procLeds,NULL,"procLeds",5);	
+			}	
 //
 // ________________________________________________________________________________
 // TIM2
@@ -64,9 +69,9 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 			DMA_StructInit(&DMA_InitStructure);
 			RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
 			DMA_DeInit(DMA1_Stream1);
-			DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)dma;
+			DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)dma_buffer;
 			DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
-			DMA_InitStructure.DMA_BufferSize = sizeof(dma)/sizeof(int)+1;
+			DMA_InitStructure.DMA_BufferSize = dma_size;
 			DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
 			DMA_InitStructure.DMA_Priority = DMA_Priority_High;
 			DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
@@ -107,14 +112,6 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 
 			TIM_DMAConfig(TIM2, TIM_DMABase_CCR3, TIM_DMABurstLength_1Transfer);
 			TIM_DMACmd(TIM2, TIM_DMA_Update, ENABLE);
-			
-			if(!App_Find(procLeds,NULL)) {
-				int i;
-				for(i=0; rgb[i].dma; ++i)
-					if(rgb[i].color_buffer==NULL)
-						rgb[i].color_buffer=calloc(rgb[i].size,sizeof(int));
-				App_Add(procLeds,NULL,"procLeds",30);	
-			}
 		}
 /*******************************************************************************/
 /**
@@ -125,25 +122,28 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 /*******************************************************************************/
 void		trigger() {
 int			i,j,k;
-struct 	_dma	*p;
+dma			*p;
+RGB_set	q;
 	
-				for(i=0; rgb[i].size; ++i)
-					for(j=0; j<rgb[i].size; ++j)
-						if(rgb[i].color_buffer)
-							for(k=0,p=rgb[i].dma; k<8; ++k) {
-								(rgb[i].color_buffer[j].i & (0x000080>>k)) ? (p[j].b[k]=53)	: (p[j].b[k]=20);
-								(rgb[i].color_buffer[j].i & (0x008000>>k)) ? (p[j].g[k]=53)	: (p[j].g[k]=20);
-								(rgb[i].color_buffer[j].i & (0x800000>>k)) ? (p[j].r[k]=53)	: (p[j].r[k]=20);
+				for(i=0; Led[i].size; ++i)
+					for(j=0; j<Led[i].size; ++j)
+						if(Led[i].cbuf) {
+							HSV2RGB(Led[i].cbuf[j], &q);
+							for(k=0,p=Led[i].lbuf; k<8; ++k) {
+								(q.b & (0x80>>k)) ? (p[j].b[k]=53)	: (p[j].b[k]=20);
+								(q.g & (0x80>>k)) ? (p[j].g[k]=53)	: (p[j].g[k]=20);
+								(q.r & (0x80>>k)) ? (p[j].r[k]=53)	: (p[j].r[k]=20);
 							}
+						}
 						else
-							for(k=0,p=rgb[i].dma; k<24; ++k)
+							for(k=0,p=Led[i].lbuf; k<24; ++k)
 									p[j].g[k]=20;
 				
 				DMA_Cmd(DMA1_Stream1, DISABLE);
 				TIM_Cmd(TIM2,DISABLE);
 				TIM_SetCounter(TIM2,0);
 				while(DMA_GetCmdStatus(DMA1_Stream1) != DISABLE);
-				DMA_SetCurrDataCounter(DMA1_Stream1,sizeof(dma)/sizeof(int));
+				DMA_SetCurrDataCounter(DMA1_Stream1,dma_size);
 				DMA_ClearFlag(DMA1_Stream1, DMA_FLAG_HTIF1 | DMA_FLAG_TEIF1 | DMA_FLAG_DMEIF1	| DMA_FLAG_FEIF1 | DMA_FLAG_TCIF1);
 				DMA_Cmd(DMA1_Stream1, ENABLE);
 				TIM_Cmd(TIM2,ENABLE);
@@ -155,76 +155,66 @@ struct 	_dma	*p;
 	* @retval : None
 	*/
 /*******************************************************************************/
-void		trigger_TIM() {
-	
-//	int			i,j,k;
-//	int			r[N],g[N],b[N];
-
-/*	
-	do {
-		for(i=1; i<8; ++i) {
-			for(j=0; j<N; ++j) {
-				(i & 1) ? (r[j]=j*5+5) : (r[j]=0);
-				(i & 2) ? (g[j]=j*5+5) : (g[j]=0);
-				(i & 4) ? (b[j]=j*5+5) : (b[j]=0);
-				rgb(j,r[j],g[j],b[j]);
-				trigger();
-				Wait(5,App_Loop);
-			}
-			do {
-				k=0;
-				for(j=0; j<N; ++j) {
-					(--r[j] < 0)?(r[j] = 0):(++k);
-					(--g[j] < 0)?(g[j] = 0):(++k);
-					(--b[j] < 0)?(b[j] = 0):(++k);
-					rgb(j,r[j],g[j],b[j]);
-				}
-				trigger();
-				Wait(10,App_Loop);
-			} while(k);
-		}
-	} while(getchar()==EOF);
-*/
-}
-//______________________________________________________________________________________
 void			*procLeds(void *v) {
 int				i,j;
 	
-					for(i=0; rgb[i].dma; ++i)
-						switch(rgb[i].command) {
+					for(i=0; Led[i].size; ++i) {
+						switch(Led[i].mode) {
 							case NONE:
 								break;
-							case FILL:
-								if(rgb[i].t++ ==  rgb[i].dt)
-									rgb[i].t=0;
-								
-								for(j=0; j<rgb[i].size; ++j) {
-									if(rgb[i].color_buffer[j].c[0] > rgb[i].color.c[0]) 
-										--rgb[i].color_buffer[j].c[0];
-									else if(rgb[i].color_buffer[j].c[0] < rgb[i].color.c[0]) 
-										++rgb[i].color_buffer[j].c[0];
-									else if(rgb[i].color_buffer[j].c[1] > rgb[i].color.c[1]) 
-										--rgb[i].color_buffer[j].c[1];
-									else if(rgb[i].color_buffer[j].c[1] < rgb[i].color.c[1]) 
-										++rgb[i].color_buffer[j].c[1];
-									else if(rgb[i].color_buffer[j].c[2] > rgb[i].color.c[2]) 
-										--rgb[i].color_buffer[j].c[2];
-									else if(rgb[i].color_buffer[j].c[2] < rgb[i].color.c[2]) {
-										++rgb[i].color_buffer[j].c[2];
-										break;
+							case ROTATE:
+								if(Led[i].t++ ==  Led[i].dt) {
+									Led[i].t=0;
+									Led[i].color.h=++Led[i].color.h % 360; 
+									for(j=0; j<Led[i].size; ++j)
+										Led[i].cbuf[j]=Led[i].color;
+								}
+								break;
+
+							case FILL_RIGHT:
+								if(Led[i].t++ ==  Led[i].dt) {
+									Led[i].t=0;
+									for(j=0; j<Led[i].size; ++j) {
+										if(Led[i].cbuf[j].v < Led[i].color.v) {
+											++Led[i].cbuf[j].v;
+											break;
+										}
+										else if(Led[i].cbuf[j].v > Led[i].color.v) {
+											--Led[i].cbuf[j].v;
+											break;
 										}
 									}
+									if(j == Led[i].size)
+										Led[i].mode=NONE;
+								}
 								break;
-							case FILL_FROM_LEFT:
-								for(j=1; j<rgb[i].size; ++j)
-									rgb[i].color_buffer[j].i=rgb[i].color.i;
-
+							case FILL_LEFT:
+								if(Led[i].t++ ==  Led[i].dt) {
+									Led[i].t=0;
+									for(j=Led[i].size; j; --j) {
+										if(Led[i].cbuf[j-1].v < Led[i].color.v) {
+											++Led[i].cbuf[j-1].v;
+											break;
+										}
+										else if(Led[i].cbuf[j-1].v > Led[i].color.v) {
+											--Led[i].cbuf[j-1].v;
+											break;
+										}
+									}
+									if(j == 0)
+										Led[i].mode=NONE;
+								}
 								break;
 							default:
-							 break;
-						}
-
-					trigger();
+								break;
+							}
+					}
+					
+					for(i=0; Led[i].size; ++i)
+						if(Led[i].mode != NONE) {
+							trigger();
+							break;
+					}
 					return NULL;
 }
 //______________________________________________________________________________________
@@ -237,18 +227,61 @@ int				SetColor(char *c) {
 					} else {
 						switch(*c) {
 //__________________________________________________
+						case 'd':
+							if(numscan(++c,cc,' ')==1)
+								Wait(atoi(cc[0]),App_Loop);
+							break;
+//__________________________________________________
+						case 'r':
+							switch(numscan(++c,cc,',')) {
+								case 2:
+									Led[atoi(cc[0])].color.v=atoi(cc[1]);
+									Led[atoi(cc[0])].dt=2;
+									Led[atoi(cc[0])].mode=FILL_RIGHT;
+								break;
+								case 3:
+									Led[atoi(cc[0])].color.v=atoi(cc[1]);
+									Led[atoi(cc[0])].dt=atoi(cc[2]);
+									Led[atoi(cc[0])].mode=FILL_RIGHT;
+								break;
+								default:
+									return _PARSE_ERR_SYNTAX;
+							}
+							break;
+//__________________________________________________
+						case 'l':
+							switch(numscan(++c,cc,',')) {
+								case 2:
+									Led[atoi(cc[0])].color.v=atoi(cc[1]);
+									Led[atoi(cc[0])].dt=2;
+									Led[atoi(cc[0])].mode=FILL_LEFT;
+								break;
+								case 3:
+									Led[atoi(cc[0])].color.v=atoi(cc[1]);
+									Led[atoi(cc[0])].dt=atoi(cc[2]);
+									Led[atoi(cc[0])].mode=FILL_LEFT;
+								break;
+								default:
+									return _PARSE_ERR_SYNTAX;
+							}
+							break;
+//__________________________________________________
 						case 'c':
 							if(numscan(++c,cc,',')==4) {
-								rgb[atoi(cc[0])].color.i=atoi(cc[3]) + (atoi(cc[2])<<8) + (atoi(cc[1])<<16);
+								int j;
+								Led[atoi(cc[0])].color.h =atoi(cc[1]);
+								Led[atoi(cc[0])].color.s =atoi(cc[2]);
+								Led[atoi(cc[0])].color.v =atoi(cc[3]);
+								for(j=0; j<Led[atoi(cc[0])].size; ++j)
+									Led[atoi(cc[0])].cbuf[j]=Led[atoi(cc[0])].color;
 							}	else
 								return _PARSE_ERR_SYNTAX;
 							break;
-
 //__________________________________________________
-						case 'f':
+						case 'x':
 							if(numscan(++c,cc,',')==2) {
-								rgb[atoi(cc[0])].dt=atoi(cc[1]);
-								rgb[atoi(cc[0])].command=FILL;
+								Led[atoi(cc[0])].dt=atoi(cc[1]);
+								Led[atoi(cc[0])].mode=ROTATE;
 							}	else
 								return _PARSE_ERR_SYNTAX;
 							break;
@@ -260,18 +293,6 @@ int				SetColor(char *c) {
 				}	
 				return _PARSE_OK;
 }
-//______________________________________________________________________________________
-struct RGB_set {
- unsigned char r;
- unsigned char g;
- unsigned char b;
-} RGB_set;
- 
-struct HSV_set {
- signed int h;
- unsigned char s;
- unsigned char v;
-} HSV_set;
 
 /*******************************************************************************
  * Function RGB2HSV
@@ -286,7 +307,7 @@ struct HSV_set {
  *   - h = [0,360], s = [0,255], v = [0,255]
  *   - NB: if s == 0, then h = 0 (undefined)
  ******************************************************************************/
-void RGB2HSV(struct RGB_set RGB, struct HSV_set *HSV){
+void RGB2HSV(RGB_set RGB, HSV_set *HSV){
  unsigned char min, max, delta;
  
  if(RGB.r<RGB.g)min=RGB.r; else min=RGB.g;
@@ -331,7 +352,7 @@ void RGB2HSV(struct RGB_set RGB, struct HSV_set *HSV){
  *   - h = [0,360], s = [0,255], v = [0,255]
  *   - NB: if s == 0, then h = 0 (undefined)
  ******************************************************************************/
-void HSV2RGB(struct HSV_set HSV, struct RGB_set *RGB){
+void HSV2RGB(HSV_set HSV, RGB_set *RGB){
  int i;
  float f, p, q, t, h, s, v;
  
@@ -386,3 +407,28 @@ void HSV2RGB(struct HSV_set HSV, struct RGB_set *RGB){
  break;
  }
 }
+
+/*
+
+c 0,180,255,0 
+c 5,180,255,0 
+c 1,100,255,0 
+c 4,120,255,0 
+c 2,7,255,0 
+c 3,7,255,0
+
+r 0,10
+r 5,10
+r 1,10
+r 4,10
+l 2,10
+r 3,10
+
+r 0,0
+r 5,0
+r 1,0
+r 4,0
+l 2,0
+r 3,0
+
+*/
