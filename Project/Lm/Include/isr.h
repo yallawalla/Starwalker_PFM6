@@ -23,6 +23,8 @@ void						Watchdog(void);
 #define					_BLUE2(a)			_led(8,a)
 #define					_ORANGE2(a)		_led(9,a)
 
+typedef	enum 		{PARSE_OK,PARSE_SYNTAX,PARSE_ILLEGAL,PARSE_MISSING,PARSE_MEM} ERR_MSG;
+
 #define	 				__Esc					0x1b
 
 #define					__CtrlA				0x01
@@ -33,6 +35,7 @@ void						Watchdog(void);
 #define					__CtrlF				0x06
 
 #define					__CtrlI				0x09
+#define					__CtrlK				0x09
 #define					__CtrlO				0x0f
 #define					__CtrlV				0x16
 #define					__CtrlZ				0x1a
@@ -108,12 +111,24 @@ int			_buffer_push(_buffer *, void *,int),
 				_buffer_pull(_buffer *, void *,int),
 				_buffer_count(_buffer *);
 				
+				
+typedef	void *func(void *);
+ 
+typedef	struct {
+func			*f;
+void			*arg;
+char			*name;
+int				t,dt,to;
+} _thread;
+				
+extern	_buffer 	*_thread_buf;
 void		_thread_init(void),
 				_thread_loop(void),
 				_thread_list(void),
-				_thread_add(void *,void *,char *,int),
-				_thread_remove(void *,void *),	
+				_thread_remove(void *,void *);
+_thread	*_thread_add(void *,void *,char *,int),
 				*_thread_find(void *,void *);
+
 void		_wait(int,void (*)(void));
 _io			*ParseCom(_io *);
 	

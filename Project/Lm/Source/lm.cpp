@@ -229,9 +229,6 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 					break;
 			}
 }
-
-typedef	enum {PARSE_OK,PARSE_SYNTAX,PARSE_ILLEGAL,PARSE_MISSING,PARSE_MEM} ERR_MSG;
-
 /*******************************************************************************
 * Function Name	: 
 * Description		: 
@@ -369,6 +366,9 @@ int		_LM::Decode(char *c) {
 						break;
 					case 'w':
 						_wait(strtoul(++c,NULL,0),_thread_loop);
+						break;
+					case '.':
+						ws2812.SetColor(++c);
 						break;
 					case '>':
 						can.Send(++c);
@@ -579,7 +579,7 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 				case __F8:
 				case __f8:
 					Select(EC20);
-					Decode((char *)".2100");
+					Decode((char *)">2100");
 					break;
 				case __F9:
 				case __f9:
@@ -653,19 +653,19 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 				case __FOOT_OFF:
 					printf("\r\n:\r\n:footswitch disconnected \r\n:");
 					spray.mode.On=false;
-					Decode((char *)".2200");
+					Decode((char *)">2200");
 					break;	
 				case __FOOT_IDLE:
 					spray.mode.On=false;
-					Decode((char *)".2200");
+					Decode((char *)">2200");
 					break;	
 				case __FOOT_MID:
 					spray.mode.On=true;
-					Decode((char *)".2200");
+					Decode((char *)">2200");
 					break;	
 				case __FOOT_ON:		
 					spray.mode.On=true;
-					Decode((char *)".2201");
+					Decode((char *)">2201");
 					break;	
 									
 				case __CtrlY:

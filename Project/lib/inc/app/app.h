@@ -183,7 +183,7 @@ _io 						*Initialize_USART(int);
 
 #define 	_THREAD_BUFFER_SIZE 128
 
- typedef	void *func(void *);
+typedef	void *func(void *);
  
 typedef	struct {
 func			*f;

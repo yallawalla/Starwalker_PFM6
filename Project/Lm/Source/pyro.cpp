@@ -11,7 +11,6 @@
 /** @addtogroup
 * @{
 */
-
 #include	"pyro.h"
 #include	"isr.h"
 #include	"limits.h"
@@ -37,9 +36,9 @@ void	_PYRO::ISR(_PYRO *p) {
 					temp = temp<<1;		
 					if(GPIO_ReadInputDataBit(PYRO_PORT,PYRO_BIT)==SET)
 						temp |= 1;
-						TIM2->ARR=_Ts-1;
+						TIM7->ARR=_Ts-1;
 					} else
-						TIM2->ARR=1000-(_MAXBITS-1)*_Ts-1;
+						TIM7->ARR=1000-(_MAXBITS-1)*_Ts-1;
 					
 					PYRO_PORT->BSRRH   =  PYRO_BIT;								// low
 					PYRO_PORT->OTYPER	&= ~PYRO_BIT;								// PP
@@ -58,7 +57,7 @@ void	_PYRO::ISR(_PYRO *p) {
 							_buffer_push(buffer,&i,sizeof(short));
             }
 						temp=nbits=0;
-						TIM2->ARR=1000*(_To-1)-1;
+						TIM7->ARR=1000*(_To-1)-1;
 					}
 		}
 /*******************************************************************************
@@ -87,17 +86,17 @@ GPIO_InitTypeDef
 			GPIO_SetBits(PYRO_PORT,PYRO_BIT);
 
 			TIM_TimeBaseInitTypeDef TIM;
-			RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);
+			RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7,ENABLE);
 			TIM_TimeBaseStructInit(&TIM);
 			TIM.TIM_Prescaler = (SystemCoreClock/2000000)-1;
 			TIM.TIM_Period = 1000;
 			TIM.TIM_ClockDivision = 0;
 			TIM.TIM_CounterMode = TIM_CounterMode_Up;
-			TIM_TimeBaseInit(TIM2,&TIM);
-			TIM_ARRPreloadConfig(TIM2,DISABLE);
-			TIM_ITConfig(TIM2,TIM_IT_Update,ENABLE);
-			NVIC_EnableIRQ(TIM2_IRQn);
-			TIM_Cmd(TIM2,ENABLE);
+			TIM_TimeBaseInit(TIM7,&TIM);
+			TIM_ARRPreloadConfig(TIM7,DISABLE);
+			TIM_ITConfig(TIM7,TIM_IT_Update,ENABLE);
+			NVIC_EnableIRQ(TIM7_IRQn);
+			TIM_Cmd(TIM7,ENABLE);
 
 			memset (&S2,0, sizeof(arm_fir_instance_f32));
 			arm_fir_init_f32(&S2, _MAX_TAPS, firCoeffs32, firStateF32, _BLOCKSIZE);
@@ -115,8 +114,8 @@ GPIO_InitTypeDef
 * Return				:
 *******************************************************************************/
 _PYRO::~_PYRO() {	
-			TIM_ITConfig(TIM2,TIM_IT_Update,DISABLE);
-			NVIC_DisableIRQ(TIM2_IRQn);
+			TIM_ITConfig(TIM7,TIM_IT_Update,DISABLE);
+			NVIC_DisableIRQ(TIM7_IRQn);
 			_buffer_close(buffer);
 }
 /*******************************************************************************/
@@ -213,16 +212,16 @@ int		_PYRO::addSample(int i) {
 extern "C" {
 /*******************************************************************************/
 /**
-	* @brief	TIM2_IRQHandler, klice staticni ISR handler, indikacija je NULL pointer,
+	* @brief	TIM7_IRQHandler, klice staticni ISR handler, indikacija je NULL pointer,
 	*					sicer pointer vsebuje parent class !!! Mora bit extern C zaradi overridanja 
 						vektorjev v startupu
 	* @param	: None
 	* @retval : None
 	*/
 /*******************************************************************************/
-void	TIM2_IRQHandler(void) {
-			if (TIM_GetITStatus(TIM2,TIM_IT_Update) != RESET) {
-				TIM_ClearITPendingBit(TIM2,TIM_IT_Update);
+void	TIM7_IRQHandler(void) {
+			if (TIM_GetITStatus(TIM7,TIM_IT_Update) != RESET) {
+				TIM_ClearITPendingBit(TIM7,TIM_IT_Update);
 				me->ISR(NULL);
 				}
 			}

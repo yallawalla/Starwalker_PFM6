@@ -452,6 +452,11 @@
               <FileType>8</FileType>
               <FilePath>.\Source\ee.cpp</FilePath>
             </File>
+            <File>
+              <FileName>leds.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\leds.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1036,6 +1041,11 @@
               <FileType>8</FileType>
               <FilePath>.\Source\ee.cpp</FilePath>
             </File>
+            <File>
+              <FileName>leds.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\leds.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1619,6 +1629,11 @@
               <FileName>ee.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\Source\ee.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>leds.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\leds.cpp</FilePath>
             </File>
           </Files>
         </Group>
