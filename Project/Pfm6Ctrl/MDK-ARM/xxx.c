@@ -12,22 +12,22 @@ void		HSV2RGB( HSV_set, RGB_set *);
 void		trigger(void);
 void		*procLeds(void *);
 
-typedef enum		{NONE, FILL, FILL_LEFT, FILL_RIGHT,ROTATE}	command;
+typedef enum		{NONE, FILL, FILL_LEFT, FILL_RIGHT}	command;
 typedef struct	{int g[8]; int r[8]; int b[8];} dma;
 
 struct {
-	int				size,t,dt;
+	int				size,dt;
 	HSV_set		color, *cbuf;
 	command		mode;
 	dma 			*lbuf;
 } Led[] = {	
-	{8,0,0,{0,0,0},NULL,NONE,NULL},
-	{24,0,0,{0,0,0},NULL,NONE,NULL},
-	{8,0,0,{0,0,0},NULL,NONE,NULL},
-	{8,0,0,{0,0,0},NULL,NONE,NULL},
-	{24,0,0,{0,0,0},NULL,NONE,NULL},
-	{8,0,0,{0,0,0},NULL,NONE,NULL},
-	{0,0,0,{0,0,0},NULL,NONE,NULL}
+	{8,0,{0,0,0},NULL,NONE,NULL},
+	{24,0,{0,0,0},NULL,NONE,NULL},
+	{8,0,{0,0,0},NULL,NONE,NULL},
+	{8,0,{0,0,0},NULL,NONE,NULL},
+	{24,0,{0,0,0},NULL,NONE,NULL},
+	{8,0,{0,0,0},NULL,NONE,NULL},
+	{0,0,{0,0,0},NULL,NONE,NULL}
 };
 dma					*dma_buffer;
 int					dma_size;
@@ -50,7 +50,7 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 					Led[i].lbuf=&dma_buffer[j];												// pointer to dma tab
 					j+=Led[i].size;
 				}
-				App_Add(procLeds,NULL,"procLeds",5);	
+				App_Add(procLeds,NULL,"procLeds",10);	
 			}	
 //
 // ________________________________________________________________________________
@@ -156,55 +156,79 @@ RGB_set	q;
 	*/
 /*******************************************************************************/
 void			*procLeds(void *v) {
-int				i,j;
+int				i,j,k;
 	
 					for(i=0; Led[i].size; ++i) {
 						switch(Led[i].mode) {
 							case NONE:
 								break;
-							case ROTATE:
-								if(Led[i].t++ ==  Led[i].dt) {
-									Led[i].t=0;
-									Led[i].color.h=++Led[i].color.h % 360; 
-									for(j=0; j<Led[i].size; ++j)
-										Led[i].cbuf[j]=Led[i].color;
+
+							case FILL:
+								for(j=k=0; j<Led[i].size;++j) {
+									Led[i].cbuf[j].h = Led[i].color.h;
+									Led[i].cbuf[j].s = Led[i].color.s;
+									
+									if(Led[i].cbuf[j].v < Led[i].color.v)
+										Led[i].cbuf[j].v += (Led[i].color.v - Led[i].cbuf[j].v)/Led[i].dt+1;
+									else if(Led[i].cbuf[j].v > Led[i].color.v)
+										Led[i].cbuf[j].v -= (Led[i].cbuf[j].v - Led[i].color.v)/Led[i].dt+1;
+									else
+										++k;
 								}
+								if(k==Led[i].size)
+									Led[i].mode=NONE;
 								break;
 
 							case FILL_RIGHT:
-								if(Led[i].t++ ==  Led[i].dt) {
-									Led[i].t=0;
-									for(j=0; j<Led[i].size; ++j) {
-										if(Led[i].cbuf[j].v < Led[i].color.v) {
-											++Led[i].cbuf[j].v;
-											break;
-										}
-										else if(Led[i].cbuf[j].v > Led[i].color.v) {
-											--Led[i].cbuf[j].v;
-											break;
-										}
-									}
-									if(j == Led[i].size)
-										Led[i].mode=NONE;
+								j=Led[i].size; 
+								k=0;
+								while(--j) {
+									Led[i].cbuf[j].h = Led[i].cbuf[j-1].h;
+									Led[i].cbuf[j].s = Led[i].cbuf[j-1].s;
+									
+									if(Led[i].cbuf[j].v < Led[i].cbuf[j-1].v)
+										Led[i].cbuf[j].v += (Led[i].cbuf[j-1].v - Led[i].cbuf[j].v)/Led[i].dt+1;
+									else if(Led[i].cbuf[j].v > Led[i].cbuf[j-1].v)
+										Led[i].cbuf[j].v -= (Led[i].cbuf[j].v - Led[i].cbuf[j-1].v)/Led[i].dt+1;
+									else
+										++k;
 								}
+								Led[i].cbuf[j].h = Led[i].color.h;
+								Led[i].cbuf[j].s = Led[i].color.s;
+								if(Led[i].cbuf[j].v < Led[i].color.v)
+									Led[i].cbuf[j].v += (Led[i].color.v - Led[i].cbuf[j].v)/Led[i].dt+1;
+								else if(Led[i].cbuf[j].v > Led[i].color.v)
+									Led[i].cbuf[j].v -= (Led[i].cbuf[j].v - Led[i].color.v)/Led[i].dt+1;
+								else
+									++k;
+								if(k==Led[i].size)
+									Led[i].mode=NONE;
 								break;
+								
 							case FILL_LEFT:
-								if(Led[i].t++ ==  Led[i].dt) {
-									Led[i].t=0;
-									for(j=Led[i].size; j; --j) {
-										if(Led[i].cbuf[j-1].v < Led[i].color.v) {
-											++Led[i].cbuf[j-1].v;
-											break;
-										}
-										else if(Led[i].cbuf[j-1].v > Led[i].color.v) {
-											--Led[i].cbuf[j-1].v;
-											break;
-										}
-									}
-									if(j == 0)
-										Led[i].mode=NONE;
+								for(j=k=0; j<Led[i].size-1;++j) {
+									Led[i].cbuf[j].h = Led[i].cbuf[j+1].h;
+									Led[i].cbuf[j].s = Led[i].cbuf[j+1].s;
+									
+									if(Led[i].cbuf[j].v < Led[i].cbuf[j+1].v)
+										Led[i].cbuf[j].v += (Led[i].cbuf[j+1].v - Led[i].cbuf[j].v)/Led[i].dt+1;
+									else if(Led[i].cbuf[j].v > Led[i].cbuf[j+1].v)
+										Led[i].cbuf[j].v -= (Led[i].cbuf[j].v - Led[i].cbuf[j+1].v)/Led[i].dt+1;
+									else
+										++k;
 								}
+								Led[i].cbuf[j].h = Led[i].color.h;
+								Led[i].cbuf[j].s = Led[i].color.s;
+								if(Led[i].cbuf[j].v < Led[i].color.v)
+									Led[i].cbuf[j].v += (Led[i].color.v - Led[i].cbuf[j].v)/Led[i].dt+1;
+								else if(Led[i].cbuf[j].v > Led[i].color.v)
+									Led[i].cbuf[j].v -= (Led[i].cbuf[j].v - Led[i].color.v)/Led[i].dt+1;
+								else
+									++k;
+								if(k==Led[i].size)
+									Led[i].mode=NONE;
 								break;
+								
 							default:
 								break;
 							}
@@ -227,65 +251,52 @@ int				SetColor(char *c) {
 					} else {
 						switch(*c) {
 //__________________________________________________
+						case 't':
+							if(numscan(++c,cc,' ')==1) {
+								int t=atoi(cc[0]);
+								if(t<5 || t>100)
+									return _PARSE_ERR_ILLEGAL;
+								App_Find(procLeds,NULL)->dt=t;	
+							}
+							break;
+//__________________________________________________
 						case 'd':
 							if(numscan(++c,cc,' ')==1)
 								Wait(atoi(cc[0]),App_Loop);
 							break;
 //__________________________________________________
-						case 'r':
-							switch(numscan(++c,cc,',')) {
-								case 2:
-									Led[atoi(cc[0])].color.v=atoi(cc[1]);
-									Led[atoi(cc[0])].dt=2;
-									Led[atoi(cc[0])].mode=FILL_RIGHT;
-								break;
-								case 3:
-									Led[atoi(cc[0])].color.v=atoi(cc[1]);
-									Led[atoi(cc[0])].dt=atoi(cc[2]);
-									Led[atoi(cc[0])].mode=FILL_RIGHT;
-								break;
-								default:
-									return _PARSE_ERR_SYNTAX;
-							}
+						case 'f':
+							if(numscan(++c,cc,',') != 2)
+								return _PARSE_ERR_SYNTAX;
+							Led[atoi(cc[0])].dt=atoi(cc[1]);
+							Led[atoi(cc[0])].mode=FILL;
 							break;
 //__________________________________________________
 						case 'l':
-							switch(numscan(++c,cc,',')) {
-								case 2:
-									Led[atoi(cc[0])].color.v=atoi(cc[1]);
-									Led[atoi(cc[0])].dt=2;
-									Led[atoi(cc[0])].mode=FILL_LEFT;
-								break;
-								case 3:
-									Led[atoi(cc[0])].color.v=atoi(cc[1]);
-									Led[atoi(cc[0])].dt=atoi(cc[2]);
-									Led[atoi(cc[0])].mode=FILL_LEFT;
-								break;
-								default:
-									return _PARSE_ERR_SYNTAX;
-							}
+							if(numscan(++c,cc,',') != 2)
+								return _PARSE_ERR_SYNTAX;
+							Led[atoi(cc[0])].dt=atoi(cc[1]);
+							Led[atoi(cc[0])].mode=FILL_LEFT;
 							break;
+//__________________________________________________
+						case 'r':
+							if(numscan(++c,cc,',') != 2)
+								return _PARSE_ERR_SYNTAX;
+							Led[atoi(cc[0])].dt=atoi(cc[1]);
+							Led[atoi(cc[0])].mode=FILL_RIGHT;
+							break;
+
 //__________________________________________________
 						case 'c':
 							if(numscan(++c,cc,',')==4) {
-								int j;
 								Led[atoi(cc[0])].color.h =atoi(cc[1]);
 								Led[atoi(cc[0])].color.s =atoi(cc[2]);
 								Led[atoi(cc[0])].color.v =atoi(cc[3]);
-								for(j=0; j<Led[atoi(cc[0])].size; ++j)
-									Led[atoi(cc[0])].cbuf[j]=Led[atoi(cc[0])].color;
 							}	else
 								return _PARSE_ERR_SYNTAX;
 							break;
 //__________________________________________________
 						case 'x':
-							if(numscan(++c,cc,',')==2) {
-								Led[atoi(cc[0])].dt=atoi(cc[1]);
-								Led[atoi(cc[0])].mode=ROTATE;
-							}	else
-								return _PARSE_ERR_SYNTAX;
-							break;
-//______________________________________________________________________________________
 						case '>':
 							__stdin.io->arg.parse=DecodeCom;
 							return(DecodeCom(NULL));
@@ -410,25 +421,25 @@ void HSV2RGB(HSV_set HSV, RGB_set *RGB){
 
 /*
 
-c 0,180,255,0 
-c 5,180,255,0 
-c 1,100,255,0 
-c 4,120,255,0 
+c 0,120,255,0 
+c 5,120,255,0 
+c 1,180,180,0 
+c 4,180,180,0
 c 2,7,255,0 
 c 3,7,255,0
 
-r 0,10
-r 5,10
-r 1,10
-r 4,10
-l 2,10
-r 3,10
+c 0,120,255,100 
+c 5,120,255,100 
+c 1,180,180,100 
+c 4,180,180,100
+c 2,7,255,100 
+c 3,7,255,100
 
-r 0,0
-r 5,0
-r 1,0
-r 4,0
-l 2,0
-r 3,0
+c 4,180,180,100
+r 4,2
+d 50
+c 4,180,180,0
+r 4,2
+d 200
 
 */
