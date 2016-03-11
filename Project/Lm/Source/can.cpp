@@ -281,7 +281,7 @@ _LM				*lm = (_LM *)v;
 									lm->spray.WaterLevel=msg.Data[1];
 								} else {
 									char	c[64];
-									sprintf(c,".%02X%02X%02X",	SprayCommand,
+									sprintf(c,">%02X%02X%02X",	SprayCommand,
 																								lm->spray.AirLevel,
 																									lm->spray.WaterLevel);
 									Send(c);
@@ -290,7 +290,7 @@ _LM				*lm = (_LM *)v;
 //______________________________________________________________________________________
 							case SprayStatus:
 								char	c[64];
-								sprintf(c,".%02X%02X%02X",	SprayStatus,
+								sprintf(c,">%02X%02X%02X",	SprayStatus,
 																							_ADC::Instance()->Th2o/100,
 																								*(char *)&_ADC::Instance()->error);
 								Send(c);

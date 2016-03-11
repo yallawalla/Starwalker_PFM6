@@ -368,8 +368,7 @@ int		_LM::Decode(char *c) {
 						_wait(strtoul(++c,NULL,0),_thread_loop);
 						break;
 					case '.':
-						ws2812.SetColor(++c);
-						break;
+						return ws.SetColor(++c);
 					case '>':
 						can.Send(++c);
 						break;
@@ -545,7 +544,6 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 				case __f1:
 					Select(PYRO);
 					break;
-
 				case __F2:
 				case __f2:
 					Select(PILOT);

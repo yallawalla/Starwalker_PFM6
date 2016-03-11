@@ -26,7 +26,7 @@
 #include				"can.h"
 #include				"pyro.h"
 #include				"pilot.h"
-#include				"leds.h"
+#include				"ws2812.h"
 
 #define					SW_version	10
 
@@ -65,10 +65,10 @@ class	_LM {
 		_EC20				ec20;
 		_EE					ee;
 		_PILOT			pilot;
-		_WS2812			ws2812;
+		_WS2812			ws;
 
 #ifdef	__DISCO__
-	_LCD				lcd;
+		_LCD				lcd;
 #endif
 
 		int						debug;

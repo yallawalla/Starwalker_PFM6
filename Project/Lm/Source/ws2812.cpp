@@ -12,44 +12,49 @@
 * @{
 */
 
-#include	"leds.h"
+#include	"ws2812.h"
 #include	"isr.h"
-#include	<leds.h>
+#include 	<ctype.h>
+#include	<math.h>
 
-using std::string;
-using std::vector;
-using std::stringstream;
-
-ws2812 _WS2812::Led[] = {	
-					{8,0,{0,0,0},NULL,noCOMM,NULL},
-					{24,0,{0,0,0},NULL,noCOMM,NULL},
-					{8,0,{0,0,0},NULL,noCOMM,NULL},
-					{8,0,{0,0,0},NULL,noCOMM,NULL},
-					{24,0,{0,0,0},NULL,noCOMM,NULL},
-					{8,0,{0,0,0},NULL,noCOMM,NULL},
-					{0,0,{0,0,0},NULL,noCOMM,NULL}
-				};
+ws2812 _WS2812::ws[] = 
+			{{8,0,{0,0,0},NULL,noCOMM,NULL},
+			{24,0,{0,0,0},NULL,noCOMM,NULL},
+			{8,0,{0,0,0},NULL,noCOMM,NULL},
+			{8,0,{0,0,0},NULL,noCOMM,NULL},
+			{24,0,{0,0,0},NULL,noCOMM,NULL},
+			{8,0,{0,0,0},NULL,noCOMM,NULL},
+			{0,0,{0,0,0},NULL,noCOMM,NULL}};
 //_________________________________________________________________________________
-_WS2812::_WS2812() {
+_WS2812::~_WS2812() {
+			_thread_remove((void *)procLeds,this);
+			delete dma_buffer;
+			for(int i=0; ws[i].size; ++i)
+				delete ws[i].cbuf;
+}
+//_________________________________________________________________________________
+_WS2812::_WS2812()  {
 TIM_TimeBaseInitTypeDef		TIM_TimeBaseStructure;
 TIM_OCInitTypeDef					TIM_OCInitStructure;
 DMA_InitTypeDef						DMA_InitStructure;
 GPIO_InitTypeDef					GPIO_InitStructure;
 //
 // ________________________________________________________________________________
-			if(!dma_buffer) {																			// first entry
-				int i,j;
-				for(i=j=0; Led[i].size; ++i)												// count number of leds
-					j+=Led[i].size;
-				dma_buffer=new dma[j+1];														// allocate dma buffer
-				dma_size=j*sizeof(dma)/sizeof(int)+1;
-				for(i=j=0; Led[i].size; ++i) {
-					Led[i].cbuf=new HSV_set[Led[i].size];							// alloc color buffer
-					Led[i].lbuf=&dma_buffer[j];												// pointer to dma tab
-					j+=Led[i].size;
-				}
-				_thread_add((void *)procLeds,this,(char *)"procLeds",10);
-			}	
+			ws2812 *w=ws;
+			int i=0;
+			while(w->size)																		// count number of leds
+				i+=w++->size;
+			dma_buffer=new dma[i+1];													// allocate dma buffer
+			dma_size=i*sizeof(dma)/sizeof(int)+1;
+			
+			w=ws;
+			i=0;
+			while(w->size) {
+				w->cbuf=new HSV_set[w->size];										// alloc color buffer
+				w->lbuf=&dma_buffer[i];													// pointer to dma tab
+				i+=w++->size;
+			}
+			_thread_add((void *)procLeds,this,(char *)"procLeds",10);
 //
 // ________________________________________________________________________________
 // TIM2
@@ -59,9 +64,9 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 			GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 			
-			GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_TIM2);
-			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
-			GPIO_Init(GPIOB, &GPIO_InitStructure);
+			GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_TIM2);
+			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+			GPIO_Init(GPIOA, &GPIO_InitStructure);
 	
 // DMA setup _____________________________________________________________________
 			DMA_StructInit(&DMA_InitStructure);
@@ -123,18 +128,18 @@ int			i,j,k;
 dma			*p;
 RGB_set	q;
 	
-				for(i=0; Led[i].size; ++i)
-					for(j=0; j<Led[i].size; ++j)
-						if(Led[i].cbuf) {
-							HSV2RGB(Led[i].cbuf[j], &q);
-							for(k=0,p=Led[i].lbuf; k<8; ++k) {
+				for(i=0; ws[i].size; ++i)
+					for(j=0; j<ws[i].size; ++j)
+						if(ws[i].cbuf) {
+							HSV2RGB(ws[i].cbuf[j], &q);
+							for(k=0,p=ws[i].lbuf; k<8; ++k) {
 								(q.b & (0x80>>k)) ? (p[j].b[k]=53)	: (p[j].b[k]=20);
 								(q.g & (0x80>>k)) ? (p[j].g[k]=53)	: (p[j].g[k]=20);
 								(q.r & (0x80>>k)) ? (p[j].r[k]=53)	: (p[j].r[k]=20);
 							}
 						}
 						else
-							for(k=0,p=Led[i].lbuf; k<24; ++k)
+							for(k=0,p=ws[i].lbuf; k<24; ++k)
 									p[j].g[k]=20;
 				
 				DMA_Cmd(DMA1_Stream1, DISABLE);
@@ -154,160 +159,174 @@ RGB_set	q;
 	*/
 /*******************************************************************************/
 void	 *_WS2812::procLeds(_WS2812 *me) {
-int				i,j,k;
+int			j,k,trg=0;
+ws2812	*w=ws;
 	
-					for(i=0; Led[i].size; ++i) {
-						switch(Led[i].mode) {
-							case noCOMM:
-								break;
-
-							case FILL:
-								for(j=k=0; j<Led[i].size;++j) {
-									Led[i].cbuf[j].h = Led[i].color.h;
-									Led[i].cbuf[j].s = Led[i].color.s;
-									
-									if(Led[i].cbuf[j].v < Led[i].color.v)
-										Led[i].cbuf[j].v += (Led[i].color.v - Led[i].cbuf[j].v)/Led[i].dt+1;
-									else if(Led[i].cbuf[j].v > Led[i].color.v)
-										Led[i].cbuf[j].v -= (Led[i].cbuf[j].v - Led[i].color.v)/Led[i].dt+1;
-									else
-										++k;
-								}
-								if(k==Led[i].size)
-									Led[i].mode=noCOMM;
-								break;
-
-							case FILL_RIGHT:
-								j=Led[i].size; 
-								k=0;
-								while(--j) {
-									Led[i].cbuf[j].h = Led[i].cbuf[j-1].h;
-									Led[i].cbuf[j].s = Led[i].cbuf[j-1].s;
-									
-									if(Led[i].cbuf[j].v < Led[i].cbuf[j-1].v)
-										Led[i].cbuf[j].v += (Led[i].cbuf[j-1].v - Led[i].cbuf[j].v)/Led[i].dt+1;
-									else if(Led[i].cbuf[j].v > Led[i].cbuf[j-1].v)
-										Led[i].cbuf[j].v -= (Led[i].cbuf[j].v - Led[i].cbuf[j-1].v)/Led[i].dt+1;
-									else
-										++k;
-								}
-								Led[i].cbuf[j].h = Led[i].color.h;
-								Led[i].cbuf[j].s = Led[i].color.s;
-								if(Led[i].cbuf[j].v < Led[i].color.v)
-									Led[i].cbuf[j].v += (Led[i].color.v - Led[i].cbuf[j].v)/Led[i].dt+1;
-								else if(Led[i].cbuf[j].v > Led[i].color.v)
-									Led[i].cbuf[j].v -= (Led[i].cbuf[j].v - Led[i].color.v)/Led[i].dt+1;
-								else
-									++k;
-								if(k==Led[i].size)
-									Led[i].mode=noCOMM;
-								break;
-								
-							case FILL_LEFT:
-								for(j=k=0; j<Led[i].size-1;++j) {
-									Led[i].cbuf[j].h = Led[i].cbuf[j+1].h;
-									Led[i].cbuf[j].s = Led[i].cbuf[j+1].s;
-									
-									if(Led[i].cbuf[j].v < Led[i].cbuf[j+1].v)
-										Led[i].cbuf[j].v += (Led[i].cbuf[j+1].v - Led[i].cbuf[j].v)/Led[i].dt+1;
-									else if(Led[i].cbuf[j].v > Led[i].cbuf[j+1].v)
-										Led[i].cbuf[j].v -= (Led[i].cbuf[j].v - Led[i].cbuf[j+1].v)/Led[i].dt+1;
-									else
-										++k;
-								}
-								Led[i].cbuf[j].h = Led[i].color.h;
-								Led[i].cbuf[j].s = Led[i].color.s;
-								if(Led[i].cbuf[j].v < Led[i].color.v)
-									Led[i].cbuf[j].v += (Led[i].color.v - Led[i].cbuf[j].v)/Led[i].dt+1;
-								else if(Led[i].cbuf[j].v > Led[i].color.v)
-									Led[i].cbuf[j].v -= (Led[i].cbuf[j].v - Led[i].color.v)/Led[i].dt+1;
-								else
-									++k;
-								if(k==Led[i].size)
-									Led[i].mode=noCOMM;
-								break;
-								
-							default:
-								break;
-							}
-					}
-					
-					for(i=0; Led[i].size; ++i)
-						if(Led[i].mode != noCOMM) {
-							me->trigger();
+				do {
+					k=0;
+					switch(w->mode) {
+						case noCOMM:
 							break;
-					}
-					return NULL;
+
+						case FILL:
+							if(w->dt == 0 || w->dt == 1) {
+								for(k=0; k<w->size;++k)
+									w->cbuf[k] = w->color;
+							}
+							else
+								for(j=k=0; j<w->size;++j) {
+									w->cbuf[j].h = w->color.h;
+									w->cbuf[j].s = w->color.s;
+									
+									if(w->cbuf[j].v < w->color.v)
+										w->cbuf[j].v += (w->color.v - w->cbuf[j].v)/w->dt+1;
+									else if(w->cbuf[j].v > w->color.v)
+										w->cbuf[j].v -= (w->cbuf[j].v - w->color.v)/w->dt+1;
+									else
+										++k;
+								}
+							break;
+
+						case FILL_RIGHT:
+							j=w->size; 
+							k=0;
+							while(--j) {
+								w->cbuf[j].h = w->cbuf[j-1].h;
+								w->cbuf[j].s = w->cbuf[j-1].s;
+								
+								if(w->cbuf[j].v < w->cbuf[j-1].v)
+									w->cbuf[j].v += (w->cbuf[j-1].v - w->cbuf[j].v)/w->dt+1;
+								else if(w->cbuf[j].v > w->cbuf[j-1].v)
+									w->cbuf[j].v -= (w->cbuf[j].v - w->cbuf[j-1].v)/w->dt+1;
+								else
+									++k;
+							}
+							w->cbuf[j].h = w->color.h;
+							w->cbuf[j].s = w->color.s;
+							if(w->cbuf[j].v < w->color.v)
+								w->cbuf[j].v += (w->color.v - w->cbuf[j].v)/w->dt+1;
+							else if(w->cbuf[j].v > w->color.v)
+								w->cbuf[j].v -= (w->cbuf[j].v - w->color.v)/w->dt+1;
+							else
+								++k;
+							break;
+							
+						case FILL_LEFT:
+							for(j=k=0; j<w->size-1;++j) {
+								w->cbuf[j].h = w->cbuf[j+1].h;
+								w->cbuf[j].s = w->cbuf[j+1].s;
+								
+								if(w->cbuf[j].v < w->cbuf[j+1].v)
+									w->cbuf[j].v += (w->cbuf[j+1].v - w->cbuf[j].v)/w->dt+1;
+								else if(w->cbuf[j].v > w->cbuf[j+1].v)
+									w->cbuf[j].v -= (w->cbuf[j].v - w->cbuf[j+1].v)/w->dt+1;
+								else
+									++k;
+							}
+							w->cbuf[j].h = w->color.h;
+							w->cbuf[j].s = w->color.s;
+							if(w->cbuf[j].v < w->color.v)
+								w->cbuf[j].v += (w->color.v - w->cbuf[j].v)/w->dt+1;
+							else if(w->cbuf[j].v > w->color.v)
+								w->cbuf[j].v -= (w->cbuf[j].v - w->color.v)/w->dt+1;
+							else
+								++k;
+							break;
+							
+						default:
+							break;
+						}
+					
+						if(w->mode != noCOMM) {
+							++trg;
+							if(k==w->size)
+								w->mode=noCOMM;
+						}
+				} while((++w)->size);
+			
+				if(trg)
+					me->trigger();
+				return NULL;
 }
 //______________________________________________________________________________________
-int				_WS2812::SetColor(string str) {
-stringstream 	stream(str.substr(0,str.find(" ")));
-vector<int> 	values(10);
-int						i;
+int				strscan(char *s,char *ss[],int c) {
+					int		i=0;
+					while(1)
+					{
+						while(*s==' ') ++s;
+						if(!*s)
+							return(i);
 
-					while(stream >> i)
-						values.push_back(i);
-					
-					switch(str.at(0)) {
+						ss[i++]=s;
+						while(*s && *s!=c)
+						{
+							if(*s==' ')
+								*s='\0';
+							s++;
+						}
+						if(!*s)
+							return(i);
+						*s++=0;
+					}
+}
+//______________________________________________________________________________________
+int				numscan(char *s,char *ss[],int c) {
+					while(*s && !isdigit(*s)) 
+						++s;
+					return(strscan(s,ss,c));
+}
+//______________________________________________________________________________________
+int				_WS2812::SetColor(char *c) {
+char 			*cc[8];
+					switch(*c) {
 //__________________________________________________
 						case 't':
-							stream >> i;
-							if(i<5 || i>100)
-								return PARSE_ILLEGAL;
-							if(values.size() == 1)
-								_thread_find(procLeds,NULL)->dt=values.at(0);	
+							if(numscan(++c,cc,' ')==1) {
+								int t=atoi(cc[0]);
+								if(t<5 || t>100)
+									return PARSE_ILLEGAL;
+								_thread_find((void *)procLeds,this)->dt=t;	
+							}
 							break;
 //__________________________________________________
 						case 'd':
-							stream >> i;
-							if(i<5 || i>10000)
-								return PARSE_ILLEGAL;
-							if(values.size() == 1)
-								_thread_find(procLeds,NULL)->dt=values.at(0);	
-							break;
-							_wait(i,_thread_loop);
+							if(numscan(++c,cc,' ')==1)
+								_wait(atoi(cc[0]),_thread_loop);
 							break;
 //__________________________________________________
 						case 'f':
 							if(numscan(++c,cc,',') != 2)
 								return PARSE_SYNTAX;
-							Led[atoi(cc[0])].dt=atoi(cc[1]);
-							Led[atoi(cc[0])].mode=FILL;
+							ws[atoi(cc[0])].dt=atoi(cc[1]);
+							ws[atoi(cc[0])].mode=FILL;
 							break;
 //__________________________________________________
 						case 'l':
 							if(numscan(++c,cc,',') != 2)
 								return PARSE_SYNTAX;
-							Led[atoi(cc[0])].dt=atoi(cc[1]);
-							Led[atoi(cc[0])].mode=FILL_LEFT;
+							ws[atoi(cc[0])].dt=atoi(cc[1]);
+							ws[atoi(cc[0])].mode=FILL_LEFT;
 							break;
 //__________________________________________________
 						case 'r':
 							if(numscan(++c,cc,',') != 2)
 								return PARSE_SYNTAX;
-							Led[atoi(cc[0])].dt=atoi(cc[1]);
-							Led[atoi(cc[0])].mode=FILL_RIGHT;
+							ws[atoi(cc[0])].dt=atoi(cc[1]);
+							ws[atoi(cc[0])].mode=FILL_RIGHT;
 							break;
 
 //__________________________________________________
 						case 'c':
 							if(numscan(++c,cc,',')==4) {
-								Led[atoi(cc[0])].color.h =atoi(cc[1]);
-								Led[atoi(cc[0])].color.s =atoi(cc[2]);
-								Led[atoi(cc[0])].color.v =atoi(cc[3]);
+								ws[atoi(cc[0])].color.h =atoi(cc[1]);
+								ws[atoi(cc[0])].color.s =atoi(cc[2]);
+								ws[atoi(cc[0])].color.v =atoi(cc[3]);
 							}	else
 								return PARSE_SYNTAX;
 							break;
-//__________________________________________________
-						case 'x':
-						case '>':
-							__stdin.io->arg.parse=DecodeCom;
-							return(DecodeCom(NULL));
 					}
-				}	
 				return PARSE_OK;
-}
-
+				}	
 /*******************************************************************************
  * Function RGB2HSV
  * Description: Converts an RGB color value into its equivalen in the HSV color space.
@@ -421,6 +440,66 @@ void _WS2812::HSV2RGB(HSV_set HSV, RGB_set *RGB){
  break;
  }
 }
+
 /**
 * @}
-*/ 
+
+.c 0,120,255,0 
+.c 5,120,255,0 
+.c 1,180,180,0 
+.c 4,180,180,0
+.c 2,7,255,0 
+.c 3,7,255,0
+
+.t 30
+.c 2,7,255,50 
+.c 3,7,255,50
+.l 2,2
+.r 3,2
+.c 1,180,180,50 
+.c 4,180,180,50
+.r 1,2
+.r 4,2
+.d 3000
+.c 2,7,255,0 
+.c 3,7,255,0
+.r 2,2
+.l 3,2
+.c 1,180,180,0 
+.c 4,180,180,0
+.l 1,2
+.l 4,2
+.d 3000
+
+.c 2,7,255,50 
+.c 3,7,255,50
+.f 2,0
+.f 3,0
+.d 100
+.c 2,7,255,0 
+.c 3,7,255,0
+.f 2,0
+.f 3,0
+.d 100
+.c 2,7,255,50 
+.c 3,7,255,50
+.f 2,0
+.f 3,0
+.d 100
+.c 2,7,255,0 
+.c 3,7,255,0
+.f 2,0
+.f 3,0
+.d 100
+.c 2,7,255,50 
+.c 3,7,255,50
+.f 2,0
+.f 3,0
+.d 100
+.c 2,7,255,0 
+.c 3,7,255,0
+.f 2,0
+.f 3,0
+
+*/
+

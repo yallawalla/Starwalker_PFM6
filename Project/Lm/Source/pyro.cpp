@@ -23,14 +23,14 @@ static		_PYRO*	me;
 	* @retval : None
 	*/
 /*******************************************************************************/
-#define _Ts				10																		// transmission bit time. us
-#define _To				10																		// base sampling time, ms
-#define _MAXBITS	32																		// number of bits
+#define 	_Ts				10																	// transmission bit time. us
+#define 	_To				10																	// base sampling time, ms
+#define 	_MAXBITS	32																	// number of bits
 
 void	_PYRO::ISR(_PYRO *p) {
 			if(p) {																						// klic za prijavo instance
 				me=p;
-				me->buffer=_buffer_init(3*1000*sizeof(short));
+				me->buffer=_buffer_init(3*100*sizeof(short));
 			} else																						// klic iz ISR, instanca in buffer morata bit ze formirana 																							
 				if(nbits++) {
 					temp = temp<<1;		

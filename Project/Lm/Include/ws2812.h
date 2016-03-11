@@ -30,14 +30,14 @@ class	_WS2812 {
 		void 		RGB2HSV( RGB_set, HSV_set *);
 		void		HSV2RGB( HSV_set, RGB_set *);
 		void		trigger(void);
-		static 	ws2812 	Led[];
 		dma			*dma_buffer;
 		int			dma_size;
+		static 	ws2812 	ws[];
 //______________________________________________________________________________________
 	public:
 		_WS2812(void);
 		~_WS2812(void);
-		int		SetColor(std::string);
+		int		SetColor(char *);
 		static void	*procLeds(_WS2812 *);
 };
 
