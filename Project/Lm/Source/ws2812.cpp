@@ -14,25 +14,39 @@
 
 #include	"ws2812.h"
 #include	"isr.h"
+#include	"term.h"
 #include 	<ctype.h>
+#include 	<string.h>
 #include	<math.h>
 
 ws2812 _WS2812::ws[] = 
-			{{8,0,{0,0,0},NULL,noCOMM,NULL},
-			{24,0,{0,0,0},NULL,noCOMM,NULL},
-			{8,0,{0,0,0},NULL,noCOMM,NULL},
-			{8,0,{0,0,0},NULL,noCOMM,NULL},
-			{24,0,{0,0,0},NULL,noCOMM,NULL},
-			{8,0,{0,0,0},NULL,noCOMM,NULL},
-			{0,0,{0,0,0},NULL,noCOMM,NULL}};
-//_________________________________________________________________________________
+			{{8,{0,0,0},NULL,noCOMM,NULL},
+			{24,{0,0,0},NULL,noCOMM,NULL},
+			{8,{0,0,0},NULL,noCOMM,NULL},
+			{8,{0,0,0},NULL,noCOMM,NULL},
+			{24,{0,0,0},NULL,noCOMM,NULL},
+			{8,{0,0,0},NULL,noCOMM,NULL},
+			{0,{0,0,0},NULL,noCOMM,NULL}};
+/*******************************************************************************/
+/**
+	* @brief	_WS2812 class constructor
+	* @param	: None
+	* @retval : None
+	*/
+/*******************************************************************************/
 _WS2812::~_WS2812() {
-			_thread_remove((void *)procLeds,this);
+			_thread_remove((void *)proc_WS2812,this);
 			delete dma_buffer;
 			for(int i=0; ws[i].size; ++i)
 				delete ws[i].cbuf;
 }
-//_________________________________________________________________________________
+/*******************************************************************************/
+/**
+	* @brief	_WS2812 class constructor
+	* @param	: None
+	* @retval : None
+	*/
+/*******************************************************************************/
 _WS2812::_WS2812()  {
 TIM_TimeBaseInitTypeDef		TIM_TimeBaseStructure;
 TIM_OCInitTypeDef					TIM_OCInitStructure;
@@ -54,7 +68,7 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 				w->lbuf=&dma_buffer[i];													// pointer to dma tab
 				i+=w++->size;
 			}
-			_thread_add((void *)procLeds,this,(char *)"procLeds",10);
+			_thread_add((void *)proc_WS2812,this,(char *)"WS2812",10);
 //
 // ________________________________________________________________________________
 // TIM2
@@ -118,7 +132,7 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 		}
 /*******************************************************************************/
 /**
-	* @brief	Trigger call
+	* @brief	_WS2812 trigger method
 	* @param	: None
 	* @retval : None
 	*/
@@ -153,41 +167,42 @@ RGB_set	q;
 }
 /*******************************************************************************/
 /**
-	* @brief	Trigger call
+	* @brief	_WS2812 class periodic task
 	* @param	: None
 	* @retval : None
 	*/
 /*******************************************************************************/
-void	 *_WS2812::procLeds(_WS2812 *me) {
+void	 *_WS2812::proc_WS2812(_WS2812 *me) {
 int			j,k,trg=0;
 ws2812	*w=ws;
-	
+//------------------------------------------------------------------------------
 				do {
+					HSV_set	color = w->color;
 					k=0;
+//------------------------------------------------------------------------------
 					switch(w->mode) {
 						case noCOMM:
 							break;
+//------------------------------------------------------------------------------
+						case FILL_OFF:
+							color.v=0;
+						case FILL_ON:
+							for(j=k=0; j<w->size;++j) {
+								w->cbuf[j].h = color.h;
+								w->cbuf[j].s = color.s;
 
-						case FILL:
-							if(w->dt == 0 || w->dt == 1) {
-								for(k=0; k<w->size;++k)
-									w->cbuf[k] = w->color;
+								if(w->cbuf[j].v < color.v)
+									w->cbuf[j].v += (color.v - w->cbuf[j].v)/4+1;
+								else if(w->cbuf[j].v > color.v)
+									w->cbuf[j].v -= (w->cbuf[j].v - color.v)/4+1;
+								else
+									++k;
 							}
-							else
-								for(j=k=0; j<w->size;++j) {
-									w->cbuf[j].h = w->color.h;
-									w->cbuf[j].s = w->color.s;
-									
-									if(w->cbuf[j].v < w->color.v)
-										w->cbuf[j].v += (w->color.v - w->cbuf[j].v)/w->dt+1;
-									else if(w->cbuf[j].v > w->color.v)
-										w->cbuf[j].v -= (w->cbuf[j].v - w->color.v)/w->dt+1;
-									else
-										++k;
-								}
-							break;
-
-						case FILL_RIGHT:
+						break;
+//------------------------------------------------------------------------------
+						case FILL_RIGHT_OFF:
+							color.v=0;
+						case FILL_RIGHT_ON:
 							j=w->size; 
 							k=0;
 							while(--j) {
@@ -195,55 +210,89 @@ ws2812	*w=ws;
 								w->cbuf[j].s = w->cbuf[j-1].s;
 								
 								if(w->cbuf[j].v < w->cbuf[j-1].v)
-									w->cbuf[j].v += (w->cbuf[j-1].v - w->cbuf[j].v)/w->dt+1;
+									w->cbuf[j].v += (w->cbuf[j-1].v - w->cbuf[j].v)/4+1;
 								else if(w->cbuf[j].v > w->cbuf[j-1].v)
-									w->cbuf[j].v -= (w->cbuf[j].v - w->cbuf[j-1].v)/w->dt+1;
+									w->cbuf[j].v -= (w->cbuf[j].v - w->cbuf[j-1].v)/4+1;
 								else
 									++k;
 							}
-							w->cbuf[j].h = w->color.h;
-							w->cbuf[j].s = w->color.s;
-							if(w->cbuf[j].v < w->color.v)
-								w->cbuf[j].v += (w->color.v - w->cbuf[j].v)/w->dt+1;
-							else if(w->cbuf[j].v > w->color.v)
-								w->cbuf[j].v -= (w->cbuf[j].v - w->color.v)/w->dt+1;
+							w->cbuf[j].h = color.h;
+							w->cbuf[j].s = color.s;
+							if(w->cbuf[j].v < color.v)
+								w->cbuf[j].v += (color.v - w->cbuf[j].v)/4+1;
+							else if(w->cbuf[j].v > color.v)
+								w->cbuf[j].v -= (w->cbuf[j].v - color.v)/4+1;
 							else
 								++k;
 							break;
-							
-						case FILL_LEFT:
+//------------------------------------------------------------------------------
+						case FILL_LEFT_OFF:
+							color.v=0;
+						case FILL_LEFT_ON:
 							for(j=k=0; j<w->size-1;++j) {
 								w->cbuf[j].h = w->cbuf[j+1].h;
 								w->cbuf[j].s = w->cbuf[j+1].s;
 								
 								if(w->cbuf[j].v < w->cbuf[j+1].v)
-									w->cbuf[j].v += (w->cbuf[j+1].v - w->cbuf[j].v)/w->dt+1;
+									w->cbuf[j].v += (w->cbuf[j+1].v - w->cbuf[j].v)/4+1;
 								else if(w->cbuf[j].v > w->cbuf[j+1].v)
-									w->cbuf[j].v -= (w->cbuf[j].v - w->cbuf[j+1].v)/w->dt+1;
+									w->cbuf[j].v -= (w->cbuf[j].v - w->cbuf[j+1].v)/4+1;
 								else
 									++k;
 							}
-							w->cbuf[j].h = w->color.h;
-							w->cbuf[j].s = w->color.s;
-							if(w->cbuf[j].v < w->color.v)
-								w->cbuf[j].v += (w->color.v - w->cbuf[j].v)/w->dt+1;
-							else if(w->cbuf[j].v > w->color.v)
-								w->cbuf[j].v -= (w->cbuf[j].v - w->color.v)/w->dt+1;
+							w->cbuf[j].h = color.h;
+							w->cbuf[j].s = color.s;
+							if(w->cbuf[j].v < color.v)
+								w->cbuf[j].v += (color.v - w->cbuf[j].v)/4+1;
+							else if(w->cbuf[j].v > color.v)
+								w->cbuf[j].v -= (w->cbuf[j].v - color.v)/4+1;
 							else
 								++k;
 							break;
-							
+//------------------------------------------------------------------------------
+						case RUN_RIGHT_OFF:
+							color.v=0;
+						case RUN_RIGHT_ON:
+							for(j=k=0; j<w->size-1;++j) {
+								if(w->cbuf[j].v != w->cbuf[j+1].v)
+									w->cbuf[j] = w->cbuf[j+1];
+								else
+									++k;
+							}
+							if(w->cbuf[j].v != color.v)
+								w->cbuf[j] = color;
+							else
+								++k;
+							break;
+//------------------------------------------------------------------------------
+						case RUN_LEFT_OFF:
+							color.v=0;
+						case RUN_LEFT_ON:
+							j=w->size; 
+							k=0;
+							while(--j) {
+								if(w->cbuf[j].v != w->cbuf[j-1].v)
+									w->cbuf[j] = w->cbuf[j-1];
+								else
+									++k;
+							}
+							if(w->cbuf[j].v != color.v)
+								w->cbuf[j] = color;
+							else
+								++k;
+							break;
+//------------------------------------------------------------------------------
 						default:
 							break;
 						}
-					
+//------------------------------------------------------------------------------					
 						if(w->mode != noCOMM) {
 							++trg;
 							if(k==w->size)
 								w->mode=noCOMM;
 						}
 				} while((++w)->size);
-			
+
 				if(trg)
 					me->trigger();
 				return NULL;
@@ -275,58 +324,166 @@ int				numscan(char *s,char *ss[],int c) {
 						++s;
 					return(strscan(s,ss,c));
 }
-//______________________________________________________________________________________
-int				_WS2812::SetColor(char *c) {
-char 			*cc[8];
-					switch(*c) {
-//__________________________________________________
-						case 't':
-							if(numscan(++c,cc,' ')==1) {
-								int t=atoi(cc[0]);
-								if(t<5 || t>100)
-									return PARSE_ILLEGAL;
-								_thread_find((void *)procLeds,this)->dt=t;	
-							}
-							break;
-//__________________________________________________
-						case 'd':
-							if(numscan(++c,cc,' ')==1)
-								_wait(atoi(cc[0]),_thread_loop);
-							break;
+/*******************************************************************************/
+/**
+	* @brief	_WS2812 parser, initial '.' character
+	* @param	: None
+	* @retval : None
+	*/
+/*******************************************************************************/
+int				_WS2812::ColorOn(char *c) {
+					switch(*strtok(c," ,")) {
 //__________________________________________________
 						case 'f':
-							if(numscan(++c,cc,',') != 2)
-								return PARSE_SYNTAX;
-							ws[atoi(cc[0])].dt=atoi(cc[1]);
-							ws[atoi(cc[0])].mode=FILL;
+							for(char *p=strtok(NULL," ,"); p; p=strtok(NULL,","))
+								ws[atoi(p)].mode=FILL_ON;
 							break;
 //__________________________________________________
 						case 'l':
-							if(numscan(++c,cc,',') != 2)
-								return PARSE_SYNTAX;
-							ws[atoi(cc[0])].dt=atoi(cc[1]);
-							ws[atoi(cc[0])].mode=FILL_LEFT;
+							for(char *p=strtok(NULL," ,"); p; p=strtok(NULL,","))
+								ws[atoi(p)].mode=RUN_LEFT_ON;
 							break;
 //__________________________________________________
 						case 'r':
-							if(numscan(++c,cc,',') != 2)
-								return PARSE_SYNTAX;
-							ws[atoi(cc[0])].dt=atoi(cc[1]);
-							ws[atoi(cc[0])].mode=FILL_RIGHT;
+							for(char *p=strtok(NULL," ,"); p; p=strtok(NULL,","))
+								ws[atoi(p)].mode=RUN_RIGHT_ON;
 							break;
-
 //__________________________________________________
-						case 'c':
-							if(numscan(++c,cc,',')==4) {
-								ws[atoi(cc[0])].color.h =atoi(cc[1]);
-								ws[atoi(cc[0])].color.s =atoi(cc[2]);
-								ws[atoi(cc[0])].color.v =atoi(cc[3]);
-							}	else
-								return PARSE_SYNTAX;
-							break;
+
+						default:
+							return PARSE_MISSING;
 					}
 				return PARSE_OK;
 				}	
+/*******************************************************************************/
+/**
+	* @brief	_WS2812 parser, initial '.' character
+	* @param	: None
+	* @retval : None
+	*/
+/*******************************************************************************/
+int				_WS2812::ColorOff(char *c) {
+					switch(*strtok(c," ,")) {
+//__________________________________________________
+						case 'f':
+							for(char *p=strtok(NULL," ,"); p; p=strtok(NULL,","))
+								ws[atoi(p)].mode=FILL_OFF;
+							break;
+//__________________________________________________
+						case 'l':
+							for(char *p=strtok(NULL," ,"); p; p=strtok(NULL,","))
+								ws[atoi(p)].mode=RUN_LEFT_OFF;
+							break;
+//__________________________________________________
+						case 'r':
+							for(char *p=strtok(NULL," ,"); p; p=strtok(NULL,","))
+								ws[atoi(p)].mode=RUN_RIGHT_OFF;
+							break;
+//__________________________________________________
+						default:
+							return PARSE_MISSING;
+					}
+				return PARSE_OK;
+				}	
+/*******************************************************************************/
+/**
+	* @brief	_WS2812 class load/save settings method
+	* @param	: None
+	* @retval : None
+	*/
+/*******************************************************************************/
+int			_WS2812::SetColor(char *c) {
+int			i;
+				c=strtok(c,", ");
+				switch(*c) {
+					case '0':
+					case '1':
+					case '2':
+					case '3':
+					case '4':
+					case '5':
+						i=atoi(c);
+						ws[i].color.h =atoi(strtok(NULL,", "));
+						ws[i].color.s =atoi(strtok(NULL,", "));
+						ws[i].color.v =atoi(strtok(NULL,", "));
+						break;						
+					case 't':
+						i=atoi(strtok(NULL,", "));
+						if(i<5 || i>100)
+							return PARSE_ILLEGAL;
+						_thread_find((void *)proc_WS2812,this)->dt=i;	
+						break;
+					default:
+						return PARSE_ILLEGAL;
+					}
+				return PARSE_OK;
+}
+/*******************************************************************************/
+/**
+	* @brief	_WS2812 class load/save settings method
+	* @param	: None
+	* @retval : None
+	*/
+/*******************************************************************************/
+int		_WS2812::GetColor(int color) {
+	
+			_TERM key;
+			ws2812 *w=&ws[color];
+			int flag=0;
+			
+			printf("\n\rHSB:%d,%d,%d      ",w->color.h,w->color.s,w->color.v);
+			while(1) {
+				switch(key.Escape()) {
+					case EOF:
+						break;
+					case __Up:
+						++flag;
+						w->color.h=__min(359,w->color.h + 1);
+						break;				
+					case __Down:
+						++flag;
+						w->color.h=__max(1,w->color.h - 1);
+						break;
+					case __Right:
+						++flag;
+						w->color.s=__min(255,w->color.s + 1);
+						break;				
+					case __Left:
+						++flag;
+						w->color.s=__max(1,w->color.s - 1);
+						break;				
+					case __PageUp:
+						++flag;
+						w->color.v=__min(255,w->color.v + 1);
+						break;				
+					case __PageDown:
+						++flag;
+						w->color.v=__max(1,w->color.v - 1);
+						break;				
+					case __Esc:
+						return PARSE_OK;
+				}
+				if(flag) {
+					printf("\rHSB:%d,%d,%d      ",w->color.h,w->color.s,w->color.v);
+					for(int i=0; i<w->size; ++i)
+						w->cbuf[i] =w->color;
+					trigger();
+					flag=0;
+				}
+				_wait(10,_thread_loop);
+			}	
+				}
+/*******************************************************************************/
+/**
+	* @brief	_WS2812 class load/save settings method
+	* @param	: None
+	* @retval : None
+	*/
+/*******************************************************************************/
+void		_WS2812::SaveSettings(FILE *f){
+				for(int i=0; ws[i].size; ++i)
+					fprintf(f,"=color %d,%d,%d,%d\r\n",i,ws[i].color.h,ws[i].color.s,ws[i].color.v);
+}
 /*******************************************************************************
  * Function RGB2HSV
  * Description: Converts an RGB color value into its equivalen in the HSV color space.
@@ -444,12 +601,12 @@ void _WS2812::HSV2RGB(HSV_set HSV, RGB_set *RGB){
 /**
 * @}
 
-.c 0,120,255,0 
-.c 5,120,255,0 
-.c 1,180,180,0 
-.c 4,180,180,0
-.c 2,7,255,0 
-.c 3,7,255,0
+.c 0,120,255,50 
+.c 5,120,255,50 
+.c 1,180,180,50
+.c 4,180,180,50
+.c 2,7,255,50
+.c 3,7,255,50
 
 .t 30
 .c 2,7,255,50 
@@ -501,5 +658,72 @@ void _WS2812::HSV2RGB(HSV_set HSV, RGB_set *RGB){
 .f 2,0
 .f 3,0
 
+
+.c 2,7,255,50 
+.c 3,7,255,50
+.f 2,2
+.f 3,2
+.c 1,180,180,50 
+.c 4,180,180,50
+.l 1,2
+.l 4,2
+.d 25
+.c 1,180,180,0 
+.c 4,180,180,0
+.l 1,2
+.l 4,2
+.c 2,7,255,0 
+.c 3,7,255,0
+.f 2,2
+.f 3,2
+
+=color 0,180,180,30
+=color 1,180,180,50
+=color 2,7,255,50
+=color 3,7,255,50
+=color 4,180,180,50
+=color 5,180,180,30
+
+
++c f,2
+-c f,3
+w 100
+-c f,2
++c f,3
+w 100
++c f,2
+-c f,3
+w 100
+-c f,2
++c f,3
+w 100
++c f,2
+-c f,3
+w 100
+-c f,2
++c f,3
+w 100
++c f,2
+-c f,3
+w 100
+-c f,2
++c f,3
+w 100
++c f,2
+-c f,3
+w 100
+-c f,2
++c f,3
+w 100
++c f,2
+-c f,3
+w 100
+-c f,2
++c f,3
+w 100
+-c f,2
+-c f,3
+
 */
+
 

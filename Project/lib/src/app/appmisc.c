@@ -100,19 +100,18 @@ void			PrintVersion(int v) {
 * Output        :
 * Return        :
 *******************************************************************************/
-int	batch(char *filename) {
-FIL		f;
-
-			if(f_open(&f,filename,FA_READ)==FR_OK) {
-				__STDIN->file=&f;
-				do {
-					ParseCom(__STDIN);
-				} while(!f_eof(&f));
-				__STDIN->file=NULL;
-				f_close(&f);
-				return _PARSE_OK;
-			} else
-				return _PARSE_ERR_OPENFILE;
+int				batch(char *filename) {
+FIL				f;
+					if(f_open(&f,filename,FA_READ)==FR_OK) {
+						__STDIN->file=&f;
+						do {
+							ParseCom(__STDIN);
+						} while(!f_eof(&f));
+						__STDIN->file=NULL;
+						f_close(&f);
+						return _PARSE_OK;
+					} else
+						return _PARSE_ERR_OPENFILE;
 }
 /*******************************************************************************
 * Function Name : batch
@@ -125,10 +124,10 @@ FIL		f;
 #define maxy 20
 
 typedef struct {
-	char data[maxy][maxx];
-	int	x,y;
-	int	(*put)(_buffer *, int);
-	_io	*io;
+			char data[maxy][maxx];
+			int	x,y;
+			int	(*put)(_buffer *, int);
+			_io	*io;
 } lcd;
 
 void	*refreshLCD(void *v) {
@@ -139,82 +138,80 @@ sFONT *fnt = LCD_GetFont();
 				for(x=0;x<maxx;++x)
 					LCD_DisplayChar(y*fnt->Height,x*fnt->Width,p->data[y][x]);
 			_thread_find(refreshLCD,v)->t=__time__+5000;
-	return v;
+			return v;
 }
 
 int		putLCD(_buffer *p, int c) {
-	_thread	*t=_thread_find(refreshLCD,NULL);
-	lcd *l;
-	int x,y;
-
-	if(p && t) {
-		l=t->arg;
-		if(l->put(p,c)==EOF)
-			return EOF;
-		switch(c) {
-			case '\r':
-				l->x=0;
-				break;
+			_thread	*t=_thread_find(refreshLCD,NULL);
+			lcd *l;
+			int x,y;
 			
-			case '\n':
-				if(l->y == maxy-1) {
-					for(y=0;y<maxy-1;++y)
-						for(x=0;x<maxx;++x)
-							l->data[y][x]=l->data[y+1][x];
+			if(p && t) {
+				l=t->arg;
+				if(l->put(p,c)==EOF)
+					return EOF;
+				switch(c) {
+					case '\r':
+						l->x=0;
+						break;
+					
+					case '\n':
+						if(l->y == maxy-1) {
+							for(y=0;y<maxy-1;++y)
+								for(x=0;x<maxx;++x)
+									l->data[y][x]=l->data[y+1][x];
+							for(x=0;x<maxx;++x)
+								l->data[y][x]=' ';
+						} else
+							++l->y;			
+						break;
+						
+					case '\b':
+						if(l->x)
+							--l->x;
+						break;
+							
+					default:
+						l->data[l->y][l->x++]=c;
+						if(l->x == maxx)
+							--l->x;
+						break;
+				}
+				t->t=__time__+5;
+			} else {
+				if(!t) {
+					l = malloc(sizeof(lcd));
+					l->io=NULL;
+				_thread_add(refreshLCD,l,"Lcd",20000);
+				} else
+					l=t->arg;
+			
+				if(l->io != __STDOUT) {
+					if(l->io)
+						l->io->put=l->put;
+					l->io=__STDOUT;
+					l->put=__STDOUT->put;
+					__STDOUT->put=putLCD;
+				}
+				
+				for(y=0;y<maxy;++y)
 					for(x=0;x<maxx;++x)
 						l->data[y][x]=' ';
-				} else
-					++l->y;			
-				break;
+				l->x=l->y=0;
+				STM32f4_Discovery_LCD_Init();
+				LCD_SetBackColor(LCD_COLOR_BLACK);
+				LCD_SetTextColor(LCD_COLOR_YELLOW);
+				LCD_SetFont(&Font8x12);
 				
-			case '\b':
-				if(l->x)
-					--l->x;
-				break;
-					
-			default:
-				l->data[l->y][l->x++]=c;
-				if(l->x == maxx)
-					--l->x;
-				break;
-		}
-		t->t=__time__+5;
-	} else {
-		if(!t) {
-			l = malloc(sizeof(lcd));
-			l->io=NULL;
-		_thread_add(refreshLCD,l,"Lcd",20000);
-		} else
-			l=t->arg;
-
-		if(l->io != __STDOUT) {
-			if(l->io)
-				l->io->put=l->put;
-			l->io=__STDOUT;
-			l->put=__STDOUT->put;
-			__STDOUT->put=putLCD;
-		}
-		
-		for(y=0;y<maxy;++y)
-			for(x=0;x<maxx;++x)
-				l->data[y][x]=' ';
-		l->x=l->y=0;
-		STM32f4_Discovery_LCD_Init();
-		LCD_SetBackColor(LCD_COLOR_BLACK);
-		LCD_SetTextColor(LCD_COLOR_YELLOW);
-		LCD_SetFont(&Font8x12);
-		
-		if(c==EOF) {
-			l->io->put=l->put;	
-			_thread_remove(refreshLCD,l);
-			free(l);
-			l=NULL;
-		}
-	}
-	return c;
+				if(c==EOF) {
+					l->io->put=l->put;	
+					_thread_remove(refreshLCD,l);
+					free(l);
+					l=NULL;
+				}
+			}
+			return c;
 }
-
-
 /**
 * @}
 */

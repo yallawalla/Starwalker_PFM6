@@ -542,6 +542,11 @@
               <FileType>8</FileType>
               <FilePath>.\Source\pilot.cpp</FilePath>
             </File>
+            <File>
+              <FileName>term.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\term.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1131,6 +1136,11 @@
               <FileType>8</FileType>
               <FilePath>.\Source\pilot.cpp</FilePath>
             </File>
+            <File>
+              <FileName>term.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\term.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1674,6 +1684,11 @@
               <FileName>pilot.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\Source\pilot.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>term.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\term.cpp</FilePath>
             </File>
           </Files>
         </Group>

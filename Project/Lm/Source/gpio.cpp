@@ -1,8 +1,8 @@
 #include "gpio.h"
 #include "isr.h"
-#include "stdio.h"
-#include	<stdlib.h>
-#include	<limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
 /**
 ******************************************************************************
 * @file
@@ -64,45 +64,6 @@ int   _GPIO::Poll(void) {
 				return key & __MASK;
 			}
 			return EOF;
-}      
-
-/*******************************************************************************
-* Function Name	: 
-* Description		: 
-* Output				:
-* Return				:
-*******************************************************************************/
-void	_TERM::Repeat(int t) {
-			timeout = -(__time__ + t);
-}
-/*******************************************************************************
-* Function Name	: 
-* Description		: 
-* Output				:
-* Return				:
-*******************************************************************************/
-int		_TERM::Escape(void) {
-int		i=getchar();
-	
-			if(i==EOF) {
-				if(timeout && (__time__ > abs(timeout))) {
-					timeout=0;
-					return seq;
-					}
-			} else if(timeout > 0) {
-				seq=(seq<<8) | i;
-				if(i=='~' || i=='A' || i=='B' || i=='C' || i=='D') {
-					timeout=0;
-					return seq;
-				}
-			} else if(i==__Esc) {
-				timeout=__time__+5;
-				seq=i;
-			} else {
-				timeout=0;
-				return i;
-			}
-			return gp.Poll();
 }
 /**
 * @}

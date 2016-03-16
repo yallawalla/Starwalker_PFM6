@@ -111,7 +111,8 @@ int			_buffer_push(_buffer *, void *,int),
 				_buffer_pull(_buffer *, void *,int),
 				_buffer_count(_buffer *);
 				
-				
+int			batch(char *);
+			
 typedef	void *func(void *);
  
 typedef	struct {
@@ -133,8 +134,6 @@ void		_wait(int,void (*)(void));
 _io			*ParseCom(_io *);
 	
 }
-
-
 #ifndef	__max				
 #define __max(a,b)  (((a) > (b)) ? (a) : (b))	
 #endif

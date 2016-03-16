@@ -236,46 +236,70 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 * Return				: _thread_add((void *)poll_callback,this,(char *)"lm",10);
 *******************************************************************************/
 int		_LM::DecodePlus(char *c) {
-			if(*c) {
-				switch(*c) {
-					case 'P':
-						_thread_add((void *)_LM::Print,this,(char *)"lm",strtoul(++c,NULL,0));
-						break;
-					case 'L': {
-						int *cc=(int *)strtoul(++c,&c,0);
-						while(*c)
-							*cc++=(int)strtoul(++c,&c,0);
-						}
-						break;
-					case 'W': {
-						short *cc=(short *)strtoul(++c,&c,0);
-						while(*c)
-							*cc++=(short)strtoul(++c,&c,0);
-						}
-						break;
-					case 'B': {
-						char *cc=(char *)strtoul(++c,&c,0);
-						while(*c)
-							*cc++=(char)strtoul(++c,&c,0);
-						}
-						break;
-					case 'D':
-						while(*c)
-							debug = (_DEBUG_)(debug | (1<<strtoul(++c,&c,10)));
-						break;
-					case 'f':
-						pyro.addFilter(++c);
-						break;
-					default:
-						*c=0;
-						return PARSE_SYNTAX;
-				}
-				*c=0;
-				return PARSE_OK;
-			} else {
-				*c=0;
-				return PARSE_MISSING;
+			switch(*c) {
+				case 'P':
+					_thread_add((void *)_LM::Print,this,(char *)"lm",strtoul(++c,NULL,0));
+					break;
+				case 'L': {
+					int *cc=(int *)strtoul(++c,&c,0);
+					while(*c)
+						*cc++=(int)strtoul(++c,&c,0);
+					}
+					break;
+				case 'W': {
+					short *cc=(short *)strtoul(++c,&c,0);
+					while(*c)
+						*cc++=(short)strtoul(++c,&c,0);
+					}
+					break;
+				case 'B': {
+					char *cc=(char *)strtoul(++c,&c,0);
+					while(*c)
+						*cc++=(char)strtoul(++c,&c,0);
+					}
+					break;
+				case 'D':
+					while(*c)
+						debug = (_DEBUG_)(debug | (1<<strtoul(++c,&c,10)));
+					break;
+				case 'f':
+					pyro.addFilter(++c);
+					break;
+				case 'c':
+					return ws.ColorOn(strchr(c,' '));
+				default:
+					*c=0;
+					return PARSE_SYNTAX;
 			}
+			*c=0;
+			return PARSE_OK;
+}
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				: _thread_add((void *)poll_callback,this,(char *)"lm",10);
+*******************************************************************************/
+int		_LM::DecodeMinus(char *c) {
+			switch(*c) {
+				case 'P':
+					_thread_remove((void *)_LM::Print,this);
+					break;
+				case 'D':
+					while(*c)
+						debug = (_DEBUG_)(debug & ~(1<<strtoul(++c,&c,10)));
+					break;
+				case 'f':
+					pyro.initFilter();
+					break;
+				case 'c':
+					return ws.ColorOff(strchr(c,' '));
+				default:
+					*c=0;
+					return PARSE_SYNTAX;
+			}
+			*c=0;
+			return PARSE_OK;
 }
 /*******************************************************************************
 * Function Name	: 
@@ -285,30 +309,27 @@ int		_LM::DecodePlus(char *c) {
 *******************************************************************************/
 int		_LM::DecodeWhat(char *c) {
 _ADCDMA	*adf		=&_ADC::Instance()->adf;
-			if(*c) {
-				switch(*c) {
-					case 'v':
-						printf("\r\nV5=%4.1f,V12=%4.1f,V24=%4.1f",_16XtoV5(adf->V5),_16XtoV12(adf->V12),_16XtoV24(adf->V24));			
-						break;
-					case 'V':
-						printf("\r\nV5=%hu,V12=%hu,V24=%hu",adf->V5,adf->V12,adf->V24);			
-						break;
-					case 'f':
-						pyro.printFilter();
-						break;
-					case 'D':
-						printf(" %0*X ",2*sizeof(debug)/sizeof(char),debug);
-						break;
-					default:
-						*c=0;
-						return PARSE_SYNTAX;
-				}
-				*c=0;
-				return PARSE_OK;
-			} else {
-				*c=0;
-				return PARSE_MISSING;
+			switch(*c) {
+				case 'v':
+					printf("\r\nV5=%4.1f,V12=%4.1f,V24=%4.1f",_16XtoV5(adf->V5),_16XtoV12(adf->V12),_16XtoV24(adf->V24));			
+					break;
+				case 'V':
+					printf("\r\nV5=%hu,V12=%hu,V24=%hu",adf->V5,adf->V12,adf->V24);			
+					break;
+				case 'D':
+					printf(" %0*X ",2*sizeof(debug)/sizeof(char),debug);
+					break;
+				case 'f':
+					pyro.printFilter();
+					break;
+				case 'c':
+					return ws.GetColor(atoi(strchr(c,' ')));
+				default:
+					*c=0;
+					return PARSE_SYNTAX;
 			}
+			*c=0;
+			return PARSE_OK;
 }
 /*******************************************************************************
 * Function Name	: 
@@ -316,29 +337,18 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 * Output				:
 * Return				: _thread_add((void *)poll_callback,this,(char *)"lm",10);
 *******************************************************************************/
-int		_LM::DecodeMinus(char *c) {
-			if(*c) {
-				switch(*c) {
-					case 'P':
-						_thread_remove((void *)_LM::Print,this);
-						break;
-					case 'f':
-						pyro.initFilter();
-						break;
-					case 'D':
-						while(*c)
-							debug = (_DEBUG_)(debug & ~(1<<strtoul(++c,&c,10)));
-						break;
-					default:
-						*c=0;
-						return PARSE_SYNTAX;
-				}
-				*c=0;
-				return PARSE_OK;
-			} else {
-				*c=0;
-				return PARSE_MISSING;
+int		_LM::DecodeEq(char *c) {
+			switch(*c) {
+				case 'c':
+					return ws.SetColor(strchr(c,' '));
+				case 'k':
+					break;
+				default:
+					*c=0;
+					return PARSE_SYNTAX;
 			}
+			*c=0;
+			return PARSE_OK;
 }
 /*******************************************************************************
 * Function Name	: 
@@ -347,162 +357,165 @@ int		_LM::DecodeMinus(char *c) {
 * Return				: _thread_add((void *)poll_callback,this,(char *)"lm",10);
 *******************************************************************************/
 int		_LM::Decode(char *c) {
-			if(*c)
-				switch(*c) {
-					case 'v':
-						PrintVersion(SW_version);
-						break;
-					case '?':
-						return DecodeWhat(++c);
-					case '+':
-						return DecodePlus(++c);
-					case '-':
-						return DecodeMinus(++c);
-					case 'L':
-						printf(" %08X",*(int *)strtoul(++c,NULL,0));
-						break;
-					case 'W':
-						printf(" %04X",*(int *)strtoul(++c,NULL,0));
-						break;
-					case 'w':
-						_wait(strtoul(++c,NULL,0),_thread_loop);
-						break;
-					case '.':
-						return ws.SetColor(++c);
-					case '>':
-						can.Send(++c);
-						break;
-					case 'e':
-						char s[128];
-						if(*++c) {
-						int i=strtoul(c,&c,0);
-						if(*c) {
-							for(int j=0; *c++; s[j]=strtoul(c,&c,0), ++j);
-							ee.putPage(i,s);
-						} else
-							printf("   %s",ee.getPage(i,s));
-						} else
-							printf("   %s",ee.getSerial(s));
-						break;
-					case '<':
-						can.Recv(++c);
-						break;
-					case '#':	
-					{
+			switch(*c) {
+				case 0:
+					break;
+				case '=':
+					return DecodeEq(++c);
+				case '?':
+					return DecodeWhat(++c);
+				case '+':
+					return DecodePlus(++c);
+				case '-':
+					return DecodeMinus(++c);
+				case 'v':
+					PrintVersion(SW_version);
+					break;
+				case 'L':
+					printf(" %08X",*(int *)strtoul(++c,NULL,0));
+					break;
+				case 'W':
+					printf(" %04X",*(int *)strtoul(++c,NULL,0));
+					break;
+				case 'w':
+					_wait(strtoul(++c,NULL,0),_thread_loop);
+					break;
+				case '@':
+					return batch(++c);	
+				case '>':
+					can.Send(++c);
+					break;
+				case 'e':
+					char s[128];
+					if(*++c) {
+					int i=strtoul(c,&c,0);
+					if(*c) {
+						for(int j=0; *c++; s[j]=strtoul(c,&c,0), ++j);
+						ee.putPage(i,s);
+					} else
+						printf("   %s",ee.getPage(i,s));
+					} else
+						printf("   %s",ee.getSerial(s));
+					break;
+				case '<':
+					can.Recv(++c);
+					break;
+				case '#':	
+				{
 #define _PI 3.14159265359
-						int dacoff=strtoul(++c,&c,0);
-						int dacgain=strtoul(++c,&c,0);
-						for(int i=0; i<sizeof(DacBuff)/sizeof(short); ++i)
-							DacBuff[i]=dacoff + (double)dacgain*sin(2.0*_PI*(double)i/(sizeof(DacBuff)/sizeof(short)));	
-						break;
-					}
-					case '!': {
-						FIL 									f;
-						WAVE_FormatTypeDef		w;
-						short									nbytes, sample;
-						char									flag=0;
-						
+					int dacoff=strtoul(++c,&c,0);
+					int dacgain=strtoul(++c,&c,0);
+					for(int i=0; i<sizeof(DacBuff)/sizeof(short); ++i)
+						DacBuff[i]=dacoff + (double)dacgain*sin(2.0*_PI*(double)i/(sizeof(DacBuff)/sizeof(short)));	
+					break;
+				}
+				case '!': {
+					FIL 									f;
+					WAVE_FormatTypeDef		w;
+					short									nbytes, sample;
+					char									flag=0;
+					
 #ifdef	USE_LCD
 int					to=0;
 //int					pref=0,
 //						peak=0;
 #endif
-						plot.Clear();
-						plot.Add(&plotA,0,5, LCD_COLOR_GREEN);
-						plot.Add(&plotB,0,10, LCD_COLOR_CYAN);
-//					plot.Add(&plotC,0,1, LCD_COLOR_YELLOW);
+				plot.Clear();
+				plot.Add(&plotA,0,5, LCD_COLOR_GREEN);
+				plot.Add(&plotB,0,10, LCD_COLOR_CYAN);
+//				plot.Add(&plotC,0,1, LCD_COLOR_YELLOW);
 
-						if(f_open(&f,"0:/3.wav",FA_READ) == FR_OK) {
-							if(f_read (&f, &w, sizeof(w), (UINT *)&nbytes)==FR_OK) {
-								while(!f_eof(&f)) {
-									_wait(3,_thread_loop);
-									if(!flag) {
-										f_read (&f, &sample, sizeof(sample),(UINT *)&nbytes);
-										plotA=sample-6767;
-										plotB=pyro.addSample(plotA);
+					if(f_open(&f,"0:/3.wav",FA_READ) == FR_OK) {
+						if(f_read (&f, &w, sizeof(w), (UINT *)&nbytes)==FR_OK) {
+							while(!f_eof(&f)) {
+								_wait(3,_thread_loop);
+								if(!flag) {
+									f_read (&f, &sample, sizeof(sample),(UINT *)&nbytes);
+									plotA=sample-6767;
+									plotB=pyro.addSample(plotA);
 
-//										if(peak==0) {															// falling..
-//											if(plotB < pref) {
-//												if(plotB < pref-50) {
-//													peak=pref;
-//													plotC=0;
-//													printf("%d,%d\r\n",to,peak);
+//									if(peak==0) {															// falling..
+//										if(plotB < pref) {
+//											if(plotB < pref-50) {
+//												peak=pref;
+//												plotC=0;
+//												printf("%d,%d\r\n",to,peak);
+//											}
+//										}
+//										else
+//											pref=plotB;
+//									} else {																	// rising...
+//										if(plotB > pref) {
+//											if(plotB > pref + 50)
+//												if(peak > 5) {
+//													peak=0;
+//													plotC=50;
 //												}
-//											}
-//											else
-//												pref=plotB;
-//										} else {																	// rising...
-//											if(plotB > pref) {
-//												if(plotB > pref + 50)
-//													if(peak > 5) {
-//														peak=0;
-//														plotC=50;
-//													}
-//											}
-//											else {
-//												pref=plotB;
-//											}
-//										}	
+//										}
+//										else {
+//											pref=plotB;
+//										}
+//									}	
 
 #ifdef	USE_LCD
-										to=(f_tell(&f)-sizeof(w))*3/2;
-										if(plot.Refresh()) {
-char									str[16];
-											lcd.Grid();
-											sprintf(str,"%d",to/1000);
-											LCD_SetFont(&Font8x12);
-											sFONT *fnt = LCD_GetFont();
-											LCD_SetTextColor(LCD_COLOR_GREY);
-											LCD_DisplayStringLine(1, (uint8_t *)str);
-										}
+									to=(f_tell(&f)-sizeof(w))*3/2;
+									if(plot.Refresh()) {
+char								str[16];
+										lcd.Grid();
+										sprintf(str,"%d",to/1000);
+										LCD_SetFont(&Font8x12);
+										sFONT *fnt = LCD_GetFont();
+										LCD_SetTextColor(LCD_COLOR_GREY);
+										LCD_DisplayStringLine(1, (uint8_t *)str);
+									}
 #endif
-									}
-									switch(VT100.Escape()) {
-										case EOF:
-											break;
-										case ' ':
-											flag ^= 1;
-											break;
-										case 'l':
-											f_lseek(&f, f_tell(&f) - 320);
-											break;
-										case 'r':
-											f_lseek(&f, f_tell(&f) + 320);
-											break;
-										case 0x1b:
-											f_lseek (&f, f.fsize);
-											break;
-										case __F2:case __f2:
-											Select(PLOT_OFFSET);
-											break;
-										case __F3:case __f3:
-											Select(PLOT_SCALE);
-											break;
-										case __Up:
-											Increment(1, 0);
-											break;				
-										case __Down:
-											Increment(-1, 0);
-											break;	
-										case __Left:
-											Increment(0, -1);
-											break;				
-										case __Right:
-											Increment(0, 1);
-											break;	
-									}
 								}
-							f_close(&f);
+								switch(VT100.Escape()) {
+									case EOF:
+										break;
+									case ' ':
+										flag ^= 1;
+										break;
+									case 'l':
+										f_lseek(&f, f_tell(&f) - 320);
+										break;
+									case 'r':
+										f_lseek(&f, f_tell(&f) + 320);
+										break;
+									case 0x1b:
+										f_lseek (&f, f.fsize);
+										break;
+									case __F2:case __f2:
+										Select(PLOT_OFFSET);
+										break;
+									case __F3:case __f3:
+										Select(PLOT_SCALE);
+										break;
+									case __Up:
+										Increment(1, 0);
+										break;				
+									case __Down:
+										Increment(-1, 0);
+										break;	
+									case __Left:
+										Increment(0, -1);
+										break;				
+									case __Right:
+										Increment(0, 1);
+										break;	
+								}
 							}
-						} else
-							printf("\r\n file not found...\r\n:");
+						f_close(&f);
+						}
+					} else
+						printf("\r\n file not found...\r\n:");
 }
-						break;
+					break;
 
-					default:
-						*c=0;
-						return PARSE_SYNTAX;					
-				}
+				default:
+					*c=0;
+					return PARSE_SYNTAX;					
+			}
 			*c=0;
 			return PARSE_OK;
 }
@@ -558,7 +571,6 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 					else
 						spray.mode.On=true;
 					break;
-
 				case __F5:
 				case __f5:
 					Select(PUMP);
@@ -579,7 +591,7 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 					Select(EC20);
 					Decode((char *)">2100");
 					break;
-				case __F9:
+			case __F9:
 				case __f9:
 					break;				
 				case __F10:
@@ -595,6 +607,7 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 							spray.SaveSettings((FILE *)&f);
 							ec20.SaveSettings((FILE *)&f);
 							pilot.SaveSettings((FILE *)&f);
+							ws.SaveSettings((FILE *)&f);
 							f_sync(&f);
 							f_close(&f);							
 							printf("\r\n saved...\r\n:");
@@ -664,41 +677,21 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 				case __FOOT_ON:		
 					spray.mode.On=true;
 					Decode((char *)">2201");
-					break;	
-									
+					break;
+
 				case __CtrlY:
 					NVIC_SystemReset();
 				case __CtrlZ:
 					while(1);
 
-				case 0x08:
-				case 0x7f:
-					if(VT100.clp != VT100.cl) {
-						--VT100.clp;
-					printf("\b \b");
-					}
-					break;
-					
-				case 0x0d:
-					*VT100.clp=0;
-					VT100.clp=VT100.cl;
-					i=Decode(VT100.clp);
-					if(i)
-						printf(" ...wtf(%02X)\r\n:",i);
+				default:
+					if(!VT100.Line(i))
+						break;	
+					if(int err=Decode(VT100.Line()))
+						printf(" ...wtf(%02X)\r\n:",err);
 					else
 						printf("\r\n:");						
 					break;
-					
-				case 0x0a:
-					break;
-				
-				default:
-					if(i & 0xff00)
-						printf("<%X>\r\n:",i);
-					else {
-						printf("%c",i);
-						*VT100.clp++=i;
-					}
 			}
 			return true;
 }

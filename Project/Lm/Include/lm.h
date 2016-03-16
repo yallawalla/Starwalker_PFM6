@@ -15,6 +15,7 @@
 #include				"stm32f2xx.h"
 #include				<stdio.h>
 #include				"gpio.h"
+#include				"term.h"
 #include				"spray.h"
 #include				"pump.h"
 #include				"fan.h"
@@ -48,6 +49,7 @@ class	_LM {
 		int					DecodePlus(char *c);
 		int					DecodeMinus(char *c);
 		int					DecodeWhat(char *c);
+		int					DecodeEq(char *c);
 		int					timeout;
 
 	public:

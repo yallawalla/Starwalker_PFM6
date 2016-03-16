@@ -9,25 +9,4 @@ class	_GPIO {
 		_GPIO(void);
 		int	Poll(void);
 };
-
-/*******************************************************************************
-* Function Name	: 
-* Description		: 
-* Output				:
-* Return				:
-*******************************************************************************/
-class _TERM {
-	private:
-		int			seq, timeout;
-		_GPIO		gp;
-	public:
-		_TERM() {
-			seq=timeout=0;
-			clp=cl;
-		};
-		char cl[128],*clp;
-		void Repeat(int);
-		int	 Escape(void);
-};
-
 #endif
