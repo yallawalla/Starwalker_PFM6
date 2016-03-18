@@ -63,12 +63,12 @@ RCC_AHB1PeriphClockCmd(
 
 					Initialize_NVIC();
 					__com0=Initialize_USART(921600);			
-					__can=Initialize_CAN(0);	
 					Initialize_ADC();
 					Initialize_TIM();
 
 #if  			defined (__PFM6__)
 					__charger6=Initialize_I2C(0x58,50000);
+					__can=Initialize_CAN(0);	
 #elif  		defined (__DISCO__)
 {
 int				i;
@@ -78,6 +78,8 @@ int				i;
 						ADC3_buf[i].Um5=_m5V2AD(-4)/8;
 						ADC3_buf[i].Up20=_p20V2AD(20)/8;
 					}
+					__can=Initialize_CAN(1);	
+
 }
 #else
 	#### 		error, no HW defined
@@ -379,15 +381,23 @@ _io				*io;
   */
 void			ParseCanTx(PFM *p) {	
 CanTxMsg	tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
+static 
+	int			count=0,timeout=0;
+
+					if(__time__ >= timeout) {
+						timeout = __time__ + 2;
+						count=0;
+					}
 
 					while((__CAN__->TSR & CAN_TSR_TME)) {
-						if(_buffer_pull(__can->tx,&tx,sizeof(CanTxMsg)))	
+						if(_buffer_pull(__can->tx,&tx,sizeof(CanTxMsg)))	{
 							CAN_Transmit(__CAN__,&tx);
-						else if(__can->arg.io) {
+						} else if(__can->arg.io && count < 2) {
 							tx.DLC=_buffer_pull(__can->arg.io->tx,tx.Data,8);
 							if(tx.DLC > 0) {
 								tx.StdId=_ID_PFMcom2SYS;
 								CAN_Transmit(__CAN__,&tx);
+								++count;
 							} else
 								break;
 						} else
@@ -402,7 +412,7 @@ CanTxMsg	tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 							__print("\r\n>");
 							_stdio(io);
 						}
-					}			
+					}
 }					
 /*______________________________________________________________________________
   * @brief  CAN message parser for PFM data as defined in CAN protocol  ICD 
@@ -642,21 +652,21 @@ char			*q=(char *)rx.Data;
   * @param ....  : list of parameters, acc. to format specifier
   * @retval : None
   */
-int				CanReply(char *format, ...) {
+void			CanReply(char *format, ...) {
 static 
 _io*			io=NULL;
+CanTxMsg	tx={_ID_PFM2SYS,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 union			{
 						void *v;
 						int i;
 						char c[8];
 					} u;
-CanTxMsg	tx={_ID_PFM2SYS,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 va_list		v;
 char*			c;
 int				i;				
 					if(!format) {
 						io=__stdin.io;
-						return(0);
+						return;
 					}
 					va_start(v, format);
 					while(*format) { 
@@ -685,11 +695,9 @@ int				i;
 						__print("\r\n>");	
 						io=_stdio(io);						
 					}
-
 //					CAN_ITConfig(__CAN__, CAN_IT_TME, DISABLE);	
-					i=_buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
+					_buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
 //					CAN_ITConfig(__CAN__, CAN_IT_TME, ENABLE);	
-					return i;
 }
 /*______________________________________________________________________________
   * @brief  Interprets the PFM command message

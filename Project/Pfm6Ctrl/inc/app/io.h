@@ -14,8 +14,6 @@ typedef struct _buffer
 	char	*_buf,
 				*_push,
 				*_pull;
-	int		(* push)(struct _buffer *, char *);
-	int		(* pull)(struct _buffer *);
 	int		size;
 } _buffer;	
 //______________________________________________________________________________________

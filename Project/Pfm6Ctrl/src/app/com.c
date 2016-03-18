@@ -469,7 +469,7 @@ static 		FATFS	fatfs;
 							__stdin.io->arg.parse=DecodeFs;
 						}
 //__delete file________________________________________________________________________
-						if(!strncmp("delete",sc[0],len)) {
+						else if(!strncmp("delete",sc[0],len)) {
 							if(n == 2 && f_readdir(&dir,NULL)==FR_OK) {
 								while(dir.sect) {
 									char *p=findName(sc[1],&dir,&fno);
@@ -480,14 +480,14 @@ static 		FATFS	fatfs;
 								return _PARSE_ERR_SYNTAX;
 						}
 //__rename file_________________________________________________________________________
-						if(!strncmp("rename",sc[0],len)) {
+						else if(!strncmp("rename",sc[0],len)) {
 							if(n == 2)
 								return _PARSE_ERR_SYNTAX;
 							if(f_rename(sc[1],sc[2]) != FR_OK)
 							return _PARSE_ERR_SYNTAX;
 						}
 //__type file_________________________________________________________________________
-						if(!strncmp("type",sc[0],len)) {
+						else if(!strncmp("type",sc[0],len)) {
 							if(n == 2) {
 								FIL	f;
 								if(f_open(&f,sc[1],FA_READ)==FR_OK) {
@@ -500,7 +500,7 @@ static 		FATFS	fatfs;
 							}
 						}
 //__make directory_____________________________________________________________________
-						if(!strncmp("mkdir",sc[0],len)) {
+						else if(!strncmp("mkdir",sc[0],len)) {
 							if(n == 2) {
 								if(f_mkdir(sc[1]) != FR_OK)
 									return _PARSE_ERR_OPENFILE;
@@ -508,7 +508,7 @@ static 		FATFS	fatfs;
 								return _PARSE_ERR_MISSING;
 						}
 //__change directory_____________________________________________________________________
-						if(!strncmp("cdir",sc[0],len)) {
+						else if(!strncmp("cdir",sc[0],len)) {
 							if(n == 2) {
 								if(f_chdir(sc[1]) != FR_OK )
 									return _PARSE_ERR_OPENFILE;
@@ -516,7 +516,7 @@ static 		FATFS	fatfs;
 								return _PARSE_ERR_MISSING;
 						}
 //__copy file_________________________________________________________________________
-						if(!strncmp("copy",sc[0],len)) {
+						else if(!strncmp("copy",sc[0],len)) {
 							char f[256];
 							FIL f1,f2;
 							if(n == 2) {
@@ -558,7 +558,7 @@ static 		FATFS	fatfs;
 						}
 
 //__entering new file__________________________________________________________________
-						if(!strncmp("file",sc[0],len)) {
+						else if(!strncmp("file",sc[0],len)) {
 							if(n == 2)
 								return(EnterFile(sc[1]));
 							else
@@ -566,7 +566,7 @@ static 		FATFS	fatfs;
 						}
 
 //__entering new file__________________________________________________________________
-						if(!strncmp("format",sc[0],len)) {
+						else if(!strncmp("format",sc[0],len)) {
 							char *c,fs[256];
 							FIL f1,f2;
 
@@ -588,7 +588,7 @@ static 		FATFS	fatfs;
 						}
 
 //__list directory______________________________________________________________________
-						if(!strncmp("dir",sc[0],len)) {
+						else if(!strncmp("dir",sc[0],len)) {
 							if(n==2)
 								if(f_opendir(&dir,sc[1])!=FR_OK || f_readdir(&dir,NULL)!=FR_OK)
 									return _PARSE_ERR_OPENFILE;					
@@ -607,10 +607,12 @@ static 		FATFS	fatfs;
 							}
 						}
 //______________________________________________________________________________________
-						if(!strncmp(">",sc[0],len)) {
+						else if(!strncmp(">",sc[0],len)) {
 							__stdin.io->arg.parse=DecodeCom;
 							return(DecodeCom(NULL));
-						}
+						} else 
+						return _PARSE_ERR_ILLEGAL;		
+							
 		}
 		return _PARSE_OK;
 }
@@ -1137,14 +1139,6 @@ int			u=0,umax=0,umin=0;
 //______________________________________________________________________________________
 				case ':':
 					return DecodeFs(++c);
-//______________________________________________________________________________________
-#ifdef __DISCO__
-				case '*':
-{
-int			SetColor(char *);
-				return SetColor(NULL);
-}
-#endif
 //______________________________________________________________________________________
 				default:
 					return _PARSE_ERR_SYNTAX;

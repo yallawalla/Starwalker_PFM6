@@ -12,9 +12,7 @@
 * @{
 */
 #include	"pyro.h"
-#include	"isr.h"
-#include	"limits.h"
-#include	"lpc.h"
+
 static		_PYRO*	me;
 /*******************************************************************************/
 /**

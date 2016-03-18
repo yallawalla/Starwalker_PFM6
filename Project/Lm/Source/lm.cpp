@@ -8,18 +8,14 @@
 	* @brief	lightmaster application class
 	*
 	*/
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <limits.h>
-#include <stddef.h>
-#include <ctype.h>
-
-#include "ff.h"
 #include "lm.h"
-#include "can.h"
-
+/*******************************************************************************/
+/**
+	* @brief	TIM3 IC2 ISR
+	* @param	: None
+	* @retval : None
+	*/
+/*******************************************************************************/
 _LM::_LM() {
 	
 			_thread_add((void *)Poll,this,(char *)"lm",1);
@@ -60,20 +56,18 @@ _LM::_LM() {
 			debug=0;
 			
 // not used in the application
-//
 #ifdef	USE_LCD
-#ifdef	__SIMULATION__
+	#ifdef	__SIMULATION__
 			plot.Clear();
 			plot.Add(&spray.pComp,1.0,0.02, LCD_COLOR_GREEN);
 			plot.Add(&spray.pBott,1.0,0.02, LCD_COLOR_CYAN);
 			plot.Add(&spray.pAir,1.0,0.002, LCD_COLOR_MAGENTA);
 
-
 //		plot.Add(&_ADC::Instance()->buf.compressor,_BAR(1),_BAR(1)*0.02, LCD_COLOR_GREEN);
 //		plot.Add(&_ADC::Instance()->buf.bottle,_BAR(1),_BAR(1)*0.02, LCD_COLOR_CYAN);
 //		plot.Add(&_ADC::Instance()->buf.air,_BAR(1),_BAR(1)*0.002, LCD_COLOR_MAGENTA);
 
-#endif
+	#endif
 #endif
       io=_stdio(NULL);
 }
@@ -83,7 +77,7 @@ _LM::_LM() {
 * Output				:
 * Return				:
 *******************************************************************************/
-_LM::~_LM() {																			// destructor
+_LM::~_LM() {
 			_thread_remove((void *)Poll,this);
 			_thread_remove((void *)Print,this);
 			_thread_remove((void *)Display,this);
@@ -97,7 +91,6 @@ _LM::~_LM() {																			// destructor
 *******************************************************************************/
 void	_LM::Poll(void *v) {
 			_LM *me = static_cast<_LM *>(v);
-	
 			_io *temp=_stdio(me->io);
 	
 			me->can.Parse(me);
@@ -124,19 +117,6 @@ void	_LM::Poll(void *v) {
 /*******************************************************************************
 * Function Name	: 
 * Description		: 
-* Output				:
-* Return				:
-*******************************************************************************/
-void	_LM::Print(void *v) {
-			_LM *me = static_cast<_LM *>(v);	
-			_io*	temp=_stdio(me->io);
-			_ADCDMA *adf=&_ADC::Instance()->adf;
-			printf("%d,%d,%d,%d\r\n",adf->cooler,adf->bottle,adf->compressor,adf->air);
-			_stdio(temp);
-}
-/*******************************************************************************
-* Function Name	: 
-* Description		: 
 * Output				:	
 * Return				:
 *******************************************************************************/
@@ -152,11 +132,10 @@ void	_LM::Select(_SELECTED_ i) {
 * Output				:	
 * Return				:
 *******************************************************************************/
-#include	"lm.h"
 void	_LM::Increment(int i, int j) {
-_ADCDMA	*offset	=&_ADC::Instance()->offset;
-_ADCDMA	*gain		=&_ADC::Instance()->gain;
-_ADCDMA	*adf		=&_ADC::Instance()->adf;
+_ADMA	*offset	=&_ADC::Instance()->offset,
+			*gain		=&_ADC::Instance()->gain,
+			*adf		=&_ADC::Instance()->adf;
 			switch(item) {
 				case PUMP:
 					pump.Increment(i,j);
@@ -308,7 +287,7 @@ int		_LM::DecodeMinus(char *c) {
 * Return				: _thread_add((void *)poll_callback,this,(char *)"lm",10);
 *******************************************************************************/
 int		_LM::DecodeWhat(char *c) {
-_ADCDMA	*adf		=&_ADC::Instance()->adf;
+_ADMA	*adf		=&_ADC::Instance()->adf;
 			switch(*c) {
 				case 'v':
 					printf("\r\nV5=%4.1f,V12=%4.1f,V24=%4.1f",_16XtoV5(adf->V5),_16XtoV12(adf->V12),_16XtoV24(adf->V24));			
@@ -381,7 +360,13 @@ int		_LM::Decode(char *c) {
 					_wait(strtoul(++c,NULL,0),_thread_loop);
 					break;
 				case '@':
-					return batch(++c);	
+					FIL f;
+					if(f_open(&f,++c,FA_READ) != FR_OK)
+						return PARSE_MISSING;
+					while(!f_eof(&f))
+						Parse((FILE *)&f);
+					f_close(&f);	
+					break;
 				case '>':
 					can.Send(++c);
 					break;
@@ -400,15 +385,6 @@ int		_LM::Decode(char *c) {
 				case '<':
 					can.Recv(++c);
 					break;
-				case '#':	
-				{
-#define _PI 3.14159265359
-					int dacoff=strtoul(++c,&c,0);
-					int dacgain=strtoul(++c,&c,0);
-					for(int i=0; i<sizeof(DacBuff)/sizeof(short); ++i)
-						DacBuff[i]=dacoff + (double)dacgain*sin(2.0*_PI*(double)i/(sizeof(DacBuff)/sizeof(short)));	
-					break;
-				}
 				case '!': {
 					FIL 									f;
 					WAVE_FormatTypeDef		w;
@@ -545,9 +521,9 @@ bool	_LM::Parse(FILE *f) {
 * Return				:
 *******************************************************************************/
 bool	_LM::Parse(int i) {
-_ADCDMA	*offset	=&_ADC::Instance()->offset;
-_ADCDMA	*gain		=&_ADC::Instance()->gain;
-_ADCDMA	*adf		=&_ADC::Instance()->adf;
+_ADMA	*offset	=&_ADC::Instance()->offset,
+			*gain		=&_ADC::Instance()->gain,
+			*adf		=&_ADC::Instance()->adf;
 
 			switch(i) {
 				case EOF:
@@ -591,7 +567,7 @@ _ADCDMA	*adf		=&_ADC::Instance()->adf;
 					Select(EC20);
 					Decode((char *)">2100");
 					break;
-			case __F9:
+				case __F9:
 				case __f9:
 					break;				
 				case __F10:
@@ -770,7 +746,19 @@ char	c[128];
 			} while (j != ctrl);
 			Select(NONE);
 }
-
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
+void	_LM::Print(void *v) {
+_LM 	*me = static_cast<_LM *>(v);	
+_io		*temp=_stdio(me->io);
+_ADMA *adf=&_ADC::Instance()->adf;
+			printf("%d,%d,%d,%d\r\n",adf->cooler,adf->bottle,adf->compressor,adf->air);
+			_stdio(temp);
+}
 extern "C" {
 /*******************************************************************************
 * Function Name	: 
@@ -810,5 +798,4 @@ _LM 	lm;
 +f 1.0, 0.00019998013,-0.999800019866, 1.97163751419,  -0.971642174499
 +f 1.0,-1.95436818551, 0.954558994233, 1.26044681223,  -0.309037826299
 +f 132.819471678, -224.031891995, 94.1796821905, 0.0,   0.0
-
 */

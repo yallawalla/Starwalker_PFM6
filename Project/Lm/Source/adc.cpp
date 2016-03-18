@@ -95,7 +95,7 @@ _ADC::_ADC() {
 				ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
 
 				ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Left;
-				ADC_InitStructure.ADC_NbrOfConversion = sizeof(_ADCDMA)/sizeof(short);
+				ADC_InitStructure.ADC_NbrOfConversion = sizeof(_ADMA)/sizeof(short);
 				ADC_Init(ADC1, &ADC_InitStructure);
 /* ADC1 regular channel12 configuration *************************************/
 				ADC_RegularChannelConfig(ADC1, ADC_Channel_1,  1, ADC_SampleTime_112Cycles);

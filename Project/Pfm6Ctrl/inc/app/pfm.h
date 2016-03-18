@@ -346,10 +346,10 @@ void						App_Init(void),
 								EnableIgbt(void),
 								DisableIgbt(void),
 								Trigger(PFM *),
-								TriggerADC(PFM *);
+								TriggerADC(PFM *),
+								CanReply(char *, ...);
 				        
 int							IgbtTemp(void),
-								CanReply(char *, ...),
 								Eack(PFM *),
 								PFM_command(PFM *, int),
 								PFM_pockels(PFM *),

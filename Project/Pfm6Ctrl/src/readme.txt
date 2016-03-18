@@ -487,3 +487,5 @@ torej je mozno kontrolirati loceno z velikim in malim X
 v 2.12 Feb 24 2016, <EFF7B41B>
 - dodatek na pockels can protokol, interval meritve + stevilo pulzov, PFM reset je obsolete
 
+18.3.2016
+- hitrost za konzolni dostop preko CAN omejena na 1 frame/ms

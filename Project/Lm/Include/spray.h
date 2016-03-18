@@ -24,10 +24,10 @@ class	_SPRAY {
 		int			WaterLeft,WaterMax,WaterMin;
 		int			idx;
 		_VALVE	*BottleIn,*BottleOut,*Air,*Water;
-		_ADCDMA	*offset,*gain,*adf,*buf;
+		_ADMA		*offset,*gain,*adf,*buf;
 
 	public:
-		_SPRAY(_ADC* =_ADC::Instance());
+		_SPRAY();
 		mode		mode;
 		int			AirLevel, WaterLevel;
 		void		Poll(void);

@@ -4,7 +4,7 @@
 
 typedef struct	{
 unsigned short	T2,T3,V5,V12,V24,cooler,bottle,compressor,air,Ipump;
-} _ADCDMA;
+} _ADMA;
 
 #define	NUM_ADCERR	5
 typedef	struct {
@@ -51,7 +51,7 @@ class	_ADC {
 	public:
 		static
 		_ADC 				*Instance(void);		
-		_ADCDMA			buf,
+		_ADMA				buf,
 								adf,
 								offset,
 								gain;

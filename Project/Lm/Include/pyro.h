@@ -5,7 +5,6 @@
 #include				<stdio.h>
 #include 				<stdlib.h>
 #include				"isr.h"
-#include				"adc.h"
 
 #include 				"arm_math.h"
 #if defined   (__IOC_V1__)

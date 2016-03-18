@@ -12,9 +12,8 @@
 * @{
 */
 
-#include	"isr.h"
-#include	"ec20.h"
 #include	"lm.h"
+#include	"ec20.h"
 /*******************************************************************************/
 /**
 	* @brief	TIM3 IC2 ISR
@@ -193,7 +192,7 @@ char			s[16];
 						}
 		    
 						printf("\r:EC20         %3.1lf%c,%4dus,%4dHz,",((double)pw)/10,'%',width,repeat);
-		    
+	    
 						if(updown || leftright) {
 							E=0;
 							if(idx < 3) {

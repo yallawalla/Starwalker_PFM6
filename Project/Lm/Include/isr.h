@@ -6,11 +6,10 @@
 
 extern "C" {
 extern					volatile int __time__;
-	
 void						PrintVersion(int);
+void						Watchdog(void);
 void						_led(int, int),
 								_lightshow(void);
-void						Watchdog(void);
 
 #define					_RED1(a)			_led(0,a)
 #define					_GREEN1(a)		_led(1,a)
@@ -22,8 +21,6 @@ void						Watchdog(void);
 #define					_YELLOW2(a)		_led(7,a)
 #define					_BLUE2(a)			_led(8,a)
 #define					_ORANGE2(a)		_led(9,a)
-
-typedef	enum 		{PARSE_OK,PARSE_SYNTAX,PARSE_ILLEGAL,PARSE_MISSING,PARSE_MEM} ERR_MSG;
 
 #define	 				__Esc					0x1b
 
@@ -82,16 +79,16 @@ typedef	enum 		{PARSE_OK,PARSE_SYNTAX,PARSE_ILLEGAL,PARSE_MISSING,PARSE_MEM} ERR
 #define	 				__FOOT_MID		0x0000b800
 #define	 				__FOOT_ON			0x0000d800
 								
-typedef struct _buffer
-{
+typedef	enum 		{PARSE_OK,PARSE_SYNTAX,PARSE_ILLEGAL,PARSE_MISSING,PARSE_MEM} ERR_MSG;
+
+typedef struct _buffer {
 	char	*_buf, *_push, *_pull;
 	int		(* push)(struct _buffer *, char *);
 	int		(* pull)(struct _buffer *);
 	int		size;
 } _buffer;	
 
-typedef struct _io
-{
+typedef struct _io {
 _buffer	*rx,
 				*tx,
 				*cmdline;
@@ -110,10 +107,9 @@ _buffer	*_buffer_init(int),
 int			_buffer_push(_buffer *, void *,int),
 				_buffer_pull(_buffer *, void *,int),
 				_buffer_count(_buffer *);
-				
-int			batch(char *);
-			
+							
 typedef	void *func(void *);
+extern	_buffer 	*_thread_buf;
  
 typedef	struct {
 func			*f;
@@ -122,7 +118,6 @@ char			*name;
 int				t,dt,to;
 } _thread;
 				
-extern	_buffer 	*_thread_buf;
 void		_thread_init(void),
 				_thread_loop(void),
 				_thread_list(void),
@@ -132,8 +127,8 @@ _thread	*_thread_add(void *,void *,char *,int),
 
 void		_wait(int,void (*)(void));
 _io			*ParseCom(_io *);
-	
 }
+
 #ifndef	__max				
 #define __max(a,b)  (((a) > (b)) ? (a) : (b))	
 #endif
@@ -141,6 +136,4 @@ _io			*ParseCom(_io *);
 #define __min(a,b)  (((a) < (b)) ? (a) : (b))	
 #endif
 #define	__minmax(x,x1,x2,y1,y2)	__min(__max(((y2-y1)*(x-x1))/(x2-x1)+y1,y1),y2)
-
-
 #endif

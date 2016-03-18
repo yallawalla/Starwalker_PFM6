@@ -11,11 +11,10 @@
 /** @addtogroup
 * @{
 */
-
 #include	"ee.h"
-#include	"isr.h"
 #include	"stdio.h"
 #include	"string.h"
+
 static		_EE*	me=NULL;
 /*******************************************************************************/
 /**

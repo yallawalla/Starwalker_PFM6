@@ -6,7 +6,8 @@
 	* @date		
 	* @brief	Timers initialization & ISR
 	*
-	*/	
+	*/
+
 /** @addtogroup
 * @{
 */
@@ -21,12 +22,12 @@
 * Output				:
 * Return				: None
 *******************************************************************************/
-_SPRAY::_SPRAY(_ADC	*a) {
+_SPRAY::_SPRAY() {
 	
-					offset	=&a->Instance()->offset,
-					gain		=&a->Instance()->gain;
-					adf			=&a->Instance()->adf,
-					buf			=&a->Instance()->buf;
+					offset	=&_ADC::Instance()->offset,
+					gain		=&_ADC::Instance()->gain;
+					adf			=&_ADC::Instance()->adf,
+					buf			=&_ADC::Instance()->buf;
 	
 					Bottle_ref=Air_ref=															_BAR(1);
 					mode.On=false;
@@ -197,7 +198,7 @@ void			_SPRAY::Increment(int a, int b) {
 
 void			_SPRAY::Simulator() {
 	_TIM		*tim=_TIM::Instance();
-	_ADCDMA	*buf=&_ADC::Instance()->buf;
+	_ADMA		*buf=&_ADC::Instance()->buf;
 	
 	double	iAir  =(pComp-pAir)/RairIn * tim->Pwm(6)/_PWM_RATE;
 	double	oAir  =(pAir-pAmb)/RairOut;
