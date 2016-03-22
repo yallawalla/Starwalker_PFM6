@@ -9,6 +9,7 @@
 	*
 	*/
 #include "lm.h"
+
 /*******************************************************************************/
 /**
 	* @brief	TIM3 IC2 ISR
@@ -96,10 +97,8 @@ void	_LM::Poll(void *v) {
 			me->can.Parse(me);
 			me->spray.Poll();
 			me->pilot.Poll();
-
-			_ADC::Instance()->Status();
 	
-			if(_ADC::Instance()->error.V24 == false) {
+	if(_ADC::Status().V24 == false) {
 				me->fan.Poll();
 				me->pump.Poll();
 				_TIM::Instance()->Poll();
@@ -133,9 +132,6 @@ void	_LM::Select(_SELECTED_ i) {
 * Return				:
 *******************************************************************************/
 void	_LM::Increment(int i, int j) {
-_ADMA	*offset	=&_ADC::Instance()->offset,
-			*gain		=&_ADC::Instance()->gain,
-			*adf		=&_ADC::Instance()->adf;
 			switch(item) {
 				case PUMP:
 					pump.Increment(i,j);
@@ -171,29 +167,29 @@ _ADMA	*offset	=&_ADC::Instance()->offset,
 					pilot.value =__min(__max(0,pilot.value+5*i),100);	
 					printf("\r:pilot       %3d%c",pilot.value,'%');
 					break;
-			
+
 				case CTRL_A:
-					offset->cooler+=10*i;
-					gain->cooler+=10*j;
-					printf("\r:cooler....... %5d,%5d",offset->cooler,gain->cooler);
+					pump.offset.cooler+=10*i;
+					pump.gain.cooler+=10*j;
+					printf("\r:cooler....... %5d,%5d",pump.offset.cooler,pump.gain.cooler);
 					break;
 				
 				case CTRL_B:
-					offset->bottle+=10*i;
-					gain->bottle+=10*j;
-					printf("\r:bottle....... %5d,%5d",offset->bottle,gain->bottle);
+					spray.offset.bottle+=10*i;
+					spray.gain.bottle+=10*j;
+					printf("\r:bottle....... %5d,%5d",spray.offset.bottle,spray.gain.bottle);
 					break;
-				
+
 				case CTRL_C:
-					offset->compressor+=10*i;
-					gain->compressor+=10*j;
-					printf("\r:compressor... %5d,%5d",offset->compressor,gain->compressor);
+					spray.offset.compressor+=10*i;
+					spray.gain.compressor+=10*j;
+					printf("\r:compressor... %5d,%5d",spray.offset.compressor,spray.gain.compressor);
 					break;
 				
 				case CTRL_D:
-					offset->air+=10*i;
-					gain->air+=10*j;
-					printf("\r:air.......... %5d,%5d",offset->air,gain->air);
+					spray.offset.air+=10*i;
+					spray.gain.air+=10*j;
+					printf("\r:air.......... %5d,%5d",spray.offset.air,spray.gain.air);
 					break;
 				
 				case PLOT_OFFSET:
@@ -239,7 +235,7 @@ int		_LM::DecodePlus(char *c) {
 					break;
 				case 'D':
 					while(*c)
-						debug = (_DEBUG_)(debug | (1<<strtoul(++c,&c,10)));
+						_SET_BIT(debug,strtoul(++c,&c,10));
 					break;
 				case 'f':
 					pyro.addFilter(++c);
@@ -266,7 +262,7 @@ int		_LM::DecodeMinus(char *c) {
 					break;
 				case 'D':
 					while(*c)
-						debug = (_DEBUG_)(debug & ~(1<<strtoul(++c,&c,10)));
+						_CLEAR_BIT(debug,strtoul(++c,&c,10));
 					break;
 				case 'f':
 					pyro.initFilter();
@@ -287,13 +283,9 @@ int		_LM::DecodeMinus(char *c) {
 * Return				: _thread_add((void *)poll_callback,this,(char *)"lm",10);
 *******************************************************************************/
 int		_LM::DecodeWhat(char *c) {
-_ADMA	*adf		=&_ADC::Instance()->adf;
 			switch(*c) {
 				case 'v':
-					printf("\r\nV5=%4.1f,V12=%4.1f,V24=%4.1f",_16XtoV5(adf->V5),_16XtoV12(adf->V12),_16XtoV24(adf->V24));			
-					break;
-				case 'V':
-					printf("\r\nV5=%hu,V12=%hu,V24=%hu",adf->V5,adf->V12,adf->V24);			
+					printf("\r\nV5=%4.1f,V12=%4.1f,V24=%4.1f",_16XtoV5(_ADC::adf.V5),_16XtoV12(_ADC::adf.V12),_16XtoV24(_ADC::adf.V24));			
 					break;
 				case 'D':
 					printf(" %0*X ",2*sizeof(debug)/sizeof(char),debug);
@@ -521,10 +513,6 @@ bool	_LM::Parse(FILE *f) {
 * Return				:
 *******************************************************************************/
 bool	_LM::Parse(int i) {
-_ADMA	*offset	=&_ADC::Instance()->offset,
-			*gain		=&_ADC::Instance()->gain,
-			*adf		=&_ADC::Instance()->adf;
-
 			switch(i) {
 				case EOF:
 					break;
@@ -633,8 +621,8 @@ _ADMA	*offset	=&_ADC::Instance()->offset,
 					break;
 
 				case __CtrlI:
-					*offset = *adf;
-					printf("\r\n:offset...  %3d,%3d,%3d,%3d\r\n:",offset->cooler,offset->bottle,offset->compressor,offset->air);
+					_ADC::offset = _ADC::adf;
+					printf("\r\n:offset...  %3d,%3d,%3d,%3d\r\n:",pump.offset.cooler,spray.offset.bottle,spray.offset.compressor,spray.offset.air);
 					break;
 					
 				case __FOOT_OFF:
@@ -692,7 +680,7 @@ _io*	temp=_stdio(me->io);
 //______ print at F1____________________________________________________________							
 				if(me->pyro.enabled && me->item == PYRO) {
 //					printf("%4d,%5d,%3.1lf,%hu,%u",ta,(int)tp+0x8000,(double)_ADC::Instance()->Th2o/100,t,me->pyro.sync);
-					printf("%4d,%5d,%3.1lf,%hu",ta,(int)tp+0x8000,(double)_ADC::Instance()->Th2o/100,t);
+					printf("%4d,%5d,%3.1lf,%hu",ta,(int)tp+0x8000,(double)_ADC::Th2o()/100,t);
 					if(me->ec20.E) {
 						//printf(".");								
 						if(__time__ > me->timeout) {
@@ -755,8 +743,10 @@ char	c[128];
 void	_LM::Print(void *v) {
 _LM 	*me = static_cast<_LM *>(v);	
 _io		*temp=_stdio(me->io);
-_ADMA *adf=&_ADC::Instance()->adf;
-			printf("%d,%d,%d,%d\r\n",adf->cooler,adf->bottle,adf->compressor,adf->air);
+	printf("%d,%d,%d,%d\r\n",_ADC::adf.cooler,
+														_ADC::adf.bottle,
+															_ADC::adf.compressor,
+																_ADC::adf.air);
 			_stdio(temp);
 }
 extern "C" {

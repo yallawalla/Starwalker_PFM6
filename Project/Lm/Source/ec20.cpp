@@ -159,7 +159,7 @@ int			_EC20::Increment(int updown, int leftright, void *parent) {
 							sprintf(c,"  %3.1lfJ,%5dW,%3.1lf'C,%3.1lf'C,%5.1lf",
 																													(double)E/1000,
 																														E*repeat/1000,
-																															(double)_ADC::Instance()->Th2o/100,
+																															(double)lm->Th2o()/100,
 																																(lm->plotA-7800.0)/200.0+25.0,
 																																	(double)lm->plotB);
 																															
@@ -261,7 +261,7 @@ char			s[16];
 							sprintf(c,"  %3.1lfJ,%5dW,%3.1lf'C,%3.1lf'C,%5.1lf",
 																													(double)E/1000,
 																														E*repeat/1000,
-																															(double)_ADC::Instance()->Th2o/100,
+																															(double)_ADC::Th2o()/100,
 																																(lm->plotA-7800.0)/200.0+25.0,
 																																	(double)lm->plotB);
 																															

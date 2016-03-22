@@ -13,26 +13,19 @@
 /** @addtogroup
 * @{
 */
-static	_ADC *me=NULL;
-/*******************************************************************************/
+
+_ADC 		*_ADC::instance=NULL;		
+_ADMA		_ADC::buffer,_ADC::adf,_ADC::offset,_ADC::gain;
+
 /**
-	* @brief	TIM3 IC2 ISR
-	* @param	: None
-	* @retval : None
-	*/
-/*******************************************************************************/
-_ADC*		_ADC::Instance() {
-				if(me==NULL)
-					me=new _ADC();
-				return me;
-}
-/**
-  * @brief  ADC	common init
+  * @brief  ADC	common init, can be executed only once
   * @param  None
   * @retval None
   */
 /*******************************************************************************/
 _ADC::_ADC() {
+			if(instance==NULL) {
+				instance=this;
 #ifndef __SIMULATION__
 				ADC_InitTypeDef       ADC_InitStructure;
 				DMA_InitTypeDef       DMA_InitStructure;
@@ -55,8 +48,8 @@ _ADC::_ADC() {
 	
 				DMA_InitStructure.DMA_Channel = DMA_Channel_0;
 				DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(ADC1_BASE+0x4C);
-				DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&buf;
-				DMA_InitStructure.DMA_BufferSize = sizeof(buf)/sizeof(short);
+				DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&buffer;
+				DMA_InitStructure.DMA_BufferSize = sizeof(buffer)/sizeof(short);
 				DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
 				DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 				DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
@@ -116,6 +109,7 @@ _ADC::_ADC() {
 				ADC_SoftwareStartConv(ADC1);
 #endif
 				n=timeout=0;
+			}
 }
 /*******************************************************************************
 * Function Name	:
@@ -123,43 +117,52 @@ _ADC::_ADC() {
 * Output				:
 * Return				: None
 *******************************************************************************/
-void		_ADC::Status() {
+int		_ADC::Th2o() {
+			return __fit(adf.T2,Rtab,Ttab);
+}
+/*******************************************************************************
+* Function Name	:
+* Description		: 
+* Output				:
+* Return				: None
+*******************************************************************************/
+error		_ADC::Status() {
 	
-				adf.T2					+= (buf.T2					- adf.T2)/16;
-				adf.T3					+= (buf.T3					- adf.T3)/16;
-				adf.V5					+= (buf.V5					- adf.V5)/16;
-				adf.V12					+= (buf.V12					- adf.V12)/16;
-				adf.V24					+= (buf.V24					- adf.V24)/16;
-				adf.cooler			+= (buf.cooler			- adf.cooler)/16;
-				adf.bottle			+= (buf.bottle			- adf.bottle)/16;
-				adf.compressor	+= (buf.compressor	- adf.compressor)/16;
-				adf.air					+= (buf.air					- adf.air)/16;
-				adf.Ipump				+= (buf.Ipump				- adf.Ipump)/16;
+error		e;
+				adf.T2					+= (buffer.T2					- adf.T2)/16;
+				adf.T3					+= (buffer.T3					- adf.T3)/16;
+				adf.V5					+= (buffer.V5					- adf.V5)/16;
+				adf.V12					+= (buffer.V12				- adf.V12)/16;
+				adf.V24					+= (buffer.V24				- adf.V24)/16;
+				adf.cooler			+= (buffer.cooler			- adf.cooler)/16;
+				adf.bottle			+= (buffer.bottle			- adf.bottle)/16;
+				adf.compressor	+= (buffer.compressor	- adf.compressor)/16;
+				adf.air					+= (buffer.air				- adf.air)/16;
+				adf.Ipump				+= (buffer.Ipump			- adf.Ipump)/16;
 
-				Th2o=__fit(adf.T2,Rtab,Ttab);
+				e.V5 =(abs(adf.V5  - _V5to16X)	> _V5to16X/10);
+				e.V12=(abs(adf.V12 - _V12to16X) > _V12to16X/5);
+				e.V24=(abs(adf.V24 - _V24to16X) > _V24to16X/10);
+				e.InputPressure=(abs(adf.compressor - 4*offset.compressor) > offset.compressor/2);
+				e.Overheat=(Th2o() > 50*100);
 
-				error.V5 =(abs(adf.V5  - _V5to16X)	 > _V5to16X/10);
-				error.V12=(abs(adf.V12 - _V12to16X) > _V12to16X/5);
-				error.V24=(abs(adf.V24 - _V24to16X) > _V24to16X/10);
-				error.InputPressure=(abs(adf.compressor - 4*offset.compressor) > offset.compressor/2);
-				error.Overheat=(Th2o > 50*100);
-
-				if(error.Overheat)
+				if(e.Overheat)
 					_SYS_SHG_DISABLE;
 				else
 					_SYS_SHG_ENABLE;
-
-				if(__time__ > timeout) {
-					timeout=__time__+300;
-					_RED2(5);
-					if(*(int *)&error & (1 << n)) {
-						_RED2(200);
-						timeout += 200;
-					}
-					n = ++n % NUM_ADCERR;
-					if(!n) 
-						timeout += 3000;
-				}
+// LED indicators
+//				if(__time__ > timeout) {
+//					timeout=__time__+300;
+//					_RED2(5);
+//					if(*(int *)&e & (1 << n)) {
+//						_RED2(200);
+//						timeout += 200;
+//					}
+//					n = ++n % 5;
+//					if(!n) 
+//						timeout += 3000;
+//				}
+				return e;
 }
 
 /**

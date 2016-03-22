@@ -17,14 +17,13 @@ typedef	struct {
 	bool	On:1;
 }	mode;
 
-class	_SPRAY {
+class	_SPRAY:public _ADC {
 	private:
 		int			Bottle_ref, Bottle_P;
 		int			Air_ref, Air_P;
 		int			WaterLeft,WaterMax,WaterMin;
 		int			idx;
 		_VALVE	*BottleIn,*BottleOut,*Air,*Water;
-		_ADMA		*offset,*gain,*adf,*buf;
 
 	public:
 		_SPRAY();

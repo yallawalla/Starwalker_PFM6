@@ -12,7 +12,6 @@
 */
 
 #include	"pump.h"
-#include	"limits.h"
 #include	"isr.h"
 /*******************************************************************************/
 /**
@@ -28,17 +27,8 @@ _PUMP::_PUMP() {
 				ftl=25;
 				fth=40;
 
-				_ADC::Instance()->offset.cooler=12500;
-				_ADC::Instance()->gain.cooler=13300;
-	
-#if defined (__DISCO__) || defined (__IOC_V1__)
-				_DAC::Instance()->Dac1=0xfff;
-#elif defined (__IOC_V2__)
-				_DAC::Instance()->Dac1=0;
-#else
-	***error: HW platform not defined
-#endif
-				_DAC::Instance()->Refresh();
+				offset.cooler=12500;
+				gain.cooler=13300;
 				idx=0;
 }
 /*******************************************************************************/
@@ -50,8 +40,6 @@ _PUMP::_PUMP() {
 /*******************************************************************************/
 bool		_PUMP::Poll(void) {
 int			t=TIM_GetCapture1(TIM3);	
-_DAC		*dac=_DAC::Instance();		
-	
 				if(t != to) {
 					if(++led % 30 == 0)
 						_BLUE2(20);
@@ -65,21 +53,10 @@ _DAC		*dac=_DAC::Instance();
 					timeout=0;
 				}
 				if(++timeout > 30)
-					tau=INT_MAX;
-
-#if defined (__DISCO__) || defined (__IOC_V1__)
-				if(220000/__minmax(_ADC::Instance()->Th2o,ftl*100,fth*100,fpl,fph) < tau)
-#elif defined (__IOC_V2__)
-				if(220000/__minmax(_ADC::Instance()->Th2o,ftl*100,fth*100,fpl,fph) > tau)
-#else
-	***error: HW platform not defined
-#endif
-				dac->Dac1=__max(0x1ff,--dac->Dac1);
-					else 
-				dac->Dac1=__min(0xaff,++dac->Dac1);
-				dac->Refresh();
-	
-				if(tau==INT_MAX)
+					tau=EOF;
+				
+				DAC_SetChannel1Data(DAC_Align_12b_R,__minmax(Th2o(),ftl*100,fth*100,fpl,fph)*0xfff/100);	
+				if(tau==EOF)
 					return true;
 				else
 					return false;
@@ -92,7 +69,7 @@ _DAC		*dac=_DAC::Instance();
 	*/
 /*******************************************************************************/
 int			_PUMP::Rpm(void) {
-				return __minmax(_ADC::Instance()->Th2o,ftl*100,fth*100,fpl,fph);
+				return __minmax(Th2o(),ftl*100,fth*100,fpl,fph);
 }
 /*******************************************************************************/
 /**
@@ -122,7 +99,6 @@ void		_PUMP::SaveSettings(FILE *f) {
 	*/
 /*******************************************************************************/
 int			_PUMP::Increment(int a, int b)	{
-_ADC		*adc=_ADC::Instance();
 				idx= __min(__max(idx+b,0),4);
 	
 				switch(idx) {
@@ -140,9 +116,9 @@ _ADC		*adc=_ADC::Instance();
 						break;
 					}
 				
-				printf("\r:pump        %3d%c,%4.1lf'C,%4.1lf",Rpm(),'%',(double)adc->Th2o/100,(double)(adc->adf.cooler-adc->offset.cooler)/adc->gain.cooler);
+				printf("\r:pump        %3d%c,%4.1lf'C,%4.1lf",Rpm(),'%',(double)Th2o()/100,(double)(adf.cooler-offset.cooler)/gain.cooler);
 				if(idx>0)
-					printf("   %2d%c-%2d%c,%2d'C-%2d'C,%4.3lf",fpl,'%',fph,'%',ftl,fth,(double)adc->adf.Ipump/4096.0*3.3/2.1/16);		
+					printf("   %2d%c-%2d%c,%2d'C-%2d'C,%4.3lf",fpl,'%',fph,'%',ftl,fth,(double)adf.Ipump/4096.0*3.3/2.1/16);		
 				for(int i=4*(5-idx)+6;idx && i--;printf("\b"));
 				return Rpm();
 }

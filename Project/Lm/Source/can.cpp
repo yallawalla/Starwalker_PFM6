@@ -291,8 +291,8 @@ _LM				*lm = (_LM *)v;
 							case SprayStatus:
 								char	c[64];
 								sprintf(c,">%02X%02X%02X",	SprayStatus,
-																							_ADC::Instance()->Th2o/100,
-																								*(char *)&_ADC::Instance()->error);
+																							_ADC::Th2o()/100,
+																								_ADC::Status());
 								Send(c);
 								break;
 

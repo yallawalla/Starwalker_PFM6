@@ -6,7 +6,6 @@ typedef struct	{
 unsigned short	T2,T3,V5,V12,V24,cooler,bottle,compressor,air,Ipump;
 } _ADMA;
 
-#define	NUM_ADCERR	5
 typedef	struct {
 				bool	V5:1;
 				bool	V12:1;
@@ -47,17 +46,12 @@ const	int Rtab[]={ (0xffff*_Rdiv(18813.0,5100.0)), (0xffff*_Rdiv(10000.0,5100.0)
 class	_ADC {
 	private:
 		int	n,timeout;
-		_ADC();
+		static _ADC *instance;
 	public:
-		static
-		_ADC 				*Instance(void);		
-		_ADMA				buf,
-								adf,
-								offset,
-								gain;
-		error				error;
-		void				Status(void);
-		int					Th2o;
+		_ADC();
+		static	int		Th2o(void);
+		static 	_ADMA	buffer,adf,offset,gain;
+		static	error		Status(void);
 };
 
 #endif

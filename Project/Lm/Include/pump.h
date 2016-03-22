@@ -6,7 +6,7 @@
 #include				"dac.h"
 #include				"tim.h"
 
-class	_PUMP {
+class	_PUMP:public _ADC,_DAC {
 	private:
 int		idx,led;
 int		to,timeout,tau;

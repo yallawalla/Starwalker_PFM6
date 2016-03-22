@@ -5,13 +5,9 @@
 
 class	_DAC {
 	private:
-		_DAC();
+	static _DAC *instance;
 	public:
-		int Dac1;
-		int Dac2;
-	static
-		_DAC *Instance(void);
-		void	Refresh(void);
+		_DAC();
 };
 
 extern unsigned short DacBuff[100];

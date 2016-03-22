@@ -59,10 +59,10 @@ int			t=TIM_GetCapture2(TIM3);
 					tau=INT_MAX;
 
 #if defined (__DISCO__) || defined (__IOC_V1__)
-				_DAC::Instance()->Dac2=(int)(0xfff*(100-__minmax(_ADC::Instance()->Th2o,ftl*100,fth*100,fpl,fph))/100);
+				_DAC::Instance()->Dac2=(int)(0xfff*(100-__minmax(Th2o(),ftl*100,fth*100,fpl,fph))/100);
 				_DAC::Instance()->Refresh();
 #elif defined (__IOC_V2__)			
-				TIM4->CCR1=(int)((TIM4->ARR*__minmax(_ADC::Instance()->Th2o,ftl*100,fth*100,fpl,fph))/100);
+				TIM4->CCR1=(int)((TIM4->ARR*__minmax(Th2o(),ftl*100,fth*100,fpl,fph))/100);
 #else
 	***error: HW platform not defined
 #endif				
@@ -79,7 +79,7 @@ int			t=TIM_GetCapture2(TIM3);
 	*/
 /*******************************************************************************/
 int			_FAN::Rpm(void) {
-				return __minmax(_ADC::Instance()->Th2o,ftl*100,fth*100,fpl,fph);
+				return __minmax(Th2o(),ftl*100,fth*100,fpl,fph);
 }
 /*******************************************************************************/
 /**
@@ -109,7 +109,6 @@ void		_FAN::SaveSettings(FILE *f) {
 	*/
 /*******************************************************************************/
 int			_FAN::Increment(int a, int b) {
-double	t=_ADC::Instance()->Th2o;
 				idx= __min(__max(idx+b,0),4);
 
 				switch(idx) {
@@ -127,7 +126,7 @@ double	t=_ADC::Instance()->Th2o;
 						break;
 					}
 				
-				printf("\r:fan         %3d%c,%4.1lf'C",Rpm(),'%',t/100);
+				printf("\r:fan         %3d%c,%4.1lf'C",Rpm(),'%',(double)Th2o()/100);
 				if(idx>0)
 					printf("        %2d%c-%2d%c,%2d'C-%2d'C",fpl,'%',fph,'%',ftl,fth);		
 				for(int i=4*(5-idx);idx && i--;printf("\b"));

@@ -12,7 +12,7 @@
 */
 #include	"dac.h"
 #include	"math.h"
-static _DAC *me=NULL;
+_DAC *_DAC::instance=NULL;
 /*******************************************************************************/
 /**
 	* @brief	TIM3 IC2 ISR
@@ -20,73 +20,47 @@ static _DAC *me=NULL;
 	* @retval : None
 	*/
 /*******************************************************************************/
-_DAC*	_DAC::Instance() {
-	if(me==NULL)
-		me=new _DAC();
-	return me;
-}
-/*******************************************************************************/
-/**
-	* @brief	TIM3 IC2 ISR
-	* @param	: None
-	* @retval : None
-	*/
-/*******************************************************************************/
-int	dacoff=0x1fff;
-int	dacgain=0x4ff;
-#define _PI 3.14159265359
+
 _DAC::_DAC() {
+	if(instance == NULL) {
+		instance=this;
 #ifndef __SIMULATION__
-	DAC_InitTypeDef		DAC_InitStructure;
-	GPIO_InitTypeDef	GPIO_InitStructure;
+		DAC_InitTypeDef		DAC_InitStructure;
+		GPIO_InitTypeDef	GPIO_InitStructure;
 
-	GPIO_StructInit(&GPIO_InitStructure);
-	DAC_StructInit(&DAC_InitStructure);
+		GPIO_StructInit(&GPIO_InitStructure);
+		DAC_StructInit(&DAC_InitStructure);
 
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
-	DAC_DeInit();
-	DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_None;
-	DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
-	DAC_Init(DAC_Channel_1, &DAC_InitStructure);
-	Dac1=0x7fff;
-	DAC_Cmd(DAC_Channel_1, ENABLE);
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5;
+		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+		GPIO_Init(GPIOA, &GPIO_InitStructure);
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
+		DAC_DeInit();
+		DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_None;
+		DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
+		DAC_Init(DAC_Channel_1, &DAC_InitStructure);
+		DAC_Cmd(DAC_Channel_1, ENABLE);
 #if defined (__DISCO__) || defined (__IOC_V1__)
-	Dac2=0x7fff;
-	DAC_Init(DAC_Channel_2, &DAC_InitStructure);
-	DAC_DualSoftwareTriggerCmd(ENABLE);
-	DAC_Cmd(DAC_Channel_2, ENABLE);
+		DAC_SetChannel1Data(DAC_Align_12b_R,0xfff);	
+		DAC_SetChannel2Data(DAC_Align_12b_R,0xfff);	
+		DAC_Init(DAC_Channel_2, &DAC_InitStructure);
+		DAC_DualSoftwareTriggerCmd(ENABLE);
+		DAC_Cmd(DAC_Channel_2, ENABLE);
 #elif defined (__IOC_V2__)
-	for(int i=0; i<sizeof(DacBuff)/sizeof(short); ++i)
-		DacBuff[i]=0x1800 + (double)0x10*sin(2.0*_PI*(double)i/(sizeof(DacBuff)/sizeof(short)));	
-	TIM6_Config();
-	DAC_Ch2_Config();
+		DAC_SetChannel1Data(DAC_Align_12b_R,0);	
+		DAC_SetChannel2Data(DAC_Align_12b_R,0x7ff);	
+		for(int i=0; i<sizeof(DacBuff)/sizeof(short); ++i)
+			DacBuff[i]=0x7ff;	
+		TIM6_Config();
+		DAC_Ch2_Config();
 #else
-	***error: HW platform not defined
+		***error: HW platform not defined
 #endif
-	Refresh();
 #endif
+	}
 }
-/*******************************************************************************/
-/**
-	* @brief	TIM3 IC2 ISR
-	* @param	: None
-	* @retval : None
-	*/
-/*******************************************************************************/
-void	_DAC::Refresh() {
-#if defined (__DISCO__) || defined (__IOC_V1__)
-	DAC_SetChannel1Data(DAC_Align_12b_R,Dac1);	
-	DAC_SetChannel2Data(DAC_Align_12b_R,Dac2);	
-#elif defined (__IOC_V2__)
-	DAC_SetChannel1Data(DAC_Align_12b_R,Dac1);	
-#else
-	***error: HW platform not defined
-#endif	
-}
+
 /**
 * @}
 */ 

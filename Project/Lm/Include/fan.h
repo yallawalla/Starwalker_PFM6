@@ -7,7 +7,7 @@
 #include		"tim.h"
 #include		"isr.h"
 
-class	_FAN {
+class	_FAN:_ADC {
 	private:
 int		idx,led;
 int		to,timeout,tau;
