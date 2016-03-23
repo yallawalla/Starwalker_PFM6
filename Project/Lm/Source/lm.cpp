@@ -30,7 +30,7 @@ _LM::_LM() {
 				pump.LoadSettings((FILE *)&f);
 				fan.LoadSettings((FILE *)&f);
 				spray.LoadSettings((FILE *)&f);
-				ec20.LoadSettings((FILE *)&f);
+				can.ec20.LoadSettings((FILE *)&f);
 				pilot.LoadSettings((FILE *)&f);
 				
 // add. settings parsing
@@ -98,7 +98,7 @@ void	_LM::Poll(void *v) {
 			me->spray.Poll();
 			me->pilot.Poll();
 	
-	if(_ADC::Status().V24 == false) {
+			if(_ADC::Status().V24 == false) {
 				me->fan.Poll();
 				me->pump.Poll();
 				_TIM::Instance()->Poll();
@@ -146,7 +146,7 @@ void	_LM::Increment(int i, int j) {
 					break;
 				
 				case EC20:
-					ec20.Increment(i,j,this);
+					can.ec20.Increment(i,j,this);
 					break;
 				
 				case PYRO:
@@ -569,7 +569,7 @@ bool	_LM::Parse(int i) {
 							pump.SaveSettings((FILE *)&f);
 							fan.SaveSettings((FILE *)&f);
 							spray.SaveSettings((FILE *)&f);
-							ec20.SaveSettings((FILE *)&f);
+							can.ec20.SaveSettings((FILE *)&f);
 							pilot.SaveSettings((FILE *)&f);
 							ws.SaveSettings((FILE *)&f);
 							f_sync(&f);
@@ -681,25 +681,7 @@ _io*	temp=_stdio(me->io);
 				if(me->pyro.enabled && me->item == PYRO) {
 //					printf("%4d,%5d,%3.1lf,%hu,%u",ta,(int)tp+0x8000,(double)_ADC::Instance()->Th2o/100,t,me->pyro.sync);
 					printf("%4d,%5d,%3.1lf,%hu",ta,(int)tp+0x8000,(double)_ADC::Th2o()/100,t);
-					if(me->ec20.E) {
-						//printf(".");								
-						if(__time__ > me->timeout) {
-							//printf(".");				
-							me->ec20.E=0;
-						}
-					}	else 
-						me->timeout = __time__ + 180;
 					printf("\r\n");					
-				}
-//______ print at F8 ___________________________________________________________							
-				if(me->pyro.enabled && me->item == EC20) {
-					if(me->ec20.E) {							
-						if(__time__ > me->timeout) {
-							me->Refresh();
-							me->ec20.E=0;
-						}
-					}	else 
-						me->timeout = __time__ + 180;	
 				}
 //______________________________________________________________________________							
 #ifdef	USE_LCD
@@ -743,10 +725,10 @@ char	c[128];
 void	_LM::Print(void *v) {
 _LM 	*me = static_cast<_LM *>(v);	
 _io		*temp=_stdio(me->io);
-	printf("%d,%d,%d,%d\r\n",_ADC::adf.cooler,
-														_ADC::adf.bottle,
-															_ADC::adf.compressor,
-																_ADC::adf.air);
+			printf("%d,%d,%d,%d\r\n",_ADC::adf.cooler,
+																_ADC::adf.bottle,
+																	_ADC::adf.compressor,
+																		_ADC::adf.air);
 			_stdio(temp);
 }
 extern "C" {

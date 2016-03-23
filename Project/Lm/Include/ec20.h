@@ -15,7 +15,7 @@ class	_EC20 {
 			Uo,
 			Fo,
 			mode,
-			status,error,E,
+			status,error,Eo,
 			idx;
 	
 int		Increment(int, int, void *);

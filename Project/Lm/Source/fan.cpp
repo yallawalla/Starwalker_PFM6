@@ -27,8 +27,7 @@ _FAN::_FAN() {
 				fth=40;
 				tau=led=to=timeout=0;
 #if defined (__DISCO__) || defined (__IOC_V1__)
-				_DAC::Instance()->Dac2=0xfff;
-				_DAC::Instance()->Refresh();
+				DAC_SetChannel2Data(DAC_Align_12b_R,0xfff);	
 #elif defined (__IOC_V2__)
 #else
 	***error: HW platform not defined
@@ -59,8 +58,7 @@ int			t=TIM_GetCapture2(TIM3);
 					tau=INT_MAX;
 
 #if defined (__DISCO__) || defined (__IOC_V1__)
-				_DAC::Instance()->Dac2=(int)(0xfff*(100-__minmax(Th2o(),ftl*100,fth*100,fpl,fph))/100);
-				_DAC::Instance()->Refresh();
+				DAC_SetChannel2Data(DAC_Align_12b_R,(int)(0xfff*(100-__minmax(Th2o(),ftl*100,fth*100,fpl,fph))/100));
 #elif defined (__IOC_V2__)			
 				TIM4->CCR1=(int)((TIM4->ARR*__minmax(Th2o(),ftl*100,fth*100,fpl,fph))/100);
 #else

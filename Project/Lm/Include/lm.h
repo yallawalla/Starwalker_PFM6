@@ -51,7 +51,6 @@ class	_LM {
 		int					DecodeMinus(char *c);
 		int					DecodeWhat(char *c);
 		int					DecodeEq(char *c);
-		int					timeout;
 
 	public:
 		_LM();
@@ -65,7 +64,6 @@ class	_LM {
 		_PYRO				pyro;
 		_PUMP				pump;
 		_FAN				fan;
-		_EC20				ec20;
 		_EE					ee;
 		_PILOT			pilot;
 		_WS2812			ws;

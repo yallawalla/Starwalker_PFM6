@@ -301,14 +301,16 @@ _LM				*lm = (_LM *)v;
 								switch(*msg.Data) {
 //____________EC20 to Sys status  ______________________________________________________
 									case Id_EC20Status:
-										lm->ec20.status = m->EC20status.Status;
-										lm->ec20.error  = m->EC20status.Error;
+										ec20.status = m->EC20status.Status;
+										ec20.error  = m->EC20status.Error;
 										if(lm->Selected() == EC20)
 											lm->Refresh();
 									break;	
 //____________EC20 to Sys energy  ______________________________________________________
 									case Id_EC20Energy:
-										lm->ec20.E 			= m->EC20energy.C;
+										ec20.Eo	= m->EC20energy.C;
+										if(lm->pyro.enabled && lm->Selected() == EC20)
+											lm->Refresh();
 									break;
 								}
 								break;
@@ -317,15 +319,15 @@ _LM				*lm = (_LM *)v;
 								switch(msg.Data[0]) {
 //____________Sys to EC20 Uo, To, mode__________________________________________________
 									case Id_EC20Set:
-										lm->ec20.Uo			= m->EC20set.Uo;
-										lm->ec20.width	= m->EC20set.To;
-										lm->ec20.mode		= m->EC20set.Mode;
+										ec20.Uo			= m->EC20set.Uo;
+										ec20.width	= m->EC20set.To;
+										ec20.mode		= m->EC20set.Mode;
 									break;
 //____________Sys to EC20 repetition, PW, fo ___________________________________________
 									case Id_EC20Reset:
-										lm->ec20.repeat = 1000/m->EC20reset.Period;
-										lm->ec20.pw  		= m->EC20reset.Pw;
-										lm->ec20.Fo 		= m->EC20reset.Fo;
+										ec20.repeat = 1000/m->EC20reset.Period;
+										ec20.pw  		= m->EC20reset.Pw;
+										ec20.Fo 		= m->EC20reset.Fo;
 									break;
 								}
 								break;

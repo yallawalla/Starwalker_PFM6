@@ -3,6 +3,7 @@
 #include			"stm32f2xx.h"
 #include			<stdio.h>
 #include			"isr.h"
+#include			"ec20.h"
 
 #ifdef	__DISCO__
 #define				__CAN__						CAN1
@@ -106,6 +107,7 @@ class	_CAN {
 #else
 		_CAN	(bool=false);
 #endif
+		_EC20				ec20;
 		void	RX_ISR(_CAN *), TX_ISR(_CAN *);
 		void 	Parse(void *);
 		void	Send(CanTxMsg *);
