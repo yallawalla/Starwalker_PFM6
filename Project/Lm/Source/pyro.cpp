@@ -30,33 +30,33 @@ void	_PYRO::ISR(_PYRO *p) {
 				me=p;
 				me->buffer=_buffer_init(3*100*sizeof(short));
 			} else																						// klic iz ISR, instanca in buffer morata bit ze formirana 																							
-				if(nbits++) {
-					temp = temp<<1;		
+				if(nbits++) {																		// if not first bit ...
+					temp = temp<<1;																// shift >> in	
 					if(GPIO_ReadInputDataBit(PYRO_PORT,PYRO_BIT)==SET)
 						temp |= 1;
-						TIM7->ARR=_Ts-1;
-					} else
-						TIM7->ARR=1000-(_MAXBITS-1)*_Ts-1;
-					
-					PYRO_PORT->BSRRH   =  PYRO_BIT;								// low
-					PYRO_PORT->OTYPER	&= ~PYRO_BIT;								// PP
-					PYRO_PORT->BSRRL   =  PYRO_BIT;								// high
-					PYRO_PORT->OTYPER |=  PYRO_BIT;								// OD
+						TIM7->ARR=_Ts-1;														// set bit timeout 
+				} else
+					TIM7->ARR=1000-(_MAXBITS-1)*_Ts-1;						// set 1'st bit (sample) timeout (1ms minus transfer time)
+																												
+				PYRO_PORT->BSRRH   =  PYRO_BIT;									// pull next bit, set output low
+				PYRO_PORT->OTYPER	&= ~PYRO_BIT;									// set pin to pushpull output 
+				PYRO_PORT->BSRRL   =  PYRO_BIT;									// set output high
+				PYRO_PORT->OTYPER |=  PYRO_BIT;									// set pin to opendrain  output 
 
-					if(nbits > _MAXBITS) {
-						count += _To;							
-						if(enabled && count >= period) {
-							count=0;
-							short i=__time__ - sync;
-							_buffer_push(buffer,&i,sizeof(short));
-							i=temp &  0x3fff;
-							_buffer_push(buffer,&i,sizeof(short));
-							i=(short)((temp >> 14) - 0x1000);
-							_buffer_push(buffer,&i,sizeof(short));
-            }
-						temp=nbits=0;
-						TIM7->ARR=1000*(_To-1)-1;
-					}
+				if(nbits > _MAXBITS) {													// data finished...?
+					count += _To;																	// increment data counter
+					if(enabled && count >= period) {							// if output enabled && output period reached ...							
+						count=0;																		// reset data counter
+						short i=__time__ - sync;
+						_buffer_push(buffer,&i,sizeof(short));			// push data to output ...
+						i=temp &  0x3fff;
+						_buffer_push(buffer,&i,sizeof(short));
+						i=(short)((temp >> 14) - 0x1000);
+						_buffer_push(buffer,&i,sizeof(short));
+          }
+					temp=nbits=0;
+					TIM7->ARR=1000*(_To-1)-1;											//
+				}
 		}
 /*******************************************************************************
 * Function Name	: 

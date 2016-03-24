@@ -13,7 +13,6 @@
 #include	"can.h"
 #include	"lm.h"
 #include	"string.h"
-
 /*******************************************************************************
 * Function Name	: 
 * Description		: 
@@ -301,14 +300,13 @@ _LM				*lm = (_LM *)v;
 								switch(*msg.Data) {
 //____________EC20 to Sys status  ______________________________________________________
 									case Id_EC20Status:
-										ec20.status = m->EC20status.Status;
-										ec20.error  = m->EC20status.Error;
+										ec20.EC20status = m->EC20status;
 										if(lm->Selected() == EC20)
 											lm->Refresh();
 									break;	
 //____________EC20 to Sys energy  ______________________________________________________
 									case Id_EC20Energy:
-										ec20.Eo	= m->EC20energy.C;
+										ec20.EC20energy	= m->EC20energy;
 										if(lm->pyro.enabled && lm->Selected() == EC20)
 											lm->Refresh();
 									break;
@@ -316,19 +314,49 @@ _LM				*lm = (_LM *)v;
 								break;
 //____________Sys to EC20 message ______________________________________________________
 							case Sys2Ec:
-								switch(msg.Data[0]) {
+								switch(m->EC20Cmd.Code) {
 //____________Sys to EC20 Uo, To, mode__________________________________________________
 									case Id_EC20Set:
-										ec20.Uo			= m->EC20set.Uo;
-										ec20.width	= m->EC20set.To;
-										ec20.mode		= m->EC20set.Mode;
+										ec20.EC20set	= m->EC20set;
 									break;
 //____________Sys to EC20 repetition, PW, fo ___________________________________________
 									case Id_EC20Reset:
-										ec20.repeat = 1000/m->EC20reset.Period;
-										ec20.pw  		= m->EC20reset.Pw;
-										ec20.Fo 		= m->EC20reset.Fo;
+										ec20.EC20reset = m->EC20reset;
 									break;
+//____________Sys to EC20 status req, only for debugging________________________________
+									case Id_EC20Status:
+										if(_BIT(debug, DBG_EC_SIM)) {
+											ec20.EC20status.Status= _COMPLETED;
+											Send(Ec2Sys,(CanMsg *)&ec20.EC20status,sizeof(_EC20status));
+										}
+									break;
+//____________Sys to EC20 command, only for debugging___________________________________
+									case Id_EC20Cmd:
+										switch(m->EC20Cmd.Command) {
+											case _HV1_EN:
+												if(_BIT(debug, DBG_EC_SIM))  {
+													ec20.EC20status.Status=_COMPLETED + _SIM_DET;
+													Send(Ec2Sys,(CanMsg *)&ec20.EC20status,sizeof(_EC20status));
+													_thread_remove((void *)ec20.ECsimulator,this);
+												}
+											break;
+											case _HV1_EN + _FOOT_REQ:
+												if(_BIT(debug, DBG_EC_SIM))  {
+													ec20.EC20status.Status=_COMPLETED  + _SIM_DET + _FOOT_ACK;
+													Send(Ec2Sys,(CanMsg *)&ec20.EC20status,sizeof(_EC20status));
+													_thread_add((void *)ec20.ECsimulator,this,(char *)"EC20 simulator",1000/ec20.EC20reset.Period);
+												}
+											break;
+											default:
+												if(_BIT(debug, DBG_EC_SIM))  {
+													ec20.EC20status.Status=_COMPLETED;
+													Send(Ec2Sys,(CanMsg *)&ec20.EC20status,sizeof(_EC20status));
+												}
+											break;
+										}
+									break;
+									default:
+										break;
 								}
 								break;
 							}

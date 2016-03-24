@@ -11,8 +11,7 @@
 /** @addtogroup PFM6_Application
 * @brief PFM6 application group
 * @{
-*/ 
-
+*/
 #include	"app.h"
 #include	"math.h"
 //______________________________________________________________________________

@@ -14,6 +14,13 @@
 
 #include	"lm.h"
 #include	"ec20.h"
+#include	<math.h>
+
+	_EC20status	_EC20::EC20status	=	{Id_EC20Status,0,0};
+	_EC20Cmd		_EC20::EC20Cmd 		= {Id_EC20Cmd,0};
+	_EC20set		_EC20::EC20set		=	{Id_EC20Set,400,200,0};
+	_EC20reset	_EC20::EC20reset	=	{Id_EC20Reset,2,500,100};
+	_EC20energy	_EC20::EC20energy	=	{Id_EC20Energy,0,0};
 /*******************************************************************************/
 /**
 	* @brief	TIM3 IC2 ISR
@@ -22,12 +29,7 @@
 	*/
 /*******************************************************************************/
 _EC20::_EC20() {
-	repeat=2;
-	pw=500;
-	width=200;
-	Uo=400;
-	Fo=100;
-	idx=mode=status=error=Eo=0;
+	idx=0;
 }
 /*******************************************************************************/
 /**
@@ -47,7 +49,7 @@ _EC20::~_EC20() {
 void		_EC20::LoadSettings(FILE *f) {
 char		c[128];
 				fgets(c,sizeof(c),f);
-				sscanf(c,"%d,%d,%d",&pw,&width,&repeat);
+				sscanf(c,"%hu,%hu,%hu",&EC20reset.Pw,&EC20set.To,&EC20reset.Period);
 }
 /*******************************************************************************/
 /**
@@ -56,7 +58,7 @@ char		c[128];
 	* @retval : None
 	*/
 void		_EC20::SaveSettings(FILE *f) {
-				fprintf(f,"%5d,%5d,%5d       /.. flash\r\n",pw,width,repeat);
+				fprintf(f,"%5d,%5d,%5d       /.. flash\r\n",EC20reset.Pw,EC20set.To,EC20reset.Period);
 }
 /*******************************************************************************/
 /**
@@ -64,112 +66,7 @@ void		_EC20::SaveSettings(FILE *f) {
 	* @param	: None
 	* @retval : None
 	*/
-/*******************************************************************************/
-#if defined (__DISCO__) || defined (__IOC_V1__)
-int			_EC20::Increment(int updown, int leftright, void *parent) {
-				_LM 		*lm = static_cast<_LM *>(parent);	
-				CanMsg 	msg;
-				switch(idx=__min(__max(idx+leftright,0),3)) {
-					case 0:
-						pw= __min(__max(pw+updown,5),995);
-					break;
-					case 1: 
-						width= __min(__max(width+updown,100),1000);
-					break;
-					case 2:
-						repeat= __min(__max(repeat+updown,2),50);
-					break;
-					case 3:
-						break;
-					}
-
-					printf("\r:EC20         %3.1lf%c,%4dus,%4dHz,",((double)pw)/10,'%',width,repeat);
-		    
-					if(updown || leftright) {
-						Eo=0;
-						if(idx < 3) {
-							msg.EC20set.Code=Id_EC20Set;
-							msg.EC20set.Uo=Uo*10;
-							msg.EC20set.To=width;
-							msg.EC20set.Mode=2;																																		 //??
-							lm->can.Send(Sys2Ec,&msg,sizeof(EC20set));
-		    
-							msg.EC20reset.Code=Id_EC20Reset;
-							msg.EC20reset.Period=1000/repeat;
-							msg.EC20reset.Pw=pw;
-							msg.EC20reset.Fo=Fo;
-							lm->can.Send(Sys2Ec,&msg,sizeof(EC20reset));
-						}
-					}
-						
-// ec20 states as from status....
-#define 	_COMPLETED	0x8000
-#define		_SIMGEN			0x4000
-#define 	_SIM_DET		0x0001		
-#define 	_TS1_IOC		0x1000
-#define 	_FOOT_ACK		0x0200
-#define		_STATUS_MASK				(_COMPLETED +  _SIMGEN +  _SIM_DET + _TS1_IOC +  _FOOT_ACK)
-// ec20 	status commands				
-#define		_SIMGEN			0x4000
-#define		_HV1_EN			0x0001
-#define 	_FOOT_REQ		0x0100
-						
-					msg.EC20com.Code=Id_EC20Com;
-					msg.EC20com.Command=0;
-					lm->pyro.enabled=true;
-
-					switch(status & _STATUS_MASK) {
-						case _COMPLETED:
-							msg.EC20com.Command=_SIMGEN;
-						break;
-
-						case _COMPLETED + _SIMGEN:											// standby
-							printf(" STNDBY");
-							if(updown>0 && idx==3)
-								msg.EC20com.Command=_SIMGEN + _HV1_EN;
-						break;
-
-						case _COMPLETED + _SIMGEN + _SIM_DET:						// simmer
-							printf(" SIMMER");
-							if(updown>0 && idx==3)
-								msg.EC20com.Command=_SIMGEN + _HV1_EN + _FOOT_REQ;
-							if(updown<0 && idx==3)
-								msg.EC20com.Command=_SIMGEN;
-						break;
-
-						case _COMPLETED + _SIMGEN + _SIM_DET + _TS1_IOC:
-						case _COMPLETED + _SIMGEN + _SIM_DET + _FOOT_ACK:
-						case _COMPLETED + _SIMGEN + _SIM_DET + _TS1_IOC + _FOOT_ACK:
-							printf(" LASE..");														// lasing
-							if(updown<0 && idx==3)
-								msg.EC20com.Command=_SIMGEN + _HV1_EN;
-						break;
-		    
-						default:
-							printf(" wait..");														// cakanje na ec20
-						break;
-					}
-		    
-							if(msg.EC20com.Command)
-								lm->can.Send(Sys2Ec,&msg,sizeof(EC20com));
-		    
-							char c[128];
-							sprintf(c,"  %3.1lfJ,%5dW,%3.1lf'C,%3.1lf'C,%5.1lf",
-																													(double)Eo/1000,
-																														Eo*repeat/1000,
-																															(double)_ADC::Th2o()/100,
-																																(lm->plotA-7800.0)/200.0+25.0,
-																																	(double)lm->plotB);
-																															
-							if(Eo != 0)																			// ce strel, izpis energije, temperature
-								printf("%s",c);
-							else
-								printf("%*c",strlen(c)+1,' ');
-							
-							for(int i=7*(8-idx)+3; i--; printf("\b"));			// mismas... poravnava kurzorja	xD
-							return 0;
-	}
-#elif defined (__IOC_V2__)
+/******************************************************************************/	
 int				_EC20::Increment(int updown, int leftright, void *parent) {
 _LM 			*lm = static_cast<_LM *>(parent);		
 CanMsg		msg;
@@ -177,72 +74,50 @@ char			s[16];
 
 					switch(idx=__min(__max(idx+leftright,0),3)) {
 						case 0:
-							pw= __min(__max(pw+updown,5),995);
+							EC20reset.Pw		= __min(__max(EC20reset.Pw+updown,5),995);
 						break;
 						case 1: 
-							width= __min(__max(width+updown,100),1000);
+							EC20set.To			= __min(__max(EC20set.To+updown,100),1000);
 						break;
 						case 2:
-							repeat= __min(__max(repeat+updown,2),50);
+							EC20reset.Period= __min(__max(EC20reset.Period+updown,2),50);
 						break;
 						case 3:
 							break;
 					}
 		    
-					printf("\r:EC20         %3.1lf%c,%4dus,%4dHz,",((double)pw)/10,'%',width,repeat);
+					printf("\r:EC20         %3.1lf%c,%4dus,%4dHz,",((double)EC20reset.Pw)/10,'%', EC20set.To, EC20reset.Period);
 	    
 					if(updown || leftright) {
-						Eo=0;
+						EC20energy.C=0;
 						if(idx < 3) {
-							msg.EC20set.Code=Id_EC20Set;
-							msg.EC20set.Uo=Uo*10;
-							msg.EC20set.To=width;
-							msg.EC20set.Mode=3;																																		 //??
-							lm->can.Send(Sys2Ec,&msg,sizeof(EC20set));
-
-	    				msg.EC20reset.Code=Id_EC20Reset;
-							msg.EC20reset.Period=1000/repeat;
-							msg.EC20reset.Pw=pw;
-							msg.EC20reset.Fo=Fo;
-							lm->can.Send(Sys2Ec,&msg,sizeof(EC20reset));
+							lm->can.Send(Sys2Ec,(CanMsg *)&EC20set,sizeof(EC20set));
+							lm->can.Send(Sys2Ec,(CanMsg *)&EC20reset,sizeof(EC20reset));
 						}
 					}
-						
-// ec20 states as from status....
-#define 	_COMPLETED	0x8000
-#define		_SIMGEN			0x4000
-#define 	_SIM_DET		0x0001		
-#define 	_TS1_IOC		0x1000
-#define 	_FOOT_ACK		0x0200
-#define		_STATUS_MASK				(_COMPLETED  +  _SIM_DET  +  _FOOT_ACK)
-// ec20 	status commands				
-#define		_SIMGEN			0x4000
-#define		_HV1_EN			0x0001
-#define 	_FOOT_REQ		0x0100
-#define 	_NOCOMM			0xffff
-						
-					msg.EC20com.Code=Id_EC20Com;
-					msg.EC20com.Command=_NOCOMM;
+					
+					msg.EC20Cmd.Code=Id_EC20Cmd;
+					msg.EC20Cmd.Command=_NOCOMM;
 					lm->pyro.enabled=true;
-					switch(status & _STATUS_MASK) {
+					switch(EC20status.Status & _STATUS_MASK) {
 						case _COMPLETED						:												// standby
 							sprintf(s," STNDBY");
 							if(updown>0 && idx==3)
-								msg.EC20com.Command=_HV1_EN;
+								msg.EC20Cmd.Command=_HV1_EN;
 						break;
 							
 						case _COMPLETED + _SIM_DET:												// simmer
 							sprintf(s," SIMMER");
 							if(updown>0 && idx==3)
-								msg.EC20com.Command=_HV1_EN + _FOOT_REQ;
+								msg.EC20Cmd.Command=_HV1_EN + _FOOT_REQ;
 							if(updown<0 && idx==3)
-								msg.EC20com.Command=0;
+								msg.EC20Cmd.Command=0;
 						break;
 						
 						case _COMPLETED  + _SIM_DET + _FOOT_ACK:
 							sprintf(s," LASE..");														// lasing
 							if(updown<0 && idx==3)
-								msg.EC20com.Command=_HV1_EN;
+								msg.EC20Cmd.Command=_HV1_EN;
 						break;
 	    
 						default:
@@ -251,28 +126,37 @@ char			s[16];
 						}
 						printf("%s",s);
 						
-						if(msg.EC20com.Command != _NOCOMM)
-							lm->can.Send(Sys2Ec,&msg,sizeof(EC20com));
+						if(msg.EC20Cmd.Command != _NOCOMM)
+							lm->can.Send(Sys2Ec,&msg,sizeof(EC20Cmd));
 	    
 						char c[128];
 						sprintf(c,"  %3.1lfJ,%5dW,%3.1lf'C,%3.1lf'C,%5.1lf",
-																												(double)Eo/1000,
-																													Eo*repeat/1000,
+																												(double)EC20energy.C/1000,
+																													EC20energy.C*EC20reset.Period/1000,
 																														(double)_ADC::Th2o()/100,
 																															(lm->plotA-7800.0)/200.0+25.0,
 																																(double)lm->plotB);
 																														
-						if(Eo != 0)																			// ce strel, izpis energije, temperature
+						if(EC20energy.C != 0)												// ce strel, izpis energije, temperature
 							printf("%s",c);
 						else
 							printf("%*c",strlen(c)+1,' ');
 						
-						for(int i=7*(8-idx)+3; i--; printf("\b"));			// mismas... poravnava kurzorja	xD
+						for(int i=7*(8-idx)+3; i--; printf("\b"));	// mismas... poravnava kurzorja	xD
 						return 0;
 }
-#else
-	***error: HW platform not defined
-#endif
+/*******************************************************************************/
+/**
+	* @brief	Increment
+	* @param	: None
+	* @retval : None
+	*/
+/******************************************************************************/	
+void		_EC20::ECsimulator(void *v) {
+_CAN 		*can = static_cast<_CAN *>(v);
+				EC20energy.C=EC20energy.UI=pow((double)(EC20set.Uo * EC20reset.Pw / 1000),3)/400*EC20set.To/1000;
+				can->Send(Ec2Sys,(CanMsg *)&EC20energy,sizeof(EC20energy));
+}
 /**
 * @}
 */ 
