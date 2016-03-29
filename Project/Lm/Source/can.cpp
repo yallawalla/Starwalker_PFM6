@@ -13,6 +13,17 @@
 #include	"can.h"
 #include	"lm.h"
 #include	"string.h"
+/*******************************************************************************/
+static		_CAN	*me=NULL;
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
+_CAN			*_CAN::Instance(void) {
+					return me;	
+}
 /*******************************************************************************
 * Function Name	: 
 * Description		: 
@@ -23,7 +34,7 @@ _CAN::_CAN(bool loopback) {
 CAN_InitTypeDef					CAN_InitStructure;
 CAN_FilterInitTypeDef		CAN_FilterInitStructure;
 NVIC_InitTypeDef 				NVIC_InitStructure;
-						
+				if(me==NULL) {
 #ifndef __SIMULATION__					
 GPIO_InitTypeDef				GPIO_InitStructure;
 					GPIO_StructInit(&GPIO_InitStructure);
@@ -123,10 +134,8 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 					
 					CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
 					com=NULL;
-					debug=0;
+				}
 }
-/*******************************************************************************/
-static		_CAN	*me;
 /*******************************************************************************
 * Function Name	: 
 * Description		: 
@@ -136,10 +145,10 @@ static		_CAN	*me;
 void			_CAN::RX_ISR(_CAN *p) {
 CanRxMsg	buf;
 					if(p) {																					// klic za prijavo instance
+							p->rx=_buffer_init(100*(sizeof(CanRxMsg) + sizeof(unsigned int)));
 							me=p;
-							me->rx=_buffer_init(100*(sizeof(CanRxMsg) + sizeof(unsigned int)));
-					} else {																				// klic iz ISR, instanca in buffer morata bit ze formirana
-						CAN_Receive(__CAN__, CAN_FIFO0, &buf);
+					} else {																				// klic iz ISR, instanca in 
+						CAN_Receive(__CAN__, CAN_FIFO0, &buf);				// buffer morata bit ze formirana
 						_buffer_push(me->rx,&buf,sizeof(CanRxMsg));
 						_buffer_push(me->rx,(void *)&__time__,sizeof(unsigned int));
 					}
@@ -168,32 +177,21 @@ CanTxMsg	buf={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 * Output				:
 * Return				:
 *******************************************************************************/
-void			_CAN::Send(CanTxMsg *msg) {		
+void			_CAN::Send(CanTxMsg *msg) {
 					if(_buffer_count(tx) > 0 || (__CAN__->TSR & CAN_TSR_TME) == 0) {
 						_buffer_push(tx,&msg,sizeof(msg));
 					} else
 						CAN_Transmit(__CAN__,msg);
 					CAN_ITConfig(__CAN__, CAN_IT_TME, ENABLE);		
 //________ debug print__________________________________________________________________
-					if(_BIT(debug, DBG_CAN_TX)) {
+					if(_BIT(_LM::debug, DBG_CAN_TX)) {
 //						_io *temp=_stdio(lm->io);
-						printf("\r\n:%04d %02X ",__time__ % 10000,msg->StdId);
+						printf("\r\n:%04d>%02X ",__time__ % 10000,msg->StdId);
 						for(int i=0;i<msg->DLC;++i)
 							printf(" %02X",msg->Data[i]);
 						printf("\r\n:");
 //						_stdio(temp);
 					}
-}	
-/*******************************************************************************
-* Function Name	: 
-* Description		: 
-* Output				:
-* Return				:
-*******************************************************************************/
-void			_CAN::Send(_stdid id, CanMsg *m, size_t size) {	
-CanTxMsg	buf={id,0,CAN_ID_STD,CAN_RTR_DATA,size,0,0,0,0,0,0,0,0};
-					memcpy(buf.Data,m,size);
-					Send(&buf);
 }	
 /*******************************************************************************
 * Function Name	: 
@@ -223,9 +221,7 @@ void			_CAN::Parse(void *v) {
 
 unsigned	int tstamp=0;
 CanTxMsg	msg={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};		
-CanMsg		*m=(CanMsg *)msg.Data;
 _LM				*lm = (_LM *)v;
-					debug = lm->debug;
 //
 //________ flushing com buffer/not echoed if debug_________ 
 					if(com &&  tx->size - _buffer_count(tx) > sizeof(CanTxMsg)) {
@@ -238,9 +234,9 @@ _LM				*lm = (_LM *)v;
 					if(_buffer_count(rx)  && _buffer_pull(rx,&msg,sizeof(CanTxMsg)) && _buffer_pull(rx,&tstamp,sizeof(unsigned int))) {
 //
 //________ debug print__________________________________________________________________
-						if(_BIT(debug, DBG_CAN_RX)) {
+						if(_BIT(_LM::debug, DBG_CAN_RX)) {
 //							_io *temp=_stdio(lm->io);
-							printf("\r\n:%04d %02X ",__time__ % 10000,msg.StdId);
+							printf("\r\n:%04d<%02X ",__time__ % 10000,msg.StdId);
 							for(int i=0;i<msg.DLC;++i)
 								printf(" %02X",msg.Data[i]);
 							printf("\r\n:");
@@ -294,72 +290,16 @@ _LM				*lm = (_LM *)v;
 																								_ADC::Status());
 								Send(c);
 								break;
-
-//____________EC20 to Sys message ______________________________________________________
-							case Ec2Sys:
-								switch(*msg.Data) {
-//____________EC20 to Sys status  ______________________________________________________
-									case Id_EC20Status:
-										ec20.EC20status = m->EC20status;
-										if(lm->Selected() == EC20)
-											lm->Refresh();
-									break;	
-//____________EC20 to Sys energy  ______________________________________________________
-									case Id_EC20Energy:
-										ec20.EC20energy	= m->EC20energy;
-										if(lm->pyro.enabled && lm->Selected() == EC20)
-											lm->Refresh();
-									break;
-								}
-								break;
-//____________Sys to EC20 message ______________________________________________________
+//______________________________________________________________________________________
 							case Sys2Ec:
-								switch(m->EC20Cmd.Code) {
-//____________Sys to EC20 Uo, To, mode__________________________________________________
-									case Id_EC20Set:
-										ec20.EC20set	= m->EC20set;
-									break;
-//____________Sys to EC20 repetition, PW, fo ___________________________________________
-									case Id_EC20Reset:
-										ec20.EC20reset = m->EC20reset;
-									break;
-//____________Sys to EC20 status req, only for debugging________________________________
-									case Id_EC20Status:
-										if(_BIT(debug, DBG_EC_SIM)) {
-											ec20.EC20status.Status= _COMPLETED;
-											Send(Ec2Sys,(CanMsg *)&ec20.EC20status,sizeof(_EC20status));
-										}
-									break;
-//____________Sys to EC20 command, only for debugging___________________________________
-									case Id_EC20Cmd:
-										switch(m->EC20Cmd.Command) {
-											case _HV1_EN:
-												if(_BIT(debug, DBG_EC_SIM))  {
-													ec20.EC20status.Status=_COMPLETED + _SIM_DET;
-													Send(Ec2Sys,(CanMsg *)&ec20.EC20status,sizeof(_EC20status));
-													_thread_remove((void *)ec20.ECsimulator,this);
-												}
-											break;
-											case _HV1_EN + _FOOT_REQ:
-												if(_BIT(debug, DBG_EC_SIM))  {
-													ec20.EC20status.Status=_COMPLETED  + _SIM_DET + _FOOT_ACK;
-													Send(Ec2Sys,(CanMsg *)&ec20.EC20status,sizeof(_EC20status));
-													_thread_add((void *)ec20.ECsimulator,this,(char *)"EC20 simulator",1000/ec20.EC20reset.Period);
-												}
-											break;
-											default:
-												if(_BIT(debug, DBG_EC_SIM))  {
-													ec20.EC20status.Status=_COMPLETED;
-													Send(Ec2Sys,(CanMsg *)&ec20.EC20status,sizeof(_EC20status));
-												}
-											break;
-										}
-									break;
-									default:
-										break;
-								}
+							case Ec2Sys:
+								lm->ec20.Parse(&msg);
+								lm->ec20.Parse(&msg);
 								break;
-							}
+//______________________________________________________________________________________					
+							default:
+							break;
+						}
 					}
 }
 /*******************************************************************************

@@ -9,7 +9,7 @@
 	*
 	*/
 #include "lm.h"
-
+int	_LM::debug=0;
 /*******************************************************************************/
 /**
 	* @brief	TIM3 IC2 ISR
@@ -17,7 +17,7 @@
 	* @retval : None
 	*/
 /*******************************************************************************/
-_LM::_LM() {
+_LM::_LM() : ec20(this) {
 	
 			_thread_add((void *)Poll,this,(char *)"lm",1);
 			_thread_add((void *)Display,this,(char *)"plot",1);			
@@ -30,7 +30,7 @@ _LM::_LM() {
 				pump.LoadSettings((FILE *)&f);
 				fan.LoadSettings((FILE *)&f);
 				spray.LoadSettings((FILE *)&f);
-				can.ec20.LoadSettings((FILE *)&f);
+				ec20.LoadSettings((FILE *)&f);
 				pilot.LoadSettings((FILE *)&f);
 				
 // add. settings parsing
@@ -146,7 +146,7 @@ void	_LM::Increment(int i, int j) {
 					break;
 				
 				case EC20:
-					can.ec20.Increment(i,j,this);
+					ec20.Increment(i,j);
 					break;
 				
 				case PYRO:
@@ -569,7 +569,7 @@ bool	_LM::Parse(int i) {
 							pump.SaveSettings((FILE *)&f);
 							fan.SaveSettings((FILE *)&f);
 							spray.SaveSettings((FILE *)&f);
-							can.ec20.SaveSettings((FILE *)&f);
+							ec20.SaveSettings((FILE *)&f);
 							pilot.SaveSettings((FILE *)&f);
 							ws.SaveSettings((FILE *)&f);
 							f_sync(&f);
@@ -624,12 +624,12 @@ bool	_LM::Parse(int i) {
 					_ADC::offset = _ADC::adf;
 					printf("\r\n:offset...  %3d,%3d,%3d,%3d\r\n:",pump.offset.cooler,spray.offset.bottle,spray.offset.compressor,spray.offset.air);
 					break;
-					
+
 				case __FOOT_OFF:
 					printf("\r\n:\r\n:footswitch disconnected \r\n:");
 					spray.mode.On=false;
 					Decode((char *)">2200");
-					break;	
+					break;
 				case __FOOT_IDLE:
 					spray.mode.On=false;
 					Decode((char *)">2200");

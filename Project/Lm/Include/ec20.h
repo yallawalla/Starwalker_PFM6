@@ -28,50 +28,6 @@ typedef enum {
 	Id_EC20SyncAck=0x23
 } _code;
 
-typedef __packed struct {
-	_code						Code;
-	unsigned short	Status;
-	unsigned short	Error;
-} _EC20status;
-
-typedef __packed struct {
-	_code						Code;
-	unsigned short	Command;
-} _EC20Cmd;
-
-typedef __packed struct {
-	_code						Code;
-	unsigned short	Uo;
-	unsigned short	To;
-	unsigned char		Mode;
-} _EC20set;
-
-typedef __packed struct {
-	_code						Code;
-	unsigned short	Period;
-	unsigned short	Pw;
-	unsigned char		Fo;
-} _EC20reset;
-
-typedef __packed struct {
-	_code						Code;
-	unsigned short	C;
-	unsigned short	UI;
-} _EC20energy;
-
-typedef __packed struct {
-	_code						Code;
-} _EC20SyncAck;
-
-typedef union CanMsg {
-	_EC20status		EC20status;
-	_EC20Cmd			EC20Cmd;
-	_EC20set			EC20set;
-	_EC20reset		EC20reset;
-	_EC20energy		EC20energy;
-	_EC20SyncAck	EC20SyncAck;
-} CanMsg;
-
 /* ec20 states as from status....																				*******/
 #define 	_COMPLETED	0x8000
 #define		_SIMGEN			0x4000
@@ -86,23 +42,69 @@ typedef union CanMsg {
 #define 	_FOOT_REQ		0x0100
 #define 	_NOCOMM			0xffff
 
+void			Send2Can(_stdid, void *, size_t);
+
+typedef __packed struct _EC20status {
+	_code						code;
+	unsigned short	Status;
+	unsigned short	Error;
+	_EC20status() : code(Id_EC20Status),Status(0),Error(0) {}	
+	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20status)); };
+	} _EC20status;
+
+typedef __packed struct _EC20Cmd {
+	_code						code;
+	unsigned short	Cmd;
+	_EC20Cmd() : code(Id_EC20Cmd),Cmd(_NOCOMM) {}
+	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Cmd)); };
+} _EC20Cmd;
+
+typedef __packed struct _EC20set {
+	_code						code;
+	unsigned short	Uo;
+	unsigned short	To;
+	unsigned char		Mode;
+	_EC20set() : code(Id_EC20Set),Uo(400),To(200),Mode(0) {}
+	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20set)); };
+} _EC20set;
+
+typedef __packed struct _EC20reset {
+	_code						code;
+	unsigned short	Period;
+	unsigned short	Pw;
+	unsigned char		Fo;
+	_EC20reset() : code(Id_EC20Reset),Period(2),Pw(500),Fo(10) {}
+	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20reset)); };
+} _EC20reset;
+
+typedef __packed struct _EC20energy {
+	_code						code;
+	unsigned short	C;
+	unsigned short	UI;
+	_EC20energy() : code(Id_EC20Energy),C(0),UI(0) {}
+	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20energy)); };
+} _EC20energy;
+
 class	_EC20 {
 	private:
+		void *parent;
 	public:
-		_EC20();
+		_EC20(void *);
 		~_EC20();
 
-	static _EC20status	EC20status;
-	static _EC20Cmd			EC20Cmd;
-	static _EC20set			EC20set;
-	static _EC20reset		EC20reset;
-	static _EC20energy	EC20energy;
+	_EC20status		EC20status;
+	_EC20Cmd			EC20Cmd;
+	_EC20set			EC20set;
+	_EC20reset		EC20reset;
+	_EC20energy		EC20energy;
 
 	int			idx;
 	
-	int			Increment(int, int, void *);
+	int			Increment(int, int);
 	void		LoadSettings(FILE *);
 	void		SaveSettings(FILE *);
+	void		Parse(CanTxMsg	*);
+	
 	static void	ECsimulator(void *);
 };
 #endif

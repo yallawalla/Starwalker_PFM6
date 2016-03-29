@@ -3,7 +3,6 @@
 #include			"stm32f2xx.h"
 #include			<stdio.h>
 #include			"isr.h"
-#include			"ec20.h"
 //______________________________________________________________________________________		
 //
 //
@@ -32,7 +31,6 @@ class	_CAN {
 	private:
 		_buffer		*rx,*tx;
 		_io				*com;
-		int				debug;
 	
 	public:
 #if defined (__DISCO__)
@@ -40,12 +38,11 @@ class	_CAN {
 #else
 		_CAN	(bool=false);
 #endif
-		_EC20	ec20;
+		static _CAN *Instance(void);
 		void	RX_ISR(_CAN *), TX_ISR(_CAN *);
 		void 	Parse(void *);
 		void	Send(CanTxMsg *);
 		void	Send(char *);
-		void	Send(_stdid, CanMsg *, size_t dlc);
 		void	Recv(char *);
 };
 

@@ -56,7 +56,8 @@ class	_LM {
 	public:
 		_LM();
 		~_LM();
-
+		static int	debug;
+	
 		double			plotA,plotB,plotC;
 		_PLOT<double> plot;	
 
@@ -66,6 +67,7 @@ class	_LM {
 		_PUMP				pump;
 		_FAN				fan;
 		_EE					ee;
+		_EC20				ec20;
 		_PILOT			pilot;
 		_WS2812			ws;
 
@@ -73,12 +75,12 @@ class	_LM {
 		_LCD				lcd;
 #endif
 
-		int						debug;
 		void 					Increment(int, int);
 		void 					Select(_SELECTED_);
 		_SELECTED_		Selected(void)	{return item; }
 		
 		void 					Refresh(void)		{Increment(0,0);}
+		bool					Debug(_DEBUG_ d) {return _BIT(debug, d);}
 		bool					Parse(FILE *);
 		bool					Parse(void);
 		bool					Parse(int);
