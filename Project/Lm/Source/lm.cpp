@@ -21,7 +21,7 @@ _LM::_LM() : ec20(this) {
 	
 			_thread_add((void *)Poll,this,(char *)"lm",1);
 			_thread_add((void *)Display,this,(char *)"plot",1);			
-	
+
 			FIL f;
 			if(f_open(&f,"0:/lm.ini",FA_READ) == FR_OK) {
 				
@@ -54,7 +54,6 @@ _LM::_LM() : ec20(this) {
 			printf("\r\nCtrlY - reset");	
 
 			_12Voff_ENABLE;
-			debug=0;
 			
 // not used in the application
 #ifdef	USE_LCD
@@ -97,8 +96,8 @@ void	_LM::Poll(void *v) {
 			me->can.Parse(me);
 			me->spray.Poll();
 			me->pilot.Poll();
-	
-			if(_ADC::Status().V24 == false) {
+			me->ADCerror=_ADC::Status();
+			if(me->ADCerror.V24 == false) {
 				me->fan.Poll();
 				me->pump.Poll();
 				_TIM::Instance()->Poll();
@@ -295,6 +294,13 @@ int		_LM::DecodeWhat(char *c) {
 					break;
 				case 'c':
 					return ws.GetColor(atoi(strchr(c,' ')));
+				case 'x':
+					RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
+					CRC_ResetDR();
+					while(*c)
+						printf("\r\n%08X",CRC_CalcCRC(strtoul(++c,&c,10)));
+					printf("\r\n");
+					break;
 				default:
 					*c=0;
 					return PARSE_SYNTAX;
@@ -624,7 +630,9 @@ bool	_LM::Parse(int i) {
 					_ADC::offset = _ADC::adf;
 					printf("\r\n:offset...  %3d,%3d,%3d,%3d\r\n:",pump.offset.cooler,spray.offset.bottle,spray.offset.compressor,spray.offset.air);
 					break;
-
+				case __CtrlP:
+					pump.Align();
+					break;
 				case __FOOT_OFF:
 					printf("\r\n:\r\n:footswitch disconnected \r\n:");
 					spray.mode.On=false;

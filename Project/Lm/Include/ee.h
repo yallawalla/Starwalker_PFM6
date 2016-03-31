@@ -7,20 +7,8 @@
 #include				"isr.h"
 #include				"adc.h"
 
-#if defined   (__IOC_V1__)
 #define					EE_PORT	GPIOA
 #define					EE_BIT	GPIO_Pin_0
-#endif
-
-#if defined   (__IOC_V2__)
-#define					EE_PORT	GPIOA
-#define					EE_BIT	GPIO_Pin_0
-#endif
-
-#if defined   (__DISCO__)
-#define					EE_PORT	GPIOA
-#define					EE_BIT	GPIO_Pin_13
-#endif
 
 #define	_tRD		4
 #define _tMRS		5

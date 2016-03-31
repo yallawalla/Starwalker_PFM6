@@ -16,6 +16,7 @@ _PUMP();
 
 bool	Poll(void);
 int		Rpm(void);
+void	Align(void);
 int		Increment(int, int);
 void	LoadSettings(FILE *);
 void	SaveSettings(FILE *);

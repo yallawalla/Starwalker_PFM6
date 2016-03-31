@@ -547,6 +547,11 @@
               <FileType>8</FileType>
               <FilePath>.\Source\term.cpp</FilePath>
             </File>
+            <File>
+              <FileName>fit.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\fit.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -597,6 +602,9 @@
               <FilePath>.\Include\Doc.txt</FilePath>
             </File>
           </Files>
+        </Group>
+        <Group>
+          <GroupName>New Group</GroupName>
         </Group>
       </Groups>
     </Target>
@@ -1141,6 +1149,11 @@
               <FileType>8</FileType>
               <FilePath>.\Source\term.cpp</FilePath>
             </File>
+            <File>
+              <FileName>fit.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\fit.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1191,6 +1204,9 @@
               <FilePath>.\Include\Doc.txt</FilePath>
             </File>
           </Files>
+        </Group>
+        <Group>
+          <GroupName>New Group</GroupName>
         </Group>
       </Groups>
     </Target>
@@ -1690,6 +1706,11 @@
               <FileType>8</FileType>
               <FilePath>.\Source\term.cpp</FilePath>
             </File>
+            <File>
+              <FileName>fit.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\fit.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1740,6 +1761,9 @@
               <FilePath>.\Include\Doc.txt</FilePath>
             </File>
           </Files>
+        </Group>
+        <Group>
+          <GroupName>New Group</GroupName>
         </Group>
       </Groups>
     </Target>

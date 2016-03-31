@@ -17,6 +17,40 @@
 #include	"string.h"
 
 static		_EE*	me=NULL;
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
+_EE::_EE() {	
+			status=_IDLE;
+			phase=nbits=0;
+			ISR(this);
+	
+GPIO_InitTypeDef					
+			GPIO_InitStructure;
+			GPIO_StructInit(&GPIO_InitStructure);
+			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+			GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+			GPIO_InitStructure.GPIO_Pin = EE_BIT;
+			GPIO_Init(EE_PORT, &GPIO_InitStructure);
+			GPIO_SetBits(EE_PORT,EE_BIT);
+
+			TIM_TimeBaseInitTypeDef TIM;
+			RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5,ENABLE);
+			TIM_TimeBaseStructInit(&TIM);
+			TIM.TIM_Prescaler = (SystemCoreClock/2000000)-1;
+			TIM.TIM_Period = _tRD;
+			TIM.TIM_ClockDivision = 0;
+			TIM.TIM_CounterMode = TIM_CounterMode_Up;
+			TIM_TimeBaseInit(TIM5,&TIM);
+			TIM_ARRPreloadConfig(TIM5,DISABLE);
+			TIM_ITConfig(TIM5,TIM_IT_Update,ENABLE);
+			NVIC_EnableIRQ(TIM5_IRQn);
+}
 /*******************************************************************************/
 /**
 	* @brief	TIM3 IC2 ISR
@@ -179,40 +213,6 @@ char	k,q[128];
 		}
 		strcpy(p,q);
 		return p;
-}
-/*******************************************************************************
-* Function Name	: 
-* Description		: 
-* Output				:
-* Return				:
-*******************************************************************************/
-_EE::_EE() {	
-			status=_IDLE;
-			phase=nbits=0;
-			ISR(this);
-	
-GPIO_InitTypeDef					
-			GPIO_InitStructure;
-			GPIO_StructInit(&GPIO_InitStructure);
-			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-			GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-			GPIO_InitStructure.GPIO_Pin = EE_BIT;
-			GPIO_Init(EE_PORT, &GPIO_InitStructure);
-			GPIO_SetBits(EE_PORT,EE_BIT);
-
-			TIM_TimeBaseInitTypeDef TIM;
-			RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5,ENABLE);
-			TIM_TimeBaseStructInit(&TIM);
-			TIM.TIM_Prescaler = (SystemCoreClock/2000000)-1;
-			TIM.TIM_Period = _tRD;
-			TIM.TIM_ClockDivision = 0;
-			TIM.TIM_CounterMode = TIM_CounterMode_Up;
-			TIM_TimeBaseInit(TIM5,&TIM);
-			TIM_ARRPreloadConfig(TIM5,DISABLE);
-			TIM_ITConfig(TIM5,TIM_IT_Update,ENABLE);
-			NVIC_EnableIRQ(TIM5_IRQn);
 }
 /*******************************************************************************
 * Function Name	: 

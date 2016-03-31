@@ -54,6 +54,7 @@ int					*p=(int *)*_FW_START;
 							((void (*)(void))*p)();
 						}
 						App_Init();
+						
 #if	defined (__PFM6__) || defined(__DISCO__)
 						if(RCC_GetFlagStatus(RCC_FLAG_WWDGRST) != RESET) {
 							RCC_ClearFlag();	

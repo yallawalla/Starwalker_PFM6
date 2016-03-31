@@ -43,7 +43,8 @@ _GPIO::_GPIO() {
 			GPIO_Init(GPIOC, &GPIO_InitStructure);
 			GPIO_SetBits(GPIOC,GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);	
 			GPIO_ResetBits(GPIOC,GPIO_Pin_10);	
-			timeout=key=0;
+			timeout=0;
+			key = GPIO_ReadInputData(GPIOC) & __MASK;
 }
 /*******************************************************************************
 * Function Name	: 12V supply enable, keyboard 
@@ -51,10 +52,6 @@ _GPIO::_GPIO() {
 * Output				:
 * Return				: None
 *******************************************************************************/
-#define	__MASK	0xf800
-#define	__FOOT	0xf800
-#define	__DOOR	0xf800
-
 int   _GPIO::Poll(void) {
 			if(key != (GPIO_ReadInputData(GPIOC) & __MASK)) {
 				key = GPIO_ReadInputData(GPIOC) & __MASK;

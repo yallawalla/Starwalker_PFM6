@@ -57,7 +57,8 @@ class	_LM {
 		_LM();
 		~_LM();
 		static int	debug;
-	
+		error				ADCerror;
+
 		double			plotA,plotB,plotC;
 		_PLOT<double> plot;	
 

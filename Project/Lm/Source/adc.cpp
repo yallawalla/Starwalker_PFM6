@@ -15,7 +15,7 @@
 */
 
 _ADC 		*_ADC::instance=NULL;		
-_ADMA		_ADC::buffer,_ADC::adf,_ADC::offset,_ADC::gain;
+_ADMA		 _ADC::buffer,_ADC::adf,_ADC::offset,_ADC::gain;
 
 /**
   * @brief  ADC	common init, can be executed only once

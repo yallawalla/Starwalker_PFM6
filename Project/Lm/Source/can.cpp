@@ -294,7 +294,6 @@ _LM				*lm = (_LM *)v;
 							case Sys2Ec:
 							case Ec2Sys:
 								lm->ec20.Parse(&msg);
-								lm->ec20.Parse(&msg);
 								break;
 //______________________________________________________________________________________					
 							default:

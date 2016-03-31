@@ -44,7 +44,7 @@ _EC20::~_EC20() {
 void		_EC20::LoadSettings(FILE *f) {
 char		c[128];
 				fgets(c,sizeof(c),f);
-				sscanf(c,"%hu,%hu,%hu",&EC20reset.Pw,&EC20set.To,&EC20reset.Period);
+				sscanf(c,"%hu,%hu,%hu",&EC20Reset.Pw,&EC20Set.To,&EC20Reset.Period);
 }
 /*******************************************************************************/
 /**
@@ -53,7 +53,7 @@ char		c[128];
 	* @retval : None
 	*/
 void		_EC20::SaveSettings(FILE *f) {
-				fprintf(f,"%5d,%5d,%5d       /.. flash\r\n",EC20reset.Pw,EC20set.To,EC20reset.Period);
+				fprintf(f,"%5d,%5d,%5d       /.. flash\r\n",EC20Reset.Pw,EC20Set.To,EC20Reset.Period);
 }
 /*******************************************************************************/
 /**
@@ -68,31 +68,31 @@ _EC20Cmd	m;
 char			s[16];
 
 					switch(idx=__min(__max(idx+leftright,0),3)) {
-						case 0:
-							EC20reset.Pw		= __min(__max(EC20reset.Pw+updown,5),995);
+						case 0:			
+							EC20Reset.Pw		= __min(__max(EC20Reset.Pw+updown,5),995);
 						break;
 						case 1: 
-							EC20set.To			= __min(__max(EC20set.To+updown,100),1000);
+							EC20Set.To			= __min(__max(EC20Set.To+updown,100),1000);
 						break;
 						case 2:
-							EC20reset.Period= __min(__max(EC20reset.Period+updown,2),50);
+							EC20Reset.Period= __min(__max(EC20Reset.Period+updown,2),50);
 						break;
 						case 3:
 							break;
 					}
 		    
-					printf("\r:EC20         %3.1lf%c,%4dus,%4dHz,",((double)EC20reset.Pw)/10,'%', EC20set.To, EC20reset.Period);
+					printf("\r:EC20         %3.1lf%c,%4dus,%4dHz,",((double)EC20Reset.Pw)/10,'%', EC20Set.To, EC20Reset.Period);
 	    
 					if(updown || leftright) {
-						EC20energy.C=0;
+						EC20Eo.C=0;
 						if(idx < 3) {
-							EC20set.Send(Sys2Ec);
-							EC20reset.Send(Sys2Ec);
+							EC20Set.Send(Sys2Ec);
+							EC20Reset.Send(Sys2Ec);
 						}
 					}
 					
 					lm->pyro.enabled=true;
-					switch(EC20status.Status & _STATUS_MASK) {
+					switch(EC20Status.Status & _STATUS_MASK) {
 						case _COMPLETED:																	// standby
 							sprintf(s," STNDBY");
 							if(updown>0 && idx==3)
@@ -124,13 +124,13 @@ char			s[16];
 	    
 						char c[128];
 						sprintf(c,"  %3.1lfJ,%5dW,%3.1lf'C,%3.1lf'C,%5.1lf",
-																												(double)EC20energy.C/1000,
-																													EC20energy.C*EC20reset.Period/1000,
+																												(double)EC20Eo.C/1000,
+																													EC20Eo.C*EC20Reset.Period/1000,
 																														(double)_ADC::Th2o()/100,
 																															(lm->plotA-7800.0)/200.0+25.0,
 																																(double)lm->plotB);
 																														
-						if(EC20energy.C != 0)												// ce strel, izpis energije, temperature
+						if(EC20Eo.C != 0)																	// ce strel, izpis energije, temperature
 							printf("%s",c);
 						else
 							printf("%*c",strlen(c)+1,' ');
@@ -146,26 +146,33 @@ char			s[16];
 	*/
 /******************************************************************************/	
 void				_EC20::Parse(CanTxMsg	*msg) {
-_LM 				*lm = static_cast<_LM *>(parent);		
-//
+_LM 				*lm = static_cast<_LM *>(parent);	
+
 						switch(msg->StdId) {
-//____________Sys to EC20 message ______________________________________________________
+/******************************************************************************/	
+//____________Sys to EC20 message ______________________________________________
+/*
+
+							
+							
+*/
+/******************************************************************************/	
 							case Sys2Ec:
 								switch(*msg->Data) {
-//____________Sys to EC20 Uo, To, mode__________________________________________________
-									case Id_EC20Set:
-										memcpy(&EC20set, msg->Data, msg->DLC);
-									break;
-//____________Sys to EC20 repetition, PW, fo ___________________________________________
-									case Id_EC20Reset:
-										memcpy(&EC20reset, msg->Data, msg->DLC);
-									break;
 //____________Sys to EC20 status req, only for debugging________________________________
 									case Id_EC20Status:
 										if(_BIT(_LM::debug, DBG_EC_SIM)) {
-											EC20status.Status= _COMPLETED;
-											EC20status.Send(Ec2Sys);
-										}
+											EC20Status.Status= _COMPLETED;
+											EC20Status.Send(Ec2Sys);
+									}
+									break;
+//____________Sys to EC20 Uo, To, mode__________________________________________________
+									case Id_EC20Set:
+										memcpy(&EC20Set, msg->Data, msg->DLC);
+									break;
+//____________Sys to EC20 repetition, PW, fo ___________________________________________
+									case Id_EC20Reset:
+										memcpy(&EC20Reset, msg->Data, msg->DLC);
 									break;
 //____________Sys to EC20 command, only for debugging___________________________________
 									case Id_EC20Cmd:
@@ -173,22 +180,22 @@ _LM 				*lm = static_cast<_LM *>(parent);
 										switch(EC20Cmd.Cmd) {
 											case _HV1_EN:
 												if(_BIT(_LM::debug, DBG_EC_SIM)) {
-													EC20status.Status=_COMPLETED + _SIM_DET;
-													EC20status.Send(Ec2Sys);
+													EC20Status.Status=_COMPLETED + _SIM_DET;
+													EC20Status.Send(Ec2Sys);
 													_thread_remove((void *)ECsimulator,this);
 												}
 											break;
 											case _HV1_EN + _FOOT_REQ:
 												if(_BIT(_LM::debug, DBG_EC_SIM)) {
-													EC20status.Status=_COMPLETED  + _SIM_DET + _FOOT_ACK;
-													EC20status.Send(Ec2Sys);
-													_thread_add((void *)ECsimulator,this,(char *)"EC20 simulator",1000/EC20reset.Period);
+													EC20Status.Status=_COMPLETED  + _SIM_DET + _FOOT_ACK;
+													EC20Status.Send(Ec2Sys);
+													_thread_add((void *)ECsimulator,this,(char *)"EC20 simulator",1000/EC20Reset.Period);
 												}
 											break;
 											default:
 												if(_BIT(_LM::debug, DBG_EC_SIM)) {
-													EC20status.Status=_COMPLETED;
-													EC20status.Send(Ec2Sys);
+													EC20Status.Status=_COMPLETED;
+													EC20Status.Send(Ec2Sys);
 												}
 											break;
 										}
@@ -197,21 +204,25 @@ _LM 				*lm = static_cast<_LM *>(parent);
 										break;
 								}
 								break;
-//
-//
-//
-//____________EC20 to Sys message ______________________________________________________
+/******************************************************************************/	
+//____________EC20 to Sys message ______________________________________________
+/*
+
+							
+							
+*/
+/******************************************************************************/	
 							case Ec2Sys:
 								switch(*msg->Data) {
 //____________EC20 to Sys status  ______________________________________________________
 									case Id_EC20Status:
-										memcpy(&EC20status, msg->Data, msg->DLC);
+										memcpy(&EC20Status, msg->Data, msg->DLC);
 										if(lm->Selected() == EC20)
 											lm->Refresh();
 									break;	
 //____________EC20 to Sys energy  ______________________________________________________
-									case Id_EC20Energy:
-										memcpy(&EC20energy, msg->Data, msg->DLC);
+									case Id_EC20Eo:
+										memcpy(&EC20Eo, msg->Data, msg->DLC);
 										if(lm->pyro.enabled && lm->Selected() == EC20)
 											lm->Refresh();
 									break;
@@ -241,8 +252,8 @@ CanTxMsg	m={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 /******************************************************************************/	
 void		_EC20::ECsimulator(void *v) {
 _EC20 *ec = static_cast<_EC20 *>(v);
-				ec->EC20energy.C=ec->EC20energy.UI=pow((double)(ec->EC20set.Uo * ec->EC20reset.Pw / 1000),3)/400*ec->EC20set.To/1000;
-				ec->EC20energy.Send(Ec2Sys);
+				ec->EC20Eo.C=ec->EC20Eo.UI=pow((double)(ec->EC20Set.Uo * ec->EC20Reset.Pw / 1000),3)/400*ec->EC20Set.To/1000;
+				ec->EC20Eo.Send(Ec2Sys);
 }
 /**
 * @}

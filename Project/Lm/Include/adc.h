@@ -6,12 +6,13 @@ typedef struct	{
 unsigned short	T2,T3,V5,V12,V24,cooler,bottle,compressor,air,Ipump;
 } _ADMA;
 
-typedef	struct {
+typedef	struct error {
 				bool	V5:1;
 				bool	V12:1;
 				bool	V24:1;
 				bool	InputPressure:1;
 				bool	Overheat:1;
+				error() : V5(false),V12(false),V24(false),InputPressure(false),Overheat(false) {}
 }	error;
 
 __inline 
@@ -51,7 +52,7 @@ class	_ADC {
 		_ADC();
 		static	int		Th2o(void);
 		static 	_ADMA	buffer,adf,offset,gain;
-		static	error		Status(void);
+		static	error	Status(void);
 };
 
 #endif

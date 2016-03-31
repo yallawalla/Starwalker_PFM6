@@ -41,7 +41,7 @@ _FIT::_FIT(int degree, _fit type) {
 /*******************************************************************************
 * Function Name	: 
 * Description		: destructor
-* Output				: TIM8
+* Output				: 
 * Return				: None
 *******************************************************************************/
 _FIT::~_FIT() {
@@ -52,7 +52,7 @@ _FIT::~_FIT() {
 /*******************************************************************************
 * Function Name	: 
 * Description		: add exp. sample
-* Output				: TIM8
+* Output				: 
 * Return				: None
 *******************************************************************************/
 int		_FIT::Sample(double t, double f) {
@@ -86,7 +86,7 @@ double	*q = new double(2*n * sizeof(double));
 /*******************************************************************************
 * Function Name	: 
 * Description		: add trig. sample
-* Output				: TIM8
+* Output				: 
 * Return				: None
 *******************************************************************************/
 int			_FIT::Sample(double t, double f, double period) {
@@ -124,7 +124,7 @@ double	*_FIT::Compute() {
 /*******************************************************************************
 * Function Name	: 
 * Description		: add trig. sample
-* Output				: TIM8
+* Output				: 
 * Return				: None
 *******************************************************************************/
 double	_FIT::Poly(double t) {

@@ -23,7 +23,7 @@ typedef enum {
 	Id_EC20Cmd		=0x02,
 	Id_EC20Set		=0x03,
 	Id_EC20Reset	=0x14,
-	Id_EC20Energy	=0x07,
+	Id_EC20Eo			=0x07,
 	Id_EC20SyncReq=0x22,
 	Id_EC20SyncAck=0x23
 } _code;
@@ -44,13 +44,13 @@ typedef enum {
 
 void			Send2Can(_stdid, void *, size_t);
 
-typedef __packed struct _EC20status {
+typedef __packed struct _EC20Status {
 	_code						code;
 	unsigned short	Status;
 	unsigned short	Error;
-	_EC20status() : code(Id_EC20Status),Status(0),Error(0) {}	
-	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20status)); };
-	} _EC20status;
+	_EC20Status() : code(Id_EC20Status),Status(0),Error(0) {}	
+	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Status)); };
+	} _EC20Status;
 
 typedef __packed struct _EC20Cmd {
 	_code						code;
@@ -59,31 +59,31 @@ typedef __packed struct _EC20Cmd {
 	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Cmd)); };
 } _EC20Cmd;
 
-typedef __packed struct _EC20set {
+typedef __packed struct _EC20Set {
 	_code						code;
 	unsigned short	Uo;
 	unsigned short	To;
 	unsigned char		Mode;
-	_EC20set() : code(Id_EC20Set),Uo(400),To(200),Mode(0) {}
-	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20set)); };
-} _EC20set;
+	_EC20Set() : code(Id_EC20Set),Uo(400),To(200),Mode(0) {}
+	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Set)); };
+} _EC20Set;
 
-typedef __packed struct _EC20reset {
+typedef __packed struct _EC20Reset {
 	_code						code;
 	unsigned short	Period;
 	unsigned short	Pw;
 	unsigned char		Fo;
-	_EC20reset() : code(Id_EC20Reset),Period(2),Pw(500),Fo(10) {}
-	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20reset)); };
-} _EC20reset;
+	_EC20Reset() : code(Id_EC20Reset),Period(2),Pw(500),Fo(10) {}
+	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Reset)); };
+} _EC20Reset;
 
-typedef __packed struct _EC20energy {
+typedef __packed struct _EC20Eo {
 	_code						code;
 	unsigned short	C;
 	unsigned short	UI;
-	_EC20energy() : code(Id_EC20Energy),C(0),UI(0) {}
-	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20energy)); };
-} _EC20energy;
+	_EC20Eo() : code(Id_EC20Eo),C(0),UI(0) {}
+	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Eo)); };
+} _EC20Eo;
 
 class	_EC20 {
 	private:
@@ -92,11 +92,11 @@ class	_EC20 {
 		_EC20(void *);
 		~_EC20();
 
-	_EC20status		EC20status;
+	_EC20Status		EC20Status;
 	_EC20Cmd			EC20Cmd;
-	_EC20set			EC20set;
-	_EC20reset		EC20reset;
-	_EC20energy		EC20energy;
+	_EC20Set			EC20Set;
+	_EC20Reset		EC20Reset;
+	_EC20Eo				EC20Eo;
 
 	int			idx;
 	

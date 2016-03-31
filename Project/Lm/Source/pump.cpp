@@ -12,6 +12,8 @@
 */
 
 #include	"pump.h"
+#include	"fit.h"
+#include	"term.h"
 #include	"isr.h"
 /*******************************************************************************/
 /**
@@ -122,6 +124,58 @@ int			_PUMP::Increment(int a, int b)	{
 				for(int i=4*(5-idx)+6;idx && i--;printf("\b"));
 				return Rpm();
 }
+/*******************************************************************************/
+/**
+	* @brief	TIM3 IC2 ISR
+	* @param	: None
+	* @retval : None
+	*/
+void		_PUMP::Align(void) {
+_TERM		key;
+	
+_FIT		tacho(4,FIT_POW),
+				pressure(4,FIT_POW),
+				current(4,FIT_POW);
+	
+int			_fpl=fpl,
+				_fph=fph;
+
+				printf("press any key to proceed:");
+				do
+					_wait(5,_thread_loop);
+				while(key.Escape()==EOF);
+				
+				for(int i=10; i<60; i+=10) {
+					fpl=fph=i;
+					_wait(1000,_thread_loop);
+					tacho.Sample(i,tau);
+					pressure.Sample(i,(double)(adf.cooler-offset.cooler)/gain.cooler);
+					current.Sample(i,(double)adf.Ipump/4096.0*3.3/2.1/16);
+					printf(".");
+				}
+				
+				double *p=tacho.Compute();
+				if(p)
+					printf("\r\n tacho   :%lf,%lf,%lf,%lf",p[0],p[1],p[2],p[3]);
+				else
+					printf("\r\nerror...");
+				
+				p=pressure.Compute();
+				if(p)
+					printf("\r\n pressure:%lf,%lf,%lf,%lf",p[0],p[1],p[2],p[3]);
+				else
+					printf("\r\nerror...");
+				
+				p=current.Compute();
+				if(p)
+					printf("\r\n current :%lf,%lf,%lf,%lf",p[0],p[1],p[2],p[3]);
+				else
+					printf("\r\nerror...");
+				
+				printf("...finished \r\n");
+				fpl=_fpl;
+				fph=_fph;
+			}			
 /**
 * @}
 */ 
