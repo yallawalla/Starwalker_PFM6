@@ -295,12 +295,20 @@ int		_LM::DecodeWhat(char *c) {
 				case 'c':
 					return ws.GetColor(atoi(strchr(c,' ')));
 				case 'x':
+				{
 					RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
+					gen_crc_table();
 					CRC_ResetDR();
-					while(*c)
-						printf("\r\n%08X",CRC_CalcCRC(strtoul(++c,&c,10)));
+					int i=EOF;
+					while(*c) {
+						int j=strtoul(++c,&c,16);
+						i=crc(i,j);
+						printf("\r\n%08X,%08X",CRC_CalcCRC(j),i);
+						Watchdog();
+					}
 					printf("\r\n");
 					break;
+				}
 				default:
 					*c=0;
 					return PARSE_SYNTAX;

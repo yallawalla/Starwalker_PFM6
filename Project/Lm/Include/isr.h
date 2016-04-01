@@ -128,6 +128,10 @@ _thread	*_thread_add(void *,void *,char *,int),
 
 void		_wait(int,void (*)(void));
 _io			*ParseCom(_io *);
+
+void 		gen_crc_table(void);
+int 		update_crc(int, char *, char);
+int 		crc(int, int);
 }
 
 #ifndef	__max				
