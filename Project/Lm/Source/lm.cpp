@@ -297,7 +297,6 @@ int		_LM::DecodeWhat(char *c) {
 				case 'x':
 				{
 					RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
-					gen_crc_table();
 					CRC_ResetDR();
 					int i=EOF;
 					while(*c) {

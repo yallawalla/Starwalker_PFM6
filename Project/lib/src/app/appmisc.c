@@ -84,15 +84,6 @@ int				to=__time__+t;
 							f();
 					}
 }
-//___________________________________________________________________________
-void			PrintVersion(int v) {
-					RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
-					CRC_ResetDR();
-					printf(" %d.%02d %s, <%08X>",
-						v/100,v%100,
-						__DATE__,
-							CRC_CalcBlockCRC(__Vectors, (FATFS_ADDRESS-(int)__Vectors)/sizeof(int)));
-}
 /*******************************************************************************
 * Function Name : batch
 * Description   :	ADP1047 output voltage setup, using the default format
@@ -211,6 +202,37 @@ int		putLCD(_buffer *p, int c) {
 				}
 			}
 			return c;
+}
+//=============================================================================
+//=  CRC32 generation                                                         =
+//=============================================================================
+#define POLYNOMIAL 0x04c11db7      									// Eth CRC-32 polynomial
+
+int crc(int crc, int data) {
+	int i=32;
+	crc ^= data;
+	while(i--)
+		if(crc < 0)
+			crc = (crc << 1) ^ POLYNOMIAL;
+		else
+			crc = (crc << 1);
+		return crc;
+}
+//___________________________________________________________________________
+void			PrintVersion(int v) {
+	int i=-1,
+			*p=(int *)__Vectors,
+			n=(FATFS_ADDRESS-(int)__Vectors)/sizeof(int);
+			while(n--)
+				i=crc(i,*p++);
+	
+					RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
+					CRC_ResetDR();
+					printf(" %d.%02d %s, <%08X>, <%08X>",
+						v/100,v%100,
+						__DATE__,
+							CRC_CalcBlockCRC(__Vectors, (FATFS_ADDRESS-(int)__Vectors)/sizeof(int)),
+								i);
 }
 /**
 * @}

@@ -88,21 +88,3 @@ word32 update_crc(word32 crc_accum, byte *data_blk_ptr, word32 data_blk_size)
 
    return crc_accum;
 }
-//=============================================================================
-//=  CRC32 generation                                                         =
-//=============================================================================
-word32 crc(word32 crc_accum, word32 data)
-{
-   register word32 j;
-
-    crc_accum ^= data;
-    for ( j = 0;  j < 32;  j++ )
-    {
-      if ( crc_accum & 0x80000000L )
-        crc_accum = (crc_accum << 1) ^ POLYNOMIAL;
-      else
-        crc_accum = (crc_accum << 1);
-    }
-
-   return crc_accum;
-}
