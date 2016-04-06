@@ -56,7 +56,7 @@ RCC_AHB1PeriphClockCmd(
 					pfm->Burst.HighSimmerMode=_XLAP_QUAD;
 					pfm->Burst.Pdelay=pfm->Burst.Pmax=_PWM_RATE_HI*0.02;
 					pfm->ADCRate=_uS;
-					
+
 					pfm->Pockels.delay=0;
 					pfm->Pockels.width=0;
 					pfm->Pockels.trigger=0;
@@ -883,7 +883,7 @@ int				PFM_pockels(PFM *p) {
 															
 					TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
 					TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
-					TIM_OCInitStructure.TIM_Pulse=p->Pockels.delay;
+					TIM_OCInitStructure.TIM_Pulse=p->Pockels.delay +1;
 					TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 					TIM_OC1Init(TIM4, &TIM_OCInitStructure);		
 					

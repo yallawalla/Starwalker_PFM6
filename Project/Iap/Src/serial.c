@@ -1,8 +1,8 @@
 #include	"iap.h"
 //______________________________________________________________________________________
-//
-// zamenjava za gets, ne èaka, vraèa pointer na string brez \r(!!!) ali NULL	
-// èe je mode ECHO (-1) na
+//ava za gets, ne caka, vraca pointer na string brez \r(!!!) ali NULL	
+// èe je 
+// zamenjmode ECHO (-1) na
 //							<cr> izpiše <cr><lf>
 //							<backspace> ali <del> izpiše <backspace><space><backspace>	
 //

@@ -352,6 +352,15 @@ int			ki=30,kp=0;
 					TIM8->CCR2 = TIM1->CCR2 = _PWM_RATE_HI-TIM1->CCR1;
 					TIM8->CCR4 = TIM1->CCR4 = _PWM_RATE_HI-TIM1->CCR3;
 				}
+				
+				if(TIM18_buf[n].T3 > pfm->Burst.Pdelay && 
+					(TIM18_buf[n].n == pfm->Pockels.trigger || 
+						TIM18_buf[n].n == 255)) {															// #jhw9847duhd		dodatek za qswitch	
+					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Repetitive);		// triganje na kakrsnokoli stanje nad delay x 2
+					TIM_Cmd(TIM4,ENABLE);																		// trigger !!!
+				} else
+					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);				// single pulse, timer se disabla po izteku				
+				
 
 				if(m++ == TIM18_buf[n].n/2) {
 					m=0;
@@ -367,14 +376,6 @@ int			ki=30,kp=0;
 				
 				if(TIM1->CCR1==_MAX_PWM_RATE || TIM1->CCR3==_MAX_PWM_RATE)// duty cycle 100% = PSRDYN error
  					_SET_ERROR(pfm,PFM_ERR_PSRDYN);
-				
-				if(TIM18_buf[n].T3 > pfm->Burst.Pdelay && 
-					(TIM18_buf[n].n == pfm->Pockels.trigger || 
-						TIM18_buf[n].n == 255)) {															// #jhw9847duhd		dodatek za qswitch	
-					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Repetitive);		// triganje na kakrsnokoli stanje nad delay x 2
-					TIM_Cmd(TIM4,ENABLE);																		// trigger !!!
-				} else
-					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);				// single pulse, timer se disabla po izteku
 }
 /*******************************************************************************/
 /**

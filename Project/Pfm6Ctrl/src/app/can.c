@@ -7,7 +7,6 @@
   * @brief   CAN initialization
   *
   */
-	
 /** @addtogroup PFM6_Setup
 * @{
 */
@@ -20,8 +19,7 @@ _io				*__can;
 * Output         : None
 * Return         : PASSED if the reception is well done, FAILED in other case
 *******************************************************************************/
-_io			 	*Initialize_CAN(int loop)
-{
+_io			 	*Initialize_CAN(int loop) {
 CAN_InitTypeDef					CAN_InitStructure;
 CAN_FilterInitTypeDef		CAN_FilterInitStructure;
 GPIO_InitTypeDef				GPIO_InitStructure;
@@ -49,16 +47,16 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 					CAN_InitStructure.CAN_AWUM=DISABLE;
 					CAN_InitStructure.CAN_NART=ENABLE;
 					CAN_InitStructure.CAN_RFLM=DISABLE;
-					
+
 //... pomembn.. da ne zamesa mailboxov in jih oddaja po vrstnem redu vpisovanja... ni default !!!
 
-					CAN_InitStructure.CAN_TXFP=ENABLE;	
+					CAN_InitStructure.CAN_TXFP=ENABLE;
 
 					if(loop)
 						CAN_InitStructure.CAN_Mode=CAN_Mode_LoopBack;
 					else
 						CAN_InitStructure.CAN_Mode=CAN_Mode_Normal;
-					
+
 					CAN_InitStructure.CAN_SJW=CAN_SJW_4tq;
 					CAN_InitStructure.CAN_BS1=CAN_BS1_10tq;
 					CAN_InitStructure.CAN_BS2=CAN_BS2_4tq;

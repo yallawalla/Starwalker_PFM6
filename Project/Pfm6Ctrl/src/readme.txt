@@ -489,3 +489,7 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 
 18.3.2016
 - hitrost za konzolni dostop preko CAN omejena na 1 frame/ms
+
+6.4.2016
+- bug na Pockelsu - delay,0 generira 100ns pulse :(
+- Pockels je imel tut zakasnitev za en cikel; zaradi vrstnega reda v timer ISR je prezgodaj pobral trigger
