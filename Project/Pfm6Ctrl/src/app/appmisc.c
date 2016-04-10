@@ -41,7 +41,7 @@ static int			m=0;
 int		i,j;
 union	{
 			_ADCDMA adc;
-			char 		c[sizeof(_ADCDMA)];
+			unsigned char c[sizeof(_ADCDMA)];
 			}	_ADC={0,0};
 
 			if(buf) {														// call from parse !!!

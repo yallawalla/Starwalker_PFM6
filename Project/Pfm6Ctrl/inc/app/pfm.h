@@ -26,25 +26,14 @@
 #define 	SW_version					212		
 
 //________global HW dependent defines___________________
-
-#if  			defined (__PFM6__)			
+			
 #define					_uS						60
 #define					_MAX_BURST		(8*_mS)
 #define					__CAN__				CAN2
 #define					__FILT_BASE__	14
 #define					FATFS_SECTOR	FLASH_Sector_6
 #define					FATFS_ADDRESS	0x8040000
-			                        
-#elif   	defined (__DISCO__)	
-#define					_uS						42
-#define					_MAX_BURST		(1*_mS)
-#define					__CAN__				CAN1
-#define					__FILT_BASE__	0		
-#define					FATFS_SECTOR	FLASH_Sector_5
-#define					FATFS_ADDRESS	0x8020000
-#else
-*** error, undefined HW platform
-#endif
+
 //______________________________________________________
 #define					_mS						(1000*_uS)
 #define					_PWM_RATE_HI	(10*_uS)

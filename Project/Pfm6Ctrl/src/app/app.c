@@ -171,10 +171,10 @@ static
 //						_CLEAR_EVENT(p,_ADC_FINISHED);												// end of pulse
 //						_DEBUG_MSG("adc finished...");
 //					}
-//					if(_E1ref || _E2ref) {
-//						_DEBUG_MSG("%d,%d\r\n",_E1ref,_E2ref);
-//						_E1ref=_E2ref=0;
-//					}
+					if(_E1ref || _E2ref) {
+						_DEBUG_MSG("%d,%d\r\n",_E1ref,_E2ref);
+						_E1ref=_E2ref=0;
+					}
 //					if(!_MODE(p,_PULSE_INPROC))
 //						IncrementSimmerRate(0);	
 }

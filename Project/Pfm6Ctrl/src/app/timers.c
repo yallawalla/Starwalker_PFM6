@@ -272,14 +272,13 @@ int			ki=30,kp=0;
 				for(i=j=0;j<ADC3_AVG;++j)																	// sestej zadnjih N merjenih vrednosti vrsne napetosti
 					i+=(unsigned short)(ADC3_buf[j].HV);										// 
 
+				k = pfm->Burst.Einterval*_uS/_MAX_ADC_RATE;
+				k-= DMA_GetCurrDataCounter(DMA2_Stream4) / sizeof(_ADCDMA)*sizeof(short);
+
 				if(!n || !TIM18_buf[n].n) 																// ce je to zacetek (ali konec) sekvence, vzemi to za referencno vrednost - hitrejse kot 
 					io=pfm->Burst.HVo;																			// ce vzames zahtevano vrednost iz osnovnega objekta !!!!
-
-				k = pfm->Burst.Length*_uS /_MAX_ADC_RATE;									// current DMA data index
-				k-= DMA2_Stream3->NDTR/sizeof(short);
-
-// vmesni izracun vrednosti za timerje 
-				z1 = TIM18_buf[n].T1;
+																										// get current DMA data index
+				z1 = TIM18_buf[n].T1;																			// vmesni izracun vrednosti za timerje 
 				z2 = TIM18_buf[n].T3;
 
 				if(_MODE(pfm,_U_LOOP)) {
@@ -341,6 +340,10 @@ int			ki=30,kp=0;
 				}
 
 // vpis v timerje
+				if(TIM18_buf[n].T1 > 2*pfm->Burst.Pdelay)
+						ADC1_buf[k-1].I=0xfff;
+				if(TIM18_buf[n].T3 > 2*pfm->Burst.Pdelay)
+						ADC2_buf[k-1].I=0xfff;
 
 				TIM8->CCR1 = TIM1->CCR1 = __max(0,__min(_MAX_PWM_RATE, z1));
 				TIM8->CCR3 = TIM1->CCR3 = __max(0,__min(_MAX_PWM_RATE, z2));
@@ -361,7 +364,6 @@ int			ki=30,kp=0;
 				} else
 					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);				// single pulse, timer se disabla po izteku				
 				
-
 				if(m++ == TIM18_buf[n].n/2) {
 					m=0;
 					if(TIM18_buf[n++].n == 0) {															// eof pulse train

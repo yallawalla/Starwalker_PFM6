@@ -493,3 +493,10 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 6.4.2016
 - bug na Pockelsu - delay,0 generira 100ns pulse :(
 - Pockels je imel tut zakasnitev za en cikel; zaradi vrstnega reda v timer ISR je prezgodaj pobral trigger
+
+10.4.2016
+- bug od zacetka: low level put vrne EOF, ce je buffer full sicer vrbe isti znak 
+  (putVCP, putDMA ). Ob oddaji binarnega znaka 0xFF se predznak expandira na celoten 
+  int in dobimo  -1 ki ga visji nivo interpretira kot EOF !!!!
+  
+  
