@@ -15,6 +15,7 @@
 #include	"fit.h"
 #include	"term.h"
 #include	"isr.h"
+#include	"math.h"
 /*******************************************************************************/
 /**
 	* @brief	TIM3 IC2 ISR
@@ -29,6 +30,7 @@ _PUMP::_PUMP() {
 				ftl=25;
 				fth=40;
 
+				tacho = pressure = current = NULL;
 				offset.cooler=12500;
 				gain.cooler=13300;
 				idx=0;
@@ -46,10 +48,9 @@ int			t=TIM_GetCapture1(TIM3);
 					if(++led % 30 == 0)
 						_BLUE2(20);
 					if(timeout < 30) {
-						if(t>to)
-							tau=t-to;
-						else
-							tau=to-t;
+						tau=t-to;
+						if(tau < 0)
+							tau += (1<<16);
 					}
 					to=t;
 					timeout=0;
@@ -57,7 +58,14 @@ int			t=TIM_GetCapture1(TIM3);
 				if(++timeout > 30)
 					tau=EOF;
 				
-				DAC_SetChannel1Data(DAC_Align_12b_R,__minmax(Th2o(),ftl*100,fth*100,fpl,fph)*0xfff/100);	
+				DAC_SetChannel1Data(DAC_Align_12b_R,__minmax(Th2o(),ftl*100,fth*100,fpl,fph)*0xfff/100);
+				
+				if(tacho && pressure && current && __time__ > 3000)
+					if(fabs(1.0 - tacho->Poly(Rpm())/(double)tau) > 0.1 ||
+							fabs(1.0 - pressure->Poly(Rpm())/(double)adf.cooler) > 0.1 || 
+								fabs(1.0 - current->Poly(Rpm())/(double)adf.Ipump) > 0.1)
+									printf("error...\r\n");
+
 				if(tau==EOF)
 					return true;
 				else
@@ -99,6 +107,36 @@ void		_PUMP::SaveSettings(FILE *f) {
 	* @param	: None
 	* @retval : None
 	*/
+void		_PUMP::LoadLimits(FILE *f) {
+char		c[128];
+				tacho = new _FIT(4,FIT_POW);
+				pressure = new _FIT(4,FIT_POW);
+				current = new _FIT(4,FIT_POW);
+	
+				fgets(c,sizeof(c),f);
+				sscanf(c,"%lf,%lf,%lf,%lf",&tacho->rp[0],&tacho->rp[1],&tacho->rp[2],&tacho->rp[3]);
+				fgets(c,sizeof(c),f);
+				sscanf(c,"%lf,%lf,%lf,%lf",&pressure->rp[0],&pressure->rp[1],&pressure->rp[2],&pressure->rp[3]);
+				fgets(c,sizeof(c),f);
+				sscanf(c,"%lf,%lf,%lf,%lf",&current->rp[0],&current->rp[1],&current->rp[2],&current->rp[3]);
+}
+/*******************************************************************************/
+/**
+	* @brief	TIM3 IC2 ISR
+	* @param	: None
+	* @retval : None
+	*/
+void		_PUMP::SaveLimits(FILE *f) {
+				fprintf(f,"%lf,%lf,%lf,%lf\r\n",tacho->rp[0],		tacho->rp[1],		tacho->rp[2],		tacho->rp[3]);
+				fprintf(f,"%lf,%lf,%lf,%lf\r\n",pressure->rp[0],pressure->rp[1],pressure->rp[2],pressure->rp[3]);
+				fprintf(f,"%lf,%lf,%lf,%lf\r\n",current->rp[0],	current->rp[1],	current->rp[2],	current->rp[3]);
+}
+/*******************************************************************************/
+/**
+	* @brief	TIM3 IC2 ISR
+	* @param	: None
+	* @retval : None
+	*/
 /*******************************************************************************/
 int			_PUMP::Increment(int a, int b)	{
 				idx= __min(__max(idx+b,0),4);
@@ -117,11 +155,16 @@ int			_PUMP::Increment(int a, int b)	{
 						fth= __min(__max(fth+a,ftl),50);
 						break;
 					}
-				
+
 				printf("\r:pump        %3d%c,%4.1lf'C,%4.1lf",Rpm(),'%',(double)Th2o()/100,(double)(adf.cooler-offset.cooler)/gain.cooler);
 				if(idx>0)
 					printf("   %2d%c-%2d%c,%2d'C-%2d'C,%4.3lf",fpl,'%',fph,'%',ftl,fth,(double)adf.Ipump/4096.0*3.3/2.1/16);		
 				for(int i=4*(5-idx)+6;idx && i--;printf("\b"));
+					
+//					printf("\r%4.3lf,%4.3lf,%4.3lf",
+//																					fit.tacho.Poly(Rpm())/(double)tau,
+//																					fit.pressure.Poly(Rpm())/(double)(adf.cooler-offset.cooler)*gain.cooler,
+//																					fit.current.Poly(Rpm())/(double)(adf.Ipump/4096.0*3.3/2.1/16));
 				return Rpm();
 }
 /*******************************************************************************/
@@ -130,51 +173,64 @@ int			_PUMP::Increment(int a, int b)	{
 	* @param	: None
 	* @retval : None
 	*/
-void		_PUMP::Align(void) {
+bool		_PUMP::Align(void) {
 _TERM		key;
-	
-_FIT		tacho(4,FIT_POW),
-				pressure(4,FIT_POW),
-				current(4,FIT_POW);
+_FIT		*t,*p,*c;
 	
 int			_fpl=fpl,
 				_fph=fph;
+
+				if(tacho && pressure && current) {
+					t=tacho; 
+					p=pressure; 
+					c=current;
+					tacho=pressure=current=NULL;
+				} else {
+					t = new _FIT(4,FIT_POW);
+					p = new _FIT(4,FIT_POW);
+					c = new _FIT(4,FIT_POW);	
+				}
 
 				printf("press any key to proceed:");
 				do
 					_wait(5,_thread_loop);
 				while(key.Escape()==EOF);
 				
-				for(int i=10; i<60; i+=10) {
+				for(int i=20; i<50; ++i) {
 					fpl=fph=i;
 					_wait(1000,_thread_loop);
-					tacho.Sample(i,tau);
-					pressure.Sample(i,(double)(adf.cooler-offset.cooler)/gain.cooler);
-					current.Sample(i,(double)adf.Ipump/4096.0*3.3/2.1/16);
+					t->Sample(i,tau);
+//					p->Sample(i,(double)(adf.cooler-offset.cooler)/gain.cooler);
+//					c->Sample(i,(double)adf.Ipump/4096.0*3.3/2.1/16);
+					p->Sample(i,(double)adf.cooler);
+					c->Sample(i,(double)adf.Ipump);
 					printf(".");
 				}
+				for(int i=50; i>20; --i) {
+					fpl=fph=i;
+					_wait(1000,_thread_loop);
+					t->Sample(i,tau);
+//					p->Sample(i,(double)(adf.cooler-offset.cooler)/gain.cooler);
+//					c->Sample(i,(double)adf.Ipump/4096.0*3.3/2.1/16);
+					p->Sample(i,(double)adf.cooler);
+					c->Sample(i,(double)adf.Ipump);
+					printf("\b \b");
+				}
 				
-				double *p=tacho.Compute();
-				if(p)
-					printf("\r\n tacho   :%lf,%lf,%lf,%lf",p[0],p[1],p[2],p[3]);
-				else
-					printf("\r\nerror...");
-				
-				p=pressure.Compute();
-				if(p)
-					printf("\r\n pressure:%lf,%lf,%lf,%lf",p[0],p[1],p[2],p[3]);
-				else
-					printf("\r\nerror...");
-				
-				p=current.Compute();
-				if(p)
-					printf("\r\n current :%lf,%lf,%lf,%lf",p[0],p[1],p[2],p[3]);
-				else
-					printf("\r\nerror...");
-				
-				printf("...finished \r\n");
 				fpl=_fpl;
 				fph=_fph;
+				
+				if(!t->Compute())
+					return false;
+				else if(!p->Compute())
+					return false;
+				else if(!c->Compute())
+					return false;
+				else
+					tacho=t;
+					pressure=p;
+					current=c;
+					return true;
 			}			
 /**
 * @}

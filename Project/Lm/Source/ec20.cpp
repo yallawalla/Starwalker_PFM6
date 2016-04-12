@@ -64,7 +64,8 @@ void		_EC20::SaveSettings(FILE *f) {
 /******************************************************************************/	
 int				_EC20::Increment(int updown, int leftright) {
 _LM 			*lm = static_cast<_LM *>(parent);		
-_EC20Cmd	m;
+_EC20Cmd		m;
+_EC20Reset	reset;
 char			s[16];
 
 					switch(idx=__min(__max(idx+leftright,0),3)) {
@@ -87,10 +88,12 @@ char			s[16];
 						EC20Eo.C=0;
 						if(idx < 3) {
 							EC20Set.Send(Sys2Ec);
-							EC20Reset.Send(Sys2Ec);
+							reset=EC20Reset;
+							reset.Period=1000/reset.Period;
+							reset.Send(Sys2Ec);
 						}
 					}
-					
+
 					lm->pyro.enabled=true;
 					switch(EC20Status.Status & _STATUS_MASK) {
 						case _COMPLETED:																	// standby

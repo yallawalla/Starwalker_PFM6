@@ -95,7 +95,8 @@ typedef					 enum
 								_DBG_I2C_TX,
 								_DBG_I2C_RX,
 								_DBG_MSG_ENG=20,
-								_DBG_CAN_COM=21
+								_DBG_CAN_COM=21,
+								_DBG_E_PARTIAL=22
 } 							_debug;
 
 typedef					enum
@@ -553,3 +554,7 @@ __inline void dbg5(char *s, int arg1, int arg2, int arg3, int arg4) {
 // __________________________________________________________________________________________________________
 //											Pref1=_I2AD(p->Burst.U * p->Burst.U) * _HV2AD(p->Burst.U) / (ADC3_AVG *_k_Er * 1000 * 4096);
 //											Pref2=_I2AD(p->Burst.U * p->Burst.U) * _HV2AD(p->Burst.U) / (ADC3_AVG *_k_Nd * 1000 * 4096);
+#define	kVf	(3.3/4096.0*2000.0/7.5)					// 		flash voltage			
+#define	kIf	(3.3/4096.0/2.9999/0.001)				// 		flash curr.
+#define Ts	 1e-6														// 		ADC sample rate
+#define kmJ	(int)(0.001/kVf/kIf/Ts+0.5) 		//		mJ, fakt. delitve kum. energije < 1 !!!  0.4865351

@@ -64,7 +64,7 @@ typedef __packed struct _EC20Set {
 	unsigned short	Uo;
 	unsigned short	To;
 	unsigned char		Mode;
-	_EC20Set() : code(Id_EC20Set),Uo(400),To(200),Mode(0) {}
+	_EC20Set() : code(Id_EC20Set),Uo(400),To(200),Mode(0x02) {}
 	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Set)); };
 } _EC20Set;
 
@@ -79,9 +79,9 @@ typedef __packed struct _EC20Reset {
 
 typedef __packed struct _EC20Eo {
 	_code						code;
-	unsigned short	C;
 	unsigned short	UI;
-	_EC20Eo() : code(Id_EC20Eo),C(0),UI(0) {}
+	unsigned short	C;
+	_EC20Eo() : code(Id_EC20Eo),UI(0),C(0) {}
 	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Eo)); };
 } _EC20Eo;
 

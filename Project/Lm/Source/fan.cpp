@@ -46,10 +46,9 @@ int			t=TIM_GetCapture2(TIM3);
 					if(++led % 30 == 0)
 						_YELLOW2(20);
 					if(timeout < 30) {
-						if(t>to)
-							tau=t-to;
-						else
-							tau=to-t;
+						tau=t-to;
+						if(tau < 0)
+							tau += (1<<16);
 					}
 					to=t;
 					timeout=0;

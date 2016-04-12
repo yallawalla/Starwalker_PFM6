@@ -168,13 +168,18 @@ static
 					}
 //______________________________________________________________________________
 //					if(_EVENT(p,_ADC_FINISHED)) {	
-//						_CLEAR_EVENT(p,_ADC_FINISHED);												// end of pulse
+//						_CLEAR_EVENT(p,_ADC_FINISHED);											// end of pulse
 //						_DEBUG_MSG("adc finished...");
 //					}
-					if(_E1ref || _E2ref) {
-						_DEBUG_MSG("%d,%d\r\n",_E1ref,_E2ref);
-						_E1ref=_E2ref=0;
-					}
+//						if(_DBG(p,_DBG_E_PARTIAL) && (_E1ref || _E2ref)) {
+//							_io *io=_stdio(__dbug);
+//							int e1=_E1ref*p->ADCRate/kmJ/_uS;
+//							int e2=_E2ref*p->ADCRate/kmJ/_uS;
+//							_E1ref=_E2ref=0;			
+//							__print("E1=%d.%d ",e1/1000,(e1%1000)/100);
+//							__print("E2=%d.%d\r\n>",e2/1000,(e2%1000)/100);
+//							_stdio(io);
+//					}
 //					if(!_MODE(p,_PULSE_INPROC))
 //						IncrementSimmerRate(0);	
 }
@@ -403,7 +408,7 @@ static
 						} else
 							break;
 						
-						if(_DBG(pfm,_DBG_CAN_TX)) {
+						if(_DBG(p,_DBG_CAN_TX)) {
 							_io *io=_stdio(__dbug);
 							int i;
 							__print(":%04d >%02X ",__time__ % 10000,tx.StdId);
@@ -700,16 +705,11 @@ int				i;
 //					CAN_ITConfig(__CAN__, CAN_IT_TME, ENABLE);	
 }
 /*______________________________________________________________________________
-  * @brief  Interprets the PFM command message
-  * @param 	pfmcmd: PFM command word as defined in CAN protocol  ICD 
+	* @brief  : Computes energy across the Eenergy interval
+	* @param 	: PFM object
   * @retval : None
   *
-  */
-#define		kVf	(3.3/4096.0*2000.0/7.5)					// 		flash voltage			
-#define		kIf	(3.3/4096.0/2.9999/0.001)				// 		flash curr.
-#define 	Ts	 1e-6														// 		ADC sample rate
-#define 	kmJ	(int)(0.001/kVf/kIf/Ts+0.5) 		//		mJ, fakt. delitve kum. energije < 1 !!!  0.4865351
-	
+  */	
 int				Eack(PFM *p) {
 
 static		long long	e1=0,e2=0;

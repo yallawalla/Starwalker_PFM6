@@ -249,8 +249,16 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 // ___ 100 khz interrupt __________________________________________________________
 // ________________________________________________________________________________
 extern int	_U1off,_U2off,_E1ref,_E2ref,_I1off,_I2off;
-		
 int			Pref1=0,Pref2=0;
+/**
+  ******************************************************************************
+  * @file			timers.c
+  * @author		Fotona d.d.
+  * @version	V1
+  * @date			30-Sept-2013
+  * @brief   	TIM1/8 handler
+  *
+  */
 void		TIM1_UP_TIM10_IRQHandler(void) {
 
 static
@@ -277,7 +285,7 @@ int			ki=30,kp=0;
 
 				if(!n || !TIM18_buf[n].n) 																// ce je to zacetek (ali konec) sekvence, vzemi to za referencno vrednost - hitrejse kot 
 					io=pfm->Burst.HVo;																			// ce vzames zahtevano vrednost iz osnovnega objekta !!!!
-																										// get current DMA data index
+																																	// get current DMA data index
 				z1 = TIM18_buf[n].T1;																			// vmesni izracun vrednosti za timerje 
 				z2 = TIM18_buf[n].T3;
 
@@ -285,16 +293,17 @@ int			ki=30,kp=0;
 					z1 = (z1 * io + i/2)/i;
 					z2 = (z2 * io + i/2)/i;
 					
-//					if(k > 8 && TIM18_buf[n].T1 > pfm->Burst.Pdelay*2)
-//						for(i=0;i<8;++i)
+//					if(m && z1 > pfm->Burst.Pdelay*2) {
+//						for(i=4;i<8;++i)
 //							e1+=(short)(ADC1_buf[k-i].U) * (short)(ADC1_buf[k-i].I-_I1off);
+//					}
 //					else if (!_E1ref) {
 //						_E1ref=e1;
 //						e1=0;
 //					}
-//
-//					if(k > 8 && TIM18_buf[n].T3 > pfm->Burst.Pdelay*2) {
-//						for(i=0;i<8;++i)
+
+//					if(m && z2 > pfm->Burst.Pdelay*2) {
+//						for(i=4;i<8;++i)
 //							e2+=(short)(ADC2_buf[k-i].U) * (short)(ADC2_buf[k-i].I-_I2off);
 //					} else if (!_E2ref) {
 //						_E2ref=e2;
@@ -340,11 +349,7 @@ int			ki=30,kp=0;
 				}
 
 // vpis v timerje
-				if(TIM18_buf[n].T1 > 2*pfm->Burst.Pdelay)
-						ADC1_buf[k-1].I=0xfff;
-				if(TIM18_buf[n].T3 > 2*pfm->Burst.Pdelay)
-						ADC2_buf[k-1].I=0xfff;
-
+				
 				TIM8->CCR1 = TIM1->CCR1 = __max(0,__min(_MAX_PWM_RATE, z1));
 				TIM8->CCR3 = TIM1->CCR3 = __max(0,__min(_MAX_PWM_RATE, z2));
 				

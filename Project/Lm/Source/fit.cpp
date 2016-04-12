@@ -31,7 +31,7 @@ double	_FIT::det(double *p, int x,int y, int n) {
 * Output				:
 * Return				: None
 *******************************************************************************/
-_FIT::_FIT(int degree, _fit type) {
+_FIT::_FIT(int degree, _fittype type) {
 				n=degree;
 				typ=type;
 				tp=new double[4*n*n]();
