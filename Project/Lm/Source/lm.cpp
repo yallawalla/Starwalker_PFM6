@@ -42,9 +42,10 @@ _LM::_LM() : ec20(this) {
 			
 			if(f_open(&f,"0:/limits.ini",FA_READ) == FR_OK) {
 				pump.LoadLimits((FILE *)&f);
+				fan.LoadLimits((FILE *)&f);
 				f_close(&f);	
 			}	else				
-				printf("\r\n limits file error...\r\n:");
+				printf("\r\n limits not active...\r\n:");
 
 			printf("\r\n[F1]  - thermopile");
 			printf("\r\n[F2]  - pilot");
@@ -643,11 +644,17 @@ bool	_LM::Parse(int i) {
 					_ADC::offset = _ADC::adf;
 					printf("\r\n:offset...  %3d,%3d,%3d,%3d\r\n:",pump.offset.cooler,spray.offset.bottle,spray.offset.compressor,spray.offset.air);
 					break;
+
+				case __CtrlQ:
+					pump.Test();
+					break;
+				
 				case __CtrlP:
-					if(pump.Align()) {
+					if(pump.Align() && fan.Align()) {
 						FIL f;
 						if(f_open(&f,"0:/limits.ini",FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {
 							pump.SaveLimits((FILE *)&f);
+							fan.SaveLimits((FILE *)&f);
 							f_sync(&f);
 							f_close(&f);							
 							printf("\r\n saved...\r\n:");
@@ -655,6 +662,7 @@ bool	_LM::Parse(int i) {
 							printf("\r\n file error...\r\n:");
 					}
 					break;
+					
 				case __FOOT_OFF:
 					printf("\r\n:\r\n:footswitch disconnected \r\n:");
 					spray.mode.On=false;

@@ -26,6 +26,7 @@ void	SaveSettings(FILE *);
 bool	Align(void);
 void	LoadLimits(FILE *);
 void	SaveLimits(FILE *);
+bool	Test(void);
 };
 
 #endif

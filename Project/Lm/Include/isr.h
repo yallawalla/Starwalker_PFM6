@@ -35,6 +35,7 @@ void						_led(int, int),
 #define					__CtrlK				0x09
 #define					__CtrlO				0x0f
 #define					__CtrlP				0x10
+#define					__CtrlQ				0x11
 #define					__CtrlV				0x16
 #define					__CtrlZ				0x1a
 #define					__CtrlY				0x19

@@ -5,6 +5,7 @@
 #include		"adc.h"
 #include		"dac.h"
 #include		"tim.h"
+#include		"fit.h"
 #include		"isr.h"
 
 class	_FAN:_ADC {
@@ -12,6 +13,8 @@ class	_FAN:_ADC {
 int		idx,led;
 int		to,timeout,tau;
 int		fpl, fph, ftl, fth;
+_FIT	*tacho;
+	
 	public:
 _FAN();
 
@@ -20,6 +23,9 @@ int		Rpm(void);
 int		Increment(int, int);
 void	LoadSettings(FILE *);
 void	SaveSettings(FILE *);
+bool	Align(void);
+void	LoadLimits(FILE *);
+void	SaveLimits(FILE *);
 };
 
 #endif

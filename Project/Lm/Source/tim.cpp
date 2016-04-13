@@ -149,7 +149,7 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 			TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_BothEdge;
 			TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;
 			TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;
-			TIM_ICInitStructure.TIM_ICFilter = 0;
+			TIM_ICInitStructure.TIM_ICFilter = 0xf;
 			TIM_ICInitStructure.TIM_Channel = TIM_Channel_1;
 			TIM_ICInit(TIM3, &TIM_ICInitStructure);
 			TIM_ICInitStructure.TIM_Channel = TIM_Channel_2;
