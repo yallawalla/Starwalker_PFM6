@@ -1,6 +1,6 @@
 -l d0,d1,d2,d3,,d4,d5,d6,d7
 -l
-
+x
 
 0:/t lm.ini
 
@@ -24,4 +24,4 @@
 - zamenjana rx, tx od FTD na CPU
 - na FTD je VCCIO v zraku - povezava ns 3V3OUT
 - mogoce bi pri reset pomagal pulldown na fan rpm liniji ???
-- 
+

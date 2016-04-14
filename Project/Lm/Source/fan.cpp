@@ -68,8 +68,8 @@ int			t=TIM_GetCapture2(TIM3);
 #endif				
 
 				if(tacho && __time__ > 3000) {
-					if(fabs(1.0 - tacho->Poly(Rpm())/(double)tau) > 0.1)
-						printf("... tacho    %d,%d\r\n",(int)tacho->Poly(Rpm()),tau);
+					if(fabs(1.0 - tacho->Poly(Rpm())/(double)tau) > 0.2)
+						printf("... fan tacho    %d,%d\r\n",(int)tacho->Poly(Rpm()),tau);
 				}
 				
 				if(tau==INT_MAX)

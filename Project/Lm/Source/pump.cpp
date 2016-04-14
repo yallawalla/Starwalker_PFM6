@@ -61,11 +61,11 @@ int			t=TIM_GetCapture1(TIM3);
 				DAC_SetChannel1Data(DAC_Align_12b_R,__minmax(Th2o(),ftl*100,fth*100,fpl*0xfff/100,fph*0xfff/100));
 				if(tacho && pressure && current && __time__ > 3000) {
 					if(fabs(1.0 - tacho->Poly(Rpm())/(double)tau) > 0.1)
-						printf("... tacho    %d,%d\r\n",(int)tacho->Poly(Rpm()),tau);
+						printf("... pump tacho    %d,%d\r\n",(int)tacho->Poly(Rpm()),tau);
 					if(fabs(1.0 - pressure->Poly(Rpm())/(double)adf.cooler) > 0.1)
-						printf("... pressure %d,%d\r\n",(int)pressure->Poly(Rpm()),adf.cooler);
+						printf("... pump pressure %d,%d\r\n",(int)pressure->Poly(Rpm()),adf.cooler);
 					if(fabs(1.0 - current->Poly(Rpm())/(double)adf.Ipump) > 0.1)
-						printf("... current  %d,%d\r\n",(int)current->Poly(Rpm()),adf.Ipump);
+						printf("... pump current  %d,%d\r\n",(int)current->Poly(Rpm()),adf.Ipump);
 				}
 								
 				if(tau==EOF)

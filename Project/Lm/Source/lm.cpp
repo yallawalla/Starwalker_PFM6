@@ -585,19 +585,19 @@ bool	_LM::Parse(int i) {
 				case __f11:
 					FIL f;
 					if(f_open(&f,"0:/lm.ini",FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {
-							pyro.SaveSettings((FILE *)&f);
-							pump.SaveSettings((FILE *)&f);
-							fan.SaveSettings((FILE *)&f);
-							spray.SaveSettings((FILE *)&f);
-							ec20.SaveSettings((FILE *)&f);
-							pilot.SaveSettings((FILE *)&f);
-							ws.SaveSettings((FILE *)&f);
-							f_sync(&f);
-							f_close(&f);							
-							printf("\r\n saved...\r\n:");
-						}	else				
-							printf("\r\n file error...\r\n:");
-						break;	
+						pyro.SaveSettings((FILE *)&f);
+						pump.SaveSettings((FILE *)&f);
+						fan.SaveSettings((FILE *)&f);
+						spray.SaveSettings((FILE *)&f);
+						ec20.SaveSettings((FILE *)&f);
+						pilot.SaveSettings((FILE *)&f);
+						ws.SaveSettings((FILE *)&f);
+						f_sync(&f);
+						f_close(&f);							
+						printf("\r\n saved...\r\n:");
+					}	else				
+						printf("\r\n file error...\r\n:");
+					break;	
 
 				case __F12:
 				case __f12:

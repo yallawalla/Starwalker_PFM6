@@ -54,6 +54,7 @@ char	*_TERM::Line(char c) {
 					lp=lbuf;		
 					return lp;
 
+				case EOF:
 				case 0x0a:
 					break;
 
