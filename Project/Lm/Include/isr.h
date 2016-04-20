@@ -36,6 +36,7 @@ void						_led(int, int),
 #define					__CtrlO				0x0f
 #define					__CtrlP				0x10
 #define					__CtrlQ				0x11
+#define					__CtrlR				0x12
 #define					__CtrlV				0x16
 #define					__CtrlZ				0x1a
 #define					__CtrlY				0x19
@@ -141,5 +142,6 @@ int 		crc(int, int);
 #ifndef	__min				
 #define __min(a,b)  (((a) < (b)) ? (a) : (b))	
 #endif
-#define	__minmax(x,x1,x2,y1,y2)	__min(__max(((y2-y1)*(x-x1))/(x2-x1)+y1,y1),y2)
+#define	__ramp(x,x1,x2,y1,y2)	__min(__max(((y2-y1)*(x-x1))/(x2-x1)+y1,y1),y2)
 #endif
+

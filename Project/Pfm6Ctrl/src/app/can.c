@@ -87,6 +87,11 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS2ENRG<<5;
 					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_ENRG2SYS<<5;
 					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+3;
+					CAN_FilterInit(&CAN_FilterInitStructure);
+//					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_PFM2SYS<<5;
+//					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=0<<5;
+//					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+4;
+//					CAN_FilterInit(&CAN_FilterInitStructure);
 
 					CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
 					return(_io_init(100*sizeof(CanRxMsg),100*sizeof(CanTxMsg)));

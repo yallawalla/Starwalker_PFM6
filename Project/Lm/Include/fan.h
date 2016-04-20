@@ -8,17 +8,16 @@
 #include		"fit.h"
 #include		"isr.h"
 
-class	_FAN:_ADC {
+class	_FAN:_ADC,_TIM3 {
 	private:
 int		idx,led;
-int		to,timeout,tau;
 int		fpl, fph, ftl, fth;
 _FIT	*tacho;
 	
 	public:
-_FAN();
+		_FAN();
 
-bool	Poll(void);
+error	Poll(void);
 int		Rpm(void);
 int		Increment(int, int);
 void	LoadSettings(FILE *);
@@ -26,6 +25,8 @@ void	SaveSettings(FILE *);
 bool	Align(void);
 void	LoadLimits(FILE *);
 void	SaveLimits(FILE *);
+bool	Test(void);
+
 };
 
 #endif

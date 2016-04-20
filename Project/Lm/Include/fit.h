@@ -2,7 +2,7 @@
 #define					FIT_H
 #include				"stm32f2xx.h"
 
-enum _fittype		{FIT_POW, FIT_TRIG, FIT_EXP};
+enum _fittype		{FIT_POW, FIT_TRIG, FIT_EXP, FIT_NEXP};
 
 class _FIT {
 	private:
@@ -16,7 +16,7 @@ class _FIT {
 		int			Sample(double, double);
 		int			Sample(double, double, double);
 		double	*Compute(void);
-		double	Poly(double);
+		double	Eval(double);
 	
 	};
 #endif

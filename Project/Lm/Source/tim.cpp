@@ -39,7 +39,6 @@ _TIM*	_TIM::Instance() {
 _TIM::_TIM() {
 TIM_TimeBaseInitTypeDef		TIM_TimeBaseStructure;
 TIM_OCInitTypeDef					TIM_OCInitStructure;
-TIM_ICInitTypeDef					TIM_ICInitStructure;
 
 #ifndef __SIMULATION__
 GPIO_InitTypeDef					GPIO_InitStructure;
@@ -75,19 +74,6 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 			GPIO_PinAFConfig(GPIOD, GPIO_PinSource12, GPIO_AF_TIM4);
 			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
 			GPIO_Init(GPIOD, &GPIO_InitStructure);
-
-// TIM3 pump && fan tacho
-			GPIO_StructInit(&GPIO_InitStructure);
-			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-			
-			GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_TIM3);
-			GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_TIM3);
-			
-			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
-			GPIO_Init(GPIOA, &GPIO_InitStructure);
 // ________________________________________________________________________________
 // TIMebase setup
 #endif
@@ -107,16 +93,7 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 			TIM_DeInit(TIM8);
 			RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
 			TIM_TimeBaseInit(TIM8,&TIM_TimeBaseStructure);
-// TIM3
-			TIM_DeInit(TIM3);
-			RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 			
-			TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
-			TIM_ICStructInit(&TIM_ICInitStructure);
-			TIM_TimeBaseStructure.TIM_Prescaler = 60;
-			TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-			TIM_TimeBaseStructure.TIM_Period = 0xffff;
-			TIM_TimeBaseInit(TIM3,&TIM_TimeBaseStructure);
 // TIM 4 
 			TIM_DeInit(TIM4);
 			RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
@@ -143,18 +120,6 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 			TIM_OC2Init(TIM8, &TIM_OCInitStructure);
 			TIM_OC4Init(TIM1, &TIM_OCInitStructure);
 			TIM_OC4Init(TIM8, &TIM_OCInitStructure);
-
-// Input Compares	TIM3, fan && pump tacho
-			TIM_ICStructInit(&TIM_ICInitStructure);	
-			TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_BothEdge;
-			TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;
-			TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;
-			TIM_ICInitStructure.TIM_ICFilter = 0xf;
-			TIM_ICInitStructure.TIM_Channel = TIM_Channel_1;
-			TIM_ICInit(TIM3, &TIM_ICInitStructure);
-			TIM_ICInitStructure.TIM_Channel = TIM_Channel_2;
-			TIM_ICInit(TIM3, &TIM_ICInitStructure);
-			
 //_________________________________________________________________________________
 // Output Compares	TIM4
 			TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
@@ -170,7 +135,6 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 
 			TIM_Cmd(TIM1,ENABLE);
 			TIM_Cmd(TIM8,ENABLE);
-			TIM_Cmd(TIM3,ENABLE);
 			TIM_Cmd(TIM4,ENABLE);
 				
 			memset(t1, 0, sizeof(t1)); 
@@ -260,8 +224,128 @@ void	_TIM::Poll(void) {
 				}
 			}		
 }
+/*******************************************************************************
+* Function Name	:
+* Description		:	TIM3 pump && fan tacho IC
+* Output				:
+* Return				:
+*******************************************************************************/
+static _TIM3 *Instance[]={NULL,NULL,NULL,NULL};
+/*******************************************************************************
+*/
+_TIM3::_TIM3(int n) {
 
+GPIO_InitTypeDef GPIO_InitStructure;
+TIM_TimeBaseInitTypeDef		TIM_TimeBaseStructure;
+TIM_ICInitTypeDef					TIM_ICInitStructure;
+//
+// if called first time ???
+		if(!Instance[0] && !Instance[1] && !Instance[2] && !Instance[3]) {
+// gpio		
+			GPIO_StructInit(&GPIO_InitStructure);
+			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+			
+			GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_TIM3);
+			GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_TIM3);
+			
+			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+			GPIO_Init(GPIOA, &GPIO_InitStructure);
+// timebase
+			TIM_DeInit(TIM3);
+			RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+			TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+			TIM_ICStructInit(&TIM_ICInitStructure);
+			TIM_TimeBaseStructure.TIM_Prescaler = 60;
+			TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+			TIM_TimeBaseStructure.TIM_Period = 0xffff;
+			TIM_TimeBaseInit(TIM3,&TIM_TimeBaseStructure);
+// input Compares
+			TIM_ICStructInit(&TIM_ICInitStructure);	
+			TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_BothEdge;
+			TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;
+			TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;
+			TIM_ICInitStructure.TIM_ICFilter = 0x000f;
+			TIM_ICInitStructure.TIM_Channel = TIM_Channel_1;
+			TIM_ICInit(TIM3, &TIM_ICInitStructure);
+			TIM_ICInitStructure.TIM_Channel = TIM_Channel_2;
+			TIM_ICInit(TIM3, &TIM_ICInitStructure);
+			
+			TIM_Cmd(TIM3,ENABLE);
+			TIM_ITConfig(TIM3, TIM_IT_CC1,ENABLE);
+			TIM_ITConfig(TIM3, TIM_IT_CC2,ENABLE);
+			NVIC_EnableIRQ(TIM3_IRQn);
+		}
+		
+		Instance[n]=this;
+		to=timeout=0;
+		tauN=32;
+		while(tauN--)
+			tau[tauN]=0;
+}
+/*******************************************************************************
+* Function Name	: ISR
+* Description		:	TIM3 input capture interrupt service
+* Input					: capture register value
+* Return				: None, tau parameter set to dt value, usecs
+********************************************************************************/
+void	_TIM3::ISR(int t) {
+			to=t-to;
+			if(to < 0)
+				to += (1<<16);
+			if(to > 100) {
+int			a=tau[tauN];
+				tau[tauN]=to;
+				tauN=++tauN % 32;
+				tau[tauN]=a-tau[tauN]+to;				
+			}
+			to=t;
+			timeout=__time__ + 50;
+}
+/*******************************************************************************
+* Function Name	: ISR
+* Description		:	TIM3 input capture interrupt service
+* Input					: capture register value
+* Return				: None, tau parameter set to dt value, usecs
+*******************************************************************************/
+int		_TIM3::Tau(void) {
+			NVIC_DisableIRQ(TIM3_IRQn);
+int		i=tau[tauN]/32;
+			NVIC_EnableIRQ(TIM3_IRQn);
 
+			if(__time__ > timeout)
+				return EOF;
+			else
+				return i;
+}
+/*******************************************************************************
+* Function Name	:
+* Description		:	TIM3 pump && fan tacho IC
+* Output				:
+* Return				:
+*******************************************************************************/
+extern	"C" {
+void	TIM3_IRQHandler(void) {
+			if(TIM_GetITStatus(TIM3,TIM_IT_CC1)==SET) {
+				Instance[0]->ISR(TIM_GetCapture1(TIM3));
+				TIM_ClearITPendingBit(TIM3, TIM_IT_CC1);
+			}
+			if(TIM_GetITStatus(TIM3,TIM_IT_CC2)==SET) {
+				Instance[1]->ISR(TIM_GetCapture2(TIM3));
+				TIM_ClearITPendingBit(TIM3, TIM_IT_CC2);
+			}
+			if(TIM_GetITStatus(TIM3,TIM_IT_CC3)==SET) {
+				Instance[2]->ISR(TIM_GetCapture3(TIM3));
+				TIM_ClearITPendingBit(TIM3, TIM_IT_CC3);
+			}
+			if(TIM_GetITStatus(TIM3,TIM_IT_CC4)==SET) {
+				Instance[3]->ISR(TIM_GetCapture4(TIM3));
+				TIM_ClearITPendingBit(TIM3, TIM_IT_CC4);
+			}
+}
+}
 /**
 * @}
 */ 

@@ -23,8 +23,7 @@
 	* @retval : None
 	*/
 /*******************************************************************************/
-_PUMP::_PUMP() {
-				tau=led=to=timeout=0;
+_PUMP::_PUMP() :_TIM3(0)  {
 				fpl=30;
 				fph=95;
 				ftl=25;
@@ -42,36 +41,19 @@ _PUMP::_PUMP() {
 	* @retval : None
 	*/
 /*******************************************************************************/
-bool		_PUMP::Poll(void) {
-int			t=TIM_GetCapture1(TIM3);	
-				if(t != to) {
-					if(++led % 30 == 0)
-						_BLUE2(20);
-					t-=to;
-					if(t < 0)
-						t += (1<<16);
-					if(t>1000 && timeout < 30)
-						tau=t;
-					to=TIM_GetCapture1(TIM3);	
-					timeout=0;
-				}
-				if(++timeout > 30)
-					tau=EOF;
-
-				DAC_SetChannel1Data(DAC_Align_12b_R,__minmax(Th2o(),ftl*100,fth*100,fpl*0xfff/100,fph*0xfff/100));
+error		_PUMP::Poll(void) {
+error		e;
+				DAC_SetChannel1Data(DAC_Align_12b_R,__ramp(Th2o(),ftl*100,fth*100,fpl*0xfff/100,fph*0xfff/100));
 				if(tacho && pressure && current && __time__ > 3000) {
-					if(fabs(1.0 - tacho->Poly(Rpm())/(double)tau) > 0.1)
-						printf("... pump tacho    %d,%d\r\n",(int)tacho->Poly(Rpm()),tau);
-					if(fabs(1.0 - pressure->Poly(Rpm())/(double)adf.cooler) > 0.1)
-						printf("... pump pressure %d,%d\r\n",(int)pressure->Poly(Rpm()),adf.cooler);
-					if(fabs(1.0 - current->Poly(Rpm())/(double)adf.Ipump) > 0.1)
-						printf("... pump current  %d,%d\r\n",(int)current->Poly(Rpm()),adf.Ipump);
+					e.pumpTacho=abs(tacho->Eval(Rpm()) - Tau()) > Tau()/10;
+					e.pumpPressure=abs(pressure->Eval(Rpm()) - adf.cooler) > adf.cooler/10;
+					e.pumpCurrent=abs(current->Eval(Rpm()) - adf.Ipump) > adf.Ipump/10;
+					if(e.pumpTacho || e.pumpPressure || e.pumpCurrent)
+						_BLUE2(100);
+					else if(__time__ % (5*(Tau()/100)) == 0)
+						_BLUE2(20);
 				}
-								
-				if(tau==EOF)
-					return true;
-				else
-					return false;
+				return e;
 }
 /*******************************************************************************/
 /**
@@ -81,7 +63,7 @@ int			t=TIM_GetCapture1(TIM3);
 	*/
 /*******************************************************************************/
 int			_PUMP::Rpm(void) {
-				return __minmax(Th2o(),ftl*100,fth*100,fpl,fph);
+				return __ramp(Th2o(),ftl*100,fth*100,fpl,fph);
 }
 /*******************************************************************************/
 /**
@@ -187,18 +169,18 @@ int			_fpl=fpl,
 					c = new _FIT(4,FIT_POW);	
 				}
 				printf("\rpump ");
-				for(int i=20; i<50; ++i) {
+				for(int i=_fpl; i<_fph; i+=5) {
 					fpl=fph=i;
-					_wait(200,_thread_loop);
-					t->Sample(i,tau);
+					_wait(1000,_thread_loop);
+					t->Sample(i,Tau());
 					p->Sample(i,(double)adf.cooler);
 					c->Sample(i,(double)adf.Ipump);
 					printf(".");
 				}
-				for(int i=50; i>20; --i) {
+				for(int i=_fph; i>_fpl; i-=5) {
 					fpl=fph=i;
-					_wait(200,_thread_loop);
-					t->Sample(i,tau);
+					_wait(1000,_thread_loop);
+					t->Sample(i,Tau());
 					p->Sample(i,(double)adf.cooler);
 					c->Sample(i,(double)adf.Ipump);
 					printf("\b \b");
@@ -228,32 +210,41 @@ int			_fpl=fpl,
 bool		_PUMP::Test(void) {
 int			_fpl=fpl,
 				_fph=fph;
+_FIT		*t,*p,*c;
 
 				if(!tacho || !pressure || !current)
 					return false;
+				t=tacho;
+				p=pressure;
+				c=current;
+				tacho=pressure=current=NULL;
 
 				do {
-				for(int i=20; i<50; ++i) {
+				for(int i=_fpl; i<_fph; i+=5) {
 					fpl=fph=i;
-					_wait(200,_thread_loop);
+					_wait(1000,_thread_loop);
 					printf("\r\n%4.3lf,%4.3lf,%4.3lf,%4.3lf,%4.3lf,%4.3lf",
-																					tacho->Poly(Rpm()),(double)tau,
-																					pressure->Poly(Rpm()),(double)(adf.cooler),
-																					current->Poly(Rpm()),(double)(adf.Ipump));				
+																					t->Eval(Rpm()),(double)Tau(),
+																					p->Eval(Rpm()),(double)(adf.cooler),
+																					c->Eval(Rpm()),(double)(adf.Ipump));				
 				}
-				for(int i=50; i>20; --i) {
+				
+				for(int i=_fph; i>_fpl; i-=5) {
 					fpl=fph=i;
 					fpl=fph=i;
-					_wait(200,_thread_loop);
+					_wait(1000,_thread_loop);
 					printf("\r\n%4.3lf,%4.3lf,%4.3lf,%4.3lf,%4.3lf,%4.3lf",
-																					tacho->Poly(Rpm()),(double)tau,
-																					pressure->Poly(Rpm()),(double)(adf.cooler),
-																					current->Poly(Rpm()),(double)(adf.Ipump));				
+																					t->Eval(Rpm()),(double)Tau(),
+																					p->Eval(Rpm()),(double)(adf.cooler),
+																					c->Eval(Rpm()),(double)(adf.Ipump));				
 				}
 			} while(getchar() == EOF);
 				printf("\r\n:");
 				fpl=_fpl;
 				fph=_fph;
+				tacho=t;
+				pressure=p;
+				current=c;
 				
 				return true;
 			}

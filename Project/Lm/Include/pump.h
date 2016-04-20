@@ -8,17 +8,18 @@
 #include				"tim.h"
 #include				"fit.h"
 
-class	_PUMP:public _ADC,_DAC {
+class	_PUMP:public _ADC,_DAC,_TIM3 {
 	private:
+
 int		idx,led;
-int		to,timeout,tau;
 int		fpl,fph,ftl,fth;
 _FIT	*tacho,*pressure,*current;
 	
 	public:
 _PUMP();
 
-bool	Poll(void);
+error	Poll(void);
+	
 int		Rpm(void);
 int		Increment(int, int);
 void	LoadSettings(FILE *);

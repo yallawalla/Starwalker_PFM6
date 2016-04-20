@@ -129,6 +129,7 @@ int		_ADC::Th2o() {
 error		_ADC::Status() {
 	
 error		e;
+
 				adf.T2					+= (buffer.T2					- adf.T2)/16;
 				adf.T3					+= (buffer.T3					- adf.T3)/16;
 				adf.V5					+= (buffer.V5					- adf.V5)/16;
@@ -150,6 +151,7 @@ error		e;
 					_SYS_SHG_DISABLE;
 				else
 					_SYS_SHG_ENABLE;
+				
 // LED indicators
 //				if(__time__ > timeout) {
 //					timeout=__time__+300;

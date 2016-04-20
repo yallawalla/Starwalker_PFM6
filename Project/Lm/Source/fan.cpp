@@ -21,12 +21,11 @@
 	* @retval : None
 	*/
 /*******************************************************************************/
-_FAN::_FAN() {
+_FAN::_FAN() :_TIM3(1) {
 				fpl=20;
 				fph=95;
 				ftl=30;
 				fth=40;
-				tau=led=to=timeout=0;
 				tacho = NULL;
 
 #if defined (__DISCO__) || defined (__IOC_V1__)
@@ -43,39 +42,23 @@ _FAN::_FAN() {
 * Output				:
 * Return				: None
 *******************************************************************************/
-bool		_FAN::Poll() {
-int			t=TIM_GetCapture2(TIM3);	
-				if(t != to) {
-					if(++led % 30 == 0)
-						_YELLOW2(20);
-					t-=to;
-					if(t < 0)
-						t += (1<<16);
-					if(t>1000 && timeout < 30)
-						tau=t;
-					to=TIM_GetCapture2(TIM3);	
-					timeout=0;
-				}
-				if(++timeout > 30)
-					tau=EOF;
-
+error		_FAN::Poll() {
 #if defined (__DISCO__) || defined (__IOC_V1__)
 				DAC_SetChannel2Data(DAC_Align_12b_R,(int)(0xfff*(100-__minmax(Th2o(),ftl*100,fth*100,fpl,fph))/100));
 #elif defined (__IOC_V2__)			
-				TIM4->CCR1=(int)((TIM4->ARR*__minmax(Th2o(),ftl*100,fth*100,fpl,fph))/100);
+				TIM4->CCR1=(int)((TIM4->ARR*__ramp(Th2o(),ftl*100,fth*100,fpl,fph))/100);
 #else
 	***error: HW platform not defined
 #endif				
-
+error		e;
 				if(tacho && __time__ > 3000) {
-					if(fabs(1.0 - tacho->Poly(Rpm())/(double)tau) > 0.2)
-						printf("... fan tacho    %d,%d\r\n",(int)tacho->Poly(Rpm()),tau);
+					e.fanTacho=abs(tacho->Eval(Rpm()) - Tau()) > Tau()/10;
+					if(e.fanTacho)
+						_YELLOW2(100);
+					else if(__time__ % (5*(Tau()/100)) == 0)
+						_YELLOW2(20);
 				}
-				
-				if(tau==INT_MAX)
-					return true;
-				else
-					return false;
+				return e;
 }
 /*******************************************************************************/
 /**
@@ -85,7 +68,7 @@ int			t=TIM_GetCapture2(TIM3);
 	*/
 /*******************************************************************************/
 int			_FAN::Rpm(void) {
-				return __minmax(Th2o(),ftl*100,fth*100,fpl,fph);
+				return __ramp(Th2o(),ftl*100,fth*100,fpl,fph);
 }
 /*******************************************************************************/
 /**
@@ -179,16 +162,16 @@ int			_fpl=fpl,
 					t = new _FIT(4,FIT_POW);
 				}
 				printf("\rfan  ");
-				for(int i=10; i<90; i+=10) {
+				for(int i=_fpl; i<_fph; i+=10) {
 					fpl=fph=i;
 					_wait(3000,_thread_loop);
-					t->Sample(i,tau);
+					t->Sample(i,Tau());
 					printf(".");
 				}
-				for(int i=90; i>10; i-=10) {
+				for(int i=_fph; i>_fpl; i-=10) {
 					fpl=fph=i;
 					_wait(3000,_thread_loop);
-					t->Sample(i,tau);
+					t->Sample(i,Tau());
 					printf("\b \b");
 				}
 				
@@ -201,7 +184,43 @@ int			_fpl=fpl,
 					tacho=t;
 					return true;
 			}		
+/*******************************************************************************/
 /**
+	* @brief	TIM3 IC2 ISR
+	* @param	: None
+	* @retval : None
+	*/
+bool		_FAN::Test(void) {
+int			_fpl=fpl,
+				_fph=fph;
+_FIT		*t;
+
+				if(!tacho)
+					return false;
+				t=tacho;
+				tacho=NULL;
+
+				do {
+				for(int i=_fpl; i<_fph; ++i) {
+					fpl=fph=i;
+					_wait(200,_thread_loop);
+					printf("\r\n%4.3lf,%4.3lf",
+																					t->Eval(Rpm()),(double)Tau());				
+				}
+				for(int i=_fph; i>_fpl; --i) {
+					fpl=fph=i;
+					fpl=fph=i;
+					_wait(200,_thread_loop);
+					printf("\r\n%4.3lf,%4.3lf",
+																					t->Eval(Rpm()),(double)Tau());				
+				}
+			} while(getchar() == EOF);
+				printf("\r\n:");
+				fpl=_fpl;
+				fph=_fph;
+				tacho=t;
+				return true;
+			}/**
 * @}
 */ 
 

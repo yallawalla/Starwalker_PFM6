@@ -41,4 +41,13 @@ class	_VALVE {
 };
 
 //________________________________________________________________________________________________
+class	_TIM3 {
+	private:
+		int to,timeout,tau[32],tauN;
+	public:
+		_TIM3(int);
+		void	ISR(int);
+		int		Tau(void);
+};
+
 #endif

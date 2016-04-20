@@ -12,7 +12,13 @@ typedef	struct error {
 				bool	V24:1;
 				bool	InputPressure:1;
 				bool	Overheat:1;
-				error() : V5(false),V12(false),V24(false),InputPressure(false),Overheat(false) {}
+				bool	pumpTacho:1;
+				bool	pumpPressure:1;
+				bool	pumpCurrent:1;
+				bool	fanTacho:1;
+				error() : V5(false),V12(false),V24(false),InputPressure(false),Overheat(false),
+										pumpTacho(false),pumpPressure(false),pumpCurrent(false),
+											fanTacho(false) {}
 }	error;
 
 __inline 
@@ -46,13 +52,13 @@ const	int Rtab[]={ (0xffff*_Rdiv(18813.0,5100.0)), (0xffff*_Rdiv(10000.0,5100.0)
 
 class	_ADC {
 	private:
-		int	n,timeout;
+		int			n,timeout;
 		static _ADC *instance;
 	public:
 		_ADC();
-		static	int		Th2o(void);
 		static 	_ADMA	buffer,adf,offset,gain;
 		static	error	Status(void);
+		static	int		Th2o(void);
 };
 
 #endif

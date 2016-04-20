@@ -97,18 +97,18 @@ _LM::~_LM() {
 * Return				:
 *******************************************************************************/
 void	_LM::Poll(void *v) {
-			_LM *me = static_cast<_LM *>(v);
-			_io *temp=_stdio(me->io);
+
+_LM		*lm = static_cast<_LM *>(v);
+_io		*temp=_stdio(lm->io);
 	
-			me->can.Parse(me);
-			me->spray.Poll();
-			me->pilot.Poll();
-			me->ADCerror=_ADC::Status();
-			if(me->ADCerror.V24 == false) {
-				me->fan.Poll();
-				me->pump.Poll();
-				_TIM::Instance()->Poll();
-			}
+			lm->can.Parse(lm);
+			lm->pilot.Poll();
+			lm->spray.Poll();
+			lm->pump.Poll();
+			lm->fan.Poll();
+
+			_ADC::Status();
+			_TIM::Instance()->Poll();
 			
 #ifdef __SIMULATION__
 			me->spray.Simulator();
@@ -648,9 +648,17 @@ bool	_LM::Parse(int i) {
 				case __CtrlQ:
 					pump.Test();
 					break;
+
+				case __CtrlR:
+					fan.Test();
+					break;
 				
 				case __CtrlP:
-					if(pump.Align() && fan.Align()) {
+					if(!pump.Align())
+						printf("\r\n pump processing error...\r\n:");
+					else if(!fan.Align()) 
+						printf("\r\n fan processing error...\r\n:");
+					else {
 						FIL f;
 						if(f_open(&f,"0:/limits.ini",FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {
 							pump.SaveLimits((FILE *)&f);

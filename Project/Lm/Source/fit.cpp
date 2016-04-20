@@ -68,6 +68,11 @@ double	*q = new double(2*n * sizeof(double));
 						for(int i=1; i<n; ++i)
 							q[i]=exp(pow(t,i));
 						break;
+					case FIT_NEXP:
+						q[0]=1;
+						for(int i=1; i<n; ++i)
+							q[i]=1.0/exp(pow(t,i));
+						break;
 					case FIT_TRIG:
 						for(int i=0; i < n/2+1; ++i)
 							q[i]=cos(2.0*M_PI*t/per*i);
@@ -127,7 +132,7 @@ double	*_FIT::Compute() {
 * Output				: 
 * Return				: None
 *******************************************************************************/
-double	_FIT::Poly(double t) {
+double	_FIT::Eval(double t) {
 				double ft=rp[0];
 				switch(typ) {
 					case FIT_POW:
@@ -137,6 +142,10 @@ double	_FIT::Poly(double t) {
 					case FIT_EXP:
 						for(int i=1; i<n; ++i)
 							ft  +=  rp[i]*exp(pow(t,i));
+						break;
+					case FIT_NEXP:
+						for(int i=1; i<n; ++i)
+							ft  +=  rp[i]/exp(pow(t,i));
 						break;
 					case FIT_TRIG:
 						for(int i=1; i<n; ++i)
