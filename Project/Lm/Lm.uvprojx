@@ -457,6 +457,11 @@
               <FileType>8</FileType>
               <FilePath>.\Source\ws2812.cpp</FilePath>
             </File>
+            <File>
+              <FileName>state.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\state.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1059,6 +1064,11 @@
               <FileType>8</FileType>
               <FilePath>.\Source\ws2812.cpp</FilePath>
             </File>
+            <File>
+              <FileName>state.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\state.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1660,6 +1670,11 @@
               <FileName>ws2812.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\Source\ws2812.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>state.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\Source\state.cpp</FilePath>
             </File>
           </Files>
         </Group>

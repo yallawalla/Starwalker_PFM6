@@ -29,7 +29,7 @@ class	_SPRAY:public _ADC {
 		_SPRAY();
 		mode		mode;
 		int			AirLevel, WaterLevel;
-		void		Poll(void);
+		int			Poll(void);
 		void		LoadSettings(FILE *);
 		void		SaveSettings(FILE *);
 		void		Increment(int, int);

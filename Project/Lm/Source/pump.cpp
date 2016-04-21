@@ -41,17 +41,22 @@ _PUMP::_PUMP() :_TIM3(0)  {
 	* @retval : None
 	*/
 /*******************************************************************************/
-error		_PUMP::Poll(void) {
-error		e;
+int			_PUMP::Poll(void) {
+int			e=0;
 				DAC_SetChannel1Data(DAC_Align_12b_R,__ramp(Th2o(),ftl*100,fth*100,fpl*0xfff/100,fph*0xfff/100));
 				if(tacho && pressure && current && __time__ > 3000) {
-					e.pumpTacho=abs(tacho->Eval(Rpm()) - Tau()) > Tau()/10;
-					e.pumpPressure=abs(pressure->Eval(Rpm()) - adf.cooler) > adf.cooler/10;
-					e.pumpCurrent=abs(current->Eval(Rpm()) - adf.Ipump) > adf.Ipump/10;
-					if(e.pumpTacho || e.pumpPressure || e.pumpCurrent)
+					if(abs(tacho->Eval(Rpm()) - Tau()) > Tau()/10) 
+						_SET_BIT(e,pumpTacho);
+					if(abs(pressure->Eval(Rpm()) - adf.cooler) > adf.cooler/10)
+						_SET_BIT(e,pumpPressure);
+					if(abs(current->Eval(Rpm()) - adf.Ipump) > adf.Ipump/10)
+						_SET_BIT(e,pumpCurrent);
+					if(_BIT(e,pumpTacho) || _BIT(e,pumpPressure) || _BIT(e,pumpCurrent))
 						_BLUE2(100);
 					else if(__time__ % (5*(Tau()/100)) == 0)
 						_BLUE2(20);
+					if(Th2o() > 50*100)
+						_SET_BIT(e,Overheat);
 				}
 				return e;
 }

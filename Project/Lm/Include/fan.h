@@ -17,7 +17,7 @@ _FIT	*tacho;
 	public:
 		_FAN();
 
-error	Poll(void);
+int		Poll(void);
 int		Rpm(void);
 int		Increment(int, int);
 void	LoadSettings(FILE *);

@@ -45,6 +45,14 @@ _GPIO::_GPIO() {
 			GPIO_ResetBits(GPIOC,GPIO_Pin_10);	
 			timeout=0;
 			key = GPIO_ReadInputData(GPIOC) & __MASK;
+
+#if defined(__IOC_V2__)
+			GPIO_StructInit(&GPIO_InitStructure);
+			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+			GPIO_Init(GPIOA, &GPIO_InitStructure);
+#endif	
 }
 /*******************************************************************************
 * Function Name	: 12V supply enable, keyboard 

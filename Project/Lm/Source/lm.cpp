@@ -9,7 +9,20 @@
 	*
 	*/
 #include "lm.h"
-int	_LM::debug=0;
+
+string _LM::ErrMsg[] = {
+	"5V  supply error",
+	"12V supply error",
+	"24V supply error",
+	"spray air pressure too low",
+	"cooler overheated",
+	"pump tacho out of range",
+	"pump pressure out of range",
+	"pump current out of range",
+	"fan tacho out of range"
+};
+int	_LM::debug=0,
+		_LM::error=0;
 /*******************************************************************************/
 /**
 	* @brief	TIM3 IC2 ISR
@@ -21,7 +34,7 @@ _LM::_LM() : ec20(this) {
 	
 			_thread_add((void *)Poll,this,(char *)"lm",1);
 			_thread_add((void *)Display,this,(char *)"plot",1);			
-
+	
 			FIL f;
 			if(f_open(&f,"0:/lm.ini",FA_READ) == FR_OK) {
 				
@@ -77,6 +90,7 @@ _LM::_LM() : ec20(this) {
 	#endif
 #endif
       io=_stdio(NULL);
+			ErrTimeout(3000);
 }
 /*******************************************************************************
 * Function Name	: 
@@ -103,15 +117,35 @@ _io		*temp=_stdio(lm->io);
 	
 			lm->can.Parse(lm);
 			lm->pilot.Poll();
-			lm->spray.Poll();
-			lm->pump.Poll();
-			lm->fan.Poll();
 
-			_ADC::Status();
+			_LM::error |= lm->pump.Poll();
+			_LM::error |= lm->fan.Poll();
+			_LM::error |= lm->spray.Poll();
+			_LM::error |= _ADC::Status();
+
 			_TIM::Instance()->Poll();
 			
+			if(_SYS_SHG_DISABLED)
+				_YELLOW1(100);
+
+			if(!lm->ErrTimeout()) {
+				if(lm->error) {
+					_RED1(3000);
+					_SYS_SHG_DISABLE;
+					if(_BIT(_LM::debug, DBG_ERR)) {
+						lm->Select(NONE);
+						for(int err=V5; err<=fanTacho; ++err)
+							if(_BIT(_LM::error,err))
+								printf("Error: %s\r\n:",ErrMsg[err].c_str());
+					}
+					lm->ErrTimeout(3000);
+					_LM::error=0;
+				} else
+					_SYS_SHG_ENABLE;
+			}
+				
 #ifdef __SIMULATION__
-			me->spray.Simulator();
+			lm->spray.Simulator();
 #ifdef USE_LCD
 //			if(!(++me->zzz % 10) && me->plot.Refresh())
 //				me->lcd.Grid();
@@ -243,6 +277,10 @@ int		_LM::DecodePlus(char *c) {
 					while(*c)
 						_SET_BIT(debug,strtoul(++c,&c,10));
 					break;
+				case 'E':
+					while(*c)
+						_SET_BIT(error,strtoul(++c,&c,10));
+					break;
 				case 'f':
 					pyro.addFilter(++c);
 					break;
@@ -270,6 +308,10 @@ int		_LM::DecodeMinus(char *c) {
 					while(*c)
 						_CLEAR_BIT(debug,strtoul(++c,&c,10));
 					break;
+				case 'E':
+					while(*c)
+						_CLEAR_BIT(error,strtoul(++c,&c,10));
+					break;
 				case 'f':
 					pyro.initFilter();
 					break;
@@ -295,6 +337,9 @@ int		_LM::DecodeWhat(char *c) {
 					break;
 				case 'D':
 					printf(" %0*X ",2*sizeof(debug)/sizeof(char),debug);
+					break;
+				case 'E':
+					printf(" %0*X ",2*sizeof(error)/sizeof(char),error);
 					break;
 				case 'f':
 					pyro.printFilter();

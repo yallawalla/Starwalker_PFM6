@@ -18,8 +18,7 @@ _FIT	*tacho,*pressure,*current;
 	public:
 _PUMP();
 
-error	Poll(void);
-	
+int		Poll(void);
 int		Rpm(void);
 int		Increment(int, int);
 void	LoadSettings(FILE *);

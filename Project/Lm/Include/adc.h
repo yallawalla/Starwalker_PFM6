@@ -6,20 +6,20 @@ typedef struct	{
 unsigned short	T2,T3,V5,V12,V24,cooler,bottle,compressor,air,Ipump;
 } _ADMA;
 
-typedef	struct error {
-				bool	V5:1;
-				bool	V12:1;
-				bool	V24:1;
-				bool	InputPressure:1;
-				bool	Overheat:1;
-				bool	pumpTacho:1;
-				bool	pumpPressure:1;
-				bool	pumpCurrent:1;
-				bool	fanTacho:1;
-				error() : V5(false),V12(false),V24(false),InputPressure(false),Overheat(false),
-										pumpTacho(false),pumpPressure(false),pumpCurrent(false),
-											fanTacho(false) {}
-}	error;
+typedef	enum {
+	V5,
+	V12,
+	V24,
+	InputPressure,
+	Overheat,
+	pumpTacho,
+	pumpPressure,
+	pumpCurrent,
+	fanTacho,
+	
+	First=V5,
+	Last=fanTacho
+}	ErrNo;
 
 __inline 
 int			__fit(int to, const int t[], const int ft[]) {
@@ -35,6 +35,7 @@ int			f1=(ft[1]*(t[0]-to)-ft[0]*(t[1]-to)) / (t[0]-t[1]);
 #define	_12Voff_DISABLE		GPIO_SetBits(GPIOB,GPIO_Pin_3)
 #define	_SYS_SHG_ENABLE		GPIO_SetBits(GPIOB,GPIO_Pin_4)
 #define	_SYS_SHG_DISABLE	GPIO_ResetBits(GPIOB,GPIO_Pin_4)
+#define	_SYS_SHG_DISABLED	GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8)
 
 #define	_UREF							3.3
 #define	_Rdiv(a,b)				((a)/(a+b))
@@ -57,7 +58,7 @@ class	_ADC {
 	public:
 		_ADC();
 		static 	_ADMA	buffer,adf,offset,gain;
-		static	error	Status(void);
+		static	int	Status(void);
 		static	int		Th2o(void);
 };
 

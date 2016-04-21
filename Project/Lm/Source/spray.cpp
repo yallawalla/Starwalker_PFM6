@@ -60,9 +60,10 @@ _SPRAY::_SPRAY() {
 #define   _P_THRESHOLD  0x8000
 #define		_A_THRESHOLD	0x2000
 
-void			_SPRAY::Poll() {
+int				_SPRAY::Poll() {
 
 static int acc=0,accin=0,accout=0;
+int		err=0;
 
 					if(AirLevel) {
 						Bottle_P += (Bottle_ref - (int)buffer.bottle)/16;
@@ -113,9 +114,13 @@ static int acc=0,accin=0,accout=0;
 							Air->On();
 						else
 							Air->Set(Air_P/_A_THRESHOLD);
+						
+						if(abs(adf.compressor - 4*offset.compressor) > offset.compressor/2)
+							_SET_BIT(err,InputPressure);
 					}
 					else
 						Air->Off();
+					return err;
 }
 /*******************************************************************************/
 /**

@@ -145,3 +145,7 @@ int 		crc(int, int);
 #define	__ramp(x,x1,x2,y1,y2)	__min(__max(((y2-y1)*(x-x1))/(x2-x1)+y1,y1),y2)
 #endif
 
+#define	_SET_BIT(p,a)			(*(char *)(0x22000000 + ((int)&p - 0x20000000) * 32 + 4*a)) = 1
+#define	_CLEAR_BIT(p,a)		(*(char *)(0x22000000 + ((int)&p - 0x20000000) * 32 + 4*a)) = 0
+#define	_BIT(p,a)					(*(char *)(0x22000000 + ((int)&p - 0x20000000) * 32 + 4*a))
+

@@ -126,9 +126,9 @@ int		_ADC::Th2o() {
 * Output				:
 * Return				: None
 *******************************************************************************/
-error		_ADC::Status() {
+int			_ADC::Status() {
 	
-error		e;
+int			e=0;
 
 				adf.T2					+= (buffer.T2					- adf.T2)/16;
 				adf.T3					+= (buffer.T3					- adf.T3)/16;
@@ -141,16 +141,12 @@ error		e;
 				adf.air					+= (buffer.air				- adf.air)/16;
 				adf.Ipump				+= (buffer.Ipump			- adf.Ipump)/16;
 
-				e.V5 =(abs(adf.V5  - _V5to16X)	> _V5to16X/10);
-				e.V12=(abs(adf.V12 - _V12to16X) > _V12to16X/5);
-				e.V24=(abs(adf.V24 - _V24to16X) > _V24to16X/10);
-				e.InputPressure=(abs(adf.compressor - 4*offset.compressor) > offset.compressor/2);
-				e.Overheat=(Th2o() > 50*100);
-
-				if(e.Overheat)
-					_SYS_SHG_DISABLE;
-				else
-					_SYS_SHG_ENABLE;
+				if(abs(adf.V5  - _V5to16X)	> _V5to16X/10)
+					_SET_BIT(e,V5);
+				if(abs(adf.V12 - _V12to16X) > _V12to16X/5)
+					_SET_BIT(e,V12);
+				if(abs(adf.V24 - _V24to16X) > _V24to16X/10)
+					_SET_BIT(e,V24);
 				
 // LED indicators
 //				if(__time__ > timeout) {
@@ -164,6 +160,7 @@ error		e;
 //					if(!n) 
 //						timeout += 3000;
 //				}
+				
 				return e;
 }
 
