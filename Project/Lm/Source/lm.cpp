@@ -31,7 +31,6 @@ int	_LM::debug=0,
 	*/
 /*******************************************************************************/
 _LM::_LM() : ec20(this) {
-	
 			_thread_add((void *)Poll,this,(char *)"lm",1);
 			_thread_add((void *)Display,this,(char *)"plot",1);			
 	
@@ -90,6 +89,7 @@ _LM::_LM() : ec20(this) {
 	#endif
 #endif
       io=_stdio(NULL);
+			_STATE::active=&_Standby;
 			ErrTimeout(3000);
 }
 /*******************************************************************************
@@ -124,6 +124,9 @@ _io		*temp=_stdio(lm->io);
 			_LM::error |= _ADC::Status();
 
 			_TIM::Instance()->Poll();
+			
+			if(_STATE::active)
+				_STATE::active->OnIdle();
 			
 			if(_SYS_SHG_DISABLED)
 				_YELLOW1(100);
@@ -423,6 +426,19 @@ int		_LM::Decode(char *c) {
 					while(!f_eof(&f))
 						Parse((FILE *)&f);
 					f_close(&f);	
+					break;
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9':
+					if(_STATE::active)
+						_STATE::active->OnEvent((Event)(*c-'0'));
 					break;
 				case '>':
 					can.Send(++c);

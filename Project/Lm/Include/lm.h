@@ -89,5 +89,5 @@ class	_LM {
 		static void		Poll(void *),
 									Print(void *),
 									Display(void *);
-	};
+};
 #endif
