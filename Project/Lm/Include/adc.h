@@ -15,10 +15,7 @@ typedef	enum {
 	pumpTacho,
 	pumpPressure,
 	pumpCurrent,
-	fanTacho,
-	
-	First=V5,
-	Last=fanTacho
+	fanTacho
 }	ErrNo;
 
 __inline 

@@ -14,7 +14,6 @@
 #include				"stm32f2xx.h"
 #include				<stdio.h>
 #include				"isr.h"
-#include				"state.h"
 #include				"gpio.h"
 #include				"term.h"
 #include				"spray.h"

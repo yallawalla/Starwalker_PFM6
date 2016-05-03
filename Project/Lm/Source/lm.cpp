@@ -89,7 +89,6 @@ _LM::_LM() : ec20(this) {
 	#endif
 #endif
       io=_stdio(NULL);
-			_STATE::active=&_Standby;
 			ErrTimeout(3000);
 }
 /*******************************************************************************
@@ -107,7 +106,6 @@ _LM::~_LM() {
 * Function Name	:
 * Description		:
 * Output				:
-
 * Return				:
 *******************************************************************************/
 void	_LM::Poll(void *v) {
@@ -115,38 +113,35 @@ void	_LM::Poll(void *v) {
 _LM		*lm = static_cast<_LM *>(v);
 _io		*temp=_stdio(lm->io);
 	
+int		err  = _ADC::Status();
+			err |= lm->pump.Poll();
+			err |= lm->fan.Poll();
+			err |= lm->spray.Poll();
+	
 			lm->can.Parse(lm);
 			lm->pilot.Poll();
 
-			_LM::error |= lm->pump.Poll();
-			_LM::error |= lm->fan.Poll();
-			_LM::error |= lm->spray.Poll();
-			_LM::error |= _ADC::Status();
-
 			_TIM::Instance()->Poll();
-			
-			if(_STATE::active)
-				_STATE::active->OnIdle();
-			
-			if(_SYS_SHG_DISABLED)
-				_YELLOW1(100);
 
-			if(!lm->ErrTimeout()) {
-				if(lm->error) {
-					_RED1(3000);
-					_SYS_SHG_DISABLE;
-					if(_BIT(_LM::debug, DBG_ERR)) {
-						lm->Select(NONE);
-						for(int err=V5; err<=fanTacho; ++err)
-							if(_BIT(_LM::error,err))
-								printf("Error: %s\r\n:",ErrMsg[err].c_str());
-					}
-					lm->ErrTimeout(3000);
-					_LM::error=0;
-				} else
-					_SYS_SHG_ENABLE;
+			err = (err ^ _LM::error) & err;																	// extract the rising error 
+			_LM::error |= err;																							// OR into LM error register
+	
+			if(err) {
+				lm->ErrTimeout(5000);
+				_RED1(20);
+				_SYS_SHG_DISABLE;
+				lm->Select(NONE);
+			} else 
+					if(!lm->ErrTimeout()) {
+						_SYS_SHG_ENABLE;
+						_GREEN1(20);
+						_LM::error=0;
 			}
-				
+
+			for(int n=0; _BIT(_LM::debug, DBG_ERR) && n < sizeof(int); err >>= 1, ++n)
+				if(err & 1)
+					printf("Error: %s\r\n:",ErrMsg[n].c_str());
+
 #ifdef __SIMULATION__
 			lm->spray.Simulator();
 #ifdef USE_LCD
@@ -426,19 +421,6 @@ int		_LM::Decode(char *c) {
 					while(!f_eof(&f))
 						Parse((FILE *)&f);
 					f_close(&f);	
-					break;
-				case '0':
-				case '1':
-				case '2':
-				case '3':
-				case '4':
-				case '5':
-				case '6':
-				case '7':
-				case '8':
-				case '9':
-					if(_STATE::active)
-						_STATE::active->OnEvent((Event)(*c-'0'));
 					break;
 				case '>':
 					can.Send(++c);
