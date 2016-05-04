@@ -11,18 +11,19 @@
 #include "lm.h"
 
 string _LM::ErrMsg[] = {
-	"5V  supply error",
-	"12V supply error",
-	"24V supply error",
-	"spray air pressure too low",
-	"cooler overheated",
-	"pump tacho out of range",
-	"pump pressure out of range",
-	"pump current out of range",
-	"fan tacho out of range"
+				"5V  supply",
+				"12V supply",
+				"24V supply",
+				"spray air pressure too low",
+				"cooler overheated",
+				"pump tacho out of range",
+				"pump pressure out of range",
+				"pump current out of range",
+				"fan tacho out of range",
+				"emergency button pressed"
 };
-int	_LM::debug=0,
-		_LM::error=0;
+int			_LM::debug=0,
+				_LM::error=0;
 /*******************************************************************************/
 /**
 	* @brief	TIM3 IC2 ISR
@@ -108,6 +109,31 @@ _LM::~_LM() {
 * Output				:
 * Return				:
 *******************************************************************************/
+void	_LM::ErrParse(int e) {
+			e = (e ^ _LM::error) & e;									// extract the rising error 
+			_LM::error |= e;													// OR into LM error register
+
+			if(e) {
+				Select(NONE);
+				ErrTimeout(5000);
+				_RED1(20);
+				_SYS_SHG_DISABLE;
+			} else if(!ErrTimeout()) {
+				_SYS_SHG_ENABLE;
+				_GREEN1(20);
+				_LM::error=0;
+			}
+					
+			for(int n=0; e && _BIT(_LM::debug, DBG_ERR); e >>= 1, ++n)
+				if(_BIT(e, 0))
+					printf("\r\nerror %03d: %s",n, ErrMsg[n].c_str());	
+}
+/*******************************************************************************
+* Function Name	:
+* Description		:
+* Output				:
+* Return				:
+*******************************************************************************/
 void	_LM::Poll(void *v) {
 
 _LM		*lm = static_cast<_LM *>(v);
@@ -120,27 +146,9 @@ int		err  = _ADC::Status();
 	
 			lm->can.Parse(lm);
 			lm->pilot.Poll();
-
 			_TIM::Instance()->Poll();
 
-			err = (err ^ _LM::error) & err;																	// extract the rising error 
-			_LM::error |= err;																							// OR into LM error register
-	
-			if(err) {
-				lm->ErrTimeout(5000);
-				_RED1(20);
-				_SYS_SHG_DISABLE;
-				lm->Select(NONE);
-			} else 
-					if(!lm->ErrTimeout()) {
-						_SYS_SHG_ENABLE;
-						_GREEN1(20);
-						_LM::error=0;
-			}
-
-			for(int n=0; _BIT(_LM::debug, DBG_ERR) && n < sizeof(int); err >>= 1, ++n)
-				if(err & 1)
-					printf("Error: %s\r\n:",ErrMsg[n].c_str());
+			lm->ErrParse(err);
 
 #ifdef __SIMULATION__
 			lm->spray.Simulator();
@@ -275,10 +283,6 @@ int		_LM::DecodePlus(char *c) {
 					while(*c)
 						_SET_BIT(debug,strtoul(++c,&c,10));
 					break;
-				case 'E':
-					while(*c)
-						_SET_BIT(error,strtoul(++c,&c,10));
-					break;
 				case 'f':
 					pyro.addFilter(++c);
 					break;
@@ -305,10 +309,6 @@ int		_LM::DecodeMinus(char *c) {
 				case 'D':
 					while(*c)
 						_CLEAR_BIT(debug,strtoul(++c,&c,10));
-					break;
-				case 'E':
-					while(*c)
-						_CLEAR_BIT(error,strtoul(++c,&c,10));
 					break;
 				case 'f':
 					pyro.initFilter();
@@ -337,7 +337,9 @@ int		_LM::DecodeWhat(char *c) {
 					printf(" %0*X ",2*sizeof(debug)/sizeof(char),debug);
 					break;
 				case 'E':
-					printf(" %0*X ",2*sizeof(error)/sizeof(char),error);
+					for(int n=0,e=error; e; e >>= 1, ++n)
+						if(_BIT(e, 0))
+							printf("\r\nerror %03d: %s",n, ErrMsg[n].c_str());	
 					break;
 				case 'f':
 					pyro.printFilter();
@@ -376,6 +378,10 @@ int		_LM::DecodeEq(char *c) {
 				case 'c':
 					return ws.SetColor(strchr(c,' '));
 				case 'k':
+					break;
+				case 'E':
+					while(*c)
+						ErrParse(1 << strtoul(++c,&c,10));
 					break;
 				default:
 					*c=0;

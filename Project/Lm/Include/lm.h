@@ -79,8 +79,10 @@ class	_LM {
 		void 					Refresh(void)			{Increment(0,0);}
 		bool					Parse(FILE *);
 		bool					Parse(void);
+		
 		bool					ErrTimeout(void)	{ return __time__ < errT; }
 		void					ErrTimeout(int t)	{ errT = __time__ + t; }
+		void					ErrParse(int);
 		
 		bool					Parse(int);
 		void					RemoteConsole(int, int);

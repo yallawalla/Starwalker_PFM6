@@ -160,7 +160,10 @@ int			e=0;
 //					if(!n) 
 //						timeout += 3000;
 //				}
-				
+				if(Th2o() > 50*100)
+					_SET_BIT(e,sysOverheat);
+				if(_EMG_DISABLED && _SYS_SHG_ENABLED)
+					_SET_BIT(e,emgDisabled);
 				return e;
 }
 

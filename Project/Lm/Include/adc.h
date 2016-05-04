@@ -11,11 +11,12 @@ typedef	enum {
 	V12,
 	V24,
 	InputPressure,
-	Overheat,
+	sysOverheat,
 	pumpTacho,
 	pumpPressure,
 	pumpCurrent,
-	fanTacho
+	fanTacho,
+	emgDisabled
 }	ErrNo;
 
 __inline 
@@ -31,8 +32,11 @@ int			f1=(ft[1]*(t[0]-to)-ft[0]*(t[1]-to)) / (t[0]-t[1]);
 #define	_12Voff_ENABLE		GPIO_ResetBits(GPIOB,GPIO_Pin_3)
 #define	_12Voff_DISABLE		GPIO_SetBits(GPIOB,GPIO_Pin_3)
 #define	_SYS_SHG_ENABLE		GPIO_SetBits(GPIOB,GPIO_Pin_4)
+#define	_SYS_SHG_ENABLED	GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_4)
 #define	_SYS_SHG_DISABLE	GPIO_ResetBits(GPIOB,GPIO_Pin_4)
-#define	_SYS_SHG_DISABLED	GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8)
+
+
+#define	_EMG_DISABLED			GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8)
 
 #define	_UREF							3.3
 #define	_Rdiv(a,b)				((a)/(a+b))

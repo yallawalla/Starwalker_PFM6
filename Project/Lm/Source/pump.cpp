@@ -56,9 +56,6 @@ int			e=0;
 						_BLUE2(100);
 					else if(__time__ % (5*(Tau()/100)) == 0)
 						_BLUE2(20);
-					
-					if(Th2o() > 50*100)
-						_SET_BIT(e,Overheat);
 				}
 				return e;
 }
