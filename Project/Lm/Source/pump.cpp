@@ -142,7 +142,7 @@ int			_PUMP::Increment(int a, int b)	{
 					case 4:
 						fth= __min(__max(fth+a,ftl),50);
 						break;
-					}
+				}
 
 				printf("\r:pump      %5d%c,%4.1lf'C,%4.1lf",Rpm(),'%',(double)Th2o()/100,(double)(adf.cooler-offset.cooler)/gain.cooler);
 				if(idx>0)

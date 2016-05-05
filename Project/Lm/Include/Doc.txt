@@ -12,16 +12,20 @@ x
     0,    0             /.. air, H2O
   600,  350,    2       /.. flash
 
-
-
 - can filter za EC20sync (0x42), msg postavi sync flag v _CAN objektu
 - loceni enum za can <> konzolni dostop EC20 in IOC
-
-
 
 18.11.2015, napake pri HW V2
 
 - zamenjana rx, tx od FTD na CPU
 - na FTD je VCCIO v zraku - povezava ns 3V3OUT
 - mogoce bi pri reset pomagal pulldown na fan rpm liniji ???
+
+----------------------------------------------------------------
+5.5.16
+----------------------------------------------------------------
+- error handling
+- error mask +/-E
+- error messages
+- blokada fit za pumpo in fan med spreminjanjem nastavitev
 

@@ -603,9 +603,6 @@
             </File>
           </Files>
         </Group>
-        <Group>
-          <GroupName>New Group</GroupName>
-        </Group>
       </Groups>
     </Target>
     <Target>
@@ -1205,9 +1202,6 @@
             </File>
           </Files>
         </Group>
-        <Group>
-          <GroupName>New Group</GroupName>
-        </Group>
       </Groups>
     </Target>
     <Target>
@@ -1761,9 +1755,6 @@
               <FilePath>.\Include\Doc.txt</FilePath>
             </File>
           </Files>
-        </Group>
-        <Group>
-          <GroupName>New Group</GroupName>
         </Group>
       </Groups>
     </Target>

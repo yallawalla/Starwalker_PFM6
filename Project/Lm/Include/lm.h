@@ -53,7 +53,7 @@ class	_LM {
 		_LM();
 		~_LM();
 	
-		static int	debug, error;
+		static int	debug, error, error_mask;
 		static 			string ErrMsg[];
 		double			plotA,plotB,plotC;
 	

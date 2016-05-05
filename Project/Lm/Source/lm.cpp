@@ -23,7 +23,8 @@ string _LM::ErrMsg[] = {
 				"emergency button pressed"
 };
 int			_LM::debug=0,
-				_LM::error=0;
+				_LM::error=0,
+				_LM::error_mask=EOF;
 /*******************************************************************************/
 /**
 	* @brief	TIM3 IC2 ISR
@@ -72,6 +73,7 @@ _LM::_LM() : ec20(this) {
 			printf("\r\n");	
 			printf("\r\nCtrlE - EC20 console ");	
 			printf("\r\nCtrlY - reset");	
+			printf("\r\n:");	
 
 			_12Voff_ENABLE;
 			
@@ -91,6 +93,7 @@ _LM::_LM() : ec20(this) {
 #endif
       io=_stdio(NULL);
 			ErrTimeout(3000);
+			Select(NONE);
 }
 /*******************************************************************************
 * Function Name	: 
@@ -110,18 +113,22 @@ _LM::~_LM() {
 * Return				:
 *******************************************************************************/
 void	_LM::ErrParse(int e) {
+	
 			e = (e ^ _LM::error) & e;									// extract the rising error 
+			e &= error_mask;													// mask off inactive errors...
 			_LM::error |= e;													// OR into LM error register
 
-			if(e) {
-				Select(NONE);
-				ErrTimeout(5000);
-				_RED1(20);
-				_SYS_SHG_DISABLE;
-			} else if(!ErrTimeout()) {
-				_SYS_SHG_ENABLE;
-				_GREEN1(20);
-				_LM::error=0;
+			if(!ErrTimeout())	{
+				if(e) {
+					_RED1(20);
+					_SYS_SHG_DISABLE;
+					Select(NONE);
+					ErrTimeout(5000);
+				} else {
+					_SYS_SHG_ENABLE;
+					_GREEN1(20);
+					_LM::error=0;
+				}
 			}
 					
 			for(int n=0; e && _BIT(_LM::debug, DBG_ERR); e >>= 1, ++n)
@@ -138,12 +145,12 @@ void	_LM::Poll(void *v) {
 
 _LM		*lm = static_cast<_LM *>(v);
 _io		*temp=_stdio(lm->io);
-	
+
 int		err  = _ADC::Status();
 			err |= lm->pump.Poll();
 			err |= lm->fan.Poll();
 			err |= lm->spray.Poll();
-	
+
 			lm->can.Parse(lm);
 			lm->pilot.Poll();
 			_TIM::Instance()->Poll();
@@ -180,10 +187,14 @@ void	_LM::Select(_SELECTED_ i) {
 void	_LM::Increment(int i, int j) {
 			switch(item) {
 				case PUMP:
+					if(i)
+						ErrTimeout(1000);
 					pump.Increment(i,j);
 					break;
 				
 				case FAN:
+					if(i)
+						ErrTimeout(1000);
 					fan.Increment(i,j);
 					break;
 				
@@ -261,27 +272,13 @@ int		_LM::DecodePlus(char *c) {
 				case 'P':
 					_thread_add((void *)_LM::Print,this,(char *)"lm",strtoul(++c,NULL,0));
 					break;
-				case 'L': {
-					int *cc=(int *)strtoul(++c,&c,0);
-					while(*c)
-						*cc++=(int)strtoul(++c,&c,0);
-					}
-					break;
-				case 'W': {
-					short *cc=(short *)strtoul(++c,&c,0);
-					while(*c)
-						*cc++=(short)strtoul(++c,&c,0);
-					}
-					break;
-				case 'B': {
-					char *cc=(char *)strtoul(++c,&c,0);
-					while(*c)
-						*cc++=(char)strtoul(++c,&c,0);
-					}
-					break;
 				case 'D':
-					while(*c)
+					for(c=strchr(c,' '); c && *c;)
 						_SET_BIT(debug,strtoul(++c,&c,10));
+					break;
+				case 'E':
+					for(c=strchr(c,' '); c && *c;)
+						_SET_BIT(error_mask,strtoul(++c,&c,10));
 					break;
 				case 'f':
 					pyro.addFilter(++c);
@@ -307,8 +304,12 @@ int		_LM::DecodeMinus(char *c) {
 					_thread_remove((void *)_LM::Print,this);
 					break;
 				case 'D':
-					while(*c)
+					for(c=strchr(c,' '); c && *c;)
 						_CLEAR_BIT(debug,strtoul(++c,&c,10));
+					break;
+				case 'E':
+					for(c=strchr(c,' '); c && *c;)
+						_CLEAR_BIT(error_mask,strtoul(++c,&c,10));
 					break;
 				case 'f':
 					pyro.initFilter();
@@ -333,6 +334,15 @@ int		_LM::DecodeWhat(char *c) {
 				case 'v':
 					printf("\r\nV5=%4.1f,V12=%4.1f,V24=%4.1f",_16XtoV5(_ADC::adf.V5),_16XtoV12(_ADC::adf.V12),_16XtoV24(_ADC::adf.V24));			
 					break;
+				case 'L':
+					printf(",%08X",*(unsigned int *)strtoul(++c,&c,16));
+					break;
+				case 'W':
+					printf(",%04X",*(unsigned short *)strtoul(++c,&c,16));
+					break;
+				case 'B':
+					printf(",%02X",*(unsigned char *)strtoul(++c,&c,16));
+					break;
 				case 'D':
 					printf(" %0*X ",2*sizeof(debug)/sizeof(char),debug);
 					break;
@@ -340,6 +350,7 @@ int		_LM::DecodeWhat(char *c) {
 					for(int n=0,e=error; e; e >>= 1, ++n)
 						if(_BIT(e, 0))
 							printf("\r\nerror %03d: %s",n, ErrMsg[n].c_str());	
+						printf("\r\nerror mask=%08X\r\n:",error_mask);	
 					break;
 				case 'f':
 					pyro.printFilter();
@@ -375,14 +386,38 @@ int		_LM::DecodeWhat(char *c) {
 *******************************************************************************/
 int		_LM::DecodeEq(char *c) {
 			switch(*c) {
+				case 'L': {
+					int *cc=(int *)strtoul(++c,&c,16);
+					while(*c)
+						*cc++=(int)strtoul(++c,&c,16);
+					}
+					break;
+
+				case 'W': {
+					short *cc=(short *)strtoul(++c,&c,16);
+					while(*c)
+						*cc++=(short)strtoul(++c,&c,16);
+					}
+					break;
+
+				case 'B': {
+					char *cc=(char *)strtoul(++c,&c,16);
+					while(*c)
+						*cc++=(char)strtoul(++c,&c,16);
+					}
+					break;	
+
 				case 'c':
 					return ws.SetColor(strchr(c,' '));
+
 				case 'k':
 					break;
+
 				case 'E':
 					while(*c)
 						ErrParse(1 << strtoul(++c,&c,10));
 					break;
+
 				default:
 					*c=0;
 					return PARSE_SYNTAX;
@@ -411,12 +446,6 @@ int		_LM::Decode(char *c) {
 				case 'v':
 					PrintVersion(SW_version);
 					break;
-				case 'L':
-					printf(" %08X",*(int *)strtoul(++c,NULL,0));
-					break;
-				case 'W':
-					printf(" %04X",*(int *)strtoul(++c,NULL,0));
-					break;
 				case 'w':
 					_wait(strtoul(++c,NULL,0),_thread_loop);
 					break;
@@ -431,6 +460,9 @@ int		_LM::Decode(char *c) {
 				case '>':
 					can.Send(++c);
 					break;
+				case '<':
+					can.Recv(++c);
+					break;
 				case 'e':
 					char s[128];
 					if(*++c) {
@@ -442,9 +474,6 @@ int		_LM::Decode(char *c) {
 						printf("   %s",ee.getPage(i,s));
 					} else
 						printf("   %s",ee.getSerial(s));
-					break;
-				case '<':
-					can.Recv(++c);
 					break;
 				case '!': {
 					FIL 									f;
