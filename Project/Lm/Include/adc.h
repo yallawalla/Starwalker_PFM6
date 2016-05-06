@@ -16,7 +16,8 @@ typedef	enum {
 	pumpPressure,
 	pumpCurrent,
 	fanTacho,
-	emgDisabled
+	emgDisabled,
+	ec20noresp
 }	ErrNo;
 
 __inline 

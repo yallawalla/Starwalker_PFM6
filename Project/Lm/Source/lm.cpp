@@ -20,7 +20,8 @@ string _LM::ErrMsg[] = {
 				"pump pressure out of range",
 				"pump current out of range",
 				"fan tacho out of range",
-				"emergency button pressed"
+				"emergency button pressed",
+				"EC20 not responding"
 };
 int			_LM::debug=0,
 				_LM::error=0,
@@ -114,6 +115,11 @@ _LM::~_LM() {
 *******************************************************************************/
 void	_LM::ErrParse(int e) {
 	
+			if(ec20.Timeout()) {
+				_SET_BIT(e,ec20noresp);
+				ec20.Timeout(EOF);
+			}
+
 			e = (e ^ _LM::error) & e;									// extract the rising error 
 			e &= error_mask;													// mask off inactive errors...
 			_LM::error |= e;													// OR into LM error register
@@ -206,6 +212,10 @@ void	_LM::Increment(int i, int j) {
 					ec20.Increment(i,j);
 					break;
 				
+				case PILOT:
+					pilot.Increment(i,j);
+					break;
+				
 				case PYRO:
 					if(i || j || pyro.enabled) {
 						pyro.enabled=false;
@@ -220,10 +230,6 @@ void	_LM::Increment(int i, int j) {
 					}
 					break;
 
-				case PILOT:
-					pilot.value =__min(__max(0,pilot.value+5*i),100);	
-					printf("\r:pilot       %3d%c",pilot.value,'%');
-					break;
 
 				case CTRL_A:
 					pump.offset.cooler+=10*i;

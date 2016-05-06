@@ -2,6 +2,7 @@
 #define					EC20_H
 #include				"stm32f2xx.h"
 #include				"stdio.h"
+#include				"isr.h"
 
 typedef enum {
 	Sys2Ioc				=0x20,
@@ -64,7 +65,7 @@ typedef __packed struct _EC20Set {
 	unsigned short	Uo;
 	unsigned short	To;
 	unsigned char		Mode;
-	_EC20Set() : code(Id_EC20Set),Uo(400),To(200),Mode(0x02) {}
+	_EC20Set() : code(Id_EC20Set),Uo(420),To(200),Mode(0x02) {}
 	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Set)); };
 } _EC20Set;
 
@@ -88,6 +89,7 @@ typedef __packed struct _EC20Eo {
 class	_EC20 {
 	private:
 		void *parent;
+		int		timeout;
 	public:
 		_EC20(void *);
 		~_EC20();
@@ -105,6 +107,9 @@ class	_EC20 {
 	void		SaveSettings(FILE *);
 	void		Parse(CanTxMsg	*);
 	
-	static void	ECsimulator(void *);
+	static 	void	ECsimulator(void *);
+
+	bool		Timeout(void)		{ return timeout && __time__ > timeout; }
+	void		Timeout(int t)	{ t > 0 ? timeout = __time__ + t : timeout=0; }
 };
 #endif

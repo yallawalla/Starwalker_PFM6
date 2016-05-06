@@ -24,7 +24,7 @@
 /*******************************************************************************/
 _EC20::_EC20(void *v) {
 	parent = v;
-	idx=0;
+	idx=timeout=0;
 }
 /*******************************************************************************/
 /**
@@ -96,15 +96,18 @@ char			s[16];
 					}
 
 					lm->pyro.enabled=true;
+					Timeout(EOF);
 					switch(EC20Status.Status & _STATUS_MASK) {
 						case _COMPLETED:																	// standby
 							sprintf(s," STNDBY");
+							lm->pilot.Off();
 							if(updown>0 && idx==3)
 								m.Cmd=_HV1_EN;
 						break;
 							
 						case _COMPLETED + _SIM_DET:												// simmer
 							sprintf(s," SIMMER");
+							lm->pilot.On();
 							if(updown>0 && idx==3)
 								m.Cmd =_HV1_EN + _FOOT_REQ;
 							if(updown<0 && idx==3)
@@ -113,19 +116,24 @@ char			s[16];
 						
 						case _COMPLETED  + _SIM_DET + _FOOT_ACK:
 							sprintf(s," LASE..");														// lasing
+							lm->pilot.On();
 							if(updown<0 && idx==3)
 								m.Cmd =_HV1_EN;
 						break;
-	    
+
 						default:
 							sprintf(s," wait..");														// cakanje na ec20
+							lm->pilot.Off();
 							break;
 						}
+
 						printf("%s",s);
-						
-						if(m.Cmd != _NOCOMM)
+
+						if(m.Cmd != _NOCOMM) {
 							m.Send(Sys2Ec);
-	    
+							Timeout(500);
+						}
+
 						char c[128];
 						sprintf(c,"  %3.1lfJ,%5dW,%3.1lf'C,%3.1lf'C,%5.1lf",
 																												(double)EC20Eo.C/1000,
@@ -247,7 +255,7 @@ CanTxMsg	m={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 /******************************************************************************/	
 void		_EC20::ECsimulator(void *v) {
 _EC20 *ec = static_cast<_EC20 *>(v);
-				ec->EC20Eo.C=ec->EC20Eo.UI=pow((double)(ec->EC20Set.Uo * ec->EC20Reset.Pw / 1000),3)/400*ec->EC20Set.To/1000;
+				ec->EC20Eo.C=ec->EC20Eo.UI=pow((double)(ec->EC20Set.Uo * ec->EC20Reset.Pw / 1000),3)/420*ec->EC20Set.To/1000;
 				ec->EC20Eo.Send(Ec2Sys);
 }
 /**

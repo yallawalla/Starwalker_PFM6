@@ -5,13 +5,17 @@
 
 class	_PILOT {
 	private:
-		int	count;
+		int		count;
+		bool	enabled;
 
 	public:
 		_PILOT();
 		~_PILOT();
 void	Poll(void);
-int		value;
+void	On(void) {enabled=true;}
+void	Off(void) {enabled=false;}
+int		Value;
+int		Increment(int, int);
 void	LoadSettings(FILE *);
 void	SaveSettings(FILE *);
 };

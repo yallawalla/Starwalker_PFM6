@@ -12,6 +12,7 @@
 */
 
 #include	"pilot.h"
+#include	"isr.h"
 /*******************************************************************************/
 /**
 	* @brief
@@ -20,7 +21,9 @@
 	*/
 /*******************************************************************************/
 _PILOT::_PILOT() {
-			value=count=0;
+	Value=count=0;
+	enabled=false;
+		
 }
 /*******************************************************************************/
 /**
@@ -39,11 +42,25 @@ _PILOT::~_PILOT() {
 	*/
 /*******************************************************************************/
 void	_PILOT::Poll(void) {
-			if(count < value)
+			if(enabled && count < Value)
 				GPIO_ResetBits(GPIOD,GPIO_Pin_13);
 			else
 				GPIO_SetBits(GPIOD,GPIO_Pin_13);
 			count = (count + 5) % 100;
+}
+/*******************************************************************************/
+/**
+	* @brief
+	* @param	: None
+	* @retval : None
+	*/
+/*******************************************************************************/
+int		_PILOT::Increment(int updown, int leftright) {
+
+			On();
+			Value =__min(__max(0,Value+5*updown),100);	
+			printf("\r:pilot       %3d%c",Value,'%');
+			return Value;
 }
 /*******************************************************************************/
 /**
@@ -54,7 +71,7 @@ void	_PILOT::Poll(void) {
 void	_PILOT::LoadSettings(FILE *f) {
 char	c[128];
 			fgets(c,sizeof(c),f);
-			sscanf(c,"%d",&value);
+			sscanf(c,"%d",&Value);
 }
 /*******************************************************************************/
 /**
@@ -63,7 +80,7 @@ char	c[128];
 	* @retval : None
 	*/
 void	_PILOT::SaveSettings(FILE *f) {
-			fprintf(f,"%5d                   /.. pilot\r\n",value);
+			fprintf(f,"%5d                   /.. pilot\r\n",Value);
 }
 /**
 * @}
