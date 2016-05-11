@@ -67,6 +67,7 @@ int				_EC20::Increment(int updown, int leftright) {
 _LM 			*lm = static_cast<_LM *>(parent);		
 _EC20Cmd		m;
 _EC20Reset	reset;
+_EC20Set		set;
 char			s[16];
 
 					switch(idx=__min(__max(idx+leftright,0),3)) {
@@ -88,7 +89,9 @@ char			s[16];
 					if(updown || leftright) {
 						EC20Eo.C=0;
 						if(idx < 3) {
-							EC20Set.Send(Sys2Ec);
+							set=EC20Set;
+							set.Uo *= 10;
+							set.Send(Sys2Ec);
 							reset=EC20Reset;
 							reset.Period=1000/reset.Period;
 							reset.Send(Sys2Ec);
@@ -180,10 +183,12 @@ _LM 				*lm = static_cast<_LM *>(parent);
 //____________Sys to EC20 Uo, To, mode__________________________________________________
 									case Id_EC20Set:
 										memcpy(&EC20Set, msg->Data, msg->DLC);
+										EC20Set.Uo /= 10;
 									break;
 //____________Sys to EC20 repetition, PW, fo ___________________________________________
 									case Id_EC20Reset:
 										memcpy(&EC20Reset, msg->Data, msg->DLC);
+										EC20Reset.Period = 1000/EC20Reset.Period;
 									break;
 //____________Sys to EC20 command, only for debugging___________________________________
 									case Id_EC20Cmd:

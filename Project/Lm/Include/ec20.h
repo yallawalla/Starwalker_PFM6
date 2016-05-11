@@ -74,7 +74,7 @@ typedef __packed struct _EC20Reset {
 	unsigned short	Period;
 	unsigned short	Pw;
 	unsigned char		Fo;
-	_EC20Reset() : code(Id_EC20Reset),Period(2),Pw(500),Fo(10) {}
+	_EC20Reset() : code(Id_EC20Reset),Period(2),Pw(500),Fo(100) {}
 	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Reset)); };
 } _EC20Reset;
 

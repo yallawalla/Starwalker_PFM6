@@ -29,18 +29,14 @@ x
 - error messages
 - blokada fit za pumpo in fan med spreminjanjem nastavitev
 
-
 +c l,0
 +c l,5
 w 200
 -c r,5
 -c r,0
 
-
 +c l,2
 +c l,3
 w 200
 -c r,3
 -c r,2
-
-

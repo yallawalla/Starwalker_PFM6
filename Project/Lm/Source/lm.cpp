@@ -134,15 +134,16 @@ void	_LM::ErrParse(int e) {
 			}
 			
 			e = (e ^ _LM::error) & e;									// extract the rising edge only 
-			e &= error_mask;													// mask off inactive errors...
 			_LM::error |= e;													// OR into LM error register
 
 			if(!ErrTimeout())	{
 				if(e) {
-					Submit("@error.led");
-					_SYS_SHG_DISABLE;
-//					Select(NONE);
 					ErrTimeout(3000);
+					if(e & error_mask) {									// mask off inactive errors...
+						Submit("@error.led");
+						_SYS_SHG_DISABLE;
+					}
+
 				} else {
 					_SYS_SHG_ENABLE;
 					_LM::error=0;
