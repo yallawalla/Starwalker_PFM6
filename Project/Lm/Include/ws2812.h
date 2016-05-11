@@ -9,6 +9,7 @@
 typedef struct	{unsigned char r; unsigned char g; unsigned char b; }	RGB_set;
 typedef struct	{signed short h; unsigned char s; unsigned char v; 	}	HSV_set;
 typedef enum		{ noCOMM,
+										SWITCH_ON, SWITCH_OFF, 
 										FILL_ON, FILL_OFF, 
 										FILL_LEFT_ON, FILL_RIGHT_ON, 
 										FILL_LEFT_OFF, FILL_RIGHT_OFF,

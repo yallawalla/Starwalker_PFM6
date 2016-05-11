@@ -48,17 +48,19 @@ class	_PYRO {
 		_buffer	*buffer;
 		unsigned int sync;	
 
-		bool		enabled;
 		void		ISR(_PYRO *);
 		int			Increment(int, int);
-		int			period;
+
+		bool		Enabled;
+		int			Period;
+		int			Error;
+
 		void		LoadSettings(FILE *);
 		void		SaveSettings(FILE *);
 		void		initFilter();
 		void		addFilter(char *);
 		int			addSample(int);
 		void		printFilter(void);
-
 	};
 
 #endif

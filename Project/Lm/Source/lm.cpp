@@ -21,6 +21,7 @@ string _LM::ErrMsg[] = {
 				"pump current out of range",
 				"fan tacho out of range",
 				"emergency button pressed",
+				"handpiece ejected",
 				"EC20 not responding"
 };
 int			_LM::debug=0,
@@ -95,6 +96,7 @@ _LM::_LM() : ec20(this) {
       io=_stdio(NULL);
 			ErrTimeout(3000);
 			Select(NONE);
+			Submit("@onoff.led");
 }
 /*******************************************************************************
 * Function Name	: 
@@ -115,28 +117,38 @@ _LM::~_LM() {
 *******************************************************************************/
 void	_LM::ErrParse(int e) {
 	
+			e ? _RED1(20): _GREEN1(20);
+	
 			if(ec20.Timeout()) {
 				_SET_BIT(e,ec20noresp);
 				ec20.Timeout(EOF);
 			}
-
-			e = (e ^ _LM::error) & e;									// extract the rising error 
+	
+			if(e ^ _LM::error) {
+				if(_BIT(e,pyroNoresp))
+					Submit("@ejected.led");
+				else {
+					Submit("@inserted.led");
+					_CLEAR_BIT(_LM::error,pyroNoresp);
+				}
+			}
+			
+			e = (e ^ _LM::error) & e;									// extract the rising edge only 
 			e &= error_mask;													// mask off inactive errors...
 			_LM::error |= e;													// OR into LM error register
 
 			if(!ErrTimeout())	{
 				if(e) {
-					_RED1(20);
+					Submit("@error.led");
 					_SYS_SHG_DISABLE;
-					Select(NONE);
-					ErrTimeout(5000);
+//					Select(NONE);
+					ErrTimeout(3000);
 				} else {
 					_SYS_SHG_ENABLE;
-					_GREEN1(20);
 					_LM::error=0;
 				}
 			}
-					
+				
 			for(int n=0; e && _BIT(_LM::debug, DBG_ERR); e >>= 1, ++n)
 				if(_BIT(e, 0))
 					printf("\r\nerror %03d: %s",n, ErrMsg[n].c_str());	
@@ -156,7 +168,8 @@ int		err  = _ADC::Status();
 			err |= lm->pump.Poll();
 			err |= lm->fan.Poll();
 			err |= lm->spray.Poll();
-
+			err |= lm->pyro.Error;
+	
 			lm->can.Parse(lm);
 			lm->pilot.Poll();
 			_TIM::Instance()->Poll();
@@ -217,11 +230,11 @@ void	_LM::Increment(int i, int j) {
 					break;
 				
 				case PYRO:
-					if(i || j || pyro.enabled) {
-						pyro.enabled=false;
+					if(i || j || pyro.Enabled) {
+						pyro.Enabled=false;
 						pyro.Increment(i,j);
 					}	else {
-						pyro.enabled=true;
+						pyro.Enabled=true;
 						printf("\r\n");
 						plot.Clear();
 						plot.Add(&plotA,0,1, LCD_COLOR_GREEN);
@@ -229,7 +242,6 @@ void	_LM::Increment(int i, int j) {
 						plot.Add(&plotC,0,1, LCD_COLOR_YELLOW);
 					}
 					break;
-
 
 				case CTRL_A:
 					pump.offset.cooler+=10*i;
@@ -453,7 +465,8 @@ int		_LM::Decode(char *c) {
 					PrintVersion(SW_version);
 					break;
 				case 'w':
-					_wait(strtoul(++c,NULL,0),_thread_loop);
+					for(c=strchr(c,' '); c && *c;)
+						_wait(strtoul(++c,NULL,0),_thread_loop);
 					break;
 				case '@':
 					FIL f;
@@ -608,8 +621,12 @@ bool	_LM::Parse() {
 * Return				:
 *******************************************************************************/
 bool	_LM::Parse(FILE *f) {
-			return Parse(fgetc(f));
+_io		*io=_stdio(NULL);
+bool	ret=Parse(fgetc(f));
+			_stdio(io);
+			return ret;
 }
+
 /*******************************************************************************
 * Function Name	: 
 * Description		: 
@@ -657,7 +674,7 @@ bool	_LM::Parse(int i) {
 				case __F8:
 				case __f8:
 					Select(EC20);
-					Decode((char *)">2100");
+					Submit(">2100");
 					break;
 				case __F9:
 				case __f9:
@@ -758,19 +775,19 @@ bool	_LM::Parse(int i) {
 				case __FOOT_OFF:
 					printf("\r\n:\r\n:footswitch disconnected \r\n:");
 					spray.mode.On=false;
-					Decode((char *)">2200");
+					Submit(">2200");
 					break;
 				case __FOOT_IDLE:
 					spray.mode.On=false;
-					Decode((char *)">2200");
+					Submit(">2200");
 					break;	
 				case __FOOT_MID:
 					spray.mode.On=true;
-					Decode((char *)">2200");
+					Submit(">2200");
 					break;	
 				case __FOOT_ON:		
 					spray.mode.On=true;
-					Decode((char *)">2201");
+					Submit(">2201");
 					break;
 
 				case __CtrlY:
@@ -808,7 +825,7 @@ _io*	temp=_stdio(me->io);
 				me->plotA=ta;
 				me->plotB=me->pyro.addSample(ta+tp);
 //______ print at F1____________________________________________________________							
-				if(me->pyro.enabled && me->item == PYRO) {
+				if(me->pyro.Enabled && me->item == PYRO) {
 //					printf("%4d,%5d,%3.1lf,%hu,%u",ta,(int)tp+0x8000,(double)_ADC::Instance()->Th2o/100,t,me->pyro.sync);
 					printf("%4d,%5d,%3.1lf,%hu",ta,(int)tp+0x8000,(double)_ADC::Th2o()/100,t);
 					printf("\r\n");					
@@ -860,6 +877,15 @@ _io		*temp=_stdio(me->io);
 																	_ADC::adf.compressor,
 																		_ADC::adf.air);
 			_stdio(temp);
+}
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
+void 	_LM::Submit(string str) {
+			Decode((char *)str.c_str());
 }
 extern "C" {
 /*******************************************************************************

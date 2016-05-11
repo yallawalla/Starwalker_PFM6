@@ -146,19 +146,7 @@ int			e=0;
 					_SET_BIT(e,V12);
 				if(abs(adf.V24 - _V24to16X) > _V24to16X/10)
 					_SET_BIT(e,V24);
-				
-// LED indicators
-//				if(__time__ > timeout) {
-//					timeout=__time__+300;
-//					_RED2(5);
-//					if(*(int *)&e & (1 << n)) {
-//						_RED2(200);
-//						timeout += 200;
-//					}
-//					n = ++n % 5;
-//					if(!n) 
-//						timeout += 3000;
-//				}
+
 				if(Th2o() > 50*100)
 					_SET_BIT(e,sysOverheat);
 				if(_EMG_DISABLED && _SYS_SHG_ENABLED)

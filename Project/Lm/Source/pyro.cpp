@@ -44,16 +44,23 @@ void	_PYRO::ISR(_PYRO *p) {
 				PYRO_PORT->OTYPER |=  PYRO_BIT;									// set pin to opendrain  output 
 
 				if(nbits > _MAXBITS) {													// data finished...?
+short 		i=__time__ - sync,
+					j=temp &  0x3fff,
+					k=(short)((temp >> 14) - 0x1000);	
 					count += _To;																	// increment data counter
-					if(enabled && count >= period) {							// if output enabled && output period reached ...							
+																												//
+					if(Enabled && count >= Period) {							// if output enabled && output period reached ...							
 						count=0;																		// reset data counter
-						short i=__time__ - sync;
 						_buffer_push(buffer,&i,sizeof(short));			// push data to output ...
-						i=temp &  0x3fff;
-						_buffer_push(buffer,&i,sizeof(short));
-						i=(short)((temp >> 14) - 0x1000);
-						_buffer_push(buffer,&i,sizeof(short));
+						_buffer_push(buffer,&j,sizeof(short));			//
+						_buffer_push(buffer,&k,sizeof(short));			//
           }
+					
+					if(j)
+						Error=0;
+					else
+						Error=1 << pyroNoresp;
+					
 					temp=nbits=0;
 					TIM7->ARR=1000*(_To-1)-1;											//
 				}
@@ -66,9 +73,9 @@ void	_PYRO::ISR(_PYRO *p) {
 *******************************************************************************/
 _PYRO::_PYRO() {	
 			nbits=temp=count=nsamples=0;
-			period=10;
+			Period=10;
 			sync=0;
-			enabled=false;
+			Enabled=Error=false;
 			S1.numStages=0;
 			ISR(this);
 	
@@ -125,7 +132,7 @@ _PYRO::~_PYRO() {
 void	_PYRO::LoadSettings(FILE *f) {
 char	c[128];
 			fgets(c,sizeof(c),f);
-			sscanf(c,"%d",&period);
+			sscanf(c,"%d",&Period);
 }
 /*******************************************************************************/
 /**
@@ -134,7 +141,7 @@ char	c[128];
 	* @retval : None
 	*/
 void	_PYRO::SaveSettings(FILE *f) {
-			fprintf(f,"%5d                   /.. pyro\r\n",period);
+			fprintf(f,"%5d                   /.. pyro\r\n",Period);
 }
 /*******************************************************************************
 * Function Name	: 
@@ -143,9 +150,9 @@ void	_PYRO::SaveSettings(FILE *f) {
 * Return				:
 *******************************************************************************/
 int		_PYRO::Increment(int a, int b) {	
-			period 		= __min(__max(10,period+10*a),2000);	
-			printf("\r:thermopile  %3d",period);		
-			return period;
+			Period 		= __min(__max(10,Period+10*a),2000);	
+			printf("\r:thermopile  %3d",Period);		
+			return Period;
 }
 /*******************************************************************************
 * Function Name	: 

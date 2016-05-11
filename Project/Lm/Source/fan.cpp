@@ -24,7 +24,7 @@
 _FAN::_FAN() :_TIM3(1) {
 				fpl=20;
 				fph=95;
-				ftl=30;
+				ftl=25;
 				fth=40;
 				tacho = NULL;
 

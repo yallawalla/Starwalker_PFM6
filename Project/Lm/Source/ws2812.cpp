@@ -200,6 +200,17 @@ ws2812	*w=ws;
 							}
 						break;
 //------------------------------------------------------------------------------
+						case SWITCH_OFF:
+							color.v=0;
+						case SWITCH_ON:
+							for(j=k=0; j<w->size;++j) {
+								w->cbuf[j].h = color.h;
+								w->cbuf[j].s = color.s;
+								w->cbuf[j].v = color.v;
+							}
+							k=w->size;
+						break;
+//------------------------------------------------------------------------------
 						case FILL_RIGHT_OFF:
 							color.v=0;
 						case FILL_RIGHT_ON:
@@ -332,20 +343,33 @@ int				numscan(char *s,char *ss[],int c) {
 	*/
 /*******************************************************************************/
 int				_WS2812::ColorOn(char *c) {
-					switch(*strtok(c," ,")) {
+char			*p=strtok(c," ,");
+					switch(*p) {
+//__________________________________________________
+						case '0':
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+							do {
+								ws[atoi(p)].mode=SWITCH_ON;
+								p=strtok(NULL," ,");
+								} while(p);
+							break;
 //__________________________________________________
 						case 'f':
-							for(char *p=strtok(NULL," ,"); p; p=strtok(NULL,","))
+							for(p=strtok(NULL," ,"); p; p=strtok(NULL,","))
 								ws[atoi(p)].mode=FILL_ON;
 							break;
 //__________________________________________________
 						case 'l':
-							for(char *p=strtok(NULL," ,"); p; p=strtok(NULL,","))
+							for(p=strtok(NULL," ,"); p; p=strtok(NULL,","))
 								ws[atoi(p)].mode=RUN_LEFT_ON;
 							break;
 //__________________________________________________
 						case 'r':
-							for(char *p=strtok(NULL," ,"); p; p=strtok(NULL,","))
+							for(p=strtok(NULL," ,"); p; p=strtok(NULL,","))
 								ws[atoi(p)].mode=RUN_RIGHT_ON;
 							break;
 //__________________________________________________
@@ -363,20 +387,33 @@ int				_WS2812::ColorOn(char *c) {
 	*/
 /*******************************************************************************/
 int				_WS2812::ColorOff(char *c) {
-					switch(*strtok(c," ,")) {
+char			*p=strtok(c," ,");
+					switch(*p) {
+//__________________________________________________
+						case '0':
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+						do {
+								ws[atoi(p)].mode=SWITCH_OFF;
+								p=strtok(NULL," ,");
+								} while(p);
+							break;
 //__________________________________________________
 						case 'f':
-							for(char *p=strtok(NULL," ,"); p; p=strtok(NULL,","))
+							for(p=strtok(NULL," ,"); p; p=strtok(NULL,","))
 								ws[atoi(p)].mode=FILL_OFF;
 							break;
 //__________________________________________________
 						case 'l':
-							for(char *p=strtok(NULL," ,"); p; p=strtok(NULL,","))
+							for(p=strtok(NULL," ,"); p; p=strtok(NULL,","))
 								ws[atoi(p)].mode=RUN_LEFT_OFF;
 							break;
 //__________________________________________________
 						case 'r':
-							for(char *p=strtok(NULL," ,"); p; p=strtok(NULL,","))
+							for(p=strtok(NULL," ,"); p; p=strtok(NULL,","))
 								ws[atoi(p)].mode=RUN_RIGHT_OFF;
 							break;
 //__________________________________________________
@@ -683,7 +720,6 @@ void _WS2812::HSV2RGB(HSV_set HSV, RGB_set *RGB){
 =color 3,7,255,50
 =color 4,180,180,50
 =color 5,180,180,30
-
 
 +c f,2
 -c f,3

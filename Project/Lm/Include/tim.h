@@ -46,6 +46,7 @@ class	_TIM3 {
 		int to,timeout,tau[32],tauN;
 	public:
 		_TIM3(int);
+		~_TIM3();
 		void	ISR(int);
 		int		Tau(void);
 };

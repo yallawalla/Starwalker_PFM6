@@ -286,6 +286,15 @@ TIM_ICInitTypeDef					TIM_ICInitStructure;
 			tau[tauN]=0;
 }
 /*******************************************************************************
+* Function Name	:
+* Description		:	TIM3 pump && fan tacho IC
+* Output				:
+* Return				:
+*******************************************************************************/
+_TIM3::~_TIM3() {
+		NVIC_DisableIRQ(TIM3_IRQn);
+}
+/*******************************************************************************
 * Function Name	: ISR
 * Description		:	TIM3 input capture interrupt service
 * Input					: capture register value

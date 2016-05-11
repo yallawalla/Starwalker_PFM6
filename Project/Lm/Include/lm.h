@@ -74,6 +74,7 @@ class	_LM {
 
 		void 					Increment(int, int);
 		void 					Select(_SELECTED_);
+		void 					Submit(string);
 		_SELECTED_		Selected(void)		{return item; }
 		
 		void 					Refresh(void)			{Increment(0,0);}

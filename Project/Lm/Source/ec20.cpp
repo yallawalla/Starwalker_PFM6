@@ -95,12 +95,13 @@ char			s[16];
 						}
 					}
 
-					lm->pyro.enabled=true;
+					lm->pyro.Enabled=true;
 					Timeout(EOF);
 					switch(EC20Status.Status & _STATUS_MASK) {
 						case _COMPLETED:																	// standby
 							sprintf(s," STNDBY");
 							lm->pilot.Off();
+							lm->Submit("@standby.led");
 							if(updown>0 && idx==3)
 								m.Cmd=_HV1_EN;
 						break;
@@ -108,20 +109,23 @@ char			s[16];
 						case _COMPLETED + _SIM_DET:												// simmer
 							sprintf(s," SIMMER");
 							lm->pilot.On();
+							lm->Submit("@ready.led");
 							if(updown>0 && idx==3)
 								m.Cmd =_HV1_EN + _FOOT_REQ;
 							if(updown<0 && idx==3)
 								m.Cmd =0;
 						break;
-						
+							
 						case _COMPLETED  + _SIM_DET + _FOOT_ACK:
 							sprintf(s," LASE..");														// lasing
 							lm->pilot.On();
+							lm->Submit("@lase.led");
 							if(updown<0 && idx==3)
 								m.Cmd =_HV1_EN;
 						break;
 
 						default:
+							lm->Submit("@standby.led");
 							sprintf(s," wait..");														// cakanje na ec20
 							lm->pilot.Off();
 							break;
@@ -224,8 +228,9 @@ _LM 				*lm = static_cast<_LM *>(parent);
 									break;	
 //____________EC20 to Sys energy  ______________________________________________________
 									case Id_EC20Eo:
+										lm->Submit("@energy.led");
 										memcpy(&EC20Eo, msg->Data, msg->DLC);
-										if(lm->pyro.enabled && lm->Selected() == EC20)
+										if(lm->pyro.Enabled && lm->Selected() == EC20)
 											lm->Refresh();
 									break;
 								}

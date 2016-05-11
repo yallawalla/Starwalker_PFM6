@@ -6,19 +6,6 @@ typedef struct	{
 unsigned short	T2,T3,V5,V12,V24,cooler,bottle,compressor,air,Ipump;
 } _ADMA;
 
-typedef	enum {
-	V5,
-	V12,
-	V24,
-	InputPressure,
-	sysOverheat,
-	pumpTacho,
-	pumpPressure,
-	pumpCurrent,
-	fanTacho,
-	emgDisabled,
-	ec20noresp
-}	ErrNo;
 
 __inline 
 int			__fit(int to, const int t[], const int ft[]) {

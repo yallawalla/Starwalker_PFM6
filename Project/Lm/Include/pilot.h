@@ -12,8 +12,8 @@ class	_PILOT {
 		_PILOT();
 		~_PILOT();
 void	Poll(void);
-void	On(void) {enabled=true;}
-void	Off(void) {enabled=false;}
+void	On(void)									{enabled=true;	}
+void	Off(void)									{enabled=false;	}
 int		Value;
 int		Increment(int, int);
 void	LoadSettings(FILE *);
