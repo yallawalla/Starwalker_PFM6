@@ -117,7 +117,7 @@ _LM::~_LM() {
 *******************************************************************************/
 void	_LM::ErrParse(int e) {
 	
-			e ? _RED1(20): _GREEN1(20);
+			e ? _RED1(200): _GREEN1(20);
 	
 			if(ec20.Timeout()) {
 				_SET_BIT(e,ec20noresp);
@@ -169,7 +169,7 @@ int		err  = _ADC::Status();
 			err |= lm->pump.Poll();
 			err |= lm->fan.Poll();
 			err |= lm->spray.Poll();
-			err |= lm->pyro.Error;
+			err |= lm->pyro.Error();
 	
 			lm->can.Parse(lm);
 			lm->pilot.Poll();

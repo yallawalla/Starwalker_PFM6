@@ -29,14 +29,8 @@ x
 - error messages
 - blokada fit za pumpo in fan med spreminjanjem nastavitev
 
-+c l,0
-+c l,5
-w 200
--c r,5
--c r,0
-
-+c l,2
-+c l,3
-w 200
--c r,3
--c r,2
+----------------------------------------------------------------
+11.5.16
+----------------------------------------------------------------
+-bug: sprememba vrsne napetosti na 4200 ( po 0.1 V), Fo je v kHz !!!, problem pretvorb za izpis in ob snifanju paketov...
+- lucke,lucke --- stanja niso ok, problem Submit je treba bolj razdelat !~

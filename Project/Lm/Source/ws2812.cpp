@@ -714,12 +714,19 @@ void _WS2812::HSV2RGB(HSV_set HSV, RGB_set *RGB){
 .f 2,2
 .f 3,2
 
-=color 0,180,180,30
+=color 0,180,180,95
+=color 1,180,180,95
+=color 2,7,255,95
+=color 3,7,255,95
+=color 4,180,180,95
+=color 5,180,180,95
+
+=color 0,180,180,50
 =color 1,180,180,50
 =color 2,7,255,50
 =color 3,7,255,50
 =color 4,180,180,50
-=color 5,180,180,30
+=color 5,180,180,50
 
 +c f,2
 -c f,3

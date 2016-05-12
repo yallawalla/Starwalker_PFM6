@@ -66,8 +66,6 @@ void		_EC20::SaveSettings(FILE *f) {
 int				_EC20::Increment(int updown, int leftright) {
 _LM 			*lm = static_cast<_LM *>(parent);		
 _EC20Cmd		m;
-_EC20Reset	reset;
-_EC20Set		set;
 char			s[16];
 
 					switch(idx=__min(__max(idx+leftright,0),3)) {
@@ -89,15 +87,15 @@ char			s[16];
 					if(updown || leftright) {
 						EC20Eo.C=0;
 						if(idx < 3) {
-							set=EC20Set;
-							set.Uo *= 10;
-							set.Send(Sys2Ec);
-							reset=EC20Reset;
-							reset.Period=1000/reset.Period;
-							reset.Send(Sys2Ec);
+_EC20Set			p=EC20Set;
+_EC20Reset		q=EC20Reset;
+							p.Uo = 10*EC20Set.Uo;
+							q.Period=1000/EC20Reset.Period;
+							p.Send(Sys2Ec);
+							q.Send(Sys2Ec);
 						}
 					}
-
+					
 					lm->pyro.Enabled=true;
 					Timeout(EOF);
 					switch(EC20Status.Status & _STATUS_MASK) {
@@ -131,8 +129,10 @@ char			s[16];
 							lm->Submit("@standby.led");
 							sprintf(s," wait..");														// cakanje na ec20
 							lm->pilot.Off();
+								m.Cmd =0;
 							break;
 						}
+					
 
 						printf("%s",s);
 

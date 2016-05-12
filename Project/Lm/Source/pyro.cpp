@@ -48,21 +48,28 @@ short 		i=__time__ - sync,
 					j=temp &  0x3fff,
 					k=(short)((temp >> 14) - 0x1000);	
 					count += _To;																	// increment data counter
-																												//
-					if(Enabled && count >= Period) {							// if output enabled && output period reached ...							
-						count=0;																		// reset data counter
-						_buffer_push(buffer,&i,sizeof(short));			// push data to output ...
-						_buffer_push(buffer,&j,sizeof(short));			//
-						_buffer_push(buffer,&k,sizeof(short));			//
-          }
-					
-					if(j)
-						Error=0;
-					else
-						Error=1 << pyroNoresp;
 					
 					temp=nbits=0;
-					TIM7->ARR=1000*(_To-1)-1;											//
+					if(j && abs(j-amb0) < 2000) {										// j=0 pri izpuljenem, 2000 je 10 stopinj odsopanja of starega !!!
+						if(error_count)
+							--error_count;
+						TIM7->ARR=1000*(_To-1)-1;										//
+						if(Enabled && count >= Period) {						// if output enabled && output period reached ...							
+							count=0;																	// reset data counter
+							amb0=j;
+							_buffer_push(buffer,&i,sizeof(short));		// push data to output ...
+							_buffer_push(buffer,&j,sizeof(short));		//
+							_buffer_push(buffer,&k,sizeof(short));		//
+						}
+					}
+					else {
+						if(error_count < 10)
+							++error_count;
+						else {
+							amb0=j;
+						}
+						TIM7->ARR=1000*(_To/2-1)-1;											//
+					}
 				}
 		}
 /*******************************************************************************
@@ -72,10 +79,10 @@ short 		i=__time__ - sync,
 * Return				:
 *******************************************************************************/
 _PYRO::_PYRO() {	
-			nbits=temp=count=nsamples=0;
+			nbits=temp=count=error_count=nsamples=0;
 			Period=10;
 			sync=0;
-			Enabled=Error=false;
+			Enabled=false;
 			S1.numStages=0;
 			ISR(this);
 	
@@ -153,6 +160,18 @@ int		_PYRO::Increment(int a, int b) {
 			Period 		= __min(__max(10,Period+10*a),2000);	
 			printf("\r:thermopile  %3d",Period);		
 			return Period;
+}
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
+int		_PYRO::Error() {	
+			if(error_count==10)
+				return 1<< pyroNoresp;
+			else
+				return 0;
 }
 /*******************************************************************************
 * Function Name	: 

@@ -30,6 +30,7 @@ class	_PYRO {
 	private:
 		_io		*io;
 		int		nbits, temp, count, nsamples;
+		short	amb0;
 
 		float32_t	iirCoeffs32[_MAX_STATE*5];
 		float32_t firCoeffs32[_MAX_TAPS];
@@ -46,15 +47,15 @@ class	_PYRO {
 		~_PYRO();
 
 		_buffer	*buffer;
-		unsigned int sync;	
+		unsigned int sync,error_count;	
 
 		void		ISR(_PYRO *);
 		int			Increment(int, int);
 
 		bool		Enabled;
 		int			Period;
-		int			Error;
 
+		int			Error();
 		void		LoadSettings(FILE *);
 		void		SaveSettings(FILE *);
 		void		initFilter();
