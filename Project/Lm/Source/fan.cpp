@@ -27,13 +27,7 @@ _FAN::_FAN() :_TIM3(1) {
 				ftl=25;
 				fth=40;
 				tacho = NULL;
-
-#if defined (__DISCO__) || defined (__IOC_V1__)
-				DAC_SetChannel2Data(DAC_Align_12b_R,0xfff);	
-#elif defined (__IOC_V2__)
-#else
-	***error: HW platform not defined
-#endif
+				timeout=__time__ + 3000;
 				idx=0;
 }
 /*******************************************************************************
@@ -43,20 +37,18 @@ _FAN::_FAN() :_TIM3(1) {
 * Return				: None
 *******************************************************************************/
 int			_FAN::Poll() {
-#if defined (__DISCO__) || defined (__IOC_V1__)
-				DAC_SetChannel2Data(DAC_Align_12b_R,(int)(0xfff*(100-__ramp(Th2o(),ftl*100,fth*100,fpl,fph))/100));
-#elif defined (__IOC_V2__)			
-				TIM4->CCR1=(int)((TIM4->ARR*__ramp(Th2o(),ftl*100,fth*100,fpl,fph))/100);
-#else
-	***error: HW platform not defined
-#endif				
 int			e=0;
-				if(tacho && __time__ > 3000) {
-					if(abs(tacho->Eval(Rpm()) - Tau()) > Tau()/10) {
-						_SET_BIT(e,fanTacho);
-						_YELLOW2(100);
-					} else if(__time__ % (5*(Tau()/100)) == 0)
-						_YELLOW2(20);
+				if(timeout==INT_MAX)
+					TIM4->CCR1=TIM4->ARR;
+				else {
+					TIM4->CCR1=(int)((TIM4->ARR*__ramp(Th2o(),ftl*100,fth*100,fpl,fph))/100);
+					if(tacho && __time__ > timeout) {
+						if(abs(tacho->Eval(Rpm()) - Tau()) > Tau()/10) {
+							_SET_BIT(e,fanTacho);
+							_YELLOW2(100);
+						} else if(__time__ % (5*(Tau()/100)) == 0)
+							_YELLOW2(20);
+					}
 				}
 				return e;
 }

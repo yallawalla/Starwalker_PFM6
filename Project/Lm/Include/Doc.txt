@@ -34,3 +34,7 @@ x
 ----------------------------------------------------------------
 -bug: sprememba vrsne napetosti na 4200 ( po 0.1 V), Fo je v kHz !!!, problem pretvorb za izpis in ob snifanju paketov...
 - lucke,lucke --- stanja niso ok, problem Submit je treba bolj razdelat !~
+----------------------------------------------------------------
+19.5.16
+----------------------------------------------------------------
+pyro isr, thermopile output, shift 15x, odstet treba offset bit (28)

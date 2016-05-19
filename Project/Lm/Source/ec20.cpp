@@ -133,7 +133,6 @@ _EC20Reset		q=EC20Reset;
 							break;
 						}
 					
-
 						printf("%s",s);
 
 						if(m.Cmd != _NOCOMM) {
@@ -154,7 +153,7 @@ _EC20Reset		q=EC20Reset;
 						else
 							printf("%*c",strlen(c)+1,' ');
 						
-						for(int i=7*(8-idx)+3; i--; printf("\b"));	// mismas... poravnava kurzorja	xD
+						for(int i=7*(8-idx)+3; i--; printf("\b"));				// mismas... poravnava kurzorja	xD
 						return 0;
 }
 /*******************************************************************************/

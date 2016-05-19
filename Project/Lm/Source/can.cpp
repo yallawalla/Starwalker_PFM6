@@ -192,7 +192,7 @@ void			_CAN::Send(CanTxMsg *msg) {
 						printf("\r\n:");
 //						_stdio(temp);
 					}
-}	
+}
 /*******************************************************************************
 * Function Name	: 
 * Description		: 

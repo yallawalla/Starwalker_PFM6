@@ -10,7 +10,7 @@
 
 class	_FAN:_ADC,_TIM3 {
 	private:
-int		idx,led;
+int		idx,led,timeout;
 int		fpl, fph, ftl, fth;
 _FIT	*tacho;
 	
@@ -22,6 +22,7 @@ int		Rpm(void);
 int		Increment(int, int);
 void	LoadSettings(FILE *);
 void	SaveSettings(FILE *);
+void	Enable(void),Disable(void);
 bool	Align(void);
 void	LoadLimits(FILE *);
 void	SaveLimits(FILE *);

@@ -16,6 +16,7 @@
 #include	"term.h"
 #include	"isr.h"
 #include	"math.h"
+#include	"limits.h"
 /*******************************************************************************/
 /**
 	* @brief	TIM3 IC2 ISR
@@ -28,11 +29,14 @@ _PUMP::_PUMP() :_TIM3(0)  {
 				fph=50;
 				ftl=25;
 				fth=40;
+	
+				timeout=__time__ + 3000;
 
 				tacho = pressure = current = NULL;
 				offset.cooler=12500;
 				gain.cooler=13300;
 				idx=0;
+				
 }
 /*******************************************************************************/
 /**
@@ -43,20 +47,24 @@ _PUMP::_PUMP() :_TIM3(0)  {
 /*******************************************************************************/
 int			_PUMP::Poll(void) {
 int			e=0;
-				DAC_SetChannel1Data(DAC_Align_12b_R,__ramp(Th2o(),ftl*100,fth*100,fpl*0xfff/100,fph*0xfff/100));
-				if(tacho && pressure && current && __time__ > 3000) {
-					if(abs(tacho->Eval(Rpm()) - Tau()) > Tau()/10) 
-						_SET_BIT(e,pumpTacho);
-					if(abs(pressure->Eval(Rpm()) - adf.cooler) > adf.cooler/10)
-						_SET_BIT(e,pumpPressure);
-					if(abs(current->Eval(Rpm()) - adf.Ipump) > adf.Ipump/10)
-						_SET_BIT(e,pumpCurrent);
-					
-					if(_BIT(e,pumpTacho) || _BIT(e,pumpPressure) || _BIT(e,pumpCurrent))
-						_BLUE2(100);
-					else if(__time__ % (5*(Tau()/100)) == 0)
-						_BLUE2(20);
-				}
+				if(timeout==INT_MAX)
+					DAC_SetChannel1Data(DAC_Align_12b_R,0);
+				else {
+					DAC_SetChannel1Data(DAC_Align_12b_R,__ramp(Th2o(),ftl*100,fth*100,fpl*0xfff/100,fph*0xfff/100));
+					if(tacho && pressure && current && __time__ > timeout) {
+						if(abs(tacho->Eval(Rpm()) - Tau()) > Tau()/10) 
+							_SET_BIT(e,pumpTacho);
+						if(abs(pressure->Eval(Rpm()) - adf.cooler) > adf.cooler/10)
+							_SET_BIT(e,pumpPressure);
+						if(abs(current->Eval(Rpm()) - adf.Ipump) > adf.Ipump/10)
+							_SET_BIT(e,pumpCurrent);
+						
+						if(_BIT(e,pumpTacho) || _BIT(e,pumpPressure) || _BIT(e,pumpCurrent))
+							_BLUE2(100);
+						else if(__time__ % (5*(Tau()/100)) == 0)
+							_BLUE2(20);
+					}
+				} 
 				return e;
 }
 /*******************************************************************************/
@@ -88,6 +96,25 @@ char		c[128];
 	*/
 void		_PUMP::SaveSettings(FILE *f) {
 				fprintf(f,"%5d,%5d,%5d,%5d /.. pump\r\n",fpl,fph,ftl,fth);
+}
+/*******************************************************************************/
+/**
+	* @brief	TIM3 IC2 ISR
+	* @param	: None
+	* @retval : None
+	*/
+void		_PUMP::Enable() {
+				if(timeout == INT_MAX)
+					timeout=__time__ +  1000;
+}
+/*******************************************************************************/
+/**
+	* @brief	TIM3 IC2 ISR
+	* @param	: None
+	* @retval : None
+	*/
+void		_PUMP::Disable() {
+				timeout=INT_MAX;
 }
 /*******************************************************************************/
 /**

@@ -46,11 +46,10 @@ void	_PYRO::ISR(_PYRO *p) {
 				if(nbits > _MAXBITS) {													// data finished...?
 short 		i=__time__ - sync,
 					j=temp &  0x3fff,
-					k=(short)((temp >> 14) - 0x1000);	
+					k=(short)((temp >> 15) - (0x10000 - 0x2000));	// 17 bit = 1, offset v senzorju, 0x1000 offset da se izognes negativnim vredostim
 					count += _To;																	// increment data counter
-					
 					temp=nbits=0;
-					if(j && abs(j-amb0) < 2000) {										// j=0 pri izpuljenem, 2000 je 10 stopinj odsopanja of starega !!!
+					if(j && abs(j-amb0) < 2000) {									// j=0 pri izpuljenem, 2000 je 10 stopinj odsopanja of starega !!!
 						if(error_count)
 							--error_count;
 						TIM7->ARR=1000*(_To-1)-1;										//

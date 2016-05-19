@@ -59,7 +59,7 @@ char	*_TERM::Line(char c) {
 					break;
 
 				default:
-					if(c & 0xff00)
+					if(c > 127)
 						printf("<%X>",c);
 					else {
 						printf("%c",c);

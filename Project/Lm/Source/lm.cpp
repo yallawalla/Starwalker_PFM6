@@ -125,9 +125,11 @@ void	_LM::ErrParse(int e) {
 			}
 	
 			if(e ^ _LM::error) {
-				if(_BIT(e,pyroNoresp))
+				if(_BIT(e,pyroNoresp)) {
+					pump.Disable();
 					Submit("@ejected.led");
-				else {
+				} else {
+					pump.Enable();
 					Submit("@inserted.led");
 					_CLEAR_BIT(_LM::error,pyroNoresp);
 				}
@@ -138,7 +140,7 @@ void	_LM::ErrParse(int e) {
 
 			if(!ErrTimeout())	{
 				if(e) {
-					ErrTimeout(3000);
+					ErrTimeout(5000);
 					if(e & error_mask) {									// mask off inactive errors...
 						Submit("@error.led");
 						_SYS_SHG_DISABLE;
@@ -165,17 +167,17 @@ void	_LM::Poll(void *v) {
 _LM		*lm = static_cast<_LM *>(v);
 _io		*temp=_stdio(lm->io);
 
-int		err  = _ADC::Status();
+int		err  = _ADC::Status();								// collecting error data
 			err |= lm->pump.Poll();
 			err |= lm->fan.Poll();
 			err |= lm->spray.Poll();
 			err |= lm->pyro.Error();
+			lm->ErrParse(err);										// parsing error data
 	
-			lm->can.Parse(lm);
+			lm->can.Parse(lm);										
 			lm->pilot.Poll();
 			_TIM::Instance()->Poll();
 
-			lm->ErrParse(err);
 
 #ifdef __SIMULATION__
 			lm->spray.Simulator();
