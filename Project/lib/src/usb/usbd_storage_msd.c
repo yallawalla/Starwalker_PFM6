@@ -157,7 +157,7 @@ int8_t STORAGE_Init (uint8_t lun)
 {
 	FLASH_Unlock();
 	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
-	return (0);
+	return (RES_OK);
 }
 //_____________________________________________________________________________________________
 /**
@@ -171,7 +171,7 @@ int8_t STORAGE_GetCapacity (uint8_t lun, uint32_t *block_num, uint32_t *block_si
 {
 	*block_size=SECTOR_SIZE;
 	*block_num=SECTOR_COUNT;
-	return (0);
+	return (RES_OK);
 }
 //_____________________________________________________________________________________________
 /**
@@ -191,7 +191,7 @@ int8_t  STORAGE_IsReady (uint8_t lun)
   */
 int8_t  STORAGE_IsWriteProtected (uint8_t lun)
 {
-	return (0);
+	return (RES_OK);
 }
 //_____________________________________________________________________________________________
 /**
@@ -209,17 +209,20 @@ int8_t STORAGE_Read(uint8_t lun,
                  uint16_t blk_len)
 {
 int i,*p,*q=NULL;
-	for(p=(int *)FATFS_ADDRESS; p[SECTOR_SIZE/4]!=-1 && (int)p < FATFS_ADDRESS+SECTOR_SIZE*SECTOR_COUNT; p=&p[SECTOR_SIZE/4+1])
+	for(p=(int *)FATFS_ADDRESS; (int)p < FATFS_ADDRESS + PAGE_SIZE*PAGE_COUNT &&  p[SECTOR_SIZE/4]!=-1; p=&p[SECTOR_SIZE/4+1]) {
 		if(p[SECTOR_SIZE/4] == blk_addr)
 			q=p;
+	}
+	if((int)p >= FATFS_ADDRESS + PAGE_SIZE*PAGE_COUNT)
+		return RES_ERROR;
 	if(q)
 		p=q;
 	q=(int *)buf;
 	for(i=0;i<SECTOR_SIZE/4; ++i)
 		*q++=~(*p++);	
 	if(--blk_len)
-		STORAGE_Read(lun, (uint8_t *)q, ++blk_addr, blk_len);
-	return 0; 
+		return STORAGE_Read (lun, (uint8_t *)q, ++blk_addr, blk_len);
+	return RES_OK; 
 }
 //_____________________________________________________________________________________________
 /**
@@ -236,9 +239,12 @@ int8_t STORAGE_Write (uint8_t lun,
                   uint16_t blk_len)
 {
 int i,*p,*q=NULL;
-	for(p=(int *)FATFS_ADDRESS; p[SECTOR_SIZE/4]!=-1 && (int)p < FATFS_ADDRESS+SECTOR_SIZE*SECTOR_COUNT; p=&p[SECTOR_SIZE/4+1])
+	for(p=(int *)FATFS_ADDRESS; (int)p < FATFS_ADDRESS + PAGE_SIZE*PAGE_COUNT &&  p[SECTOR_SIZE/4]!=-1; p=&p[SECTOR_SIZE/4+1])
 		if(p[SECTOR_SIZE/4] == blk_addr)
 			q=p;
+
+	if((int)p >= FATFS_ADDRESS + PAGE_SIZE*PAGE_COUNT)
+		return RES_ERROR;
 
 	q=(int *)buf;
 	for(i=0; i<SECTOR_SIZE/4; ++i)	
@@ -253,9 +259,9 @@ int i,*p,*q=NULL;
 	}
 	
 	if(--blk_len)
-		STORAGE_Write (lun, (uint8_t *)q, ++blk_addr, blk_len);
-	return 0; 
-}	  
+		return STORAGE_Write (lun, (uint8_t *)q, ++blk_addr, blk_len);
+	return RES_OK; 
+}	 
 //_____________________________________________________________________________________________
 /**
   * @brief  Return number of supported logical unit
@@ -305,32 +311,33 @@ int		Defragment(int mode) {
 int 	i,f,e,*p,*q,buf[SECTOR_SIZE/4];
 int		c0=0,c1=0;
 
-			f=FATFS_START;
-			e=PAGE_SIZE;
-			p=(int *)FATFS_ADDRESS;
+			f=FATFS_START;																															// f=koda prvega 128k sektorja
+			e=PAGE_SIZE;																																// e=velikost sektorja
+			p=(int *)FATFS_ADDRESS;																											// p=hw adresa sektorja
 			do {
 				do {
-					q=&p[SECTOR_SIZE/4+1];
 					++c0;
-					while(p[SECTOR_SIZE/4] != q[SECTOR_SIZE/4] && q[SECTOR_SIZE/4] != -1)
+					Watchdog();																															//jk822iohfw
+					q=&p[SECTOR_SIZE/4+1];																									
+					while(p[SECTOR_SIZE/4] != q[SECTOR_SIZE/4] && q[SECTOR_SIZE/4] != -1)		// iskanje ze prepisanih sektorjev
 						q=&q[SECTOR_SIZE/4+1];
-					if(q[SECTOR_SIZE/4] == -1) {
+					if(q[SECTOR_SIZE/4] == -1) {																						// ce ni kopija, se ga prepise na konec fs
 						for(i=0; i<SECTOR_SIZE/4;++i)
 							buf[i]=~p[i];
 						Watchdog();
 						if(mode)
-							STORAGE_Write (*FSDRIVE_CPU-'0',(uint8_t *)buf,p[SECTOR_SIZE/4],1);
-					} else
+							STORAGE_Write (*FSDRIVE_CPU-'0',(uint8_t *)buf,p[SECTOR_SIZE/4],1);			// STORAGE_Write bo po prvem brisanju zacel na
+					} else																																	// zacetku !!!
 						++c1;
 					p=&p[SECTOR_SIZE/4+1]; 
-				} while(((int)p)-FATFS_ADDRESS <  e && p[SECTOR_SIZE/4] != -1);
+				} while(((int)p)-FATFS_ADDRESS <  e && p[SECTOR_SIZE/4] != -1);						// prepisana cela stran...
 				if(mode)
-					FLASH_Erase(f);
+					FLASH_Erase(f);																													// brisi !
 				f+=FLASH_Sector_1; 
 				e+=PAGE_SIZE;
 			} while(p[SECTOR_SIZE/4] != -1);	
 			if(mode) {
-				FLASH_Erase(f);
+				FLASH_Erase(f);																														// se zadnja !
 				return 0;
 			} else 
 				return(100*c1/c0);
