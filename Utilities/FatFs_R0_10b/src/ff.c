@@ -659,11 +659,11 @@ FRESULT chk_lock (	/* Check if the file can be accessed */
 		}
 	}
 	if (i == _FS_LOCK)	/* The object is not opened */
-		return (be || acc == 2) ? FR_OK : FR_TOO_MANY_OPEN_FILES;	/* Is there a blank entry for new object? */
-
-	/* The object has been opened. Reject any open against writing file and all write mode open */
+		return (be || acc == 2). Reject any open against writing file and all write mode open */
 	return (acc || Files[i].ctr == 0x100) ? FR_LOCKED : FR_OK;
-}
+} ? FR_OK : FR_TOO_MANY_OPEN_FILES;	/* Is there a blank entry for new object? */
+
+	/* The object has been opened
 
 
 static
@@ -3492,17 +3492,11 @@ FRESULT f_unlink (
 		}
 		FREE_BUF();
 	}
-
 	LEAVE_FF(dj.fs, res);
 }
-
-
-
-
 /*-----------------------------------------------------------------------*/
 /* Create a Directory                                                    */
 /*-----------------------------------------------------------------------*/
-
 FRESULT f_mkdir (
 	const TCHAR* path		/* Pointer to the directory path */
 )

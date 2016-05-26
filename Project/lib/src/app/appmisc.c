@@ -218,6 +218,15 @@ int crc(int crc, int data) {
 			crc = (crc << 1);
 		return crc;
 }
+//=============================================================================
+//=  recursive wildcard compare, string s, * for string, ? for single character                                                     =
+//=============================================================================
+int wcard(char *t, char *s)
+{
+	return *t-'*' ? *s ? (*t=='?') | (toupper(*s)==toupper(*t)) && wcard(t+1,s+1) : 
+		!*t : 
+			wcard(t+1,s) || (*s && wcard(t,s+1));
+}
 //___________________________________________________________________________
 void			PrintVersion(int v) {
 	int i=-1,
@@ -234,6 +243,7 @@ void			PrintVersion(int v) {
 							CRC_CalcBlockCRC(__Vectors, (FATFS_ADDRESS-(int)__Vectors)/sizeof(int)),
 								i);
 }
+
 /**
 * @}
 */

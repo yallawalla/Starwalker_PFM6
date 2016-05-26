@@ -249,60 +249,74 @@ FIL 			*f=NULL;																	// file object pointer
 					if(!c)																		// eol parser entry...
 						printf("\r\n");	
 					else
+						switch(*c) {
+							case __CtrlD:
+								f_sync(f);														// buffer flush, close file and memfree ...
+								f_close(f);
+								free(f);
+								f=NULL;																// null pointer
+								__STDIN->parse=DecodeFs;						// parser redirect
+								break;
 //______________________________________________________________________________________
-				switch(*c) {
-					case __CtrlD:
-						f_sync(f);														// buffer flush, close file and memfree ...
-						f_close(f);
-						free(f);
-						f=NULL;																// null pointer
-						__STDIN->parse=DecodeFs;						// parser redirect
-					break;
-//______________________________________________________________________________________
-					default:
-						fprintf((FILE *)f,"%s\r\n",c);
-				}
-			return _PARSE_OK;
-}
-//__list directory______________________________________________________________________
-
-// te*.c
-
-// test.*
-
-// test.c
-
-// *.*
-
-char			*findName(char *p, DIR *dir, FILINFO *fno) {
-char			*q,*qq;
-					if(!dir->sect && f_readdir(dir,NULL)!=FR_OK)
-						return NULL;
-					while(1) {
-						if(f_readdir(dir,fno) != FR_OK || !dir->sect)
-							return NULL;
-						if(dir->lfn_idx != (WORD)-1)
-							q=qq=fno->lfname;
-						else
-							q=qq=fno->fname;
-						while(*q) {
-							if(*p == *q) {
-								++p;
-								++q;
-							} else {
-								if(*p == '*') {
-									if(!p[1])
-										return qq;
-									if(p[1]==*q)
-										++p;	
-									else
-										++q;
-								} else
-									return NULL;
-							}
+							default:
+								fprintf((FILE *)f,"%s\r\n",c);
 						}
-						return qq;
-					}
+					return _PARSE_OK;
+}
+//______________________________________________________________________________________
+//______________________________________________________________________________________
+//______________________________________________________________________________________
+#define PATH_MAX 256
+int list_dir (char * dir_name, char *w)
+{
+    DIR dir;
+
+    /* Open the directory specified by "dir_name". */
+    /* Check it was opened. */
+    if (f_opendir(&dir,dir_name) != FR_OK)
+        return (EXIT_FAILURE);
+    while (1) {
+			TCHAR lfn[_MAX_LFN + 1];
+			FILINFO	fno;
+			fno.lfname = lfn;
+			fno.lfsize = sizeof lfn;
+/* "Readdir" gets subsequent entries from "d". */
+      f_readdir(&dir,&fno);
+      if (! dir.sect)
+				break;
+			else {
+				char *p;
+			if(dir.lfn_idx != (WORD)-1)
+				p=fno.lfname;
+			else 
+				p=fno.fname;
+			if(wcard(w,p)) {
+				printf("\r\n%-16s",p);
+				if (fno.fattrib & AM_DIR)
+					printf("/");
+				else
+					printf("%d",(int)fno.fsize);								
+			}
+			if (fno.fattrib & AM_DIR) {
+				if (strcmp (p, "..") != 0 &&
+					strcmp (p, ".") != 0) {
+						int path_length;
+						char path[PATH_MAX];
+              path_length = snprintf (path, PATH_MAX, "%s/%s", dir_name, p);
+              printf ("%s\n", path);
+              if (path_length >= PATH_MAX) {
+                  fprintf (stderr, "Path length has got too long.\n");
+                  return  (EXIT_FAILURE);
+              }
+              /* Recursively call "list_dir" with the new path. */
+              list_dir (path,w);
+          }
+				}
+			}
+			if (f_closedir(&dir) != FR_OK)
+				return (EXIT_FAILURE);
+		}
+	return FR_OK;
 }
 //______________________________________________________________________________________
 int				DecodeFs(char *c) {
@@ -337,16 +351,58 @@ static 		DIR		dir;
 										return _PARSE_ERR_SYNTAX;
 						__STDIN->parse=DecodeFs;
 						}
+//__change directory_____________________________________________________________________
+						if(!strncmp("cdir",sc[0],len)) {
+							if(n == 2) {
+								if(f_chdir(sc[1]) != FR_OK )
+									return _PARSE_ERR_OPENFILE;
+							} else
+								return _PARSE_ERR_MISSING;
+						}
+//__list directory______________________________________________________________________
+						if(!strncmp("directory",sc[0],len)) {
+							if(n==1)
+								sc[1]="*";
+							do {
+								if(f_readdir(&dir,&fno) != FR_OK)
+									return _PARSE_ERR_OPENFILE;	
+								if(dir.sect) {
+									char *p;
+									if(dir.lfn_idx != (WORD)-1)
+										p=fno.lfname;
+									else
+										p=fno.fname;
+									if(wcard(sc[1],p)) {
+										printf("\r\n%-16s",p);
+										if (fno.fattrib & AM_DIR)
+											printf("/");
+										else
+											printf("%d",(int)fno.fsize);								
+									}
+								}
+							} while(dir.sect);
+						}
+//__delete file________________________________________________________________________
+						if(!strncmp("erase",sc[0],len))
+							list_dir(lfn,sc[1]);
 //__delete file________________________________________________________________________
 						if(!strncmp("delete",sc[0],len)) {
-							if(n == 2 && f_readdir(&dir,NULL)==FR_OK) {
-								while(dir.sect) {
-									char *p=findName(sc[1],&dir,&fno);
-									if(p && f_unlink(p) != FR_OK)
-											return _PARSE_ERR_OPENFILE;
+							if(n==1)
+							sc[1]="*";
+							do {
+								if(f_readdir(&dir,&fno) != FR_OK)
+									return _PARSE_ERR_OPENFILE;	
+								if(dir.sect) {
+									char *p;
+									if(dir.lfn_idx != (WORD)-1)
+										p=fno.lfname;
+									else
+										p=fno.fname;
+									if(wcard(sc[1],p)) {
+										f_unlink(p);			
+									}
 								}
-							}	else
-								return _PARSE_ERR_SYNTAX;
+							} while(dir.sect);
 						}
 //__rename file_________________________________________________________________________
 						if(!strncmp("rename",sc[0],len)) {
@@ -372,14 +428,6 @@ static 		DIR		dir;
 						if(!strncmp("mkdir",sc[0],len)) {
 							if(n == 2) {
 								if(f_mkdir(sc[1]) != FR_OK)
-									return _PARSE_ERR_OPENFILE;
-							} else
-								return _PARSE_ERR_MISSING;
-						}
-//__change directory_____________________________________________________________________
-						if(!strncmp("cdir",sc[0],len)) {
-							if(n == 2) {
-								if(f_chdir(sc[1]) != FR_OK )
 									return _PARSE_ERR_OPENFILE;
 							} else
 								return _PARSE_ERR_MISSING;
@@ -455,26 +503,6 @@ static 		DIR		dir;
 							f_close(&f2);
 							return _PARSE_OK;						
 						}
-
-//__list directory______________________________________________________________________
-						if(!strncmp("dir",sc[0],len)) {
-							if(n==2)
-								if(f_opendir(&dir,sc[1])!=FR_OK || f_readdir(&dir,NULL)!=FR_OK)
-									return _PARSE_ERR_OPENFILE;					
-							while(1) {
-								f_readdir(&dir,&fno);
-								if(!dir.sect)
-									break;
-								if(dir.lfn_idx != (WORD)-1) {
-									printf("\r\n%-16s",fno.lfname);
-								} else
-									printf("\r\n%-16s",fno.fname);
-								if (fno.fattrib & AM_DIR)
-									printf("/");
-								else
-									printf("%d",(int)fno.fsize);
-							}
-						}
 //______________________________________________________________________________________
 						if(!strncmp(">",sc[0],len)) {
 							__STDIN->parse=DecodeCom;
@@ -548,6 +576,11 @@ int				DecodeCom(char *c) {
 //______________________________________________________________________________________
 					case 'w':
 						_wait(strtoul(++c,NULL,0),_thread_loop);
+						break;
+//______________________________________________________________________________________
+					case '#':
+						strtok(c," ");
+						printf(" %d",wcard(strtok(NULL," "),strtok(NULL," ")));
 						break;
 //______________________________________________________________________________________
 					case '@':

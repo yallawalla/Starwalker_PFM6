@@ -4,6 +4,7 @@
 #endif
 #include				<string.h>
 #include				<stdio.h>
+#include				<ctype.h>
 #include				<math.h>
 #include				"io.h"
 #include				"ff.h"
@@ -250,9 +251,9 @@ int							iDump(int *,int);
 int							sDump(char *,int);
 int							hex2asc(int);
 int							asc2hex(int);
+int 						wcard(char *, char *);
 void						PrintVersion(int);
 int							putLCD(_buffer *, int);
-
 
 #ifndef	__max				
 #define __max(a,b)  (((a) > (b)) ? (a) : (b))	

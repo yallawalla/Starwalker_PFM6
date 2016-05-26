@@ -13,6 +13,8 @@
 	*/
 #include				"stm32f2xx.h"
 #include				<stdio.h>
+#include				<stdlib.h>
+#include				<ctype.h>
 #include				"isr.h"
 #include				"gpio.h"
 #include				"term.h"
