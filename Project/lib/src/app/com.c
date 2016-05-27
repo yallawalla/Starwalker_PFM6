@@ -266,56 +266,46 @@ FIL 			*f=NULL;																	// file object pointer
 //______________________________________________________________________________________
 //______________________________________________________________________________________
 //______________________________________________________________________________________
-#define PATH_MAX 256
-int list_dir (char * dir_name, char *w)
-{
-    DIR dir;
-
-    /* Open the directory specified by "dir_name". */
-    /* Check it was opened. */
+//______________________________________________________________________________________
+//______________________________________________________________________________________
+int list_dir (char * dir_name, char *w) {
+DIR			dir;
+FILINFO	fno;
+TCHAR		lfn[_MAX_LFN + 1];
+		fno.lfname = lfn;
+		fno.lfsize = sizeof lfn;
     if (f_opendir(&dir,dir_name) != FR_OK)
-        return (EXIT_FAILURE);
+			return (EXIT_FAILURE);
     while (1) {
-			TCHAR lfn[_MAX_LFN + 1];
-			FILINFO	fno;
-			fno.lfname = lfn;
-			fno.lfsize = sizeof lfn;
-/* "Readdir" gets subsequent entries from "d". */
       f_readdir(&dir,&fno);
-      if (! dir.sect)
+      if (!dir.sect)
 				break;
 			else {
 				char *p;
-			if(dir.lfn_idx != (WORD)-1)
-				p=fno.lfname;
-			else 
-				p=fno.fname;
-			if(wcard(w,p)) {
-				printf("\r\n%-16s",p);
-				if (fno.fattrib & AM_DIR)
-					printf("/");
-				else
-					printf("%d",(int)fno.fsize);								
-			}
-			if (fno.fattrib & AM_DIR) {
-				if (strcmp (p, "..") != 0 &&
-					strcmp (p, ".") != 0) {
-						int path_length;
-						char path[PATH_MAX];
-              path_length = snprintf (path, PATH_MAX, "%s/%s", dir_name, p);
-              printf ("%s\n", path);
-              if (path_length >= PATH_MAX) {
-                  fprintf (stderr, "Path length has got too long.\n");
-                  return  (EXIT_FAILURE);
-              }
-              /* Recursively call "list_dir" with the new path. */
-              list_dir (path,w);
-          }
+				if(dir.lfn_idx != (WORD)-1)
+					p=fno.lfname;
+				else 
+					p=fno.fname;
+				if (!strcmp (p, "..") || !strcmp (p, "."))
+					continue;
+				if(wcard(w,p)) {
+					char *q=strchr(dir_name,'/');
+					++q;
+					printf("\r\n%s/%s",q,p);
+					if (fno.fattrib & AM_DIR)
+						printf("/");
+					else
+						printf("%*d",32-strlen(p)-strlen(q),(int)fno.fsize);
+				}
+				if (fno.fattrib & AM_DIR) {
+						if (snprintf (lfn, sizeof(lfn), "%s/%s", dir_name, p) >= sizeof(lfn))
+							return  (EXIT_FAILURE);
+						list_dir (lfn,w);
 				}
 			}
-			if (f_closedir(&dir) != FR_OK)
-				return (EXIT_FAILURE);
 		}
+		if (f_closedir(&dir) != FR_OK)
+			return (EXIT_FAILURE);
 	return FR_OK;
 }
 //______________________________________________________________________________________
@@ -383,7 +373,7 @@ static 		DIR		dir;
 							} while(dir.sect);
 						}
 //__delete file________________________________________________________________________
-						if(!strncmp("erase",sc[0],len))
+						if(!strncmp("ls",sc[0],len))
 							list_dir(lfn,sc[1]);
 //__delete file________________________________________________________________________
 						if(!strncmp("delete",sc[0],len)) {
