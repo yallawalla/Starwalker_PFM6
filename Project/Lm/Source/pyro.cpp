@@ -12,6 +12,8 @@
 * @{
 */
 #include	"pyro.h"
+#include	<math.h>
+#include	<vector>
 
 static		_PYRO*	me;
 /*******************************************************************************/
@@ -37,14 +39,14 @@ void	_PYRO::ISR(_PYRO *p) {
 						TIM7->ARR=_Ts-1;														// set bit timeout 
 				} else
 					TIM7->ARR=1000-(_MAXBITS-1)*_Ts-1;						// set 1'st bit (sample) timeout (1ms minus transfer time)
-																												
+
 				PYRO_PORT->BSRRH   =  PYRO_BIT;									// pull next bit, set output low
 				PYRO_PORT->OTYPER	&= ~PYRO_BIT;									// set pin to pushpull output 
 				PYRO_PORT->BSRRL   =  PYRO_BIT;									// set output high
-				PYRO_PORT->OTYPER |=  PYRO_BIT;									// set pin to opendrain  output 
+				PYRO_PORT->OTYPER |=  PYRO_BIT;									// set pin to opendrain  output
 
 				if(nbits > _MAXBITS) {													// data finished...?
-short 		i=__time__ - sync,
+short			i=__time__ - sync,
 					j=temp &  0x3fff,
 					k=(short)((temp >> 15) - (0x10000 - 0x2000));	// 17 bit = 1, offset v senzorju, 0x1000 offset da se izognes negativnim vredostim
 					count += _To;																	// increment data counter
@@ -56,9 +58,9 @@ short 		i=__time__ - sync,
 						if(Enabled && count >= Period) {						// if output enabled && output period reached ...							
 							count=0;																	// reset data counter
 							amb0=j;
-							_buffer_push(buffer,&i,sizeof(short));		// push data to output ...
-							_buffer_push(buffer,&j,sizeof(short));		//
-							_buffer_push(buffer,&k,sizeof(short));		//
+							_buffer_push(buffer,&i,sizeof(short));
+							_buffer_push(buffer,&j,sizeof(short));
+							_buffer_push(buffer,&k,sizeof(short));
 						}
 					}
 					else {
@@ -146,6 +148,87 @@ char	c[128];
 	* @param	: None
 	* @retval : None
 	*/
+
+void	_PYRO::LoadFit(FILE *f) {
+double tpp[4][4] = { 
+				{1460.15,	19725.31, 42432.27, 63938.46},
+				{13020.96,46874.81, 77632.92, 104778.85},
+				{10672.19,42838.35, 75621.04, 104585.23},
+				{8652.35,	34044.73, 58773.31, 75964.92}
+};
+
+double ophp[4][4] = { 
+				{0.7,6.5,16,26},  
+				{14,44,72,100},  
+				{19,61,110,160},  
+				{23,70,120,195}
+};
+
+double tp[4][4] = { 
+				{4,5,6,7},
+				{14,15,16,17},
+				{24,25,26,27},
+				{34,35,36,37},
+};
+
+double oph[4][4] = { 
+				{4,5,6,7},
+				{14,15,16,17},
+				{24,25,26,27},
+				{34,35,36,37},
+};
+
+int			pw[]={30,40,50,60};
+int			hz[]={2,5,10,20};
+
+std::vector<_FIT> _tp(3, _FIT(3,FIT_POW)),_oph(3, _FIT(3,FIT_POW));
+
+				for(int i=0; i<sizeof(hz)/sizeof(int); ++i) {
+_FIT			__tp(3,FIT_POW),__oph(3,FIT_POW);
+					
+					for(int j=0; j<sizeof(pw)/sizeof(int); ++j) {
+						__tp.Sample(pw[j],tp[i][j]);
+						__oph.Sample(pw[j],oph[i][j]);
+					}
+					
+					if(!__tp.Compute())
+						break;
+					if(!__oph.Compute())
+						break;
+					
+					for(int j=0; j<__tp.n; ++j)
+						printf("%lf ",__tp.rp[j]);
+					printf(" ...tp\r\n");
+					
+					for(int j=0; j<__oph.n; ++j)
+						printf("%lf ",__oph.rp[j]);
+					printf(" ...oph\r\n");
+					
+					for(int j=0; j<__tp.n; ++j) {
+						_tp[j].Sample(hz[j],__tp.rp[j]);
+						_oph[j].Sample(hz[j],__oph.rp[j]);
+					}
+			}
+			
+			for(int i=0; i<sizeof(hz)/sizeof(int); ++i) {
+				if(_tp[i].Compute()) {
+					for(int j=0; j<_tp[i].n; ++j)
+						printf("%lf ",_tp[i].rp[j]);
+					printf("...TP\r\n ");
+				}
+				if(_oph[i].Compute()) {
+					for(int j=0; j<_oph[i].n; ++j)
+						printf("%lf ",_oph[i].rp[j]);
+					printf(" ...OPH\r\n");
+				}	
+			}
+}
+/*******************************************************************************/
+/**
+	* @brief	TIM3 IC2 ISR
+	* @param	: None
+	* @retval : None
+	*/
 void	_PYRO::SaveSettings(FILE *f) {
 			fprintf(f,"%5d                   /.. pyro\r\n",Period);
 }
@@ -156,7 +239,7 @@ void	_PYRO::SaveSettings(FILE *f) {
 * Return				:
 *******************************************************************************/
 int		_PYRO::Increment(int a, int b) {	
-			Period 		= __min(__max(10,Period+10*a),2000);	
+			Period 		= __min(__max(10,Period+10*a),200);	
 			printf("\r:thermopile  %3d",Period);		
 			return Period;
 }
@@ -251,4 +334,5 @@ void	TIM7_IRQHandler(void) {
 }
 /**
 * @}
-*/ 
+*/
+

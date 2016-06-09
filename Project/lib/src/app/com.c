@@ -176,55 +176,55 @@ int				DecodePlus(char *c) {
 					int			n;
 					switch(*c) {
 //__________________________________________________ mode setup _____________
-					case 'm':
-						n=strscan(++c,cc,',');
-						while(n--)
-							_SET_MODE(atoi(cc[n]));
-					break;
+						case 'm':
+							n=strscan(++c,cc,',');
+							while(n--)
+								_SET_MODE(atoi(cc[n]));
+						break;
 //__________________________________________________ watchdog setup _____________
-					case 'w':
-						if(strscan(++c,cc,','))
-							Watchdog_init(atoi(cc[0]));
-					break;
+						case 'w':
+							if(strscan(++c,cc,','))
+								Watchdog_init(atoi(cc[0]));
+						break;
 //__________________________________________________ add lcd output _____________
-					case 'L':
-						putLCD(NULL,0);
-					break;
+						case 'L':
+							putLCD(NULL,0);
+						break;
 //______________________________________________________________________________________
-					default:
-						return _PARSE_ERR_SYNTAX;
-				}
-				return _PARSE_OK;
+						default:
+							return _PARSE_ERR_SYNTAX;
+					}
+					return _PARSE_OK;
 }
 //______________________________________________________________________________________
-int			DecodeEsc(char *c) {
-				int cod=0;
-				while(*c) cod=(cod<<8)+*c++;
-				switch(cod) {
-					case 0x31317E:									//F1
-					case 0x31327E:									//F2
-					case 0x31337E:									//F3
-					case 0x31347E:									//F4
-					case 0x31357E:									//F5
-					case 0x31377E:									//F6
-					case 0x31387E:									//F7
-					case 0x31397E:									//F8
-					case 0x32307E:									//F9
-					case 0x32317E:									//F10
-					case 0x32337E:									//F11
-					case 0x32347E:									//F12
-					case 0x00317E:									//Home
-					case 0x00347E:									//End
-					case 0x00327E:									//Insert
-					case 0x00357E:									//PageUp
-					case 0x00337E:									//Delete
-					case 0x00367E:									//PageDown
-					case 0x000041:									//Up
-					case 0x000044:									//Left
-					case 0x000042:									//Down
-					case 0x000043:									//Right
-						printf("%08X",cod);
-					return _PARSE_OK;
+int				DecodeEsc(char *c) {
+					int cod=0;
+					while(*c) cod=(cod<<8)+*c++;
+					switch(cod) {
+						case 0x31317E:									//F1
+						case 0x31327E:									//F2
+						case 0x31337E:									//F3
+						case 0x31347E:									//F4
+						case 0x31357E:									//F5
+						case 0x31377E:									//F6
+						case 0x31387E:									//F7
+						case 0x31397E:									//F8
+						case 0x32307E:									//F9
+						case 0x32317E:									//F10
+						case 0x32337E:									//F11
+						case 0x32347E:									//F12
+						case 0x00317E:									//Home
+						case 0x00347E:									//End
+						case 0x00327E:									//Insert
+						case 0x00357E:									//PageUp
+						case 0x00337E:									//Delete
+						case 0x00367E:									//PageDown
+						case 0x000041:									//Up
+						case 0x000044:									//Left
+						case 0x000042:									//Down
+						case 0x000043:									//Right
+							printf("%08X",cod);
+						return _PARSE_OK;
 					}
 					return _PARSE_ERR_SYNTAX;
 }
@@ -268,45 +268,53 @@ FIL 			*f=NULL;																	// file object pointer
 //______________________________________________________________________________________
 //______________________________________________________________________________________
 //______________________________________________________________________________________
-int list_dir (char * dir_name, char *w) {
-DIR			dir;
-FILINFO	fno;
-TCHAR		lfn[_MAX_LFN + 1];
-		fno.lfname = lfn;
-		fno.lfsize = sizeof lfn;
-    if (f_opendir(&dir,dir_name) != FR_OK)
-			return (EXIT_FAILURE);
-    while (1) {
-      f_readdir(&dir,&fno);
-      if (!dir.sect)
-				break;
-			else {
-				char *p;
-				if(dir.lfn_idx != (WORD)-1)
-					p=fno.lfname;
-				else 
-					p=fno.fname;
-				if (!strcmp (p, "..") || !strcmp (p, "."))
-					continue;
-				if(wcard(w,p)) {
-					char *q=strchr(dir_name,'/');
-					++q;
-					printf("\r\n%s/%s",q,p);
-					if (fno.fattrib & AM_DIR)
-						printf("/");
-					else
-						printf("%*d",32-strlen(p)-strlen(q),(int)fno.fsize);
-				}
-				if (fno.fattrib & AM_DIR) {
-						if (snprintf (lfn, sizeof(lfn), "%s/%s", dir_name, p) >= sizeof(lfn))
-							return  (EXIT_FAILURE);
-						list_dir (lfn,w);
-				}
-			}
-		}
-		if (f_closedir(&dir) != FR_OK)
-			return (EXIT_FAILURE);
-	return FR_OK;
+typedef enum  { __LIST,__ERASE } __FACT;
+
+int 			find_recurse (char * dir_name, char *w, int fact) {
+DIR				dir;
+FILINFO		fno;
+TCHAR			lfn[_MAX_LFN + 1];
+					fno.lfname = lfn;
+					fno.lfsize = sizeof lfn;
+					if (f_opendir(&dir,dir_name) != FR_OK)
+						return (EXIT_FAILURE);
+					while (1) {
+						f_readdir(&dir,&fno);
+						if (!dir.sect)
+							break;
+						else {
+							char *p;
+							if(dir.lfn_idx != (WORD)-1)
+								p=fno.lfname;
+							else 
+								p=fno.fname;
+							if (!strcmp (p, "..") || !strcmp (p, "."))
+								continue;
+							if (snprintf (lfn, sizeof(lfn), "%s/%s", dir_name, p) >= sizeof(lfn))
+								return  (EXIT_FAILURE);	
+							if (fno.fattrib & AM_DIR)
+									find_recurse (lfn,w,fact);
+							switch(fact) {
+								case __LIST:
+									if(wcard(w,p)) {
+										char *q=strchr(dir_name,'/');
+										++q;
+										printf("\r\n%s",lfn);
+										if (fno.fattrib & AM_DIR)
+											printf("/");
+										else
+											printf("%*d",32-strlen(lfn),(int)fno.fsize);
+									}
+								break;
+								case __ERASE:
+									if(wcard(w,p))
+										f_unlink(p);
+								}
+						}
+					}
+					if (f_closedir(&dir) != FR_OK)
+						return (EXIT_FAILURE);
+					return FR_OK;
 }
 //______________________________________________________________________________________
 int				DecodeFs(char *c) {
@@ -374,7 +382,10 @@ static 		DIR		dir;
 						}
 //__delete file________________________________________________________________________
 						if(!strncmp("ls",sc[0],len))
-							list_dir(lfn,sc[1]);
+							find_recurse(lfn,sc[1],__LIST);
+///__delete file________________________________________________________________________
+						if(!strncmp("er",sc[0],len))
+							find_recurse(lfn,sc[1],__ERASE);
 //__delete file________________________________________________________________________
 						if(!strncmp("delete",sc[0],len)) {
 							if(n==1)

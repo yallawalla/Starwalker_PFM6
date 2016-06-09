@@ -5,6 +5,7 @@
 #include				<stdio.h>
 #include 				<stdlib.h>
 #include				"isr.h"
+#include				"fit.h"
 
 #include 				"arm_math.h"
 #if defined   (__IOC_V1__)
@@ -31,6 +32,8 @@ class	_PYRO {
 		_io		*io;
 		int		nbits, temp, count, nsamples;
 		short	amb0;
+		_FIT	*hz,*pw;
+
 
 		float32_t	iirCoeffs32[_MAX_STATE*5];
 		float32_t firCoeffs32[_MAX_TAPS];
@@ -50,6 +53,7 @@ class	_PYRO {
 		unsigned int sync,error_count;	
 
 		void		ISR(_PYRO *);
+		void		ISRold(_PYRO *);
 		int			Increment(int, int);
 
 		bool		Enabled;
@@ -57,6 +61,7 @@ class	_PYRO {
 
 		int			Error();
 		void		LoadSettings(FILE *);
+		void		LoadFit(FILE *);
 		void		SaveSettings(FILE *);
 		void		initFilter();
 		void		addFilter(char *);

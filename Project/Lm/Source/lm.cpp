@@ -62,6 +62,12 @@ _LM::_LM() : ec20(this) {
 				f_close(&f);	
 			}	else				
 				printf("\r\n limits not active...\r\n:");
+			
+			
+			if(f_open(&f,"0:/pw.ini",FA_READ) == FR_OK) {
+				pyro.LoadFit((FILE *)&f);
+			}	else				
+				printf("\r\n fitting not active...\r\n:");
 
 			printf("\r\n[F1]  - thermopile");
 			printf("\r\n[F2]  - pilot");
@@ -244,6 +250,10 @@ void	_LM::Increment(int i, int j) {
 						plot.Add(&plotB,2813,10, LCD_COLOR_CYAN);
 						plot.Add(&plotC,0,1, LCD_COLOR_YELLOW);
 					}
+					break;
+
+				case PYROnew:
+					pyro.Enabled=true;
 					break;
 
 				case CTRL_A:
@@ -629,7 +639,6 @@ bool	ret=Parse(fgetc(f));
 			_stdio(io);
 			return ret;
 }
-
 /*******************************************************************************
 * Function Name	: 
 * Description		: 
@@ -681,6 +690,7 @@ bool	_LM::Parse(int i) {
 					break;
 				case __F9:
 				case __f9:
+					Select(PYROnew);
 					break;				
 				case __F10:
 				case __f10:
@@ -818,7 +828,7 @@ bool	_LM::Parse(int i) {
 void	_LM::Display(void *v) {
 _LM 	*me = static_cast<_LM *>(v);	
 _io*	temp=_stdio(me->io);
-			while(_buffer_count(me->pyro.buffer) > 3*sizeof(short)) {
+			while(_buffer_count(me->pyro.buffer) >= 3*sizeof(short)) {
 				short 	ta,tp,t;
 //______ buffer pull from ISR __________________________________________________					
 				_buffer_pull(me->pyro.buffer,&t,sizeof(short));							
@@ -831,7 +841,32 @@ _io*	temp=_stdio(me->io);
 				if(me->pyro.Enabled && me->item == PYRO) {
 //					printf("%4d,%5d,%3.1lf,%hu,%u",ta,(int)tp+0x8000,(double)_ADC::Instance()->Th2o/100,t,me->pyro.sync);
 					printf("%4d,%5d,%3.1lf,%hu",ta,(int)tp+0x8000,(double)_ADC::Th2o()/100,t);
-					printf("\r\n");					
+					printf("\r\n");
+				}
+				
+				if(me->pyro.Enabled && me->item == PYROnew) {
+static int		offs=0,cnt=0,sum=0;	
+	
+							if(t > 10000) {
+								t=10000;
+								 me->pyro.sync=__time__ - 10000;
+							}
+
+							if(t < 20*me->pyro.Period) {
+								if((cnt && t <= me->pyro.Period)) {
+									printf(":%d\r\n",sum);
+									cnt=sum=0;
+								} else {
+									sum += (ta/2+tp-offs);
+									++cnt;
+								}
+							} else {
+								if(cnt) {
+									printf(":%d\r\n",sum);
+									cnt=sum=0;
+								} else
+										offs=ta/2+tp;
+							}								
 				}
 //______________________________________________________________________________							
 #ifdef	USE_LCD
