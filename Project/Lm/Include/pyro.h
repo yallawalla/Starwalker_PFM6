@@ -4,6 +4,7 @@
 #include				"stm32f2xx.h"
 #include				<stdio.h>
 #include 				<stdlib.h>
+#include 				<vector>
 #include				"isr.h"
 #include				"fit.h"
 
@@ -29,11 +30,11 @@
 
 class	_PYRO {
 	private:
-		_io		*io;
-		int		nbits, temp, count, nsamples;
-		short	amb0;
-		_FIT	*hz,*pw;
+		_io			*io;
+		int			nbits,temp,count,nsamples;
+		short		amb0;
 
+		std::vector<_FIT> _tp,_oph;
 
 		float32_t	iirCoeffs32[_MAX_STATE*5];
 		float32_t firCoeffs32[_MAX_TAPS];
@@ -62,6 +63,7 @@ class	_PYRO {
 		int			Error();
 		void		LoadSettings(FILE *);
 		void		LoadFit(FILE *);
+		double	getFit(double);
 		void		SaveSettings(FILE *);
 		void		initFilter();
 		void		addFilter(char *);

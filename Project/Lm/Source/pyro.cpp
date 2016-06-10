@@ -14,6 +14,8 @@
 #include	"pyro.h"
 #include	<math.h>
 #include	<vector>
+#include	<fstream>
+#include	<sstream>
 
 static		_PYRO*	me;
 /*******************************************************************************/
@@ -144,45 +146,71 @@ char	c[128];
 }
 /*******************************************************************************/
 /**
+	* @brief	Obratni izracun 2-dim fita
+	* @param	: None
+	* @retval : None
+	*/
+double	_PYRO::getFit(double d) {
+	return 0;
+}
+/*******************************************************************************/
+/**
 	* @brief	TIM3 IC2 ISR
 	* @param	: None
 	* @retval : None
 	*/
-
 void	_PYRO::LoadFit(FILE *f) {
-double tp[4][4] = { 
-				{1460.15,	19725.31, 42432.27, 63938.46},
-				{13020.96,46874.81, 77632.92, 104778.85},
-				{10672.19,42838.35, 75621.04, 104585.23},
-				{8652.35,	34044.73, 58773.31, 75964.92}
-};
 
-double oph[4][4] = { 
+char		c[128];
+double	tp[4][4] = { 
+				{1460.15,19725.31,42432.27,63938.46},						//	2Hz,	30,40,50,60%
+				{13020.96,46874.81,77632.92,104778.85},					//	5Hz,	30,40,50,60%
+				{10672.19,42838.35,75621.04,104585.23},					//	10Hz,	30,40,50,60%
+				{8652.35,34044.73,58773.31,75964.92}},					//	20Hz,	30,40,50,60%
+
+				oph[4][4] = { 
 				{0.7,6.5,16,26},  
 				{14,44,72,100},  
 				{19,61,110,160},  
-				{23,70,120,195}
-};
+				{23,70,120,195}};
 
-//double tp[4][4] = { 
-//				{4,5,6,7},
-//				{14,15,16,17},
-//				{24,25,26,27},
-//				{34,35,36,37},
-//};
+int			pw[]={30,40,50,60},
+				hz[]={2,5,10,20};
 
-//double oph[4][4] = { 
-//				{4,5,6,7},
-//				{14,15,16,17},
-//				{24,25,26,27},
-//				{34,35,36,37},
-//};
+				
+				if(_tp.size()==0)
+					for(int i=0; i<3; ++i)
+						_tp.push_back(_FIT(3,FIT_POW));
+				if(_oph.size()==0)
+					for(int i=0; i<3; ++i)			
+						_oph.push_back(_FIT(3,FIT_POW));
+				
+				
+				if(_tp.empty()==0) {
+					_tp.push_back(_FIT(3,FIT_POW));
+					_tp.back().rp=new double(8);
+					_tp.back().n=0;
+					std::string s;
+					while(fgets((char *)s.c_str(),sizeof(s.length()),f))
+						while(std::istringstream(s) >> _tp.back().rp[_tp.back().n++]);
+				}
+				
+				for(int i=0; i<4; ++i) {
+					_tp[i].rp= new double(8);
+					_tp[i].n=0;
+					fgets(c,sizeof(c),f);
+					for(char *p=strtok(
+					
+					sscanf(c,"%lf,%lf,%lf,%lf",&tp[i][0],&tp[i][1],&tp[i][2],&_tp[i][3]);
+				}
 
-int			pw[]={30,40,50,60};
-int			hz[]={2,5,10,20};
+				for(int i=0; i<4; ++i) {
+					fgets(c,sizeof(c),f);
+					sscanf(c,"%lf,%lf,%lf,%lf",&oph[i][0],&oph[i][1],&oph[i][2],&oph[i][3]);
+				}
 
-std::vector<_FIT> _tp(3, _FIT(3,FIT_POW)),_oph(3, _FIT(3,FIT_POW));
-
+				
+								
 				for(int i=0; i<sizeof(hz)/sizeof(int); ++i) {
 _FIT			__tp(3,FIT_POW),__oph(3,FIT_POW);
 					
@@ -209,9 +237,9 @@ _FIT			__tp(3,FIT_POW),__oph(3,FIT_POW);
 //					printf("...TP\r\n ");
 				}
 				if(_oph[i].Compute()) {
-//					for(int j=0; j<_oph[i].n; ++j)
-//						printf("%lf ",_oph[i].rp[j]);
-//					printf(" ...OPH\r\n");
+					for(int j=0; j<_oph[i].n; ++j)
+						printf("%lf ",_oph[i].rp[j]);
+					printf(" ...OPH\r\n");
 				}	
 			}
 }

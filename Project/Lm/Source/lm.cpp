@@ -63,9 +63,9 @@ _LM::_LM() : ec20(this) {
 			}	else				
 				printf("\r\n limits not active...\r\n:");
 			
-			
 			if(f_open(&f,"0:/pw.ini",FA_READ) == FR_OK) {
 				pyro.LoadFit((FILE *)&f);
+				f_close(&f);	
 			}	else				
 				printf("\r\n fitting not active...\r\n:");
 
