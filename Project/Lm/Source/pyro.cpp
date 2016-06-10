@@ -150,33 +150,33 @@ char	c[128];
 	*/
 
 void	_PYRO::LoadFit(FILE *f) {
-double tpp[4][4] = { 
+double tp[4][4] = { 
 				{1460.15,	19725.31, 42432.27, 63938.46},
 				{13020.96,46874.81, 77632.92, 104778.85},
 				{10672.19,42838.35, 75621.04, 104585.23},
 				{8652.35,	34044.73, 58773.31, 75964.92}
 };
 
-double ophp[4][4] = { 
+double oph[4][4] = { 
 				{0.7,6.5,16,26},  
 				{14,44,72,100},  
 				{19,61,110,160},  
 				{23,70,120,195}
 };
 
-double tp[4][4] = { 
-				{4,5,6,7},
-				{14,15,16,17},
-				{24,25,26,27},
-				{34,35,36,37},
-};
+//double tp[4][4] = { 
+//				{4,5,6,7},
+//				{14,15,16,17},
+//				{24,25,26,27},
+//				{34,35,36,37},
+//};
 
-double oph[4][4] = { 
-				{4,5,6,7},
-				{14,15,16,17},
-				{24,25,26,27},
-				{34,35,36,37},
-};
+//double oph[4][4] = { 
+//				{4,5,6,7},
+//				{14,15,16,17},
+//				{24,25,26,27},
+//				{34,35,36,37},
+//};
 
 int			pw[]={30,40,50,60};
 int			hz[]={2,5,10,20};
@@ -195,31 +195,23 @@ _FIT			__tp(3,FIT_POW),__oph(3,FIT_POW);
 						break;
 					if(!__oph.Compute())
 						break;
-					
-					for(int j=0; j<__tp.n; ++j)
-						printf("%lf ",__tp.rp[j]);
-					printf(" ...tp\r\n");
-					
-					for(int j=0; j<__oph.n; ++j)
-						printf("%lf ",__oph.rp[j]);
-					printf(" ...oph\r\n");
-					
-					for(int j=0; j<__tp.n; ++j) {
-						_tp[j].Sample(hz[j],__tp.rp[j]);
-						_oph[j].Sample(hz[j],__oph.rp[j]);
+
+					for(int j=0; j<_tp.size(); ++j) {
+						_tp[j].Sample(hz[i],__tp.rp[j]);
+						_oph[j].Sample(hz[i],__oph.rp[j]);
 					}
 			}
 			
-			for(int i=0; i<sizeof(hz)/sizeof(int); ++i) {
+			for(int i=0; i<_tp.size(); ++i) {
 				if(_tp[i].Compute()) {
-					for(int j=0; j<_tp[i].n; ++j)
-						printf("%lf ",_tp[i].rp[j]);
-					printf("...TP\r\n ");
+//					for(int j=0; j<_tp[i].n; ++j)
+//						printf("%lf ",_tp[i].rp[j]);
+//					printf("...TP\r\n ");
 				}
 				if(_oph[i].Compute()) {
-					for(int j=0; j<_oph[i].n; ++j)
-						printf("%lf ",_oph[i].rp[j]);
-					printf(" ...OPH\r\n");
+//					for(int j=0; j<_oph[i].n; ++j)
+//						printf("%lf ",_oph[i].rp[j]);
+//					printf(" ...OPH\r\n");
 				}	
 			}
 }

@@ -663,7 +663,7 @@ FRESULT chk_lock (	/* Check if the file can be accessed */
 	return (acc || Files[i].ctr == 0x100) ? FR_LOCKED : FR_OK;
 } ? FR_OK : FR_TOO_MANY_OPEN_FILES;	/* Is there a blank entry for new object? */
 
-	/* The object has been opened
+	/* The object has been opened */
 
 
 static

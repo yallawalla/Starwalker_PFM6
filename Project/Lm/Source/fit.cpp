@@ -34,9 +34,7 @@ double	_FIT::det(double *p, int x,int y, int n) {
 _FIT::_FIT(int degree, _fittype type) {
 				n=degree;
 				typ=type;
-				tp=new double[4*n*n]();
-				fp=new double[2*n]();
-				rp=new double[2*n]();
+				tp=fp=rp=NULL;
 }
 /*******************************************************************************
 * Function Name	: 
@@ -57,6 +55,13 @@ _FIT::~_FIT() {
 *******************************************************************************/
 int		_FIT::Sample(double t, double f) {
 double	*q = new double(2*n * sizeof(double));
+				if(!tp)
+					tp=new double[4*n*n]();
+				if(!fp)
+					fp=new double[2*n]();
+				if(!rp)
+					rp=new double[2*n]();
+
 				switch(typ) {
 					case FIT_POW:
 						q[0]=1;
@@ -108,6 +113,8 @@ int			_FIT::Sample(double t, double f, double period) {
 * Return				: None
 *******************************************************************************/
 double	*_FIT::Compute() {
+				if(!tp || !fp || !rp)
+					return(NULL);					
 				double	*c,d=det(tp,0,0,n);
 				if(!d)
 					return(NULL);
@@ -133,6 +140,8 @@ double	*_FIT::Compute() {
 * Return				: None
 *******************************************************************************/
 double	_FIT::Eval(double t) {
+				if(!tp || !fp || !rp)
+					return(NULL);					
 				double ft=rp[0];
 				switch(typ) {
 					case FIT_POW:
