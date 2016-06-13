@@ -80,7 +80,7 @@ char	c[128];
 	* @retval : None
 	*/
 void	_PILOT::SaveSettings(FILE *f) {
-			fprintf(f,"%5d                   /.. pilot\r\n",Value);
+			fprintf(f,"%5d                                   /.. pilot\r\n",Value);
 }
 /**
 * @}

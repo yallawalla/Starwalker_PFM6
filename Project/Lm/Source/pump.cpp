@@ -95,7 +95,7 @@ char		c[128];
 	* @retval : None
 	*/
 void		_PUMP::SaveSettings(FILE *f) {
-				fprintf(f,"%5d,%5d,%5d,%5d /.. pump\r\n",fpl,fph,ftl,fth);
+				fprintf(f,"%5d,%5d,%5d,%5d                 /.. pump\r\n",fpl,fph,ftl,fth);
 }
 /*******************************************************************************/
 /**

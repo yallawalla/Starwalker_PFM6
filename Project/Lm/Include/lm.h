@@ -35,7 +35,7 @@
 
 typedef enum		{DBG_CAN_TX, DBG_CAN_RX, DBG_ERR, DBG_INFO, DBG_CAN_COM=21, DBG_EC_SIM=22}	_DEBUG_;
 typedef enum		{PYRO, PYROnew, PILOT, PLOT_OFFSET, PLOT_SCALE, PUMP, FAN, SPRAY, 
-									EC20, CTRL_A, CTRL_B, CTRL_C, CTRL_D, REMOTE_CONSOLE, NONE} _SELECTED_;
+									EC20 ,EC20bias, CTRL_A, CTRL_B, CTRL_C, CTRL_D, REMOTE_CONSOLE, NONE} _SELECTED_;
 //_____________________________________________________________________________
 class	_LM {
 

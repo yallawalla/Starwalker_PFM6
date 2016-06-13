@@ -12,7 +12,9 @@ class _FIT {
 		int			n,typ;
 		double	*rp;			
 		_FIT(int = 3, _fittype=FIT_POW);
+		_FIT(const _FIT &);
 		~_FIT();
+		
 		int			Sample(double, double);
 		int			Sample(double, double, double);
 		double	*Compute(void);

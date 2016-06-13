@@ -660,6 +660,7 @@ bool	_LM::Parse(int i) {
 					break;
 				case __F3:
 				case __f3:
+					Select(PYROnew);
 					break;
 				case __F4:
 				case __f4:
@@ -686,11 +687,16 @@ bool	_LM::Parse(int i) {
 				case __F8:
 				case __f8:
 					Select(EC20);
+					ec20.bias_mode=false;
 					Submit(">2100");
 					break;
 				case __F9:
 				case __f9:
-					Select(PYROnew);
+					if(ec20.bias_mode==true)
+						ec20.bias_mode=false;
+					else
+						ec20.bias_mode=true;		
+					Select(EC20);
 					break;				
 				case __F10:
 				case __f10:

@@ -34,7 +34,23 @@ double	_FIT::det(double *p, int x,int y, int n) {
 _FIT::_FIT(int degree, _fittype type) {
 				n=degree;
 				typ=type;
-				tp=fp=rp=NULL;
+				tp=new double[4*n*n]();
+				fp=new double[2*n]();
+				rp=new double[2*n]();		
+}
+/*******************************************************************************
+* Function Name	: 
+* Description		: copy constructor
+* Output				:
+* Return				: None
+*******************************************************************************/
+_FIT::_FIT(const _FIT &obj)
+{
+				n=obj.n;
+				typ=obj.typ;
+				tp=new double[4*n*n]();
+				fp=new double[2*n]();
+				rp=new double[2*n]();		
 }
 /*******************************************************************************
 * Function Name	: 
@@ -55,12 +71,8 @@ _FIT::~_FIT() {
 *******************************************************************************/
 int		_FIT::Sample(double t, double f) {
 double	*q = new double(2*n * sizeof(double));
-				if(!tp)
-					tp=new double[4*n*n]();
-				if(!fp)
-					fp=new double[2*n]();
-				if(!rp)
-					rp=new double[2*n]();
+				if(!tp || !fp || !rp)
+					return 0;
 
 				switch(typ) {
 					case FIT_POW:
@@ -139,9 +151,9 @@ double	*_FIT::Compute() {
 * Output				: 
 * Return				: None
 *******************************************************************************/
-double	_FIT::Eval(double t) {
+double	_FIT::Eval(double t) {			
 				if(!tp || !fp || !rp)
-					return(NULL);					
+					return(0);					
 				double ft=rp[0];
 				switch(typ) {
 					case FIT_POW:

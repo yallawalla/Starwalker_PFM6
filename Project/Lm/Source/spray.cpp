@@ -144,9 +144,9 @@ char			c[128];
 	* @retval : None
 	*/
 void			_SPRAY::SaveSettings(FILE *f) {
-					fprintf(f,"%5d,%5d,%5d,%5d /.. offset\r\n", offset.cooler, offset.bottle, offset.compressor, offset.air);
-					fprintf(f,"%5d,%5d,%5d,%5d /.. gain\r\n", gain.cooler, gain.bottle, gain.compressor, gain.air);
-					fprintf(f,"%5d,%5d             /.. air, H2O\r\n", AirLevel, WaterLevel);
+					fprintf(f,"%5d,%5d,%5d,%5d                 /.. offset\r\n", offset.cooler, offset.bottle, offset.compressor, offset.air);
+					fprintf(f,"%5d,%5d,%5d,%5d                 /.. gain\r\n", gain.cooler, gain.bottle, gain.compressor, gain.air);
+					fprintf(f,"%5d,%5d                             /.. air, H2O\r\n", AirLevel, WaterLevel);
 }
 /*******************************************************************************/
 /**

@@ -24,7 +24,7 @@
 /*******************************************************************************/
 _EC20::_EC20(void *v) {
 	parent = v;
-	idx=timeout=0;
+	idx = timeout = bias_cnt = bias_mode = 0;
 }
 /*******************************************************************************/
 /**
@@ -44,7 +44,7 @@ _EC20::~_EC20() {
 void		_EC20::LoadSettings(FILE *f) {
 char		c[128];
 				fgets(c,sizeof(c),f);
-				sscanf(c,"%hu,%hu,%hu",&EC20Reset.Pw,&EC20Set.To,&EC20Reset.Period);
+				sscanf(c,"%hu,%hu,%hu,%hu,%hu,%hu",&EC20Reset.Pw,&EC20Set.To,&EC20Reset.Period,&EC20ResetBias.Pw,&bias_cnt,&EC20ResetBias.Period);
 }
 /*******************************************************************************/
 /**
@@ -54,7 +54,25 @@ char		c[128];
 	*/
 /******************************************************************************/	
 void		_EC20::SaveSettings(FILE *f) {
-				fprintf(f,"%5d,%5d,%5d       /.. flash\r\n",EC20Reset.Pw,EC20Set.To,EC20Reset.Period);
+				fprintf(f,"%5d,%5d,%5d,%5d,%5d,%5d     /.. EC20 settings\r\n",EC20Reset.Pw,EC20Set.To,EC20Reset.Period,EC20ResetBias.Pw,bias_cnt,EC20ResetBias.Period);
+}
+/*******************************************************************************/
+/**
+	* @brief	Increment
+	* @param	: None
+	* @retval : None
+	*/
+/******************************************************************************/	
+void		_EC20::UploadParms(void) {
+				EC20Eo.C=0;
+				if(idx < 3) {
+_EC20Set		p=EC20Set;
+_EC20Reset	q=EC20Reset;
+						p.Uo = 10*EC20Set.Uo;
+						q.Period=1000/EC20Reset.Period;
+						p.Send(Sys2Ec);
+						q.Send(Sys2Ec);
+					}
 }
 /*******************************************************************************/
 /**
@@ -67,22 +85,37 @@ int				_EC20::Increment(int updown, int leftright) {
 _LM 			*lm = static_cast<_LM *>(parent);		
 _EC20Cmd		m;
 char			s[16];
-
-					switch(idx=__min(__max(idx+leftright,0),3)) {
-						case 0:			
-							EC20Reset.Pw		= __min(__max(EC20Reset.Pw+updown,5),995);
-						break;
-						case 1: 
-							EC20Set.To			= __min(__max(EC20Set.To+updown,100),1000);
-						break;
-						case 2:
-							EC20Reset.Period= __min(__max(EC20Reset.Period+updown,2),50);
-						break;
-						case 3:
+					if(bias_mode) {
+						switch(idx=__min(__max(idx+leftright,0),3)) {
+							case 0:			
+								EC20ResetBias.Pw		= __min(__max(EC20ResetBias.Pw+updown,5),995);
 							break;
+							case 1:
+								bias_cnt			= __min(__max(bias_cnt+updown,0),20);
+							break;
+							case 2:
+								EC20ResetBias.Period= __min(__max(EC20ResetBias.Period+updown,2),100);
+							break;
+							case 3:
+								break;
+						}
+						printf("\r:EC20 bias    %3.1lf%c,%4d X,%4dHz,",((double)EC20ResetBias.Pw)/10,'%', bias_cnt, EC20ResetBias.Period);
+					} else {
+						switch(idx=__min(__max(idx+leftright,0),3)) {
+							case 0:			
+								EC20Reset.Pw		= __min(__max(EC20Reset.Pw+updown,5),995);
+							break;
+							case 1: 
+								EC20Set.To		= __min(__max(EC20Set.To+updown,100),1000);
+							break;
+							case 2:
+								EC20Reset.Period= __min(__max(EC20Reset.Period+updown,2),40);
+							break;
+							case 3:
+								break;
+						}
+						printf("\r:EC20         %3.1lf%c,%4dus,%4dHz,",((double)EC20Reset.Pw)/10,'%', EC20Set.To, EC20Reset.Period);
 					}
-		    
-					printf("\r:EC20         %3.1lf%c,%4dus,%4dHz,",((double)EC20Reset.Pw)/10,'%', EC20Set.To, EC20Reset.Period);
 	    
 					if(updown || leftright) {
 						EC20Eo.C=0;

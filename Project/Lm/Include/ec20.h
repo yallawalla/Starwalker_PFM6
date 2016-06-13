@@ -89,20 +89,22 @@ typedef __packed struct _EC20Eo {
 class	_EC20 {
 	private:
 		void *parent;
-		int		timeout;
+		int		idx,timeout;
+		short	bias_cnt;
+		_EC20Status		EC20Status;
+		_EC20Cmd			EC20Cmd;
+		_EC20Set			EC20Set;
+		_EC20Reset		EC20ResetBias;
+		_EC20Reset		EC20Reset;
+		_EC20Eo				EC20Eo;
+
 	public:
 		_EC20(void *);
 		~_EC20();
 
-	_EC20Status		EC20Status;
-	_EC20Cmd			EC20Cmd;
-	_EC20Set			EC20Set;
-	_EC20Reset		EC20Reset;
-	_EC20Eo				EC20Eo;
-
-	int			idx;
-	
+	int			bias_mode;
 	int			Increment(int, int);
+	void		UploadParms();
 	void		LoadSettings(FILE *);
 	void		SaveSettings(FILE *);
 	void		Parse(CanTxMsg	*);

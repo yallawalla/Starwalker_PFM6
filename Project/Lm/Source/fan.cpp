@@ -80,7 +80,7 @@ char		c[128];
 	* @retval : None
 	*/
 void		_FAN::SaveSettings(FILE *f) {
-				fprintf(f,"%5d,%5d,%5d,%5d /.. fan\r\n",fpl,fph,ftl,fth);
+				fprintf(f,"%5d,%5d,%5d,%5d                 /.. fan\r\n",fpl,fph,ftl,fth);
 }
 /*******************************************************************************/
 /**
