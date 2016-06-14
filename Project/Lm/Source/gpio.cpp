@@ -44,7 +44,7 @@ _GPIO::_GPIO() {
 			GPIO_SetBits(GPIOC,GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);	
 			GPIO_ResetBits(GPIOC,GPIO_Pin_10);	
 			timeout=0;
-			key = GPIO_ReadInputData(GPIOC) & __MASK;
+			key = GPIO_ReadInputData(GPIOC) & __FOOT_MASK;
 
 #if defined(__IOC_V2__)
 			GPIO_StructInit(&GPIO_InitStructure);
@@ -61,12 +61,12 @@ _GPIO::_GPIO() {
 * Return				: None
 *******************************************************************************/
 int   _GPIO::Poll(void) {
-			if(key != (GPIO_ReadInputData(GPIOC) & __MASK)) {
-				key = GPIO_ReadInputData(GPIOC) & __MASK;
+			if(key != (GPIO_ReadInputData(GPIOC) & __FOOT_MASK)) {
+				key = GPIO_ReadInputData(GPIOC) & __FOOT_MASK;
 				timeout = __time__ + 20;
 			} else if(__time__ > timeout) {
 				timeout=INT_MAX;
-				return key & __MASK;
+				return key & __FOOT_MASK;
 			}
 			return EOF;
 }

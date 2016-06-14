@@ -29,6 +29,13 @@ typedef enum {
 	Id_EC20SyncAck=0x23
 } _code;
 
+typedef enum {
+	__FOOT_OFF	=0x0000f800,
+	__FOOT_IDLE	=0x00003800,
+	__FOOT_MID	=0x0000b800,
+	__FOOT_ON		=0x0000d800
+} __FOOT;
+
 /* ec20 states as from status....																				*******/
 #define 	_COMPLETED	0x8000
 #define		_SIMGEN			0x4000
@@ -90,11 +97,10 @@ class	_EC20 {
 	private:
 		void *parent;
 		int		idx,timeout;
-		short	bias_cnt;
+		short	biasPw,biasF,biasN,bias_cnt;
 		_EC20Status		EC20Status;
 		_EC20Cmd			EC20Cmd;
 		_EC20Set			EC20Set;
-		_EC20Reset		EC20ResetBias;
 		_EC20Reset		EC20Reset;
 		_EC20Eo				EC20Eo;
 
@@ -104,7 +110,7 @@ class	_EC20 {
 
 	int			bias_mode;
 	int			Increment(int, int);
-	void		UploadParms();
+	void		UploadParms(__FOOT);
 	void		LoadSettings(FILE *);
 	void		SaveSettings(FILE *);
 	void		Parse(CanTxMsg	*);

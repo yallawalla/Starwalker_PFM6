@@ -43,12 +43,11 @@ int			e=0;
 				else {
 					TIM4->CCR1=(int)((TIM4->ARR*__ramp(Th2o(),ftl*100,fth*100,fpl,fph))/100);
 					if(tacho && __time__ > timeout) {
-						if(abs(tacho->Eval(Rpm()) - Tau()) > Tau()/10) {
+						if(abs(tacho->Eval(Rpm()) - Tau()) > Tau()/10)
 							_SET_BIT(e,fanTacho);
-							_YELLOW2(100);
-						} else if(__time__ % (5*(Tau()/100)) == 0)
-							_YELLOW2(20);
 					}
+					if(__time__ % (5*(Tau()/100)) == 0)
+						_YELLOW2(20);
 				}
 				return e;
 }

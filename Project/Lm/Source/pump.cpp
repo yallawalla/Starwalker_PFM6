@@ -29,14 +29,13 @@ _PUMP::_PUMP() :_TIM3(0)  {
 				fph=50;
 				ftl=25;
 				fth=40;
-	
+
 				timeout=__time__ + 3000;
 
 				tacho = pressure = current = NULL;
 				offset.cooler=12500;
 				gain.cooler=13300;
 				idx=0;
-				
 }
 /*******************************************************************************/
 /**
@@ -58,12 +57,9 @@ int			e=0;
 							_SET_BIT(e,pumpPressure);
 						if(abs(current->Eval(Rpm()) - adf.Ipump) > adf.Ipump/10)
 							_SET_BIT(e,pumpCurrent);
-						
-						if(_BIT(e,pumpTacho) || _BIT(e,pumpPressure) || _BIT(e,pumpCurrent))
-							_BLUE2(100);
-						else if(__time__ % (5*(Tau()/100)) == 0)
-							_BLUE2(20);
 					}
+					if(__time__ % (5*(Tau()/100)) == 0)
+						_BLUE2(20);
 				} 
 				return e;
 }

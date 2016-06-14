@@ -140,7 +140,7 @@ void	_LM::ErrParse(int e) {
 					_CLEAR_BIT(_LM::error,pyroNoresp);
 				}
 			}
-			
+
 			e = (e ^ _LM::error) & e;									// extract the rising edge only 
 			_LM::error |= e;													// OR into LM error register
 
@@ -157,7 +157,7 @@ void	_LM::ErrParse(int e) {
 					_LM::error=0;
 				}
 			}
-				
+
 			for(int n=0; e && _BIT(_LM::debug, DBG_ERR); e >>= 1, ++n)
 				if(_BIT(e, 0))
 					printf("\r\nerror %03d: %s",n, ErrMsg[n].c_str());	
@@ -688,8 +688,9 @@ bool	_LM::Parse(int i) {
 				case __f8:
 					Select(EC20);
 					ec20.bias_mode=false;
-					Submit(">2100");
-					break;
+{					_EC20Status		m;
+					m.Send(Sys2Ec); //Submit(">2100");
+}					break;
 				case __F9:
 				case __f9:
 					if(ec20.bias_mode==true)
@@ -794,21 +795,20 @@ bool	_LM::Parse(int i) {
 				case __FOOT_OFF:
 					printf("\r\n:\r\n:footswitch disconnected \r\n:");
 					spray.mode.On=false;
-					Submit(">2200");
+					ec20.UploadParms(__FOOT_OFF);
 					break;
 				case __FOOT_IDLE:
 					spray.mode.On=false;
-					Submit(">2200");
-					break;	
+					ec20.UploadParms(__FOOT_IDLE);
+					break;
 				case __FOOT_MID:
 					spray.mode.On=true;
-					Submit(">2200");
-					break;	
+					ec20.UploadParms(__FOOT_MID);
+					break;
 				case __FOOT_ON:		
 					spray.mode.On=true;
-					Submit(">2201");
+					ec20.UploadParms(__FOOT_ON);
 					break;
-
 				case __CtrlY:
 					NVIC_SystemReset();
 				case __CtrlZ:
@@ -816,11 +816,11 @@ bool	_LM::Parse(int i) {
 
 				default:
 					if(!VT100.Line(i))
-						break;	
+						break;
 					if(int err=Decode(VT100.Line()))
 						printf(" ...wtf(%02X)\r\n:",err);
 					else
-						printf("\r\n:");						
+						printf("\r\n:");
 					break;
 			}
 			return true;

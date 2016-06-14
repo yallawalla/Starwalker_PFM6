@@ -77,11 +77,7 @@ void						_led(int, int),
 #define	 				__Down				0x001B5B42
 #define	 				__Right				0x001B5B43
 
-#define	 				__FOOT_OFF		0x0000f800
-#define	 				__FOOT_IDLE		0x00003800
-#define	 				__FOOT_MID		0x0000b800
-#define	 				__FOOT_ON			0x0000d800
-								
+
 typedef	enum 		{PARSE_OK,PARSE_SYNTAX,PARSE_ILLEGAL,PARSE_MISSING,PARSE_MEM} ERR_MSG;
 
 typedef struct _buffer {
