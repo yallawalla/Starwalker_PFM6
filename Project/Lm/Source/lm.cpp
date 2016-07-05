@@ -148,7 +148,7 @@ void	_LM::ErrParse(int e) {
 				if(e) {
 					ErrTimeout(5000);
 					if(e & error_mask) {									// mask off inactive errors...
-						Submit("@error.led");
+//						Submit("@error.led");
 						_SYS_SHG_DISABLE;
 					}
 

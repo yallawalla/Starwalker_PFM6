@@ -46,7 +46,8 @@ void	_PYRO::ISR(_PYRO *p) {
 				PYRO_PORT->OTYPER |=  PYRO_BIT;									// set pin to opendrain  output
 
 				if(nbits > _MAXBITS) {													// data finished...?
-short			i=__time__ - sync,
+//short			i=__time__ - sync,
+short			i=__time__,
 					j=temp &  0x3fff,
 					k=(short)((temp >> 15) - (0x10000 - 0x2000));	// 17 bit = 1, offset v senzorju, 0x1000 offset da se izognes negativnim vredostim
 					count += _To;																	// increment data counter

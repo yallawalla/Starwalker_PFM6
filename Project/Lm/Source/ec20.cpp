@@ -66,53 +66,61 @@ void		_EC20::SaveSettings(FILE *f) {
 	* @param	: None
 	* @retval : None
 	*/
-/******************************************************************************/	
+/******************************************************************************/
 void		_EC20::UploadParms(__FOOT f) {
-	
-_EC20Set		p=EC20Set;
-_EC20Reset	q=EC20Reset;
-_EC20Cmd		m=EC20Cmd;
+_LM 		*lm = static_cast<_LM *>(parent);
+
+_EC20Set		set=EC20Set;
+_EC20Reset	reset=EC20Reset;
+_EC20Cmd		cmd=EC20Cmd;
 
 				switch(f) {
 					default:
 					case __FOOT_OFF:
 					case __FOOT_IDLE:
+						lm->pilot.Off();
+						lm->Submit("@standby.led");
 						bias_cnt=0;
-						m.Cmd =0;
-						m.Send(Sys2Ec);
+						cmd.Cmd =0;
+						cmd.Send(Sys2Ec);
 						break;
+
 					case __FOOT_MID:
+						lm->pilot.On();
+						lm->Submit("@ready.led");
 						bias_cnt=0;
-						m.Cmd =_HV1_EN;
-						m.Send(Sys2Ec);
-						p.Uo = 10*EC20Set.Uo;
+						cmd.Cmd =_HV1_EN;
+						cmd.Send(Sys2Ec);
+						set.Uo = 10*EC20Set.Uo;
 						if(bias_cnt==biasN) {
-							q.Period=1000/EC20Reset.Period;
-							q.Send(Sys2Ec);
-							p.Send(Sys2Ec);
+							reset.Period=1000/EC20Reset.Period;
+							reset.Send(Sys2Ec);
+							set.Send(Sys2Ec);
 						} else if(bias_cnt==0){
-							q.Period=1000/biasF;
-							q.Pw=biasPw;
-							q.Send(Sys2Ec);
-							p.Send(Sys2Ec);
+							reset.Period=1000/biasF;
+							reset.Pw=biasPw;
+							reset.Send(Sys2Ec);
+							set.Send(Sys2Ec);
 						}			
 						break;
+
 					case __FOOT_ON:
+						lm->Submit("@lase.led");
 						EC20Eo.C=0;
-						p.Uo = 10*EC20Set.Uo;
+						set.Uo = 10*EC20Set.Uo;
 						if(bias_cnt==biasN) {
-							q.Period=1000/EC20Reset.Period;
-							q.Send(Sys2Ec);
-							p.Send(Sys2Ec);
+							reset.Period=1000/EC20Reset.Period;
+							reset.Send(Sys2Ec);
+							set.Send(Sys2Ec);
 						} else if(bias_cnt==0){
-							q.Period=1000/biasF;
-							q.Pw=biasPw;
-							q.Send(Sys2Ec);
-							p.Send(Sys2Ec);
+							reset.Period=1000/biasF;
+							reset.Pw=biasPw;
+							reset.Send(Sys2Ec);
+							set.Send(Sys2Ec);
 						}			
 						if(bias_cnt++ == 0) {
-							m.Cmd =_HV1_EN + _FOOT_REQ;
-							m.Send(Sys2Ec);
+							cmd.Cmd =_HV1_EN + _FOOT_REQ;
+							cmd.Send(Sys2Ec);
 						}
 						break;
 				}
@@ -152,7 +160,7 @@ char 			c[128];
 								EC20Set.To		= __min(__max(EC20Set.To+updown,100),1000);
 							break;
 							case 2:
-								EC20Reset.Period= __min(__max(EC20Reset.Period+updown,2),40);
+								EC20Reset.Period= __min(__max(EC20Reset.Period+updown,2),50);
 							break;
 							case 3:
 								break;
@@ -171,22 +179,18 @@ char 			c[128];
 //							q.Send(Sys2Ec);
 //						}
 //					}
-					
+
 					lm->pyro.Enabled=true;
 					Timeout(EOF);
 					switch(EC20Status.Status & _STATUS_MASK) {
 						case _COMPLETED:																	// standby
 							sprintf(strchr(c,'\0')," STNDBY");
-							lm->pilot.Off();
-							lm->Submit("@standby.led");
 							if(updown>0 && idx==3)
 								UploadParms(__FOOT_MID);
 						break;
 							
 						case _COMPLETED + _SIM_DET:												// simmer
 							sprintf(strchr(c,'\0')," SIMMER");
-							lm->pilot.On();
-							lm->Submit("@ready.led");
 							if(updown>0 && idx==3)
 								UploadParms(__FOOT_ON);
 							if(updown<0 && idx==3)
@@ -194,20 +198,17 @@ char 			c[128];
 						break;
 							
 						case _COMPLETED  + _SIM_DET + _FOOT_ACK:
-							sprintf(strchr(c,'\0')," LASE..");														// lasing
-							lm->pilot.On();
-							lm->Submit("@lase.led");
+							sprintf(strchr(c,'\0')," LASE..");							// lasing
 							if(updown<0 && idx==3)
 								UploadParms(__FOOT_MID);
 						break;
 
 						default:
 							lm->Submit("@standby.led");
-							sprintf(strchr(c,'\0')," wait..");														// cakanje na ec20
+							sprintf(strchr(c,'\0')," wait..");							// cakanje na ec20
 							lm->pilot.Off();
 							break;
 						}
-					
 
 						if(!bias_mode && EC20Eo.C)
 							sprintf(strchr(c,'\0'),"  %3.1lfJ,%5dW,%3.1lf'C,%3.1lf'C,%5.1lf",
@@ -216,10 +217,13 @@ char 			c[128];
 																														(double)_ADC::Th2o()/100,
 																															(lm->plotA-7800.0)/200.0+25.0,
 																																(double)lm->plotB);
-																														
-						printf("\r%s",c);
-//						for(int i=strlen(c)-7*(8-idx)+3; --i;)
-//							printf("\b");														// mismas... poravnava kurzorja	xD
+																					
+						if(lm->Selected() == EC20) {
+							printf("\r%s",c);
+							int i=strlen(c)-(18+idx*7);
+							while(--i)
+							printf("\b");		
+						}
 						return 0;
 }
 /*******************************************************************************/
@@ -298,7 +302,7 @@ _LM 				*lm = static_cast<_LM *>(parent);
 									break;	
 //____________EC20 to Sys energy  ______________________________________________________
 									case Id_EC20Eo:
-//									lm->Submit("@energy.led");
+										lm->Submit("@energy.led");
 										UploadParms(__FOOT_ON);
 										memcpy(&EC20Eo, msg->Data, msg->DLC);
 										if(lm->pyro.Enabled && lm->Selected() == EC20)

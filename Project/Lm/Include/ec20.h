@@ -5,28 +5,25 @@
 #include				"isr.h"
 
 typedef enum {
-	Sys2Ioc				=0x20,
-	Ioc2Sys				=0x40,
-	Sys2Ec				=0x21,
-	Ec2Sys				=0x41,
-	Ec2Sync				=0x42,					// sync. 300u prior to laser
-	Can2ComIoc		=0xB0,					// local console access req.
-  Com2CanIoc		=0xB1,					// local console data, transmit only, no filter
-	Com2CanEc20		=0xB3,					// ec20 console data
-	Can2ComEc20		=0xBA,					// ec20 console access req. transmit only, no filter
-	Footswch			=0x22,					// footswitch req. to ec20, transmit only, no filter
+	Sys2Ioc				=0x20,					//
+	Ioc2Sys				=0x40,					//
+	Sys2Ec				=0x21,					//
+	Ec2Sys				=0x41,					//
+	Ec2Sync				=0x42,					// sync. message, 300u prior to laser
+	Can2ComIoc		=0xB0,					// IOC local console access req.
+  Com2CanIoc		=0xB1,					// IOC local console data, transmit only, no filter
+	Can2ComEc20		=0xBA,					// EC20 console access req. transmit only, no filter
+	Com2CanEc20		=0xB3,					// EC20 console data
 	SprayStatus		=0x23,					
 	SprayCommand	=0x24					
 } _stdid;
 
 typedef enum {
-	Id_EC20Status	=0x00,
-	Id_EC20Cmd		=0x02,
-	Id_EC20Set		=0x03,
-	Id_EC20Reset	=0x14,
-	Id_EC20Eo			=0x07,
-	Id_EC20SyncReq=0x22,
-	Id_EC20SyncAck=0x23
+	Id_EC20Status	=0x00,					// status report; ec >> sys 
+	Id_EC20Cmd		=0x02,					// command frame; sys >> ec
+	Id_EC20Set		=0x03,					// set Uo, To, mode; sys >> ec
+	Id_EC20Reset	=0x14,					// set repetition, pw, fo; sys >> ec
+	Id_EC20Eo			=0x07						// energy ack; ec >> sys
 } _code;
 
 typedef enum {
@@ -36,35 +33,31 @@ typedef enum {
 	__FOOT_ON		=0x0000d800
 } __FOOT;
 
-/* ec20 states as from status....																				*******/
-#define 	_COMPLETED	0x8000
-#define		_SIMGEN			0x4000
-#define 	_SIM_DET		0x0001		
-#define 	_TS1_IOC		0x1000
-#define 	_FOOT_ACK		0x0200
+// ec20 command bits
+#define		_HV1_EN			0x0001									// simmer req
+#define 	_FOOT_REQ		0x0100									// footswitch req
+
+// ec20 bit definition as from status....
+#define 	_COMPLETED	0x8000									// selftest completed after startup or reboot
+#define 	_SIM_DET		0x0001									// simmer ack
+#define 	_FOOT_ACK		0x0200									// footswitch ack
+
 #define		_STATUS_MASK				(_COMPLETED  +  _SIM_DET  +  _FOOT_ACK)
-
-/* ec20 status commands																									*******/
-#define		_SIMGEN			0x4000
-#define		_HV1_EN			0x0001
-#define 	_FOOT_REQ		0x0100
-#define 	_NOCOMM			0xffff
-
 void			Send2Can(_stdid, void *, size_t);
 
 typedef __packed struct _EC20Status {
 	_code						code;
 	unsigned short	Status;
 	unsigned short	Error;
-	_EC20Status() : code(Id_EC20Status),Status(0),Error(0) {}	
-	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Status)); };
+	_EC20Status() : code(Id_EC20Status),Status(0),Error(0)			{}	
+	void	Send(_stdid s) 																				{ Send2Can(s,(void *)&code,sizeof(_EC20Status)); };
 	} _EC20Status;
 
 typedef __packed struct _EC20Cmd {
 	_code						code;
 	unsigned short	Cmd;
-	_EC20Cmd() : code(Id_EC20Cmd),Cmd(_NOCOMM) {}
-	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Cmd)); };
+	_EC20Cmd() : code(Id_EC20Cmd),Cmd(0) 												{}
+	void	Send(_stdid s) 																				{ Send2Can(s,(void *)&code,sizeof(_EC20Cmd)); };
 } _EC20Cmd;
 
 typedef __packed struct _EC20Set {
@@ -72,8 +65,8 @@ typedef __packed struct _EC20Set {
 	unsigned short	Uo;
 	unsigned short	To;
 	unsigned char		Mode;
-	_EC20Set() : code(Id_EC20Set),Uo(420),To(200),Mode(0x02) {}
-	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Set)); };
+	_EC20Set() : code(Id_EC20Set),Uo(420),To(200),Mode(0x02)		{}
+	void	Send(_stdid s)																				{ Send2Can(s,(void *)&code,sizeof(_EC20Set)); };
 } _EC20Set;
 
 typedef __packed struct _EC20Reset {
@@ -81,16 +74,16 @@ typedef __packed struct _EC20Reset {
 	unsigned short	Period;
 	unsigned short	Pw;
 	unsigned char		Fo;
-	_EC20Reset() : code(Id_EC20Reset),Period(2),Pw(500),Fo(100) {}
-	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Reset)); };
+	_EC20Reset() : code(Id_EC20Reset),Period(2),Pw(500),Fo(100)	{}
+	void	Send(_stdid s)																				{ Send2Can(s,(void *)&code,sizeof(_EC20Reset)); };
 } _EC20Reset;
 
 typedef __packed struct _EC20Eo {
 	_code						code;
 	unsigned short	UI;
 	unsigned short	C;
-	_EC20Eo() : code(Id_EC20Eo),UI(0),C(0) {}
-	void	Send(_stdid s) { Send2Can(s,(void *)&code,sizeof(_EC20Eo)); };
+	_EC20Eo() : code(Id_EC20Eo),UI(0),C(0) 											{}
+	void	Send(_stdid s)																				{ Send2Can(s,(void *)&code,sizeof(_EC20Eo)); };
 } _EC20Eo;
 
 class	_EC20 {
@@ -110,6 +103,7 @@ class	_EC20 {
 
 	int			bias_mode;
 	int			Increment(int, int);
+	int			Refresh()													{return Increment(0,0);};
 	void		UploadParms(__FOOT);
 	void		LoadSettings(FILE *);
 	void		SaveSettings(FILE *);
@@ -117,7 +111,7 @@ class	_EC20 {
 	
 	static 	void	ECsimulator(void *);
 
-	bool		Timeout(void)		{ return timeout && __time__ > timeout; }
-	void		Timeout(int t)	{ t > 0 ? timeout = __time__ + t : timeout=0; }
+	bool		Timeout(void)											{ return timeout && __time__ > timeout; }
+	void		Timeout(int t)										{ t > 0 ? timeout = __time__ + t : timeout=0; }
 };
 #endif

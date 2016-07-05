@@ -51,7 +51,7 @@ int			e=0;
 				else {
 					DAC_SetChannel1Data(DAC_Align_12b_R,__ramp(Th2o(),ftl*100,fth*100,fpl*0xfff/100,fph*0xfff/100));
 					if(tacho && pressure && current && __time__ > timeout) {
-						if(abs(tacho->Eval(Rpm()) - Tau()) > Tau()/10) 
+						if(abs(tacho->Eval(Rpm()) - Tau()) > Tau()/10)    
 							_SET_BIT(e,pumpTacho);
 						if(abs(pressure->Eval(Rpm()) - adf.cooler) > adf.cooler/10)
 							_SET_BIT(e,pumpPressure);

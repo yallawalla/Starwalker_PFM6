@@ -48,7 +48,7 @@ class	_ADC {
 		_ADC();
 		static 	_ADMA	buffer,adf,offset,gain;
 		static	int	Status(void);
-		static	int		Th2o(void);
+		static	int	Th2o(void);
 };
 
 #endif
