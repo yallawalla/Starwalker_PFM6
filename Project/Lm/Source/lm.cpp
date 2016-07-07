@@ -123,13 +123,14 @@ _LM::~_LM() {
 *******************************************************************************/
 void	_LM::ErrParse(int e) {
 	
+			e &= error_mask;
 			e ? _RED1(200): _GREEN1(20);
 	
 			if(ec20.Timeout()) {
 				_SET_BIT(e,ec20noresp);
 				ec20.Timeout(EOF);
 			}
-	
+
 			if(e ^ _LM::error) {
 				if(_BIT(e,pyroNoresp)) {
 					pump.Disable();
@@ -147,10 +148,10 @@ void	_LM::ErrParse(int e) {
 			if(!ErrTimeout())	{
 				if(e) {
 					ErrTimeout(5000);
-					if(e & error_mask) {									// mask off inactive errors...
+//					if(e & error_mask) {									// mask off inactive errors...
 //						Submit("@error.led");
 						_SYS_SHG_DISABLE;
-					}
+//					}
 
 				} else {
 					_SYS_SHG_ENABLE;

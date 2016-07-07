@@ -101,7 +101,7 @@ _EC20Cmd		cmd=EC20Cmd;
 							reset.Pw=biasPw;
 							reset.Send(Sys2Ec);
 							set.Send(Sys2Ec);
-						}			
+						}
 						break;
 
 					case __FOOT_ON:
