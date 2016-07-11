@@ -67,7 +67,7 @@ void		_EC20::SaveSettings(FILE *f) {
 	* @retval : None
 	*/
 /******************************************************************************/
-void		_EC20::UploadParms(__FOOT f) {
+void		_EC20::ReqStatus(__FOOT f) {
 _LM 		*lm = static_cast<_LM *>(parent);
 
 _EC20Set		set=EC20Set;
@@ -93,10 +93,11 @@ _EC20Cmd		cmd=EC20Cmd;
 						cmd.Send(Sys2Ec);
 						set.Uo = 10*EC20Set.Uo;
 						if(bias_cnt==biasN) {
-							reset.Period=1000/EC20Reset.Period;
+							reset.Period=__max(1000/EC20Reset.Period - biasN*1000/biasF, 1000/biasF);
 							reset.Send(Sys2Ec);
 							set.Send(Sys2Ec);
-						} else if(bias_cnt==0){
+							bias_cnt=0;
+						} else if(bias_cnt++==0){
 							reset.Period=1000/biasF;
 							reset.Pw=biasPw;
 							reset.Send(Sys2Ec);
@@ -104,24 +105,26 @@ _EC20Cmd		cmd=EC20Cmd;
 						}
 						break;
 
-					case __FOOT_ON:
-						lm->Submit("@lase.led");
+					case __FOOT_ACK:
 						EC20Eo.C=0;
 						set.Uo = 10*EC20Set.Uo;
 						if(bias_cnt==biasN) {
-							reset.Period=1000/EC20Reset.Period;
+							reset.Period=__max(1000/EC20Reset.Period - biasN*1000/biasF, 1000/biasF);
 							reset.Send(Sys2Ec);
 							set.Send(Sys2Ec);
-						} else if(bias_cnt==0){
+							bias_cnt=0;
+						} else if(bias_cnt++==0){
 							reset.Period=1000/biasF;
 							reset.Pw=biasPw;
 							reset.Send(Sys2Ec);
 							set.Send(Sys2Ec);
-						}			
-						if(bias_cnt++ == 0) {
+						}
+						break;
+ 					case __FOOT_ON:
+						EC20Eo.C=0;
+						lm->Submit("@lase.led");
 							cmd.Cmd =_HV1_EN + _FOOT_REQ;
 							cmd.Send(Sys2Ec);
-						}
 						break;
 				}
 }
@@ -186,21 +189,21 @@ char 			c[128];
 						case _COMPLETED:																	// standby
 							sprintf(strchr(c,'\0')," STNDBY");
 							if(updown>0 && idx==3)
-								UploadParms(__FOOT_MID);
+								ReqStatus(__FOOT_MID);
 						break;
 							
 						case _COMPLETED + _SIM_DET:												// simmer
 							sprintf(strchr(c,'\0')," SIMMER");
 							if(updown>0 && idx==3)
-								UploadParms(__FOOT_ON);
+								ReqStatus(__FOOT_ON);
 							if(updown<0 && idx==3)
-								UploadParms(__FOOT_IDLE);
+								ReqStatus(__FOOT_IDLE);
 						break;
 							
 						case _COMPLETED  + _SIM_DET + _FOOT_ACK:
 							sprintf(strchr(c,'\0')," LASE..");							// lasing
 							if(updown<0 && idx==3)
-								UploadParms(__FOOT_MID);
+								ReqStatus(__FOOT_MID);
 						break;
 
 						default:
@@ -303,7 +306,7 @@ _LM 				*lm = static_cast<_LM *>(parent);
 //____________EC20 to Sys energy  ______________________________________________________
 									case Id_EC20Eo:
 										lm->Submit("@energy.led");
-										UploadParms(__FOOT_ON);
+										ReqStatus(__FOOT_ACK);
 										memcpy(&EC20Eo, msg->Data, msg->DLC);
 										if(lm->pyro.Enabled && lm->Selected() == EC20)
 											lm->Refresh();

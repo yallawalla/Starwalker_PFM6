@@ -30,7 +30,8 @@ typedef enum {
 	__FOOT_OFF	=0x0000f800,
 	__FOOT_IDLE	=0x00003800,
 	__FOOT_MID	=0x0000b800,
-	__FOOT_ON		=0x0000d800
+	__FOOT_ON		=0x0000d800,
+	__FOOT_ACK	=0x00000001
 } __FOOT;
 
 // ec20 command bits
@@ -104,7 +105,7 @@ class	_EC20 {
 	int			bias_mode;
 	int			Increment(int, int);
 	int			Refresh()													{return Increment(0,0);};
-	void		UploadParms(__FOOT);
+	void		ReqStatus(__FOOT);
 	void		LoadSettings(FILE *);
 	void		SaveSettings(FILE *);
 	void		Parse(CanTxMsg	*);

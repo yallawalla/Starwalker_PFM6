@@ -75,19 +75,19 @@
       <OPTFL>
         <tvExp>1</tvExp>
         <tvExpOptDlg>0</tvExpOptDlg>
-        <IsCurrentTarget>0</IsCurrentTarget>
+        <IsCurrentTarget>1</IsCurrentTarget>
       </OPTFL>
-      <CpuCode>255</CpuCode>
+      <CpuCode>18</CpuCode>
       <Books>
         <Book>
           <Number>0</Number>
           <Title>Schematics (MCBSTM32F200)</Title>
-          <Path>C:\Keil\ARM\PACK\Keil\STM32F2xx_DFP\1.0.7\Documents\mcbstm32f200-schematics.pdf</Path>
+          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F2xx_DFP\2.6.0\MDK\Boards\Keil\MCBSTM32F200\Documentation\mcbstm32f200-schematics.pdf</Path>
         </Book>
         <Book>
           <Number>1</Number>
           <Title>User Manual (MCBSTM32F200)</Title>
-          <Path>C:\Keil\ARM\PACK\Keil\STM32F2xx_DFP\1.0.7\Documents\mcbstm32f200.chm</Path>
+          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F2xx_DFP\2.6.0\MDK\Boards\Keil\MCBSTM32F200\Documentation\mcbstm32f200.chm</Path>
         </Book>
         <Book>
           <Number>2</Number>
@@ -203,6 +203,9 @@
       <LintExecutable></LintExecutable>
       <LintConfigFile></LintConfigFile>
       <bLintAuto>0</bLintAuto>
+      <Lin2Executable></Lin2Executable>
+      <Lin2ConfigFile></Lin2ConfigFile>
+      <bLin2Auto>0</bLin2Auto>
     </TargetOption>
   </Target>
 
@@ -260,19 +263,19 @@
       <OPTFL>
         <tvExp>1</tvExp>
         <tvExpOptDlg>0</tvExpOptDlg>
-        <IsCurrentTarget>1</IsCurrentTarget>
+        <IsCurrentTarget>0</IsCurrentTarget>
       </OPTFL>
       <CpuCode>18</CpuCode>
       <Books>
         <Book>
           <Number>0</Number>
           <Title>Schematics (MCBSTM32F200)</Title>
-          <Path>C:\Keil\ARM\PACK\Keil\STM32F2xx_DFP\1.0.7\Documents\mcbstm32f200-schematics.pdf</Path>
+          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F2xx_DFP\2.6.0\MDK\Boards\Keil\MCBSTM32F200\Documentation\mcbstm32f200-schematics.pdf</Path>
         </Book>
         <Book>
           <Number>1</Number>
           <Title>User Manual (MCBSTM32F200)</Title>
-          <Path>C:\Keil\ARM\PACK\Keil\STM32F2xx_DFP\1.0.7\Documents\mcbstm32f200.chm</Path>
+          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F2xx_DFP\2.6.0\MDK\Boards\Keil\MCBSTM32F200\Documentation\mcbstm32f200.chm</Path>
         </Book>
         <Book>
           <Number>2</Number>
@@ -302,7 +305,7 @@
         <tRSysVw>1</tRSysVw>
         <sRunDeb>0</sRunDeb>
         <sLrtime>0</sLrtime>
-        <nTsel>13</nTsel>
+        <nTsel>5</nTsel>
         <sDll></sDll>
         <sDllPa></sDllPa>
         <sDlgDll></sDlgDll>
@@ -407,6 +410,9 @@
       <LintExecutable></LintExecutable>
       <LintConfigFile></LintConfigFile>
       <bLintAuto>0</bLintAuto>
+      <Lin2Executable></Lin2Executable>
+      <Lin2ConfigFile></Lin2ConfigFile>
+      <bLin2Auto>0</bLin2Auto>
     </TargetOption>
   </Target>
 
@@ -421,7 +427,6 @@
       <FileNumber>1</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\main.c</PathWithFileName>
@@ -434,7 +439,6 @@
       <FileNumber>2</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\app.c</PathWithFileName>
@@ -447,7 +451,6 @@
       <FileNumber>3</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\appmisc.c</PathWithFileName>
@@ -460,7 +463,6 @@
       <FileNumber>4</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\com.c</PathWithFileName>
@@ -473,7 +475,6 @@
       <FileNumber>5</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\proc.c</PathWithFileName>
@@ -494,7 +495,6 @@
       <FileNumber>6</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\adc.c</PathWithFileName>
@@ -507,7 +507,6 @@
       <FileNumber>7</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\nvic.c</PathWithFileName>
@@ -520,7 +519,6 @@
       <FileNumber>8</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\timers.c</PathWithFileName>
@@ -533,7 +531,6 @@
       <FileNumber>9</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\can.c</PathWithFileName>
@@ -546,7 +543,6 @@
       <FileNumber>10</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\i2c.c</PathWithFileName>
@@ -559,7 +555,6 @@
       <FileNumber>11</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\usart.c</PathWithFileName>
@@ -572,7 +567,6 @@
       <FileNumber>12</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\dac.c</PathWithFileName>
@@ -593,7 +587,6 @@
       <FileNumber>13</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\io.c</PathWithFileName>
@@ -606,7 +599,6 @@
       <FileNumber>14</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\led.c</PathWithFileName>
@@ -619,7 +611,6 @@
       <FileNumber>15</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\app\retarget.c</PathWithFileName>
@@ -632,7 +623,6 @@
       <FileNumber>16</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\usb\stm32fxxx_it.c</PathWithFileName>
@@ -653,7 +643,6 @@
       <FileNumber>17</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\usb\usbd_usr.c</PathWithFileName>
@@ -666,7 +655,6 @@
       <FileNumber>18</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\usb\usbd_storage_msd.c</PathWithFileName>
@@ -679,7 +667,6 @@
       <FileNumber>19</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\usb\usb_bsp.c</PathWithFileName>
@@ -700,7 +687,6 @@
       <FileNumber>20</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\usb\usbh_msc_usr.c</PathWithFileName>
@@ -721,7 +707,6 @@
       <FileNumber>21</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_OTG_Driver\src\usb_dcd_int.c</PathWithFileName>
@@ -734,7 +719,6 @@
       <FileNumber>22</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_OTG_Driver\src\usb_core.c</PathWithFileName>
@@ -747,7 +731,6 @@
       <FileNumber>23</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_OTG_Driver\src\usb_dcd.c</PathWithFileName>
@@ -760,7 +743,6 @@
       <FileNumber>24</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_OTG_Driver\src\usb_hcd_int.c</PathWithFileName>
@@ -773,7 +755,6 @@
       <FileNumber>25</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_OTG_Driver\src\usb_hcd.c</PathWithFileName>
@@ -794,7 +775,6 @@
       <FileNumber>26</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_Device_Library\Core\src\usbd_req.c</PathWithFileName>
@@ -807,7 +787,6 @@
       <FileNumber>27</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_Device_Library\Core\src\usbd_core.c</PathWithFileName>
@@ -820,7 +799,6 @@
       <FileNumber>28</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_Device_Library\Core\src\usbd_ioreq.c</PathWithFileName>
@@ -841,7 +819,6 @@
       <FileNumber>29</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_HOST_Library\Core\src\usbh_stdreq.c</PathWithFileName>
@@ -854,7 +831,6 @@
       <FileNumber>30</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_HOST_Library\Core\src\usbh_core.c</PathWithFileName>
@@ -867,7 +843,6 @@
       <FileNumber>31</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_HOST_Library\Core\src\usbh_hcs.c</PathWithFileName>
@@ -880,7 +855,6 @@
       <FileNumber>32</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_HOST_Library\Core\src\usbh_ioreq.c</PathWithFileName>
@@ -901,7 +875,6 @@
       <FileNumber>33</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_Device_Library\Class\msc\src\usbd_msc_bot.c</PathWithFileName>
@@ -914,7 +887,6 @@
       <FileNumber>34</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_Device_Library\Class\msc\src\usbd_msc_core.c</PathWithFileName>
@@ -927,7 +899,6 @@
       <FileNumber>35</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_Device_Library\Class\msc\src\usbd_msc_data.c</PathWithFileName>
@@ -940,7 +911,6 @@
       <FileNumber>36</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_Device_Library\Class\msc\src\usbd_msc_scsi.c</PathWithFileName>
@@ -953,7 +923,6 @@
       <FileNumber>37</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\usb\usbd_msc_desc.c</PathWithFileName>
@@ -974,7 +943,6 @@
       <FileNumber>38</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_Device_Library\Class\cdc\src\usbd_cdc_core.c</PathWithFileName>
@@ -987,7 +955,6 @@
       <FileNumber>39</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\usb\usbd_cdc_vcp.c</PathWithFileName>
@@ -1000,7 +967,6 @@
       <FileNumber>40</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\usb\usbd_vcp_desc.c</PathWithFileName>
@@ -1021,7 +987,6 @@
       <FileNumber>41</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_HOST_Library\Class\MSC\src\usbh_msc_bot.c</PathWithFileName>
@@ -1034,7 +999,6 @@
       <FileNumber>42</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_HOST_Library\Class\MSC\src\usbh_msc_core.c</PathWithFileName>
@@ -1047,7 +1011,6 @@
       <FileNumber>43</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_HOST_Library\Class\MSC\src\usbh_msc_fatfs.c</PathWithFileName>
@@ -1060,7 +1023,6 @@
       <FileNumber>44</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32_USB_HOST_Library\Class\MSC\src\usbh_msc_scsi.c</PathWithFileName>
@@ -1081,7 +1043,6 @@
       <FileNumber>45</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\FatFs\ff.c</PathWithFileName>
@@ -1094,7 +1055,6 @@
       <FileNumber>46</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\FatFs\option\ccsbcs.c</PathWithFileName>
@@ -1115,7 +1075,6 @@
       <FileNumber>47</FileNumber>
       <FileType>2</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\CMSIS\Device\ST\STM32F2xx\Source\Templates\arm\startup_stm32f2xx.s</PathWithFileName>
@@ -1128,7 +1087,6 @@
       <FileNumber>48</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\system_stm32f2xx.c</PathWithFileName>
@@ -1149,7 +1107,6 @@
       <FileNumber>49</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_syscfg.c</PathWithFileName>
@@ -1162,7 +1119,6 @@
       <FileNumber>50</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_dma.c</PathWithFileName>
@@ -1175,7 +1131,6 @@
       <FileNumber>51</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_exti.c</PathWithFileName>
@@ -1188,7 +1143,6 @@
       <FileNumber>52</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_flash.c</PathWithFileName>
@@ -1201,7 +1155,6 @@
       <FileNumber>53</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_fsmc.c</PathWithFileName>
@@ -1214,7 +1167,6 @@
       <FileNumber>54</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_gpio.c</PathWithFileName>
@@ -1227,7 +1179,6 @@
       <FileNumber>55</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_i2c.c</PathWithFileName>
@@ -1240,7 +1191,6 @@
       <FileNumber>56</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_pwr.c</PathWithFileName>
@@ -1253,7 +1203,6 @@
       <FileNumber>57</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_rcc.c</PathWithFileName>
@@ -1266,7 +1215,6 @@
       <FileNumber>58</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_spi.c</PathWithFileName>
@@ -1279,7 +1227,6 @@
       <FileNumber>59</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_usart.c</PathWithFileName>
@@ -1292,7 +1239,6 @@
       <FileNumber>60</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_tim.c</PathWithFileName>
@@ -1305,7 +1251,6 @@
       <FileNumber>61</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_sdio.c</PathWithFileName>
@@ -1318,7 +1263,6 @@
       <FileNumber>62</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\misc.c</PathWithFileName>
@@ -1331,7 +1275,6 @@
       <FileNumber>63</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_adc.c</PathWithFileName>
@@ -1344,7 +1287,6 @@
       <FileNumber>64</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_can.c</PathWithFileName>
@@ -1357,7 +1299,6 @@
       <FileNumber>65</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_crc.c</PathWithFileName>
@@ -1370,7 +1311,6 @@
       <FileNumber>66</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_cryp.c</PathWithFileName>
@@ -1383,7 +1323,6 @@
       <FileNumber>67</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_cryp_aes.c</PathWithFileName>
@@ -1396,7 +1335,6 @@
       <FileNumber>68</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_cryp_des.c</PathWithFileName>
@@ -1409,7 +1347,6 @@
       <FileNumber>69</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_cryp_tdes.c</PathWithFileName>
@@ -1422,7 +1359,6 @@
       <FileNumber>70</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_dac.c</PathWithFileName>
@@ -1435,7 +1371,6 @@
       <FileNumber>71</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_dbgmcu.c</PathWithFileName>
@@ -1448,7 +1383,6 @@
       <FileNumber>72</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_dcmi.c</PathWithFileName>
@@ -1461,7 +1395,6 @@
       <FileNumber>73</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_hash.c</PathWithFileName>
@@ -1474,7 +1407,6 @@
       <FileNumber>74</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_hash_md5.c</PathWithFileName>
@@ -1487,7 +1419,6 @@
       <FileNumber>75</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_hash_sha1.c</PathWithFileName>
@@ -1500,7 +1431,6 @@
       <FileNumber>76</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_iwdg.c</PathWithFileName>
@@ -1513,7 +1443,6 @@
       <FileNumber>77</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_rng.c</PathWithFileName>
@@ -1526,7 +1455,6 @@
       <FileNumber>78</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_rtc.c</PathWithFileName>
@@ -1539,7 +1467,6 @@
       <FileNumber>79</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\stm32f2xx_wwdg.c</PathWithFileName>
@@ -1560,7 +1487,6 @@
       <FileNumber>80</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\readme.txt</PathWithFileName>

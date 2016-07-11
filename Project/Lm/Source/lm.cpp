@@ -796,19 +796,19 @@ bool	_LM::Parse(int i) {
 				case __FOOT_OFF:
 					printf("\r\n:\r\n:footswitch disconnected \r\n:");
 					spray.mode.On=false;
-					ec20.UploadParms(__FOOT_OFF);
+					ec20.ReqStatus(__FOOT_OFF);
 					break;
 				case __FOOT_IDLE:
 					spray.mode.On=false;
-					ec20.UploadParms(__FOOT_IDLE);
+					ec20.ReqStatus(__FOOT_IDLE);
 					break;
 				case __FOOT_MID:
 					spray.mode.On=true;
-					ec20.UploadParms(__FOOT_MID);
+					ec20.ReqStatus(__FOOT_MID);
 					break;
 				case __FOOT_ON:		
 					spray.mode.On=true;
-					ec20.UploadParms(__FOOT_ON);
+					ec20.ReqStatus(__FOOT_ON);
 					break;
 				case __CtrlY:
 					NVIC_SystemReset();
