@@ -31,7 +31,7 @@ typedef enum {
 	__FOOT_IDLE	=0x00003800,
 	__FOOT_MID	=0x0000b800,
 	__FOOT_ON		=0x0000d800,
-	__FOOT_ACK	=0x00000001
+	__FOOT_ACK	=0x0000ffff
 } __FOOT;
 
 // ec20 command bits
@@ -91,7 +91,7 @@ class	_EC20 {
 	private:
 		void *parent;
 		int		idx,timeout;
-		short	biasPw,biasF,biasN,bias_cnt;
+		short	biasPw,biasF,biasN,biasNo,bias_cnt;
 		_EC20Status		EC20Status;
 		_EC20Cmd			EC20Cmd;
 		_EC20Set			EC20Set;
@@ -102,8 +102,8 @@ class	_EC20 {
 		_EC20(void *);
 		~_EC20();
 
-	int			bias_mode;
 	int			Increment(int, int);
+	int			IncrementBias(int, int);
 	int			Refresh()													{return Increment(0,0);};
 	void		ReqStatus(__FOOT);
 	void		LoadSettings(FILE *);

@@ -64,8 +64,8 @@ int   _GPIO::Poll(void) {
 			if(key != (GPIO_ReadInputData(GPIOC) & __FOOT_MASK)) {
 				key = GPIO_ReadInputData(GPIOC) & __FOOT_MASK;
 				timeout = __time__ + 20;
-			} else if(__time__ > timeout) {
-				timeout=INT_MAX;
+			} else if(timeout && __time__ > timeout) {
+				timeout=0;
 				return key & __FOOT_MASK;
 			}
 			return EOF;

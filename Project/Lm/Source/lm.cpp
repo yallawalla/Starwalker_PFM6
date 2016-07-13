@@ -234,6 +234,10 @@ void	_LM::Increment(int i, int j) {
 				case EC20:
 					ec20.Increment(i,j);
 					break;
+
+				case EC20bias:
+					ec20.IncrementBias(i,j);
+					break;
 				
 				case PILOT:
 					pilot.Increment(i,j);
@@ -688,17 +692,12 @@ bool	_LM::Parse(int i) {
 				case __F8:
 				case __f8:
 					Select(EC20);
-					ec20.bias_mode=false;
 {					_EC20Status		m;
 					m.Send(Sys2Ec); //Submit(">2100");
 }					break;
 				case __F9:
 				case __f9:
-					if(ec20.bias_mode==true)
-						ec20.bias_mode=false;
-					else
-						ec20.bias_mode=true;		
-					Select(EC20);
+					Select(EC20bias);
 					break;				
 				case __F10:
 				case __f10:
@@ -794,19 +793,26 @@ bool	_LM::Parse(int i) {
 					break;
 					
 				case __FOOT_OFF:
-					printf("\r\n:\r\n:footswitch disconnected \r\n:");
+					if(_BIT(_LM::debug, DBG_INFO))
+						printf("\r\n:\r\n:footswitch disconnected \r\n:");
 					spray.mode.On=false;
 					ec20.ReqStatus(__FOOT_OFF);
 					break;
 				case __FOOT_IDLE:
+					if(_BIT(_LM::debug, DBG_INFO))
+						printf("\r\n:\r\n:footswitch idle \r\n:");
 					spray.mode.On=false;
 					ec20.ReqStatus(__FOOT_IDLE);
 					break;
 				case __FOOT_MID:
+					if(_BIT(_LM::debug, DBG_INFO))
+						printf("\r\n:\r\n:footswitch middle \r\n:");
 					spray.mode.On=true;
 					ec20.ReqStatus(__FOOT_MID);
 					break;
 				case __FOOT_ON:		
+					if(_BIT(_LM::debug, DBG_INFO))
+						printf("\r\n:\r\n:footswitch on \r\n:");
 					spray.mode.On=true;
 					ec20.ReqStatus(__FOOT_ON);
 					break;

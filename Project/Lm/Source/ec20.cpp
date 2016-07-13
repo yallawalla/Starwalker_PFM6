@@ -26,9 +26,9 @@ _EC20::_EC20(void *v) {
 	parent = v;
 	biasPw=200;
 	biasF=100;
-	biasN=0;
+	biasNo=biasN=0;
 	
-	idx = timeout = bias_cnt = bias_mode = 0;
+	idx = timeout = bias_cnt = 0;
 }
 /*******************************************************************************/
 /**
@@ -48,7 +48,7 @@ _EC20::~_EC20() {
 void		_EC20::LoadSettings(FILE *f) {
 char		c[128];
 				fgets(c,sizeof(c),f);
-				sscanf(c,"%hu,%hu,%hu,%hu,%hu,%hu",&EC20Reset.Pw,&EC20Set.To,&EC20Reset.Period,&biasPw,&biasN,&biasF);
+				sscanf(c,"%hu,%hu,%hu,%hu,%hu,%hu,%hu",&EC20Reset.Pw,&EC20Set.To,&EC20Reset.Period,&biasPw,&biasN,&biasF,&biasNo);
 }
 /*******************************************************************************/
 /**
@@ -58,7 +58,7 @@ char		c[128];
 	*/
 /******************************************************************************/	
 void		_EC20::SaveSettings(FILE *f) {
-				fprintf(f,"%5d,%5d,%5d,%5d,%5d,%5d     /.. EC20 settings\r\n",EC20Reset.Pw,EC20Set.To,EC20Reset.Period,biasPw,biasN,biasF);
+				fprintf(f,"%5d,%5d,%5d,%5d,%5d,%5d,%5d/.. EC20 settings\r\n",EC20Reset.Pw,EC20Set.To,EC20Reset.Period,biasPw,biasN,biasF,biasNo);
 }
 /*******************************************************************************/
 /**
@@ -80,7 +80,7 @@ _EC20Cmd		cmd=EC20Cmd;
 					case __FOOT_IDLE:
 						lm->pilot.Off();
 						lm->Submit("@standby.led");
-						bias_cnt=0;
+						bias_cnt=biasNo+biasN;
 						cmd.Cmd =0;
 						cmd.Send(Sys2Ec);
 						break;
@@ -88,38 +88,36 @@ _EC20Cmd		cmd=EC20Cmd;
 					case __FOOT_MID:
 						lm->pilot.On();
 						lm->Submit("@ready.led");
-						bias_cnt=0;
 						cmd.Cmd =_HV1_EN;
 						cmd.Send(Sys2Ec);
 						set.Uo = 10*EC20Set.Uo;
-						if(bias_cnt==biasN) {
-							reset.Period=__max(1000/EC20Reset.Period - biasN*1000/biasF, 1000/biasF);
-							reset.Send(Sys2Ec);
-							set.Send(Sys2Ec);
-							bias_cnt=0;
-						} else if(bias_cnt++==0){
+						bias_cnt=biasNo+biasN;
+						if(bias_cnt--==0) {
+							reset.Period=1000/EC20Reset.Period;
+						} else {
 							reset.Period=1000/biasF;
 							reset.Pw=biasPw;
-							reset.Send(Sys2Ec);
-							set.Send(Sys2Ec);
 						}
+						reset.Send(Sys2Ec);
+						set.Send(Sys2Ec);
 						break;
 
 					case __FOOT_ACK:
 						EC20Eo.C=0;
 						set.Uo = 10*EC20Set.Uo;
-						if(bias_cnt==biasN) {
+						if(bias_cnt==0) {
 							reset.Period=__max(1000/EC20Reset.Period - biasN*1000/biasF, 1000/biasF);
 							reset.Send(Sys2Ec);
 							set.Send(Sys2Ec);
-							bias_cnt=0;
-						} else if(bias_cnt++==0){
+							bias_cnt=biasN;
+						} else if(bias_cnt--==biasN){
 							reset.Period=1000/biasF;
 							reset.Pw=biasPw;
 							reset.Send(Sys2Ec);
 							set.Send(Sys2Ec);
 						}
 						break;
+						
  					case __FOOT_ON:
 						EC20Eo.C=0;
 						lm->Submit("@lase.led");
@@ -139,49 +137,20 @@ int				_EC20::Increment(int updown, int leftright) {
 _LM 			*lm = static_cast<_LM *>(parent);		
 char 			c[128];
 
-					if(bias_mode) {
-						switch(idx=__min(__max(idx+leftright,0),3)) {
-							case 0:			
-								biasPw		= __min(__max(biasPw+updown,5),995);
+					switch(idx=__min(__max(idx+leftright,0),3)) {
+						case 0:			
+							EC20Reset.Pw			= __min(__max(EC20Reset.Pw+updown,5),995);
+						break;
+						case 1: 
+							EC20Set.To				= __min(__max(EC20Set.To+updown,100),1000);
+						break;
+						case 2:
+							EC20Reset.Period	= __min(__max(EC20Reset.Period+updown,2),50);
+						break;
+						case 3:
 							break;
-							case 1:
-								biasN			= __min(__max(biasN+updown,0),20);
-							break;
-							case 2:
-								biasF= __min(__max(biasF+updown,2),100);
-							break;
-							case 3:
-								break;
-						}
-						sprintf(c,":EC20 bias    %3.1lf%c,%4d X,%4dHz,",((double)biasPw)/10,'%', biasN, biasF);
-					} else {
-						switch(idx=__min(__max(idx+leftright,0),3)) {
-							case 0:			
-								EC20Reset.Pw		= __min(__max(EC20Reset.Pw+updown,5),995);
-							break;
-							case 1: 
-								EC20Set.To		= __min(__max(EC20Set.To+updown,100),1000);
-							break;
-							case 2:
-								EC20Reset.Period= __min(__max(EC20Reset.Period+updown,2),50);
-							break;
-							case 3:
-								break;
-						}
-						sprintf(c,":EC20         %3.1lf%c,%4dus,%4dHz,",((double)EC20Reset.Pw)/10,'%', EC20Set.To, EC20Reset.Period);
 					}
-	    
-//					if(updown || leftright) {
-//						EC20Eo.C=0;
-//						if(idx < 3) {
-//_EC20Set			p=EC20Set;
-//_EC20Reset		q=EC20Reset;
-//							p.Uo = 10*EC20Set.Uo;
-//							q.Period=1000/EC20Reset.Period;
-//							p.Send(Sys2Ec);
-//							q.Send(Sys2Ec);
-//						}
-//					}
+					sprintf(c,":EC20         %3.1lf%c,%4dus,%4dHz,",((double)EC20Reset.Pw)/10,'%', EC20Set.To, EC20Reset.Period);
 
 					lm->pyro.Enabled=true;
 					Timeout(EOF);
@@ -191,7 +160,7 @@ char 			c[128];
 							if(updown>0 && idx==3)
 								ReqStatus(__FOOT_MID);
 						break;
-							
+
 						case _COMPLETED + _SIM_DET:												// simmer
 							sprintf(strchr(c,'\0')," SIMMER");
 							if(updown>0 && idx==3)
@@ -199,7 +168,7 @@ char 			c[128];
 							if(updown<0 && idx==3)
 								ReqStatus(__FOOT_IDLE);
 						break;
-							
+
 						case _COMPLETED  + _SIM_DET + _FOOT_ACK:
 							sprintf(strchr(c,'\0')," LASE..");							// lasing
 							if(updown<0 && idx==3)
@@ -212,15 +181,15 @@ char 			c[128];
 							lm->pilot.Off();
 							break;
 						}
-
-						if(!bias_mode && EC20Eo.C)
+					
+						if(EC20Eo.C)
 							sprintf(strchr(c,'\0'),"  %3.1lfJ,%5dW,%3.1lf'C,%3.1lf'C,%5.1lf",
 																												(double)EC20Eo.C/1000,
 																													EC20Eo.C*EC20Reset.Period/1000,
 																														(double)_ADC::Th2o()/100,
 																															(lm->plotA-7800.0)/200.0+25.0,
 																																(double)lm->plotB);
-																					
+													
 						if(lm->Selected() == EC20) {
 							printf("\r%s",c);
 							int i=strlen(c)-(18+idx*7);
@@ -228,6 +197,44 @@ char 			c[128];
 							printf("\b");		
 						}
 						return 0;
+}
+/*******************************************************************************/
+/**
+	* @brief	Increment
+	* @param	: None
+	* @retval : None
+	*/
+/******************************************************************************/	
+int				_EC20::IncrementBias(int updown, int leftright) {
+_LM 			*lm = static_cast<_LM *>(parent);		
+char 			c[128];
+
+					switch(idx=__min(__max(idx+leftright,0),3)) {
+						case 0:			
+							biasPw						= __min(__max(biasPw+updown,5),995);
+						break;
+						case 1:
+							biasF							= __min(__max(biasF+updown,2),100);
+						break;
+						case 2:
+							biasNo						= __min(__max(biasNo+updown,0),50);
+							bias_cnt=biasNo+biasN;
+						break;
+						case 3:
+							biasN							= __min(__max(biasN+updown,0),20);
+							bias_cnt=biasNo+biasN;
+						break;
+					}
+
+					sprintf(c,":EC20 bias    %3.1lf%c,%4dHz,1st%3d,nxt%3d",((double)biasPw)/10,'%', biasF, biasNo, biasN);
+								
+					if(lm->Selected() == EC20bias) {
+						printf("\r%s",c);
+						int i=strlen(c)-(18+idx*7);
+						while(--i)
+						printf("\b");		
+					}
+					return 0;
 }
 /*******************************************************************************/
 /**
