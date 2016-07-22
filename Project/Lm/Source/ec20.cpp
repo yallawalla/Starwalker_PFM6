@@ -26,6 +26,7 @@ _EC20::_EC20(void *v) {
 	parent = v;
 	biasPw=200;
 	biasF=100;
+	biasT=350;
 	biasNo=biasN=0;
 	
 	idx = timeout = bias_cnt = 0;
@@ -48,7 +49,7 @@ _EC20::~_EC20() {
 void		_EC20::LoadSettings(FILE *f) {
 char		c[128];
 				fgets(c,sizeof(c),f);
-				sscanf(c,"%hu,%hu,%hu,%hu,%hu,%hu,%hu",&EC20Reset.Pw,&EC20Set.To,&EC20Reset.Period,&biasPw,&biasN,&biasF,&biasNo);
+				sscanf(c,"%hu,%hu,%hu,%hu,%hu,%hu,%hu,%hu",&EC20Reset.Pw,&EC20Set.To,&EC20Reset.Period,&biasPw,&biasT,&biasF,&biasNo,&biasN);
 }
 /*******************************************************************************/
 /**
@@ -58,7 +59,7 @@ char		c[128];
 	*/
 /******************************************************************************/	
 void		_EC20::SaveSettings(FILE *f) {
-				fprintf(f,"%5d,%5d,%5d,%5d,%5d,%5d,%5d/.. EC20 settings\r\n",EC20Reset.Pw,EC20Set.To,EC20Reset.Period,biasPw,biasN,biasF,biasNo);
+				fprintf(f,"%5d,%5d,%5d,%5d,%5d,%3d,%2d,%2d /.. EC20 settings\r\n",EC20Reset.Pw,EC20Set.To,EC20Reset.Period,biasPw,biasT,biasF,biasNo,biasN);
 }
 /*******************************************************************************/
 /**
@@ -97,6 +98,7 @@ _EC20Cmd		cmd=EC20Cmd;
 						} else {
 							reset.Period=1000/biasF;
 							reset.Pw=biasPw;
+							set.To=biasT;
 						}
 						reset.Send(Sys2Ec);
 						set.Send(Sys2Ec);
@@ -113,6 +115,7 @@ _EC20Cmd		cmd=EC20Cmd;
 						} else if(bias_cnt--==biasN){
 							reset.Period=1000/biasF;
 							reset.Pw=biasPw;
+							set.To=biasT;
 							reset.Send(Sys2Ec);
 							set.Send(Sys2Ec);
 						}
@@ -209,24 +212,27 @@ int				_EC20::IncrementBias(int updown, int leftright) {
 _LM 			*lm = static_cast<_LM *>(parent);		
 char 			c[128];
 
-					switch(idx=__min(__max(idx+leftright,0),3)) {
+					switch(idx=__min(__max(idx+leftright,0),4)) {
 						case 0:			
 							biasPw						= __min(__max(biasPw+updown,5),995);
 						break;
-						case 1:
-							biasF							= __min(__max(biasF+updown,2),100);
+						case 1:			
+							biasT							= __min(__max(biasT+updown,20),500);
 						break;
 						case 2:
+							biasF							= __min(__max(biasF+updown,2),100);
+						break;
+						case 3:
 							biasNo						= __min(__max(biasNo+updown,0),50);
 							bias_cnt=biasNo+biasN;
 						break;
-						case 3:
+						case 4:
 							biasN							= __min(__max(biasN+updown,0),20);
 							bias_cnt=biasNo+biasN;
 						break;
 					}
 
-					sprintf(c,":EC20 bias    %3.1lf%c,%4dHz,1st%3d,nxt%3d",((double)biasPw)/10,'%', biasF, biasNo, biasN);
+					sprintf(c,":EC20 bias    %3.1lf%c,%4dus,%4dHz,1st%3d,nxt%3d",((double)biasPw)/10,'%', biasT, biasF, biasNo, biasN);
 								
 					if(lm->Selected() == EC20bias) {
 						printf("\r%s",c);

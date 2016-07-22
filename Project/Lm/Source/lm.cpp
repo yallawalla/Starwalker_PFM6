@@ -89,7 +89,7 @@ _LM::_LM() : ec20(this) {
 #ifdef	USE_LCD
 	#ifdef	__SIMULATION__
 			plot.Clear();
-			plot.Add(&spray.pComp,1.0,0.02, LCD_COLOR_GREEN);
+			plot.Add(&spray.pComp,1.0,0.02, LCD_COLOR_YELLOW);
 			plot.Add(&spray.pBott,1.0,0.02, LCD_COLOR_CYAN);
 			plot.Add(&spray.pAir,1.0,0.002, LCD_COLOR_MAGENTA);
 
@@ -251,7 +251,7 @@ void	_LM::Increment(int i, int j) {
 						pyro.Enabled=true;
 						printf("\r\n");
 						plot.Clear();
-						plot.Add(&plotA,0,1, LCD_COLOR_GREEN);
+						plot.Add(&plotA,0,1, LCD_COLOR_YELLOW);
 						plot.Add(&plotB,2813,10, LCD_COLOR_CYAN);
 						plot.Add(&plotC,0,1, LCD_COLOR_YELLOW);
 					}
@@ -524,7 +524,7 @@ int					to=0;
 //						peak=0;
 #endif
 				plot.Clear();
-				plot.Add(&plotA,0,5, LCD_COLOR_GREEN);
+				plot.Add(&plotA,0,5, LCD_COLOR_YELLOW);
 				plot.Add(&plotB,0,10, LCD_COLOR_CYAN);
 //				plot.Add(&plotC,0,1, LCD_COLOR_YELLOW);
 

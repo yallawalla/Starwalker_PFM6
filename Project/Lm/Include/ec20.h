@@ -66,7 +66,7 @@ typedef __packed struct _EC20Set {
 	unsigned short	Uo;
 	unsigned short	To;
 	unsigned char		Mode;
-	_EC20Set() : code(Id_EC20Set),Uo(420),To(200),Mode(0x02)		{}
+	_EC20Set() : code(Id_EC20Set),Uo(420),To(350),Mode(0x02)		{}
 	void	Send(_stdid s)																				{ Send2Can(s,(void *)&code,sizeof(_EC20Set)); };
 } _EC20Set;
 
@@ -75,7 +75,7 @@ typedef __packed struct _EC20Reset {
 	unsigned short	Period;
 	unsigned short	Pw;
 	unsigned char		Fo;
-	_EC20Reset() : code(Id_EC20Reset),Period(2),Pw(500),Fo(100)	{}
+	_EC20Reset() : code(Id_EC20Reset),Period(2),Pw(300),Fo(100)	{}
 	void	Send(_stdid s)																				{ Send2Can(s,(void *)&code,sizeof(_EC20Reset)); };
 } _EC20Reset;
 
@@ -91,7 +91,7 @@ class	_EC20 {
 	private:
 		void *parent;
 		int		idx,timeout;
-		short	biasPw,biasF,biasN,biasNo,bias_cnt;
+		short	biasPw,biasT,biasF,biasN,biasNo,bias_cnt;
 		_EC20Status		EC20Status;
 		_EC20Cmd			EC20Cmd;
 		_EC20Set			EC20Set;
