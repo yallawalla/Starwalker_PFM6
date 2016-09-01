@@ -4,7 +4,7 @@
 #include				"stdio.h"
 #include				"isr.h"
 
-typedef enum {
+typedef enum {									// ID's, uporabja se samo tiste s komentarjem...
 	Sys2Ioc				=0x20,					//
 	Ioc2Sys				=0x40,					//
 	Sys2Ec				=0x21,					//
@@ -13,39 +13,33 @@ typedef enum {
 	Can2ComIoc		=0xB0,					// IOC local console access req.
   Com2CanIoc		=0xB1,					// IOC local console data, transmit only, no filter
 	Can2ComEc20		=0xBA,					// EC20 console access req. transmit only, no filter
-	Com2CanEc20		=0xB3,					// EC20 console data
-	SprayStatus		=0x23,					
-	SprayCommand	=0x24					
+	Com2CanEc20		=0xB3,					// EC20 console data			
+	_ID_SYS2ENRG	=0x1f,
+	_ID_ENRG2SYS	=0x3f,
+	_ID_ENRGTRIG	=0x1a
 } _stdid;
 
-typedef enum {
+typedef enum {									// koda ukaza, 1.byte ...
 	Id_EC20Status	=0x00,					// status report; ec >> sys 
 	Id_EC20Cmd		=0x02,					// command frame; sys >> ec
 	Id_EC20Set		=0x03,					// set Uo, To, mode; sys >> ec
 	Id_EC20Reset	=0x14,					// set repetition, pw, fo; sys >> ec
-	Id_EC20Eo			=0x07						// energy ack; ec >> sys
+	Id_EC20Eo			=0x07,					// energy ack; ec >> sys
 } _code;
 
-typedef enum {
-	__FOOT_OFF	=0x0000f800,
-	__FOOT_IDLE	=0x00003800,
-	__FOOT_MID	=0x0000b800,
-	__FOOT_ON		=0x0000d800,
-	__FOOT_ACK	=0x0000ffff
-} __FOOT;
+typedef enum {									// koda ukaza, 1.byte ...
+	Id_ENGstest		=0xD100,				// selftest report
+	Id_ENGset			=0xC100,				// set parameters
+	Id_ENGget			=0xD101,				// get parameters
+	Id_ENGdata		=0xD103,				// get parameters
+} _wcode;
 
-// ec20 command bits
-#define		_HV1_EN			0x0001									// simmer req
-#define 	_FOOT_REQ		0x0100									// footswitch req
-
-// ec20 bit definition as from status....
-#define 	_COMPLETED	0x8000									// selftest completed after startup or reboot
-#define 	_SIM_DET		0x0001									// simmer ack
-#define 	_FOOT_ACK		0x0200									// footswitch ack
-
-#define		_STATUS_MASK				(_COMPLETED  +  _SIM_DET  +  _FOOT_ACK)
 void			Send2Can(_stdid, void *, size_t);
-
+//
+//
+// message objects with constructors and send method...
+//
+//
 typedef __packed struct _EC20Status {
 	_code						code;
 	unsigned short	Status;
@@ -87,29 +81,113 @@ typedef __packed struct _EC20Eo {
 	void	Send(_stdid s)																				{ Send2Can(s,(void *)&code,sizeof(_EC20Eo)); };
 } _EC20Eo;
 
+typedef __packed struct _ENGstest {
+	_wcode						code;
+	unsigned short 		EMST;
+	_ENGstest() : code(Id_ENGstest),EMST(0)											{}
+	void	Send(_stdid s)																				{ Send2Can(s,(void *)&code,sizeof(_ENGstest)); };
+} _ENGstest;
+
+typedef __packed struct _ENGset {
+	_wcode						code;
+	unsigned short 		EMNA,
+										Emax,
+										To;
+	_ENGset() : code(Id_ENGset),EMNA(1),Emax(40000),To(1000)		{}
+	void	Send(_stdid s)																				{ Send2Can(s,(void *)&code,sizeof(_ENGset)); };
+} _ENGset;
+
+typedef __packed struct _ENGget {
+	_wcode						code;
+	unsigned short 		EMST,
+										Emax,
+										To;
+	_ENGget() : code(Id_ENGget),EMST(0),Emax(0),To(0)		{}
+	void	Send(_stdid s)																				{ Send2Can(s,(void *)&code,sizeof(_ENGget)); };
+} _ENGget;
+
+typedef __packed struct _ENGdata {
+	_wcode						code;
+	unsigned short 		EMRE,
+										Val1,
+										Val2;
+	_ENGdata() : code(Id_ENGdata),EMRE(0),Val1(0),Val2(0)		{}
+	void	Send(_stdid s)																				{ Send2Can(s,(void *)&code,sizeof(_ENGdata)); };
+} _ENGdata;
+
+typedef __packed struct _ENGtrigger {
+	_ENGtrigger()	{}
+	void	Send()																				{ Send2Can(_ID_ENRGTRIG,NULL,0); };
+} _ENGtrigger;
+
+
+// ec20 command bits as per _EC20Cmd.Cmd parameter
+//
+
+#define		_HV1_EN			0x0001		// simmer req
+#define 	_FOOT_REQ		0x0100		// footswitch req
+
+// ec20 bit definition as from _EC20Status.Status parameter
+//
+
+#define 	_COMPLETED	0x8000		// selftest completed after startup or reboot
+#define 	_SIM_DET		0x0001		// simmer ack
+#define 	_FOOT_ACK		0x0200		// footswitch ack
+
+#define		_STATUS_MASK				(_COMPLETED  +  _SIM_DET  +  _FOOT_ACK)
+
+//
+// Footswitch port pattern
+//
+//
+//
+//
+
+typedef enum {
+	__FOOT_OFF	=0x0000f800,
+	__FOOT_IDLE	=0x00003800,
+	__FOOT_MID	=0x0000b800,
+	__FOOT_ON		=0x0000d800,
+	__FOOT_ACK	=0x0000ffff
+} __FOOT;
+
+//
+//
+//
+//
+// EC20 object definition
+//
+
 class	_EC20 {
 	private:
 		void *parent;
 		int		idx,timeout;
 		short	biasPw,biasT,biasF,biasN,biasNo,bias_cnt;
+
 		_EC20Status		EC20Status;
 		_EC20Cmd			EC20Cmd;
 		_EC20Set			EC20Set;
 		_EC20Reset		EC20Reset;
 		_EC20Eo				EC20Eo;
-
+	
+		_ENGstest			ENGstest;
+		_ENGset       ENGset;
+		_ENGget       ENGget;
+		_ENGdata     	ENGdata;
+		_ENGtrigger		ENGtrigger;	
+	
 	public:
 		_EC20(void *);
 		~_EC20();
 
-	int			Increment(int, int);
-	int			IncrementBias(int, int);
-	int			Refresh()													{return Increment(0,0);};
-	void		ReqStatus(__FOOT);
+	void		Parse(CanTxMsg	*);
 	void		LoadSettings(FILE *);
 	void		SaveSettings(FILE *);
-	void		Parse(CanTxMsg	*);
+	void		FootSwEvent(__FOOT);
+	int			Increment(int, int);
+	int			Refresh()													{return Increment(0,0);};		
 	
+	int			IncrementBias(int, int);
 	static 	void	ECsimulator(void *);
 
 	bool		Timeout(void)											{ return timeout && __time__ > timeout; }

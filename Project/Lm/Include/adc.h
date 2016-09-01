@@ -6,7 +6,6 @@ typedef struct	{
 unsigned short	T2,T3,V5,V12,V24,cooler,bottle,compressor,air,Ipump;
 } _ADMA;
 
-
 __inline 
 int			__fit(int to, const int t[], const int ft[]) {
 int			f3=(ft[3]*(t[0]-to)-ft[0]*(t[3]-to)) / (t[0]-t[3]);
@@ -22,7 +21,6 @@ int			f1=(ft[1]*(t[0]-to)-ft[0]*(t[1]-to)) / (t[0]-t[1]);
 #define	_SYS_SHG_ENABLE		GPIO_SetBits(GPIOB,GPIO_Pin_4)
 #define	_SYS_SHG_ENABLED	GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_4)
 #define	_SYS_SHG_DISABLE	GPIO_ResetBits(GPIOB,GPIO_Pin_4)
-
 
 #define	_EMG_DISABLED			GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8)
 

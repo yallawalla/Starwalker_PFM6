@@ -76,7 +76,12 @@ char	*p;
 					CanHexMessage(_ID_IAP_GO,0);
 					break;
 				case '?':
-					p=(char *)_FW_START;
+					RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
+					CRC_ResetDR();
+					printf("\r PFM6 bootloader v%d.%02d %s, <%08X>\r\n",
+						SW_version/100,SW_version%100,__DATE__,CRC_CalcBlockCRC(__Vectors, ((_FLASH_TOP-28)-(int)__Vectors)/sizeof(int)));			//crc od vektorjev do zacetka FS
+					printf("signature under %08X:\r\n",_FLASH_TOP);
+					p=(char *)_SIGN_CRC;
 					for(i=0;i<8;++i)
 						printf("\r\n%08X",*(int *)p++);
 					break;

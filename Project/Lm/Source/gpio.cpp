@@ -23,11 +23,11 @@
 *******************************************************************************/
 _GPIO::_GPIO() {
 			GPIO_InitTypeDef	GPIO_InitStructure;
-	
+
 			GPIO_StructInit(&GPIO_InitStructure);
 			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 			GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4;
+			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4;						// 12Voff, SYS_SHG
 			GPIO_Init(GPIOB, &GPIO_InitStructure);
 			GPIO_ResetBits(GPIOB,GPIO_Pin_3 | GPIO_Pin_4);
 #if defined(__IOC_V2__)

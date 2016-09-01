@@ -58,7 +58,7 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 					CAN_InitStructure.CAN_TTCM=DISABLE;
 					CAN_InitStructure.CAN_ABOM=ENABLE;
 					CAN_InitStructure.CAN_AWUM=DISABLE;
-					CAN_InitStructure.CAN_NART=ENABLE;
+					CAN_InitStructure.CAN_NART=DISABLE;
 					CAN_InitStructure.CAN_RFLM=DISABLE;
 					
 //... pomembn.. da ne zamesa mailboxov in jih oddaja po vrstnem redu vpisovanja... ni default !!!
@@ -96,11 +96,16 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+1;
 					CAN_FilterInit(&CAN_FilterInitStructure);
 
-					CAN_FilterInitStructure.CAN_FilterIdHigh=SprayCommand<<5;
-					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=SprayStatus<<5;
+//					CAN_FilterInitStructure.CAN_FilterIdHigh=SprayCommand<<5;
+//					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=SprayStatus<<5;
+//					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+2;
+//					CAN_FilterInit(&CAN_FilterInitStructure);
+
+					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS2ENRG<<5;
+					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_ENRG2SYS<<5;
 					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+2;
 					CAN_FilterInit(&CAN_FilterInitStructure);
-
+					
 					CAN_FilterInitStructure.CAN_FilterIdHigh=Sys2Ioc<<5;
 					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=Sys2Ec<<5;
 					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+3;
@@ -244,9 +249,6 @@ _LM				*lm = (_LM *)v;
 						}
 //______________________________________________________________________________________
 						switch(msg.StdId) {
-							case Ec2Sync:
-								lm->pyro.sync=tstamp;
-							break;
 //______________________________________________________________________________________							
 							case Com2CanEc20: 
 							case Com2CanIoc: 
@@ -270,29 +272,30 @@ _LM				*lm = (_LM *)v;
 								}
 								break;
 //______________________________________________________________________________________
-							case SprayCommand:
-								if(msg.DLC) {
-									lm->spray.AirLevel=msg.Data[0];
-									lm->spray.WaterLevel=msg.Data[1];
-								} else {
-									char	c[64];
-									sprintf(c,">%02X%02X%02X",	SprayCommand,
-																								lm->spray.AirLevel,
-																									lm->spray.WaterLevel);
-									Send(c);
-								}
-								break;
-//______________________________________________________________________________________
-							case SprayStatus:
-								char	c[64];
-								sprintf(c,">%02X%02X%02X",	SprayStatus,
-																							_ADC::Th2o()/100,
-																								_ADC::Status());
-								Send(c);
-								break;
+//							case SprayCommand:
+//								if(msg.DLC) {
+//									lm->spray.AirLevel=msg.Data[0];
+//									lm->spray.WaterLevel=msg.Data[1];
+//								} else {
+//									char	c[64];
+//									sprintf(c,">%02X%02X%02X",	SprayCommand,
+//																								lm->spray.AirLevel,
+//																									lm->spray.WaterLevel);
+//									Send(c);
+//								}
+//								break;
+////______________________________________________________________________________________
+//							case SprayStatus:
+//								char	c[64];
+//								sprintf(c,">%02X%02X%02X",	SprayStatus,
+//																							_ADC::Th2o()/100,
+//																								_ADC::Status());
+//								Send(c);
+//								break;
 //______________________________________________________________________________________
 							case Sys2Ec:
-							case Ec2Sys:
+							case Ec2Sys:								
+							case _ID_ENRG2SYS: 																						// energometer messages
 								lm->ec20.Parse(&msg);
 								break;
 //______________________________________________________________________________________					
@@ -313,11 +316,11 @@ CanRxMsg	rxbuf={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 					sscanf(msg,"%02X",&rxbuf.StdId);	
 					++msg,++msg;
 					do {
-							for(n=0; *msg && n<16; ++n,++n,++msg,++msg)
-								sscanf(msg,"%02X",(unsigned int *)&rxbuf.Data[n/2]);
-							rxbuf.DLC=n/2;
-							_buffer_push(rx,&rxbuf,sizeof(rxbuf));
-							_buffer_push(rx,(void *)&__time__,sizeof(unsigned int));
+						for(n=0; *msg && n<16; ++n,++n,++msg,++msg)
+							sscanf(msg,"%02X",(unsigned int *)&rxbuf.Data[n/2]);
+						rxbuf.DLC=n/2;
+						_buffer_push(rx,&rxbuf,sizeof(rxbuf));
+						_buffer_push(rx,(void *)&__time__,sizeof(unsigned int));
 					} while(*msg);
 }
 /*******************************************************************************

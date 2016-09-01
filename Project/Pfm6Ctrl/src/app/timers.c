@@ -196,8 +196,8 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_ICStructInit(&TIM_ICInitStructure);														// Input Capture channels
 		TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Falling;			// Falling edge capture
 		TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;
-		TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;
-		TIM_ICInitStructure.TIM_ICFilter = 0;
+		TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV8;
+		TIM_ICInitStructure.TIM_ICFilter = 15;
 
 		TIM_ICInitStructure.TIM_Channel = TIM_Channel_2;
 		TIM_ICInit(TIM3, &TIM_ICInitStructure);

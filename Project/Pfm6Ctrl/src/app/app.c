@@ -120,17 +120,15 @@ static int
 //_______Fan tacho processing context___________________________________________
 {
 static 
-	int			LastTachoEvent=0,
-					TachoEventDivider=0;
+	int			LastTachoEvent=0;
 
 					if(_EVENT(p,_FAN_TACHO)) {															// fan timeout counter reset
 						_CLEAR_EVENT(p,_FAN_TACHO);
 						LastTachoEvent = __time__;
-						if(++TachoEventDivider % 5 == 0)
-							_BLUE2(20);
+						_BLUE2(20);
 					}
 #ifndef __DISCO__
-					if((__time__ - LastTachoEvent > 200) && (__time__ > 10000))
+					if((__time__ - LastTachoEvent > 500) && (__time__ > 10000))
 						_SET_ERROR(p,PFM_FAN_ERR);		
 					else
 						_CLEAR_ERROR(p,PFM_FAN_ERR);
@@ -264,7 +262,7 @@ static
   * @param  : current PFM object
   * @retval : None
   *
-______________________________________________________________________________*/
+____________________________________________________________________________*/
 void			ProcessingCharger(PFM *p) {
 static
 	int			ton=1500,					// _PFC_ON command delay

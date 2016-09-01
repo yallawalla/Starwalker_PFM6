@@ -1,6 +1,8 @@
 #if defined	(STM32F2XX)
 #include		"stm32f2xx.h"
 
+#define 		SW_version					110		
+
 #if defined	(__PFM6__)
 	#define			__CAN__						CAN2
 	#define			__FILTER_BASE__		14
@@ -54,7 +56,7 @@ int					FlashErase(int);
 #include		<string.h>
 #include		"io.h"
 
-#define			IAP_MSG "1>ERASE 2>SIGN 3>RUN\r\n"
+#define			IAP_MSG "\r1>ERASE 2>SIGN 3>RUN\r\n"
 
 #define			_ID_IAP_GO			0xA0
 #define			_ID_IAP_ERASE		0xA1
@@ -84,6 +86,7 @@ extern
 void				(*App_Loop)(void);
 extern
 char				_Iap_string[];
+extern			uint32_t	__Vectors[];
 
 void				App_Init(void);
 void				Watchdog_init(int);
@@ -98,17 +101,5 @@ void 				Initialize_CAN(int);
 _io*				Initialize_USART(void);
 char				*cgets(int, int);
 
-void				_led(int, int);
 extern		
 volatile 		int __time__;
-
-#define			_RED1(a)				_led(0,a)
-#define			_GREEN1(a)			_led(1,a)
-#define			_YELLOW1(a)			_led(2,a)
-#define			_BLUE1(a)				_led(3,a)
-#define			_ORANGE1(a)			_led(4,a)
-#define			_RED2(a)				_led(5,a)
-#define			_GREEN2(a)			_led(6,a)
-#define			_YELLOW2(a)			_led(7,a)
-#define			_BLUE2(a)				_led(8,a)
-#define			_ORANGE2(a)			_led(9,a)

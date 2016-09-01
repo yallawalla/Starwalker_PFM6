@@ -692,8 +692,9 @@ bool	_LM::Parse(int i) {
 				case __F8:
 				case __f8:
 					Select(EC20);
-{					_EC20Status		m;
-					m.Send(Sys2Ec); //Submit(">2100");
+{					
+					_EC20Status		m;
+					m.Send(Sys2Ec);
 }					break;
 				case __F9:
 				case __f9:
@@ -796,25 +797,25 @@ bool	_LM::Parse(int i) {
 					if(_BIT(_LM::debug, DBG_INFO))
 						printf("\r\n:\r\n:footswitch disconnected \r\n:");
 					spray.mode.On=false;
-					ec20.ReqStatus(__FOOT_OFF);
+					ec20.FootSwEvent(__FOOT_OFF);
 					break;
 				case __FOOT_IDLE:
 					if(_BIT(_LM::debug, DBG_INFO))
 						printf("\r\n:\r\n:footswitch idle \r\n:");
 					spray.mode.On=false;
-					ec20.ReqStatus(__FOOT_IDLE);
+					ec20.FootSwEvent(__FOOT_IDLE);
 					break;
 				case __FOOT_MID:
 					if(_BIT(_LM::debug, DBG_INFO))
 						printf("\r\n:\r\n:footswitch middle \r\n:");
 					spray.mode.On=true;
-					ec20.ReqStatus(__FOOT_MID);
+					ec20.FootSwEvent(__FOOT_MID);
 					break;
 				case __FOOT_ON:		
 					if(_BIT(_LM::debug, DBG_INFO))
 						printf("\r\n:\r\n:footswitch on \r\n:");
 					spray.mode.On=true;
-					ec20.ReqStatus(__FOOT_ON);
+					ec20.FootSwEvent(__FOOT_ON);
 					break;
 				case __CtrlY:
 					NVIC_SystemReset();

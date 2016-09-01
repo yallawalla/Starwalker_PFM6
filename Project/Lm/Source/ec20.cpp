@@ -68,7 +68,7 @@ void		_EC20::SaveSettings(FILE *f) {
 	* @retval : None
 	*/
 /******************************************************************************/
-void		_EC20::ReqStatus(__FOOT f) {
+void		_EC20::FootSwEvent(__FOOT f) {
 _LM 		*lm = static_cast<_LM *>(parent);
 
 _EC20Set		set=EC20Set;
@@ -161,37 +161,48 @@ char 			c[128];
 						case _COMPLETED:																	// standby
 							sprintf(strchr(c,'\0')," STNDBY");
 							if(updown>0 && idx==3)
-								ReqStatus(__FOOT_MID);
+								FootSwEvent(__FOOT_MID);
 						break;
 
 						case _COMPLETED + _SIM_DET:												// simmer
 							sprintf(strchr(c,'\0')," SIMMER");
+							ENGset.To=EC20Set.To;
+							ENGset.Send(Ec2Sys);
 							if(updown>0 && idx==3)
-								ReqStatus(__FOOT_ON);
+								FootSwEvent(__FOOT_ON);
 							if(updown<0 && idx==3)
-								ReqStatus(__FOOT_IDLE);
+								FootSwEvent(__FOOT_IDLE);
 						break;
 
 						case _COMPLETED  + _SIM_DET + _FOOT_ACK:
 							sprintf(strchr(c,'\0')," LASE..");							// lasing
 							if(updown<0 && idx==3)
-								ReqStatus(__FOOT_MID);
+								FootSwEvent(__FOOT_MID);
 						break;
 
 						default:
 							lm->Submit("@standby.led");
-							sprintf(strchr(c,'\0')," wait..");							// cakanje na ec20
+							sprintf(strchr(c,'\0')," wait...");							// cakanje na ec20
 							lm->pilot.Off();
 							break;
 						}
 					
-						if(EC20Eo.C)
-							sprintf(strchr(c,'\0'),"  %3.1lfJ,%5dW,%3.1lf'C,%3.1lf'C,%5.1lf",
-																												(double)EC20Eo.C/1000,
-																													EC20Eo.C*EC20Reset.Period/1000,
-																														(double)_ADC::Th2o()/100,
-																															(lm->plotA-7800.0)/200.0+25.0,
-																																(double)lm->plotB);
+						if(EC20Eo.C) {
+							if(ENGdata.Val1)
+								sprintf(strchr(c,'\0'),"  %3.1lfJ,%5dW,%3.1lf'C,%3.1lf'C,%5.1lf",
+																													(double)EC20Eo.C/1000,
+																														EC20Eo.C*EC20Reset.Period/1000,
+																															(double)_ADC::Th2o()/100,
+																																(lm->plotA-7800.0)/200.0+25.0,
+																																	(double)__max(0,(short)ENGdata.Val1)/10);
+							else
+								sprintf(strchr(c,'\0'),"  %3.1lfJ,%5dW,%3.1lf'C,%3.1lf'C, ---- ",
+																													(double)EC20Eo.C/1000,
+																														EC20Eo.C*EC20Reset.Period/1000,
+																															(double)_ADC::Th2o()/100,
+																																(lm->plotA-7800.0)/200.0+25.0);
+																														
+						}
 													
 						if(lm->Selected() == EC20) {
 							printf("\r%s",c);
@@ -319,15 +330,46 @@ _LM 				*lm = static_cast<_LM *>(parent);
 //____________EC20 to Sys energy  ______________________________________________________
 									case Id_EC20Eo:
 										lm->Submit("@energy.led");
-										ReqStatus(__FOOT_ACK);
+										FootSwEvent(__FOOT_ACK);
 										memcpy(&EC20Eo, msg->Data, msg->DLC);
 										if(lm->pyro.Enabled && lm->Selected() == EC20)
 											lm->Refresh();
 									break;
 								}
 								break;
-							}
+/******************************************************************************/	
+//						Energymeter messages ______________________________________________
+/******************************************************************************/	
+//______________________________________________________________________________________
+							case _ID_ENRG2SYS: 																						// energometer message 
+								unsigned short *p=(unsigned short *)msg->Data;
+								switch(*p) {
+//____________ENERGOMETER SELFTEST  ______________________________________________________
+									case Id_ENGstest:
+										memcpy(&ENGstest, msg->Data, msg->DLC);
+									break;	
+//____________EC20 to Sys energy  ______________________________________________________
+									case Id_ENGset:
+										memcpy(&ENGset, msg->Data, msg->DLC);
+									break;
+//____________ENERGOMETER SELFTEST  ______________________________________________________
+									case Id_ENGget:
+										memcpy(&ENGget, msg->Data, msg->DLC);
+									break;	
+//____________ENERGOMETER SELFTEST  ______________________________________________________
+									case Id_ENGdata:
+										memcpy(&ENGdata, msg->Data, msg->DLC);		
+											if(_BIT(_LM::debug, DBG_ENRG))
+												printf(":%04d e1=%.1lf,e2=%.1lf\r\n>:",__time__ % 10000, 
+													(double)__max(0,(short)p[2])/10,
+														(double)__max(0,(short)p[3])/10);
+										break;	
+								}
+								break;
 						}
+}
+
+
 /*******************************************************************************/
 /**
 	* @brief	Increment
@@ -339,7 +381,8 @@ void			Send2Can(_stdid std, void *v, size_t n) {
 CanTxMsg	m={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 					m.StdId=std;
 					m.DLC=n;
-					memcpy(m.Data,v,n);
+					if(v)
+						memcpy(m.Data,v,n);
 					_CAN::Instance()->Send(&m);
 }
 /*******************************************************************************/

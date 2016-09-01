@@ -23,7 +23,7 @@
 
 //________SW version string_____________________________	
 
-#define 				SW_version		212		
+#define 				SW_version		213		
 
 //________global HW dependent defines___________________
 			
@@ -33,7 +33,6 @@
 #define					__FILT_BASE__	14
 #define					FATFS_SECTOR	FLASH_Sector_6
 #define					FATFS_ADDRESS	0x8040000
-
 //______________________________________________________
 #define					_mS						(1000*_uS)
 #define					_PWM_RATE_HI	(10*_uS)
@@ -193,7 +192,7 @@ int							_ADCRates[];
 typedef struct	{	unsigned short			U,I;									} _ADCDMA;
 typedef struct	{	unsigned short			IgbtT1,IgbtT2,HV2,HV,
 									Up20,Um5;																	} _ADC3DMA;
-typedef struct	{	unsigned short			n,T1,T2,T3,T4; 				} _TIM18DMA;
+typedef struct	{	unsigned short			n,T1,T3; 							} _TIM18DMA;
 typedef struct	{	unsigned short			DAC2,DAC1;						} _DACDMA;
 typedef struct	{	unsigned short			addr,speed,ntx,nrx;
 									unsigned char				txbuf[4],rxbuf[4];		}_i2c;
@@ -253,6 +252,7 @@ int							USBH_Iap(int);
 #define					_PFM_Iap							0xAA
 //________________________________________________________________________
 // add.	Pfm6
+//
 #define					_PFM_CurrentLimit			0x10
 #define					_PFM_SetPwm						0x11
 #define					_PFM_HV_req						0x12

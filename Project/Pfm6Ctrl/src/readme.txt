@@ -499,4 +499,13 @@ v 2.12 Feb 24 2016, <EFF7B41B>
   (putVCP, putDMA ). Ob oddaji binarnega znaka 0xFF se predznak expandira na celoten 
   int in dobimo  -1 ki ga visji nivo interpretira kot EOF !!!!
   
+24.8.2016
+- bug na CAN, retransmission ni bil avtomaticen
+- namesto sw. stevca dogodkov na fan irq se vklopi 8x prescaler na input capture...
+
+24.8.2016
+- aktiviran filter za glitche...
+31.8.2016
+- pri konz. vnosu HV je bila spodnja meja na HV-2*HV/3 namesto 2*HV/3, lapsus ...
+
   

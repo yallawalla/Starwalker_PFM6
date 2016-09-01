@@ -45,7 +45,7 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 					CAN_InitStructure.CAN_TTCM=DISABLE;
 					CAN_InitStructure.CAN_ABOM=ENABLE;
 					CAN_InitStructure.CAN_AWUM=DISABLE;
-					CAN_InitStructure.CAN_NART=ENABLE;
+					CAN_InitStructure.CAN_NART=DISABLE;
 					CAN_InitStructure.CAN_RFLM=DISABLE;
 
 //... pomembn.. da ne zamesa mailboxov in jih oddaja po vrstnem redu vpisovanja... ni default !!!

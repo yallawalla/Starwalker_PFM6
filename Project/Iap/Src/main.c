@@ -35,26 +35,15 @@ CanTxMsg		tx={_ID_IAP_ACK,0,CAN_ID_STD,CAN_RTR_DATA,1,0,0,0,0,0,0,0,0};
 /******************************************************************************/
 int					main(void) {
 int					*p=(int *)*_FW_START;
-//
-// trigger fiber off on pfm6
-#ifdef			__PFM6__		
-						GPIO_InitTypeDef GPIO_InitStructure;
-						RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
-						GPIO_StructInit(&GPIO_InitStructure);
-						GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-						GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13;
-						GPIO_Init(GPIOD, &GPIO_InitStructure);
-						GPIO_SetBits(GPIOD,GPIO_Pin_12 | GPIO_Pin_13);	  	
-#endif
+	
 						Watchdog_init(4000);
-						if(RCC_GetFlagStatus(RCC_FLAG_IWDGRST) == RESET && RCC_GetFlagStatus(RCC_FLAG_WWDGRST) == RESET && !crcError()) {
+						if(RCC_GetFlagStatus(RCC_FLAG_SFTRST) == SET && !crcError()) {
 							NVIC_SetVectorTable(NVIC_VectTab_FLASH,(uint32_t)p-_BOOT_TOP);				
 							__set_MSP(*p++);
 							((void (*)(void))*p)();
 						}
 						App_Init();
-						
+	
 #if	defined (__PFM6__) || defined(__DISCO__)
 						if(RCC_GetFlagStatus(RCC_FLAG_WWDGRST) != RESET) {
 							RCC_ClearFlag();	
@@ -96,7 +85,7 @@ void 				SysTick_init(void)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-char 				*leds[]={"d0","d1","d2","d3","","d4","d5","d6","d7"};
+//char 				*leds[]={"d0","d1","d2","d3","","d4","d5","d6","d7"};
 
 void 				App_Init(void) {
 
@@ -112,11 +101,11 @@ void 				App_Init(void) {
 #ifdef WITH_COM_PORT
 						__stdin.handle.io=__stdout.handle.io=Initialize_USART();
 						printf(IAP_MSG);
-						Initialize_LED(leds,9);
+//						Initialize_LED(leds,9);
 #endif
 #if		defined (__PFM6__)
-// pfm ventilatorji off		
 {
+// pfm ventilatorji off		
 						GPIO_InitTypeDef GPIO_InitStructure;   
 						GPIO_StructInit(&GPIO_InitStructure);
 						GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
@@ -124,6 +113,17 @@ void 				App_Init(void) {
 						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
 						GPIO_Init(GPIOA, &GPIO_InitStructure);
 						GPIO_ResetBits(GPIOA,GPIO_Pin_6);		
+
+//	trigger fiber off on pfm6		
+						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13;
+						GPIO_Init(GPIOD, &GPIO_InitStructure);
+
+// red, yellow, blue		
+						GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_2 | GPIO_Pin_3;
+						GPIO_Init(GPIOD, &GPIO_InitStructure);
+
+	GPIO_SetBits(GPIOD,GPIO_Pin_0 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_12 | GPIO_Pin_13);
 }			
 #endif
 						_Words32Received=0;
@@ -134,15 +134,15 @@ void				__App_Loop(void)  {
 
 #ifdef WITH_COM_PORT
 static int	t=0;
-						if(__time__ != t) {
-							_led(-1,-1);
+						if(t != __time__) {
 							t=__time__;
-							if(!(t%200))
-								_RED1(50);
-						}
-//-------------------------------------------					
-						if(__time__/1000 == _timeout)
+							if(!(t % 100)) {
+								GPIO_ToggleBits(GPIOD,GPIO_Pin_0);
+								GPIO_SetBits(GPIOD,GPIO_Pin_2 | GPIO_Pin_3);
+							}				
+						if(t/1000 == _timeout)
 							NVIC_SystemReset();
+						}
 //-------------------------------------------												
 						ParseCOM();		
 #endif
@@ -266,7 +266,7 @@ int 				i=-1,crc;
 * Return         :
 *******************************************************************************/
 void				SendAck(int a) {
-						_BLUE1(50);
+						GPIO_ToggleBits(GPIOD,GPIO_Pin_3);
 						_timeout=-1;
 						tx.StdId=_ID_IAP_ACK;
 						tx.DLC=1;
@@ -293,7 +293,7 @@ CanRxMsg		rx;
 							if(!CAN_MessagePending(__CAN__, CAN_FIFO0))
 								return	ret;
 							CAN_Receive(__CAN__,CAN_FIFO0, &rx);
-							_YELLOW1(50);
+							GPIO_ToggleBits(GPIOD,GPIO_Pin_2);
 						} 
 
 						switch(rx.StdId) {
