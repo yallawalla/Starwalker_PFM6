@@ -74,24 +74,24 @@ class	_LM {
 		_LCD				lcd;
 #endif
 
-		void 					Increment(int, int);
-		void 					Select(_SELECTED_);
-		void 					Submit(string);
-		_SELECTED_		Selected(void)		{return item; }
+		void 				Increment(int, int);
+		void 				Select(_SELECTED_);
+		void 				Submit(string);
+		_SELECTED_	Selected(void)		{return item; }
 		
-		void 					Refresh(void)			{Increment(0,0);}
-		bool					Parse(FILE *);
-		bool					Parse(void);
+		void 				Refresh(void)			{Increment(0,0);}
+		bool				Parse(FILE *);
+		bool				Parse(void);
 		
-		bool					ErrTimeout(void)	{ return __time__ < errT; }
-		void					ErrTimeout(int t)	{ errT = __time__ + t; }
-		void					ErrParse(int);
+		bool				ErrTimeout(void)	{ return __time__ < errT; }
+		void				ErrTimeout(int t)	{ errT = __time__ + t; }
+		void				ErrParse(int);
 		
-		bool					Parse(int);
-		void					RemoteConsole(int, int);
+		bool				Parse(int);
+		void				RemoteConsole(int, int);
 		
-		static void		Poll(void *),
-									Print(void *),
-									Display(void *);
+		static void	Poll(void *),
+								Print(void *),
+								Display(void *);
 };
 #endif

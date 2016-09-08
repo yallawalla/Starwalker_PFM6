@@ -7,7 +7,20 @@
 #include				<stdio.h>
 
 typedef struct	{unsigned char r; unsigned char g; unsigned char b; }	RGB_set;
-typedef struct	{signed short h; unsigned char s; unsigned char v; 	}	HSV_set;
+typedef struct	{
+	signed short	h;
+	unsigned char s;
+	unsigned char v; 
+}	HSV_set;
+
+inline bool operator == (HSV_set &a, HSV_set &b) {
+    return a.h == b.h && a.s == b.s && a.v == b.v;
+}
+
+inline bool operator != (HSV_set &a, HSV_set &b) {
+    return !(a==b);
+}
+
 typedef enum		{ noCOMM,
 										SWITCH_ON, SWITCH_OFF, 
 										FILL_ON, FILL_OFF, 

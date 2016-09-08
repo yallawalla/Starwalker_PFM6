@@ -341,7 +341,7 @@ _LM 				*lm = static_cast<_LM *>(parent);
 //						Energymeter messages ______________________________________________
 /******************************************************************************/	
 //______________________________________________________________________________________
-							case _ID_ENRG2SYS: 																						// energometer message 
+							case Ergm2Sys: 																						// energometer message 
 								unsigned short *p=(unsigned short *)msg->Data;
 								switch(*p) {
 //____________ENERGOMETER SELFTEST  ______________________________________________________

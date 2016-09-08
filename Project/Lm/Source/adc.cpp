@@ -153,7 +153,6 @@ int			e=0;
 					_SET_BIT(e,emgDisabled);
 				return e;
 }
-
 /**
 * @}
 */ 

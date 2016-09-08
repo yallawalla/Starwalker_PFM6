@@ -14,9 +14,9 @@ typedef enum {									// ID's, uporabja se samo tiste s komentarjem...
   Com2CanIoc		=0xB1,					// IOC local console data, transmit only, no filter
 	Can2ComEc20		=0xBA,					// EC20 console access req. transmit only, no filter
 	Com2CanEc20		=0xB3,					// EC20 console data			
-	_ID_SYS2ENRG	=0x1f,
-	_ID_ENRG2SYS	=0x3f,
-	_ID_ENRGTRIG	=0x1a
+	Sys2Ergm			=0x1f,
+	Ergm2Sys			=0x3f,
+	ErgmTrigger		=0x1a
 } _stdid;
 
 typedef enum {									// koda ukaza, 1.byte ...
@@ -117,7 +117,7 @@ typedef __packed struct _ENGdata {
 
 typedef __packed struct _ENGtrigger {
 	_ENGtrigger()	{}
-	void	Send()																				{ Send2Can(_ID_ENRGTRIG,NULL,0); };
+	void	Send()																								{ Send2Can(ErgmTrigger,NULL,0); };
 } _ENGtrigger;
 
 

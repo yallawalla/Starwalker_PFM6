@@ -101,8 +101,8 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 //					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+2;
 //					CAN_FilterInit(&CAN_FilterInitStructure);
 
-					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS2ENRG<<5;
-					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_ENRG2SYS<<5;
+					CAN_FilterInitStructure.CAN_FilterIdHigh=Sys2Ergm<<5;
+					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=Ergm2Sys<<5;
 					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+2;
 					CAN_FilterInit(&CAN_FilterInitStructure);
 					
@@ -295,7 +295,7 @@ _LM				*lm = (_LM *)v;
 //______________________________________________________________________________________
 							case Sys2Ec:
 							case Ec2Sys:								
-							case _ID_ENRG2SYS: 																						// energometer messages
+							case Ergm2Sys: 																						// energometer messages
 								lm->ec20.Parse(&msg);
 								break;
 //______________________________________________________________________________________					

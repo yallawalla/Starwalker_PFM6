@@ -148,7 +148,7 @@ void	_LM::ErrParse(int e) {
 			if(!ErrTimeout())	{
 				if(e) {
 					ErrTimeout(5000);
-//					if(e & error_mask) {									// mask off inactive errors...
+//					if(e & error_mask) {								// mask off inactive errors...
 //						Submit("@error.led");
 						_SYS_SHG_DISABLE;
 //					}
@@ -469,7 +469,8 @@ int		_LM::DecodeEq(char *c) {
 *******************************************************************************/
 int		_LM::Decode(char *c) {
 			switch(*c) {
-				case 0:
+				case 0:												// empty line						
+				case ';':											// comment
 					break;
 				case '=':
 					return DecodeEq(++c);
@@ -481,7 +482,6 @@ int		_LM::Decode(char *c) {
 					return DecodeMinus(++c);
 				case 'v':
 					PrintVersion(SW_version);
-					break;
 				case 'w':
 					for(c=strchr(c,' '); c && *c;)
 						_wait(strtoul(++c,NULL,0),_thread_loop);
@@ -523,9 +523,9 @@ int					to=0;
 //int					pref=0,
 //						peak=0;
 #endif
-				plot.Clear();
-				plot.Add(&plotA,0,5, LCD_COLOR_YELLOW);
-				plot.Add(&plotB,0,10, LCD_COLOR_CYAN);
+					plot.Clear();
+					plot.Add(&plotA,0,5, LCD_COLOR_YELLOW);
+					plot.Add(&plotB,0,10, LCD_COLOR_CYAN);
 //				plot.Add(&plotC,0,1, LCD_COLOR_YELLOW);
 
 					if(f_open(&f,"0:/3.wav",FA_READ) == FR_OK) {
@@ -691,11 +691,12 @@ bool	_LM::Parse(int i) {
 					break;
 				case __F8:
 				case __f8:
-					Select(EC20);
-{					
+				{
 					_EC20Status		m;
+					Select(EC20);
 					m.Send(Sys2Ec);
-}					break;
+				}
+					break;
 				case __F9:
 				case __f9:
 					Select(EC20bias);
@@ -953,7 +954,7 @@ _LM 	lm;
 				_thread_loop();
 			} while(lm.Parse()==true);
 			return 0;
-}
+	}
 }
 //Q1   +f 0.00229515,0.00459030,0.00229515,1.89738149,-0.90656211
 //Q05  +f 0.00219271, 0.00438542, 0.00219271, 1.81269433, -0.82146519

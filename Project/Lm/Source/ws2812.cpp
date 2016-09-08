@@ -192,9 +192,9 @@ ws2812	*w=ws;
 								w->cbuf[j].s = color.s;
 
 								if(w->cbuf[j].v < color.v)
-									w->cbuf[j].v += (color.v - w->cbuf[j].v)/4+1;
+									w->cbuf[j].v += (color.v - w->cbuf[j].v)/10+1;
 								else if(w->cbuf[j].v > color.v)
-									w->cbuf[j].v -= (w->cbuf[j].v - color.v)/4+1;
+									w->cbuf[j].v -= (w->cbuf[j].v - color.v)/10+1;
 								else
 									++k;
 							}
@@ -265,12 +265,12 @@ ws2812	*w=ws;
 							color.v=0;
 						case RUN_RIGHT_ON:
 							for(j=k=0; j<w->size-1;++j) {
-								if(w->cbuf[j].v != w->cbuf[j+1].v)
+								if(w->cbuf[j] != w->cbuf[j+1])
 									w->cbuf[j] = w->cbuf[j+1];
 								else
 									++k;
 							}
-							if(w->cbuf[j].v != color.v)
+							if(w->cbuf[j] != color)
 								w->cbuf[j] = color;
 							else
 								++k;
@@ -282,12 +282,12 @@ ws2812	*w=ws;
 							j=w->size; 
 							k=0;
 							while(--j) {
-								if(w->cbuf[j].v != w->cbuf[j-1].v)
+								if(w->cbuf[j] != w->cbuf[j-1])
 									w->cbuf[j] = w->cbuf[j-1];
 								else
 									++k;
 							}
-							if(w->cbuf[j].v != color.v)
+							if(w->cbuf[j] != color)
 								w->cbuf[j] = color;
 							else
 								++k;
@@ -446,7 +446,7 @@ int			i;
 						break;						
 					case 't':
 						i=atoi(strtok(NULL,", "));
-						if(i<5 || i>100)
+						if(i<5 || i>1000)
 							return PARSE_ILLEGAL;
 						_thread_find((void *)proc_WS2812,this)->dt=i;	
 						break;
@@ -766,6 +766,9 @@ w 100
 w 100
 -c f,2
 -c f,3
+
+-c r,4
++c r,4
 
 */
 
