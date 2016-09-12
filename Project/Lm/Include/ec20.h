@@ -2,6 +2,7 @@
 #define					EC20_H
 #include				"stm32f2xx.h"
 #include				"stdio.h"
+#include				"gpio.h"
 #include				"isr.h"
 
 typedef enum {									// ID's, uporabja se samo tiste s komentarjem...
@@ -136,20 +137,6 @@ typedef __packed struct _ENGtrigger {
 
 #define		_STATUS_MASK				(_COMPLETED  +  _SIM_DET  +  _FOOT_ACK)
 
-//
-// Footswitch port pattern
-//
-//
-//
-//
-
-typedef enum {
-	__FOOT_OFF	=0x0000f800,
-	__FOOT_IDLE	=0x00003800,
-	__FOOT_MID	=0x0000b800,
-	__FOOT_ON		=0x0000d800,
-	__FOOT_ACK	=0x0000ffff
-} __FOOT;
 
 //
 //
@@ -185,7 +172,7 @@ class	_EC20 {
 	void		SaveSettings(FILE *);
 	void		FootSwEvent(__FOOT);
 	int			Increment(int, int);
-	int			Refresh()													{return Increment(0,0);};		
+	int			Refresh()													{ return Increment(0,0); };		
 	
 	int			IncrementBias(int, int);
 	static 	void	ECsimulator(void *);

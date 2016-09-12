@@ -107,8 +107,8 @@ const	int Rtab[]={
 _QSHAPE			qshape[_MAX_QSHAPE];
 _USER_SHAPE	ushape[_MAX_USER_SHAPE];
 			
-#define	_K1											(_STATUS(p, PFM_STAT_SIMM1)/1)
-#define	_K2											(_STATUS(p, PFM_STAT_SIMM2)/2)
+#define	_K1		(_STATUS(p, PFM_STAT_SIMM1)/1)
+#define	_K2		(_STATUS(p, PFM_STAT_SIMM2)/2)
 
 #define _SHPMOD_OFF		0
 #define _SHPMOD_MAIN	1

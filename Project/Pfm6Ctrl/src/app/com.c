@@ -288,6 +288,7 @@ int			DecodePlus(char *c) {
 //______________________________________________________________________________________
 int			DecodeWhat(char *c) {
 				int			k,m,n;
+				void 		*v;
 				switch(*c) {
 //______________________________________________________________________________________
 				case 't':
@@ -299,13 +300,30 @@ int			DecodeWhat(char *c) {
 					m+= 10*(1+TIM18_buf[n].n)/2;
 					__print("\r\n%d,%d,%d\r\n>",m,TIM18_buf[n-1].T1,TIM18_buf[n-1].T3);
 					break;
-
-
-
-
 //______________________________________________________________________________________
 				case 'a':
 					App_List();
+					break;
+//______________________________________________________________________________________
+				case 'h':
+					k=0;
+					while(1) {
+						v=malloc(0x400 * k);
+						if(!v)
+							break;
+						free(v);
+						++k;
+						printf(".");
+					}
+					m=(int)__heap_limit;
+					n=(int)__heap_base;
+					printf("\r\n%d of %dk heap left, ",k,(m - n)/0x400);
+					m=(int)__initial_sp;
+					n=(int)__heap_limit;
+					for(k=0; k<(m - n)/sizeof(int); ++k)
+						if(__heap_limit[k])
+							break;
+					printf("\r\n%d of %dk stack clean",k*sizeof(int)/0x400,(m-n)/0x400);					
 					break;
 //______________________________________________________________________________________
 				case '#':

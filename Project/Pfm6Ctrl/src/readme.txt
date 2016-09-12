@@ -505,7 +505,11 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 
 24.8.2016
 - aktiviran filter za glitche...
+
 7.9.2016
 - pri konz. vnosu HV je bila spodnja meja na HV-2*HV/3 namesto 2*HV/3, lapsus ...
+
+12.9.2016
+- zmanjšana heap in stack ( na 8k), _MAX_BURST doseže 11 ms
 
   

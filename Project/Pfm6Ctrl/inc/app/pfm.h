@@ -28,7 +28,7 @@
 //________global HW dependent defines___________________
 			
 #define					_uS						60
-#define					_MAX_BURST		(8*_mS)
+#define					_MAX_BURST		(10*_mS)
 #define					__CAN__				CAN2
 #define					__FILT_BASE__	14
 #define					FATFS_SECTOR	FLASH_Sector_6
@@ -195,7 +195,7 @@ typedef struct	{	unsigned short			IgbtT1,IgbtT2,HV2,HV,
 typedef struct	{	unsigned short			n,T1,T3; 							} _TIM18DMA;
 typedef struct	{	unsigned short			DAC2,DAC1;						} _DACDMA;
 typedef struct	{	unsigned short			addr,speed,ntx,nrx;
-									unsigned char				txbuf[4],rxbuf[4];		}_i2c;
+									unsigned char				txbuf[4],rxbuf[4];		} _i2c;
 typedef struct	{					 short			q0,q1,q2,q3,qref;			}	_QSHAPE;
 typedef struct	{					 short			T,U;									}	_USER_SHAPE;
 extern					_QSHAPE 		qshape[_MAX_QSHAPE];			
@@ -447,7 +447,8 @@ short						__f2lin(float, short);
 int							batch(char *);	        
 void						CAN_console(void);
 
-extern					uint32_t	__Vectors[];
+extern					uint32_t	__Vectors[],__heap_base[],__heap_limit[],__initial_sp[];
+;
 extern					int				_PWM_RATE_LO;
 extern 					int				Pref1,Pref2;
 

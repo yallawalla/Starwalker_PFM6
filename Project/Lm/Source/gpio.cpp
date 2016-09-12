@@ -16,8 +16,8 @@
 * @{
 */
 /*******************************************************************************
-* Function Name	: 12V supply enable, switch scan... 
-* Description		:
+* Function Name	: GPIO() 
+* Description		: Footswitch port constructor
 * Output				:
 * Return				: None
 *******************************************************************************/
@@ -44,7 +44,7 @@ _GPIO::_GPIO() {
 			GPIO_SetBits(GPIOC,GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);	
 			GPIO_ResetBits(GPIOC,GPIO_Pin_10);	
 			timeout=0;
-			key = GPIO_ReadInputData(GPIOC) & __FOOT_MASK;
+			key = temp = GPIO_ReadInputData(GPIOC) & __FOOT_MASK;
 
 #if defined(__IOC_V2__)
 			GPIO_StructInit(&GPIO_InitStructure);
@@ -55,18 +55,22 @@ _GPIO::_GPIO() {
 #endif	
 }
 /*******************************************************************************
-* Function Name	: 12V supply enable, keyboard 
-* Description		:
-* Output				:
-* Return				: None
+* Function Name	: Poll()
+* Description		:	footswitch port polling
+* Output				: int
+* Return				: footswitch code, 20ms filter, on valid change
 *******************************************************************************/
 int   _GPIO::Poll(void) {
-			if(key != (GPIO_ReadInputData(GPIOC) & __FOOT_MASK)) {
-				key = GPIO_ReadInputData(GPIOC) & __FOOT_MASK;
+			if(temp != (GPIO_ReadInputData(GPIOC) & __FOOT_MASK)) {
+				temp = GPIO_ReadInputData(GPIOC) & __FOOT_MASK;
 				timeout = __time__ + 20;
-			} else if(timeout && __time__ > timeout) {
-				timeout=0;
-				return key & __FOOT_MASK;
+			} else 
+					if(timeout && __time__ > timeout) {
+						timeout=0;
+						if(temp != key) {
+							key=temp;
+							return key;
+						}
 			}
 			return EOF;
 }
