@@ -20,7 +20,19 @@ _ADCDMA		ADC1_buf[_MAX_BURST/_uS],
 int		_ADCRates[]={3,15,28,56,84,112,144,480};
 
 void	TriggerADC(PFM *p) {
-	
+//
+// trigger tresholds, must be set before ADC's disabled
+//
+			if(p) {
+				ADC_AnalogWatchdogThresholdsConfig(ADC1,pfm->Burst.Imax,0);
+				ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Burst.Imax,0);			
+			} else {
+				ADC_AnalogWatchdogThresholdsConfig(ADC1,pfm->Burst.Isimm,0);
+				ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Burst.Isimm,0);							
+			}
+			ADC_ITConfig(ADC1,ADC_IT_AWD,ENABLE);
+			ADC_ITConfig(ADC2,ADC_IT_AWD,ENABLE);	
+//
 			ADC_Cmd(ADC1, DISABLE);							ADC_Cmd(ADC2, DISABLE);
 			DMA_Cmd(DMA2_Stream4,DISABLE);			DMA_Cmd(DMA2_Stream3,DISABLE);
 
@@ -31,22 +43,15 @@ void	TriggerADC(PFM *p) {
 				DMA_MemoryTargetConfig(DMA2_Stream4,(uint32_t)ADC1_buf,DMA_Memory_0);
 				DMA_SetCurrDataCounter(DMA2_Stream3,p->Burst.Einterval*_uS/_MAX_ADC_RATE*sizeof(_ADCDMA)/sizeof(short));
 				DMA_SetCurrDataCounter(DMA2_Stream4,p->Burst.Einterval*_uS/_MAX_ADC_RATE*sizeof(_ADCDMA)/sizeof(short));
-
 				DMA_ClearITPendingBit(DMA2_Stream3,DMA_IT_TCIF3|DMA_IT_HTIF3|DMA_IT_TEIF3|DMA_IT_DMEIF3|DMA_IT_FEIF3);
 				DMA_ClearITPendingBit(DMA2_Stream4,DMA_IT_TCIF4|DMA_IT_HTIF4|DMA_IT_TEIF4|DMA_IT_DMEIF4|DMA_IT_FEIF4);
 				DMA_ITConfig(DMA2_Stream4, DMA_IT_TC, ENABLE);
-				ADC_AnalogWatchdogThresholdsConfig(ADC1,p->Burst.Imax,0);
-				ADC_AnalogWatchdogThresholdsConfig(ADC2,p->Burst.Imax,0);	
 			} else {
 				DMA_MemoryTargetConfig(DMA2_Stream3,(uint32_t)&ADC2_simmer,DMA_Memory_0);
 				DMA_MemoryTargetConfig(DMA2_Stream4,(uint32_t)&ADC1_simmer,DMA_Memory_0);
 				DMA_SetCurrDataCounter(DMA2_Stream3,sizeof(_ADCDMA)/sizeof(short));
 				DMA_SetCurrDataCounter(DMA2_Stream4,sizeof(_ADCDMA)/sizeof(short));
-
-				DMA_ITConfig(DMA2_Stream4, DMA_IT_TC, DISABLE);
-				ADC_AnalogWatchdogThresholdsConfig(ADC1,p->Burst.Isimm,0);
-				ADC_AnalogWatchdogThresholdsConfig(ADC2,p->Burst.Isimm,0);	
-				
+				DMA_ITConfig(DMA2_Stream4, DMA_IT_TC, DISABLE);			
 				ADC_DMARequestAfterLastTransferCmd(ADC1, ENABLE);
 				ADC_DMARequestAfterLastTransferCmd(ADC2, ENABLE);	
 			}
@@ -310,7 +315,7 @@ void ADC_IRQHandler(void)	{
 		}
 		if(ADC_GetITStatus(ADC3, ADC_IT_AWD) != RESET) {
 			ADC_ClearITPendingBit(ADC3, ADC_IT_AWD);
-				_SET_ERROR(pfm,PFM_ADCWDG_ERR);
+			_SET_ERROR(pfm,PFM_ADCWDG_ERR);
 		}
 }
 

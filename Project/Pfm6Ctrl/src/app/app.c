@@ -20,6 +20,7 @@ PFM				*pfm;
 int				_I1off=0,_I2off=0,
 					_U1off=0,_U2off=0,
 					_E1ref=0,_E2ref=0;
+
 /*______________________________________________________________________________
 * Function Name : App_Init
 * Description   : Initialize PFM object
@@ -28,7 +29,7 @@ int				_I1off=0,_I2off=0,
 * Return        : None
 */
 void 			App_Init(void) {
-RCC_AHB1PeriphClockCmd(	
+RCC_AHB1PeriphClockCmd(
 					RCC_AHB1Periph_GPIOA |
 					RCC_AHB1Periph_GPIOB |
 					RCC_AHB1Periph_GPIOC | 
@@ -47,9 +48,9 @@ RCC_AHB1PeriphClockCmd(
 					pfm->Burst.Length=pfm->Burst.Einterval=3000;
 					pfm->Burst.Repeat=1000;
 					pfm->Burst.Count=1;
-					pfm->Burst.Isimm=0;
+					pfm->Burst.Isimm=_I2AD(100);
+					pfm->Burst.Imax=_I2AD(1000);
 					pfm->Burst.Idelay=0;
-					pfm->Burst.Imax=0;
 					pfm->Burst.Psimm[0]=pfm->Burst.Psimm[1]=200*_uS/1000;
 					pfm->Burst.LowSimm[0]=pfm->Burst.LowSimm[1]=50*_uS;
 					pfm->Burst.LowSimmerMode=_XLAP_QUAD;

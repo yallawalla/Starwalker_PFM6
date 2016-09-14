@@ -999,44 +999,42 @@ int				i;
 					}
 					break;
 //______________________________________________________________________________________
-				case 'a':
-					switch(numscan(++c,cc,',')) {
-extern int	_U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
-						case 0:
-							__print("  \r>a(dc)    U1,I1,U2,I2   ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I),_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I));
-							__print("\n\r>a(dc)    idle          ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*_U1off),_AD2I(_I1off),_AD2HV(ADC3_AVG*_U2off),_AD2I(_I2off));
-							__print("\n\r>a(dc)    Isimm,I,Uh,Ul ... %dA,%dA,%dV,%dV",_AD2I(pfm->Burst.Isimm),_AD2I(pfm->Burst.Imax),ADC3_AVG*_AD2HV(ADC3->HTR),ADC3_AVG*_AD2HV(ADC3->LTR));
-							break;
-						case 2:
-							pfm->Burst.Isimm=_I2AD(atoi(cc[0]));
-							pfm->Burst.Imax=_I2AD(atoi(cc[1]));
-														
-							ADC_AnalogWatchdogThresholdsConfig(ADC1,pfm->Burst.Isimm,0);
-							ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Burst.Isimm,0);			
-
-							ADC_ClearITPendingBit(ADC1, ADC_IT_AWD);
-							ADC_ClearITPendingBit(ADC2, ADC_IT_AWD);
-							ADC_ITConfig(ADC1,ADC_IT_AWD,ENABLE);
-							ADC_ITConfig(ADC2,ADC_IT_AWD,ENABLE);
-							break;
-						default:
-							return _PARSE_ERR_SYNTAX;
-					}
-					break;	
-//______________________________________________________________________________________
 				case 'i':							
 					switch(numscan(++c,cc,',')) {
 						case 0:
-							__print("\r>i(DAC)   i1,i2         ... %d%c,%d%c",(DAC_GetDataOutputValue(DAC_Channel_1)*100+0x7ff)/0xfff,'%',(DAC_GetDataOutputValue(DAC_Channel_2)*100+0x7ff)/0xfff,'%');
-							break;
+							__print("\r\n");
+							__print("DAC limiter(ch 1/2)         ... %d%c,%d%c\r\n",(DAC_GetDataOutputValue(DAC_Channel_1)*100+0x7ff)/0xfff,'%',(DAC_GetDataOutputValue(DAC_Channel_2)*100+0x7ff)/0xfff,'%');
+							__print("current limits(l/h)         ... %dA,%dA\r\n",_AD2I(pfm->Burst.Isimm),_AD2I(pfm->Burst.Imax));
+							__print("voltage limits(l/h)         ... %dV,%dV\r\n",ADC3_AVG*_AD2HV(ADC3->LTR),ADC3_AVG*_AD2HV(ADC3->HTR));
+
+						break;
 						case 2:
 							DAC_SetDualChannelData(DAC_Align_12b_R,(atoi(cc[1])*0xfff+50)/100,(atoi(cc[0])*0xfff+50)/100);
 							DAC_DualSoftwareTriggerCmd(ENABLE);		
+							break;
+						case 4:
+							DAC_SetDualChannelData(DAC_Align_12b_R,(atoi(cc[1])*0xfff+50)/100,(atoi(cc[0])*0xfff+50)/100);
+							DAC_DualSoftwareTriggerCmd(ENABLE);		
+							pfm->Burst.Isimm=_I2AD(atoi(cc[2]));
+							pfm->Burst.Imax=_I2AD(atoi(cc[3]));
 							break;
 						default:
 							return _PARSE_ERR_SYNTAX;
 					}
 				break;
+//______________________________________________________________________________________
+				case 'a':
+					switch(numscan(++c,cc,',')) {
+extern int _U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
+						case 0:
+							__print("  \r>a(dc)    U1,I1,U2,I2   ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I),_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I));
+							__print("\n\r>a(dc)    idle          ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*_U1off),_AD2I(_I1off),_AD2HV(ADC3_AVG*_U2off),_AD2I(_I2off));
+							__print("\n\r>a(dc)    Isimm,I,Uh,Ul ... %dA,%dA,%dV,%dV",_AD2I(pfm->Burst.Isimm),_AD2I(pfm->Burst.Imax),ADC3_AVG*_AD2HV(ADC3->HTR),ADC3_AVG*_AD2HV(ADC3->LTR));
+							break;
+						default:
+							return _PARSE_ERR_SYNTAX;
+					}
+					break;	
 //______________________________________________________________________________________
 				case 'e':
 					break;

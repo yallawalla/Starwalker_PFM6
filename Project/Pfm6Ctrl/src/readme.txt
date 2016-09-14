@@ -512,4 +512,5 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 12.9.2016
 - zmanjšana heap in stack ( na 8k), _MAX_BURST doseže 11 ms
 
-  
+14.9.2016
+- analog watchdog za tok na flesu...
