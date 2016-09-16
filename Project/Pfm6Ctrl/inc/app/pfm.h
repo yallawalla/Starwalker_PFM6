@@ -79,7 +79,8 @@ typedef					enum
 								_PULSE_ENABLED,
 								_PULSE_FINISHED,
 //								_ADC_FINISHED,
-								_FAN_TACHO
+								_FAN_TACHO,
+								_REBOOT=31
 } 							_event;
 
 #define					_DBG(p,a)				(p->debug & (1<<(a)))
@@ -171,17 +172,19 @@ _io 								*io=_stdio(__dbug);																												\
 									} while(0)
 
 #define					_SET_ERROR(p,a)	do {																													\
+									if(~(p->Errmask) & a) { 																										\
 									if(a & _CRITICAL_ERR_MASK) {																								\
 										TIM_CtrlPWMOutputs(TIM1, DISABLE);																				\
 										TIM_CtrlPWMOutputs(TIM8, DISABLE);																				\
 									}																																						\
-									if(_DBG(p,_DBG_ERR_MSG) && !(p->Error & (a))) {															\
+									if(_DBG(p,_DBG_ERR_MSG) && a != (p->Error & (a))) {													\
 _io 								*io=_stdio(__dbug);																												\
 										__print(":%04d error %04X,%04X, set\r\n>",__time__ % 10000,p->Error,a);		\
-										__print(":%04d stats %04X\r\n>",__time__ % 10000,p->Status);		\
+										__print(":%04d stats %04X\r\n>",__time__ % 10000,p->Status);							\
 										_stdio(io);																																\
 									}																																						\
 									p->Error |= (a);																														\
+								}																																							\
 								} while(0)
 //________________________________________________________________________
 #define 				ADC3_AVG							4
@@ -304,17 +307,18 @@ short						Pmax,
 //________________________________________________________________________
 typedef 				struct {
 burst						Burst;
-int							Error,						
-								debug;	
-short						Status,	
+short						Error,	
+								Status,	
 								HV,										// Cap1+Cap2	ADC value x ADC3_AVG
 								HV2,									// Cap1			ADC value x ADC3_AVG								
 								Temp,									// Igbt temp,	degrees
 								Up20,				
 								Um5,				
-								ADCRate;				
-volatile int		events;				
-volatile int		mode;
+								ADCRate,	
+								Errmask;
+volatile int		events,
+								debug,
+								mode;
 struct {
 	short					delay,
 								width,

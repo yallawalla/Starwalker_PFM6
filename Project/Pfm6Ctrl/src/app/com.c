@@ -46,10 +46,6 @@ int			DecodeMinus(char *c) {
 					Wait(200,App_Loop);
 					switch(*cc[1]) {
 						case 'h':
-#ifdef __DISCO__																		// USB power on
-							GPIO_ResetBits(GPIOC,GPIO_Pin_0);
-#endif
-							USBH_App=USBH_Iap;
 							Initialize_host_msc();
 							break;
 						case 'f':
@@ -184,17 +180,17 @@ FATFS						fs_cpu;
 						break;
 					}
 					return _PARSE_ERR_SYNTAX;
+//__________________________________________________ disable error _________
+				case 'E':
+					n=numscan(++c,cc,',');
+					while(n--)
+						pfm->Errmask |= getHEX(cc[n],-1);
+					break;
 //__________________________________________________ mode setup _____________
 				case 'm':
 					n=strscan(++c,cc,',');
 					while(n--)
 						_CLEAR_MODE(pfm,atoi(cc[n]));	
-					break;
-//__________________________________________________ error setup _____________
-				case 'E':
-					n=strscan(++c,cc,',');
-					while(n--)
-						_CLEAR_ERROR(pfm,getHEX(cc[n],-1));
 					break;
 //__________________________________________________ debug setup _____________
 				case 'D':
@@ -209,42 +205,36 @@ FATFS						fs_cpu;
 						Wait(atoi(cc[1]),App_Loop);
 					}
 					break;
-//______________________________________________________________________________________
+//___________________________________________________________________________
 				default:
 					return _PARSE_ERR_SYNTAX;
 				}
 				return _PARSE_OK;
 }
-//______________________________________________________________________________________
+//___________________________________________________________________________
 int			DecodePlus(char *c) {
 
 				char		*cc[8];
 				int			n;
 				switch(*c) {
+//__________________________________________________ enable error ___________
+				case 'E':
+					n=numscan(++c,cc,',');
+					while(n--)
+						pfm->Errmask &= ~getHEX(cc[n],-1);
+					break;
 //__________________________________________________ mode setup _____________
 				case 'm':
 					n=strscan(++c,cc,',');
 					while(n--)
 						_SET_MODE(pfm,atoi(cc[n]));
 					break;
-//__________________________________________________ events setup _____________
-				case 'e':
-					n=strscan(++c,cc,',');
-					while(n--)
-						_SET_EVENT(pfm,atoi(cc[n]));
-					break;
-//__________________________________________________ watchdog setup _____________
+//__________________________________________________ watchdog setup _________
 				case 'w':
 					if(strscan(++c,cc,','))
 						Watchdog_init(atoi(cc[0]));
 					else
 						Watchdog_init(300);
-					break;
-//__________________________________________________ error setup _____________
-				case 'E':
-					n=strscan(++c,cc,',');
-					while(n--)
-						_SET_ERROR(pfm,getHEX(cc[n],-1));
 					break;
 //__________________________________________________ debug setup _____________
 				case 'D':
@@ -253,7 +243,7 @@ int			DecodePlus(char *c) {
 					while(n--)
 						_SET_DBG(pfm,atoi(cc[n]));
 					break;
-//__________________________________________________ I2C setup _____________
+//__________________________________________________ I2C setup _______________
 				case 'i':
 					switch(strscan(++c,cc,',')) {
 						case 0:
@@ -303,6 +293,10 @@ int			DecodeWhat(char *c) {
 //______________________________________________________________________________________
 				case 'a':
 					App_List();
+					break;
+//______________________________________________________________________________________
+				case 'E':
+					__print(" error=%04X,mask=%04X",pfm->Error,pfm->Errmask);
 					break;
 //______________________________________________________________________________________
 				case 'h':
@@ -1035,8 +1029,17 @@ extern int _U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
 							return _PARSE_ERR_SYNTAX;
 					}
 					break;	
-//______________________________________________________________________________________
+//__________________________________________________ events trigger ___________________
 				case 'e':
+					n=numscan(++c,cc,',');
+					while(n--)
+						_SET_EVENT(pfm,atoi(cc[n]));
+					break;
+//__________________________________________________ error trigger _____________________
+				case 'E':
+					n=numscan(++c,cc,',');
+					while(n--)
+						_SET_ERROR(pfm,getHEX(cc[n],-1));
 					break;
 //______________________________________________________________________________________
 				case 'x':
@@ -1295,12 +1298,12 @@ fno.lfsize = sizeof lfn;
 											f_mount(FSDRIVE_USB,NULL);															// dismount both drives
 											f_mount(FSDRIVE_CPU,&fs1);
 											}
-											if(state>1)
-												_YELLOW2(1000);
-											else
-												_RED2(1000);
+							if(state>1) {
+								_YELLOW2(1000);
+							} else {
+								_RED2(1000);
+							}
 						}
-						
 						if(call==EOF) {
 							if(state>1)
 								WWDG_init();
@@ -1311,3 +1314,4 @@ fno.lfsize = sizeof lfn;
 /**
 * @}
 */
+

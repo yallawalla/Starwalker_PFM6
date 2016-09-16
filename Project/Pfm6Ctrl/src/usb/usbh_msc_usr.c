@@ -60,11 +60,16 @@ __ALIGN_BEGIN
 USBH_HOST           						USB_Host;
 __ALIGN_END
 
+int		(*USBH_App)(int);
+
 void	Initialize_host_msc(void) {
+#ifdef __DISCO__																		// USB power on
+			GPIO_ResetBits(GPIOC,GPIO_Pin_0);
+#endif
+			USBH_App=USBH_Iap;
 			USBH_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USB_Host, &USBH_MSC_cb, &USR_USBH_MSC_cb);
 }
 
-int		(*USBH_App)(int);
 void	USBHost (void) {
 	USBH_Process(&USB_OTG_Core, &USB_Host);
 }

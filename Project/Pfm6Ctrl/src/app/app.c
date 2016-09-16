@@ -166,6 +166,11 @@ static
 						}
 					}
 //______________________________________________________________________________
+					if(_EVENT(p,_REBOOT)) {	
+						_CLEAR_EVENT(p,_REBOOT);															// end of pulse
+						WWDG_init();
+					}
+//______________________________________________________________________________
 //					if(_EVENT(p,_ADC_FINISHED)) {	
 //						_CLEAR_EVENT(p,_ADC_FINISHED);											// end of pulse
 //						_DEBUG_MSG("adc finished...");
