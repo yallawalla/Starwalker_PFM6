@@ -514,3 +514,9 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 
 14.9.2016
 - analog watchdog za tok na flesu...
+
+
+23.9.2016
+- simulacija PFN odziva ???
+27.9.2016
+- scaling PFN parametrov -- smafu :(

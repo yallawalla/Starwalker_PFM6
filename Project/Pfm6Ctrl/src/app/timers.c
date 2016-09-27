@@ -249,7 +249,12 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 // ___ 100 khz interrupt __________________________________________________________
 // ________________________________________________________________________________
 extern int	_U1off,_U2off,_E1ref,_E2ref,_I1off,_I2off;
-int			Pref1=0,Pref2=0;
+		
+int32_t			Pref1=0,Pref2=0;
+		
+uint32_t		Caps=5,
+						Pcaps=0xffff,
+						Vcaps=0;
 /**
   ******************************************************************************
   * @file			timers.c
@@ -261,8 +266,8 @@ int			Pref1=0,Pref2=0;
   */
 void		TIM1_UP_TIM10_IRQHandler(void) {
 
-static
-int			m=0,																											// timer repetition rate register index index, DMA table
+static	int
+				m=0,																											// timer repetition rate register index index, DMA table
 				n=0,																											// adc index
 				io=0,
 				xi1=0,
@@ -272,11 +277,11 @@ int			m=0,																											// timer repetition rate register index ind
 //int			e1=0,
 //				e2=0;
 
-int 		i,j,k;
+int 		i,j,k,
+				ki=30,kp=0;
 short		z1,z2;
-int			ki=30,kp=0;
 
-				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);								// briai ISR flage
+				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);								// brisi ISR flage
 				for(i=j=0;j<ADC3_AVG;++j)																	// sestej zadnjih N merjenih vrednosti vrsne napetosti
 					i+=(unsigned short)(ADC3_buf[j].HV);										// 
 
@@ -288,7 +293,7 @@ int			ki=30,kp=0;
 																																	// get current DMA data index
 				z1 = TIM18_buf[n].T1;																			// vmesni izracun vrednosti za timerje 
 				z2 = TIM18_buf[n].T3;
-
+			
 				if(_MODE(pfm,_U_LOOP)) {
 					z1 = (z1 * io + i/2)/i;
 					z2 = (z2 * io + i/2)/i;
@@ -348,8 +353,17 @@ int			ki=30,kp=0;
 					}
 				}
 
-// vpis v timerje
+				if(_MODE(pfm,__TEST__)) {
+					z1 = (z1*Vcaps+(1<<15)) >> 16;
+					z2 = (z2*Vcaps+(1<<15)) >> 16;
+					if(k>5)
+						Vcaps -= (ADC1_buf[k-5].I + ADC2_buf[k-5].I)/Caps;				
+					z1 = __max(pfm->Burst.Pdelay, z1);
+					z2 = __max(pfm->Burst.Pdelay, z2);
+				}
 				
+// vpis v timerje
+
 				TIM8->CCR1 = TIM1->CCR1 = __max(0,__min(_MAX_PWM_RATE, z1));
 				TIM8->CCR3 = TIM1->CCR3 = __max(0,__min(_MAX_PWM_RATE, z2));
 				

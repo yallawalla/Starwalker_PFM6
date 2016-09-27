@@ -559,6 +559,11 @@
               <FileType>4</FileType>
               <FilePath>..\..\Libraries\DSP-Lib\CMSIS\Lib\ARM\arm_cortexM3l_math.lib</FilePath>
             </File>
+            <File>
+              <FileName>usbh.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\usbh\usbh.lib</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1127,6 +1132,11 @@
               <FileType>4</FileType>
               <FilePath>..\..\Libraries\DSP-Lib\CMSIS\Lib\ARM\arm_cortexM3l_math.lib</FilePath>
             </File>
+            <File>
+              <FileName>usbh.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\usbh\usbh.lib</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1645,6 +1655,11 @@
               <FileName>arm_cortexM3l_math.lib</FileName>
               <FileType>4</FileType>
               <FilePath>..\..\Libraries\DSP-Lib\CMSIS\Lib\ARM\arm_cortexM3l_math.lib</FilePath>
+            </File>
+            <File>
+              <FileName>usbh.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\usbh\usbh.lib</FilePath>
             </File>
           </Files>
         </Group>

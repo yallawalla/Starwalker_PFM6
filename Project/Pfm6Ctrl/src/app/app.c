@@ -17,7 +17,7 @@
 #include 	<stdio.h>
 
 PFM				*pfm;
-int				_I1off=0,_I2off=0,
+int32_t		_I1off=0,_I2off=0,
 					_U1off=0,_U2off=0,
 					_E1ref=0,_E2ref=0;
 
@@ -48,7 +48,7 @@ RCC_AHB1PeriphClockCmd(
 					pfm->Burst.Length=pfm->Burst.Einterval=3000;
 					pfm->Burst.Repeat=1000;
 					pfm->Burst.Count=1;
-					pfm->Burst.Isimm=_I2AD(100);
+					pfm->Burst.Isimm=_I2AD(1000);
 					pfm->Burst.Imax=_I2AD(1000);
 					pfm->Burst.Idelay=0;
 					pfm->Burst.Psimm[0]=pfm->Burst.Psimm[1]=200*_uS/1000;
@@ -193,6 +193,8 @@ static
   * @retval : None
   *
 ______________________________________________________________________________*/
+extern unsigned volatile int Caps,Vcaps,Pcaps;
+
 void			ProcessingStatus(PFM *p) {
 int 			i,j,k;
 static
@@ -247,9 +249,9 @@ static
 								_SET_ERROR(p,PFM_ERR_SIMM2);
 							else
 								_CLEAR_ERROR(p,PFM_ERR_SIMM2);
-						}					
+						}
 					}
-//-------------------------------------------------------------------------------			
+//-------------------------------------------------------------------------------
 					if((status_image != p->Status) || (error_image != p->Error)) {
 						error_image = p->Error;	
 						status_image = p->Status;
@@ -257,10 +259,17 @@ static
 					}
 //-------------------------------------------------------------------------------
 					_led(-1,-1);
-					k=PFM_command(NULL,1);	
-					if(bounce && !--bounce) 
+					k=PFM_command(NULL,1);
+					if(bounce && !--bounce)
 						PFM_status_send(p,k);
-}		
+//-------------------------------------------------------------------------------
+					if(_MODE(pfm,__TEST__)) {
+						if(!_MODE(pfm,_PULSE_INPROC)) 
+							Vcaps = __min(0xffff, Vcaps + Pcaps*4096/1100/Caps);
+							if(Vcaps != 0xffff)
+								_YELLOW2(20);
+					}
+}
 /*______________________________________________________________________________
   * @brief	Charger6 control procedure; Disables Charger6 if PFM_ERR_DRVERR,PFM_ERR_PULSEENABLE or 
 	* _PFM_ADCWDG_ERR are set (from interrupts). Sets the PFM_STAT_PSRDY status bit, 
@@ -309,7 +318,7 @@ int						i=_STATUS_WORD;
 					if(p->Error)																			// non crirical error indicator
 						_RED2(100);
 //-------------------------------------------------------------------------------
-					if(abs(p->HV - p->Burst.HVo) < _HV2AD(50.0))	{		// HV +/- 50V limits !!!
+					if(abs(p->HV - p->Burst.HVo) < p->Burst.HVo/15)	{	// HV/15 +/- 50V limits at 750V
 						_SET_STATUS(p,PFM_STAT_PSRDY);
 						ADC_ClearITPendingBit(ADC3, ADC_IT_AWD);				// enable HW voltage watchdog
 						ADC_ITConfig(ADC3,ADC_IT_AWD,ENABLE);					
@@ -808,7 +817,7 @@ static		int	count=0,no=0;
 #ifndef __DISCO__
 								if(abs(Uidle - ADC3_AVG*ADC1_simmer.U) > _HV2AD(30)) {				// HV +/- 30V range ???
 									_SET_ERROR(p,PFM_STAT_UBHIGH);															// if not, PFM_STAT_UBHIGH error 
-									no=0;
+//									no=0;
 								}
 #endif
 							}
@@ -822,7 +831,7 @@ static		int	count=0,no=0;
 #ifndef __DISCO__
 								if(abs(Uidle - ADC3_AVG*ADC2_simmer.U) > _HV2AD(30)) {
 									_SET_ERROR(p,PFM_STAT_UBHIGH);
-									no=0;
+//									no=0;
 								}
 #endif
 							}

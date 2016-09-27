@@ -114,7 +114,9 @@ typedef					enum
 								_CHANNEL1_DISABLE,				//11
 								_CHANNEL2_DISABLE,				//12
 								_CHANNEL1_SINGLE_TRIGGER,	//13
-								_CHANNEL2_SINGLE_TRIGGER	//14
+								_CHANNEL2_SINGLE_TRIGGER,	//14
+	
+								__TEST__=30
 } 							mode;
 
 #define 				PFM_STAT_SIMM1						0x0001

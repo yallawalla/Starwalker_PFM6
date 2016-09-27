@@ -376,6 +376,7 @@ int		r=0,flag;
 * Output        : None
 * Return        : None
 */
+extern int _U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
 void	SetSimmerRate(PFM *p, SimmerType type) {										// #kd890304ri
 int		simmrate;
 	
@@ -446,7 +447,8 @@ int		simmrate;
 			TIM_Cmd(TIM1,ENABLE);
 
 			if(_MODE(p,_PULSE_INPROC)) {
-				_DEBUG_MSG("trigger at... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I),_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I));	
+				_DEBUG_MSG("trigger at... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I-_I1off),
+																											_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I-_I2off));	
 			} else {
 				_DEBUG_MSG("simmer %3d kHz, mode %d", _mS/simmrate,pfm->mode & 0x07);
 			}

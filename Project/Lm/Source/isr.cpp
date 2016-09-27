@@ -23,10 +23,11 @@ uint8_t		USB_OTG_IsHostMode(void *);
 * Output				:
 * Return				:
 *******************************************************************************/
-void 			OTG_FS_IRQHandler(void) {
+void 	OTG_FS_IRQHandler(void) {
 					if(USB_OTG_IsHostMode(&USB_OTG_Core))
 						USBH_OTG_ISR_Handler(&USB_OTG_Core);
 					else
 						USBD_OTG_ISR_Handler(&USB_OTG_Core);
 					}
 }
+

@@ -187,6 +187,7 @@ void OTG_HS_IRQHandler(void)
   
 }
 
+
 #ifdef USB_OTG_HS_DEDICATED_EP1_ENABLED 
 /**
   * @brief  This function handles EP1_IN Handler.
