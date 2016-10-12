@@ -132,7 +132,7 @@ int		to			=p->Burst.Time;
 int		tpause	=p->Burst.Length/p->Burst.N - p->Burst.Time;								// dodatek ups....
 int		Uo=p->Burst.Pmax;
 int		dUo=0;																															// modif. 2,3,4... pulza, v %
-float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
+float	P2V = (float)_AD2HV(p->Burst.HVo)/_PWM_RATE_HI;
 //-------wait for prev to finish ---
 			while(_MODE(p,_PULSE_INPROC))
 				Wait(2,App_Loop);
@@ -147,12 +147,12 @@ float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
 					p->Burst.Length+= ushape[i].T;
 				}
 										
-				t->T1=_K1*p->Burst.Psimm[0];
-				t->T3=_K2*p->Burst.Psimm[1];
+				t->T1=_K1*p->Simmer.pw[0];
+				t->T3=_K2*p->Simmer.pw[1];
 				t->n=1;
 				++t;
-				t->T1=_K1*p->Burst.Psimm[0];
-				t->T3=_K2*p->Burst.Psimm[1];
+				t->T1=_K1*p->Simmer.pw[0];
+				t->T3=_K2*p->Simmer.pw[1];
 				t->n=0;
 				
 				p->Burst.Ereq=_SHPMOD_OFF;
@@ -170,11 +170,16 @@ float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
 				else
 					t->n=n;
 			};
-			
 			p->Burst.Einterval= __min(p->Burst.Length + p->Burst.Delay, _MAX_BURST/_MAX_ADC_RATE);
 //-------preludij-------------------
 			if(p->Burst.Ereq & (_SHPMOD_CAL | _SHPMOD_QSWCH)) {
 				int	du=0,u=0;
+//-------smafu za prestrezanje QSP ... __SWEEPS__
+				if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5) {
+					p->Burst.N = 2;
+					p->Burst.Pmax = pow(pow(p->Burst.Pmax,3)*5/2, 1.0/3.0);
+				}
+//-----------------------------------------------
 				for(i=0; i<_MAX_QSHAPE; ++i)
 					if(p->Burst.Time==qshape[i].qref) {
 						if(qshape[i].q0 > 0) {
@@ -186,6 +191,7 @@ float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
 									Uo = qshape[i].q1;
 							} else
 								qshape[i].q1=Uo;
+//_______________________________________________________________________________________________________
 // prePULSE + delay
 							for(n=((to*_uS)/_PWM_RATE_HI); n>0; n--,++t) 	{
 								du+=(2*Uo-u-2*du)*70/qshape[i].q0;
@@ -216,12 +222,12 @@ float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
 										t->n=n;
 								}
 //-------end of sequence------------						
-								t->T1=_K1*p->Burst.Psimm[0];
-								t->T3=_K2*p->Burst.Psimm[1];
+								t->T1=_K1*p->Simmer.pw[0];
+								t->T3=_K2*p->Simmer.pw[1];
 								t->n=1;
 								++t;
-								t->T1=_K1*p->Burst.Psimm[0];
-								t->T3=_K2*p->Burst.Psimm[1];
+								t->T1=_K1*p->Simmer.pw[0];
+								t->T3=_K2*p->Simmer.pw[1];
 								t->n=0;
 								return;
 							}
@@ -242,7 +248,11 @@ float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
 						} else {
 							to=qshape[i].q3;
 							Uo=(int)(pow((pow(p->Burst.Pmax,3)*p->Burst.N*qshape[i].qref - pow(qshape[i].q1,3)*qshape[i].q0)/qshape[i].qref/p->Burst.N,1.0/3.0)+0.5);
-							tpause=_minmax(Uo,260,550,20,100);
+							if(_MODE(p,__SWEEPS__))
+								tpause=10*abs((p->Burst.Count % 60)-30)+300;
+							else
+								tpause=_minmax(Uo,260,550,20,100);
+							
 						}
 					}				
 			}
@@ -292,12 +302,12 @@ float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
 				}
 			}
 //-------end of sequence------------						
-			t->T1=_K1*p->Burst.Psimm[0];
-			t->T3=_K2*p->Burst.Psimm[1];
+			t->T1=_K1*p->Simmer.pw[0];
+			t->T3=_K2*p->Simmer.pw[1];
 			t->n=1;
 			++t;
-			t->T1=_K1*p->Burst.Psimm[0];
-			t->T3=_K2*p->Burst.Psimm[1];
+			t->T1=_K1*p->Simmer.pw[0];
+			t->T3=_K2*p->Simmer.pw[1];
 			t->n=0;
 	}
 /*______________________________________________________________________________
@@ -309,8 +319,8 @@ float	P2V = (float)_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI;
 */
 void		SetSimmerPw(PFM *p) {
 
-int 		psimm0=p->Burst.Psimm[0];																//		#kwwe723lwhd
-int 		psimm1=p->Burst.Psimm[1];
+int 		psimm0=p->Simmer.pw[0];																//		#kwwe723lwhd
+int 		psimm1=p->Simmer.pw[1];
 	
 			if(PFM_command(NULL,0) != _STATUS(p, PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) {			
 				if(PFM_command(NULL,0) & PFM_STAT_SIMM1)
@@ -376,7 +386,7 @@ int		r=0,flag;
 * Output        : None
 * Return        : None
 */
-extern int _U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
+extern int _U1off,_U2off,_I1off,_I2off;
 void	SetSimmerRate(PFM *p, SimmerType type) {										// #kd890304ri
 int		simmrate;
 	
@@ -386,19 +396,18 @@ int		simmrate;
 			
 			if(type == _SIMMER_HIGH) {
 				simmrate = _PWM_RATE_HI;
-				_SET_MODE(pfm,pfm->Burst.HighSimmerMode);
+				_SET_MODE(pfm,pfm->Burst.Mode);
 			} else {
 				if(PFM_command(NULL,0) &  PFM_STAT_SIMM1)
-					simmrate=p->Burst.LowSimm[0];
+					simmrate=p->Simmer.rate[0];
 				else
-					simmrate=p->Burst.LowSimm[1];
-				
-				_SET_MODE(pfm,pfm->Burst.LowSimmerMode);
+					simmrate=p->Simmer.rate[1];
+				_SET_MODE(pfm,pfm->Simmer.Mode);
 			}
 			
 			while(!(TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
 			while((TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
-	
+
 			TIM_CtrlPWMOutputs(TIM1, DISABLE);
 			TIM_CtrlPWMOutputs(TIM8, DISABLE);
 

@@ -38,23 +38,22 @@ RCC_AHB1PeriphClockCmd(
 					RCC_AHB1Periph_GPIOF |
 					RCC_AHB1Periph_GPIOG, ENABLE);
 
-					pfm=calloc(1,sizeof(PFM));
-					pfm->Burst.E=0;								
+					pfm=calloc(1,sizeof(PFM));							
 					pfm->Burst.U=0;
 					pfm->Burst.HVo=0;
 					pfm->Burst.Time=100;
 					pfm->Burst.Delay=100;
 					pfm->Burst.N=1;
+					pfm->Burst.Mode=_XLAP_QUAD;
 					pfm->Burst.Length=pfm->Burst.Einterval=3000;
-					pfm->Burst.Repeat=1000;
-					pfm->Burst.Count=1;
-					pfm->Burst.Isimm=_I2AD(1000);
-					pfm->Burst.Imax=_I2AD(1000);
-					pfm->Burst.Idelay=0;
-					pfm->Burst.Psimm[0]=pfm->Burst.Psimm[1]=200*_uS/1000;
-					pfm->Burst.LowSimm[0]=pfm->Burst.LowSimm[1]=50*_uS;
-					pfm->Burst.LowSimmerMode=_XLAP_QUAD;
-					pfm->Burst.HighSimmerMode=_XLAP_QUAD;
+					pfm->Burst.Count=0;
+					pfm->Trigger.Period=1000;
+					pfm->Trigger.Count=1;
+					pfm->Burst.max[0]=pfm->Burst.max[1]=_I2AD(1000);
+					pfm->Simmer.Mode=_XLAP_QUAD;
+					pfm->Simmer.max[0]=pfm->Simmer.max[1]=_I2AD(1000);
+					pfm->Simmer.pw[0]=pfm->Simmer.pw[1]=200*_uS/1000;
+					pfm->Simmer.rate[0]=pfm->Simmer.rate[1]=50*_uS;
 					pfm->Burst.Pdelay=pfm->Burst.Pmax=_PWM_RATE_HI*0.02;
 					pfm->ADCRate=_uS;
 
@@ -120,6 +119,7 @@ static int
 					trigger_count=0;
 //_______Fan tacho processing context___________________________________________
 {
+#ifndef __DISCO__
 static 
 	int			LastTachoEvent=0;
 
@@ -128,7 +128,6 @@ static
 						LastTachoEvent = __time__;
 						_BLUE2(20);
 					}
-#ifndef __DISCO__
 					if((__time__ - LastTachoEvent > 500) && (__time__ > 10000))
 						_SET_ERROR(p,PFM_FAN_ERR);		
 					else
@@ -143,7 +142,7 @@ static
 						if((p->Error & _CRITICAL_ERR_MASK) || trigger_count)	// if error, trigger mot allowed
 							trigger_count=0;																		// if trigger_time set (multiple triggers), switch it off
 						else {
-							trigger_count =  p->Burst.Count;
+							trigger_count =  p->Trigger.Count;
 							trigger_time = __time__;
 							if(trigger_count > 1)
 								++trigger_time;																		// rearm counters, rounded to next milliseconds to avoid 1ms jitter !!!
@@ -154,12 +153,15 @@ static
 						Trigger(p);
 						if(!_MODE(p,_TRIGGER_PERIODIC))
 							--trigger_count;
-						trigger_time = __time__ + p->Burst.Repeat;						// rearm counters		
+						trigger_time = __time__ + p->Trigger.Period;						// rearm counters		
 					}
 //______________________________________________________________________________
 					if(_EVENT(p,_PULSE_FINISHED)) {	
 						_CLEAR_EVENT(p,_PULSE_FINISHED);											// end of pulse
 						SetSimmerRate(p,_SIMMER_LOW);													// reduce simmer
+						p->Burst.Count++;
+						if(_MODE(p,__SWEEPS__))
+							SetPwmTab(p);
 						if(Eack(p)) {																					// Energ. integrator finished
 							Pref1=Pref2=0;
 							ScopeDumpBinary(NULL,0);														// scope printout, for testing(if enabled ?)
@@ -509,7 +511,7 @@ char			*q=(char *)rx.Data;
 										p->Burst.Pmax = __max(0,__min(_PWM_RATE_HI, (p->Burst.U *_PWM_RATE_HI)/_AD2HV(10*p->Burst.HVo)));
 // __________________________________________________________________________________________________________
 										if(p->Burst.Pmax > 0 && p->Burst.Pmax < _PWM_RATE_HI) {
-											p->Burst.Imax=__min(4095,_I2AD(p->Burst.U/10 + p->Burst.U/2));
+//											p->Burst.Imax=__min(4095,_I2AD(p->Burst.U/10 + p->Burst.U/2));
 											SetPwmTab(p);														
 											Eack(NULL);
 										} else {
@@ -518,17 +520,16 @@ char			*q=(char *)rx.Data;
 										break;
 // __________________________________________________________________________________________________________
 									case _PFM_reset:
-										p->Burst.Repeat=*(short *)q++;q++;
+										p->Trigger.Period=*(short *)q++;q++;
 										p->Burst.N=*q++;
 										p->Burst.Length=*q++*1000;
-										p->Burst.E=*(short *)q;
-										p->Burst.Count=1;
+										p->Trigger.Count=1;
 // ________________________________________________________________smafu za preverjanje LW protokola ________
 										if(p->Burst.N==0)
 											p->Burst.N=1;
 										if(p->Burst.Length==0)
 											p->Burst.Length=3000;	
-										p->Burst.Erpt = 0;
+										p->Trigger.Erpt = 0;
 // __________________________________________________________________________________________________________
 										if(_MODE(p,_LONG_INTERVAL)) {
 											for(n=0; n<8; ++n)
@@ -543,9 +544,9 @@ char			*q=(char *)rx.Data;
 //___________________________________________________________________________________________________________								
 										} else {																															// NdYag long pulse burst, LW 4x2ms, 15/25 ms burst 
 											if(p->Burst.Length > _MAX_BURST/_uS) {
-												p->Burst.Repeat = (p->Burst.Length / p->Burst.N + 500)/1000;			// repetition rate = burst repetition, rounded to 1ms
-												p->Burst.Erpt = p->Burst.N-1;																			// energy report after N pulses
-												p->Burst.Length=(p->Burst.Repeat-1)*1000;													// burst length = repetition(us) - 1ms
+												p->Trigger.Erpt = p->Burst.N-1;																		// energy report after N pulses
+												p->Trigger.Period = (p->Burst.Length / p->Burst.N + 500)/1000;			// repetition rate = burst repetition, rounded to 1ms
+												p->Burst.Length=(p->Trigger.Period-1)*1000;													// burst length = repetition(us) - 1ms
 												p->Burst.N=1;																											// treated as single pulse
 											}
 										}
@@ -554,10 +555,34 @@ char			*q=(char *)rx.Data;
 										Eack(NULL);
 										break;
 									case _PFM_simmer_set:
-										p->Burst.Psimm[0]=*(short *)q/50 + 7;
-										++q;++q;
-										p->Burst.Psimm[1]=*(short *)q/50 + 7;
-										SetSimmerRate(p,_SIMMER_LOW);					
+										if(rx.DLC==5) {
+											p->Simmer.pw[0]=*(short *)q/50 + 7;
+											++q;++q;
+											p->Simmer.pw[1]=*(short *)q/50 + 7;
+											SetSimmerRate(p,_SIMMER_LOW);	
+											break;
+										}		
+										else if(rx.DLC==7) {
+											short	pw1,pw2;
+											char	r1,r2;
+											pw1 =*(short *)q++;q++;
+											pw2 =*(short *)q++;q++;
+											r1=*q++;
+											r2=*q++;
+											
+											if(pw1 >= 120 && pw1 <= 500 &&
+													pw2 >= 120 && pw2 <= 500 && 
+														r1 >= 10 && r1 <= 100 &&
+															r2 >= 10 && r2 <= 100) {
+																p->Simmer.pw[0]=pw1*_uS/1000;
+																p->Simmer.pw[1]=pw2*_uS/1000;
+																p->Simmer.rate[0]=r1*_uS;
+																p->Simmer.rate[1]=r2*_uS;
+																SetSimmerRate(pfm,_SIMMER_LOW);	
+																break;
+															}
+										}
+										_SET_ERROR(p,PFM_ERR_UB);
 										break;
 									case _PFM_RevNum_req:
 										n=*(short *)q;
@@ -573,7 +598,7 @@ char			*q=(char *)rx.Data;
 // Pfm6 add..
 //
 //___________________________________________________________________________________________________________								
-									case _PFM_POCKELS: 																					// 0x73, _PFM_POCKELS
+									case _PFM_POCKELS: 																					// 0x72, _PFM_POCKELS
 										p->Pockels.delay=	*(short *)q++;q++;											// 0.1uS delay , 0.1uS width	(short)
 										p->Pockels.width=	*(short *)q++;q++;
 										p->Burst.Length=	*(short *)q++;q++;											// interval energije v uS			(short)
@@ -587,25 +612,27 @@ char			*q=(char *)rx.Data;
 									{																														// HV & mode configuration modif. by host
 										char c[16];
 										sprintf(c,"u %d",*(short *)q);
-										if(DecodeCom(c) == _PARSE_OK) {
-											_CLEAR_ERROR(p,PFM_ERR_UB);
-											++q;++q;
-											if(*q & 1)
-												_CLEAR_MODE(p,_CHANNEL1_DISABLE);
-											else
-												_SET_MODE(p,_CHANNEL1_DISABLE);
-											if(*q & 2)
-												_CLEAR_MODE(p,_CHANNEL1_SINGLE_TRIGGER);
-											else
-												_SET_MODE(p,_CHANNEL1_SINGLE_TRIGGER);
-											if(*q & 4)
-												_CLEAR_MODE(p,_CHANNEL2_DISABLE);
-											else
-												_SET_MODE(p,_CHANNEL2_DISABLE);
-											if(*q & 8)
-												_CLEAR_MODE(p,_CHANNEL2_SINGLE_TRIGGER);
-											else
-												_SET_MODE(p,_CHANNEL2_SINGLE_TRIGGER);
+										if(*(short *)q == 0 || DecodeCom(c) == _PARSE_OK) {				// ignore zero voltage, left to default
+											_CLEAR_ERROR(p,PFM_ERR_UB);															// clear previous error
+											if(rx.DLC > 4) {																				// only if config. parameters are there...
+												++q;++q;
+												if(*q & 1)
+													_CLEAR_MODE(p,_CHANNEL1_DISABLE);
+												else
+													_SET_MODE(p,_CHANNEL1_DISABLE);
+												if(*q & 2)
+													_CLEAR_MODE(p,_CHANNEL1_SINGLE_TRIGGER);
+												else
+													_SET_MODE(p,_CHANNEL1_SINGLE_TRIGGER);
+												if(*q & 4)
+													_CLEAR_MODE(p,_CHANNEL2_DISABLE);
+												else
+													_SET_MODE(p,_CHANNEL2_DISABLE);
+												if(*q & 8)
+													_CLEAR_MODE(p,_CHANNEL2_SINGLE_TRIGGER);
+												else
+													_SET_MODE(p,_CHANNEL2_SINGLE_TRIGGER);
+											}
 										} else
 											_SET_ERROR(p,PFM_ERR_UB);
 									}
@@ -630,7 +657,7 @@ char			*q=(char *)rx.Data;
 								}
 								break;
 //______________________________________________________________________________________
-								case _ID_ENRG2SYS: 																						// energometer message 
+								case _ID_ENRG2SYS: 																						// energometer-2-system message 
 								{
 									union {short w[4];} *e = (void *)q; 
 									if(_DBG(p,_DBG_MSG_ENG) && (unsigned short)e->w[0]==0xD103) {
@@ -640,6 +667,12 @@ char			*q=(char *)rx.Data;
 												(double)__max(0,e->w[3])/10);
 										_stdio(io);
 									}
+								}
+								break;
+//______________________________________________________________________________________
+								case _ID_SYS2ENRG: 																						// system-2-energometer message 
+								{
+
 								}
 								break;
 //______________________________________________________________________________________
@@ -739,7 +772,7 @@ int				i,j,k;
 								e2+=(short)(ADC2_buf[i].U) * (short)(ADC2_buf[i].I-_I2off);							
 						}
 						
-						if(n++ == p->Burst.Erpt) {
+						if(n++ == p->Trigger.Erpt) {
 							int e;
 							if(_STATUS(p,PFM_STAT_SIMM1) && !_STATUS(p,PFM_STAT_SIMM2)) {
 								e=e1*p->ADCRate/kmJ/_uS;
@@ -814,12 +847,10 @@ static		int	count=0,no=0;
 									Uidle=p->HV/7;
 								_I1off=ADC1_simmer.I;																					// get current sensor offset
 								_U1off=ADC1_simmer.U;																					// check idle voltage
-#ifndef __DISCO__
 								if(abs(Uidle - ADC3_AVG*ADC1_simmer.U) > _HV2AD(30)) {				// HV +/- 30V range ???
-									_SET_ERROR(p,PFM_STAT_UBHIGH);															// if not, PFM_STAT_UBHIGH error 
-//									no=0;
+									_SET_ERROR(p,PFM_ERR_LNG);																	// if not, PFM_STAT_UBHIGH error 
+									no=0;
 								}
-#endif
 							}
 							if(!_MODE(p,_CHANNEL2_DISABLE)) {																// same for NdYAG channel
 								if(_MODE(p,_CHANNEL2_SINGLE_TRIGGER))													// single trigger config.. as from V1.11
@@ -828,12 +859,10 @@ static		int	count=0,no=0;
 									Uidle=p->HV/7;
 								_I2off=ADC2_simmer.I;
 								_U2off=ADC2_simmer.U;
-#ifndef __DISCO__
 								if(abs(Uidle - ADC3_AVG*ADC2_simmer.U) > _HV2AD(30)) {
-									_SET_ERROR(p,PFM_STAT_UBHIGH);
+									_SET_ERROR(p,PFM_ERR_LNG);
 //									no=0;
 								}
-#endif
 							}
 						}
 //________________________________________________________________________________
@@ -857,6 +886,7 @@ static		int	count=0,no=0;
 						SetSimmerRate(p,_SIMMER_LOW);																			// set simmer
 						SetPwmTab(p);
 						count=1000;																												// set trigger countdown
+						p->Burst.Count=0;
 //________________________________________________________________________________					
 					} else {
 						if(count && !(count -= n)) {																			// #93wefjlnw83

@@ -469,6 +469,7 @@ nobenih sprememb, samo simmer je dvignjen na 40us !
 .uporabi se za nastavitev ADC DMA intervala in cas integracije v Eack
 
 - 27.11.2015, unit testing
+
 - dodani CAN filtri za energometer
 - dodan debug izpis za energ. message
 - sprememba konzolnega ukaza za CAN '_' na '<', vpis v CAN rx buffer"
@@ -513,10 +514,31 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 - zmanjšana heap in stack ( na 8k), _MAX_BURST doseže 11 ms
 
 14.9.2016
-- analog watchdog za tok na flesu...
-
-
+- analog watchdog za tok na flesu, sprememba CLI ...>i dac1%, dac2%, Isimm(A), Imax(A)
+													>i 75,75,50,750
+											
 23.9.2016
 - simulacija PFN odziva ???
+
 27.9.2016
 - scaling PFN parametrov -- smafu :(
+- pod __TEST__ mode
+
+6.10.2016
+- can message 0x72, _PFM_SetHVmode // napetost 0 se ignorira, ostane default iz cfg.ini in charger6 se ne prenastavlja
+- konfiguracija se menja samo, ce so parametri prisotni (DLC > 4) 
+- error 0090-0004 pomeni napako v komunikaciji s chargerjem
+ 
+10.10.2016
+
+  CAN _PFM_simmer_set message, spremeniti v format 
+  
+			(byte)cmd[0x06], (short)pw1[ns], (short)pw2[ns], (byte)rate1[us], (byte)rate2[us]
+
+  - Preveriti število in pravilen obseg vseh parametrov, za pw 120-500, za rate 10-100, sicer pusti prejsnje stanje in sprozi error 0090-0004 
+  - Ce sta prisotna samo prva dva parametra, se obnaša po starem...
+
+12.10.2016
+  __SWEEPS__ mode, pfm->Burst.Count, premetat parametre po strukturah v pfm.h
+  
+

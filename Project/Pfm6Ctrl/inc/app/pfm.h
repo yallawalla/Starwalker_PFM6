@@ -116,6 +116,7 @@ typedef					enum
 								_CHANNEL1_SINGLE_TRIGGER,	//13
 								_CHANNEL2_SINGLE_TRIGGER,	//14
 	
+								__SWEEPS__=29,
 								__TEST__=30
 } 							mode;
 
@@ -125,21 +126,21 @@ typedef					enum
 #define 				PFM_STAT_UBHIGH						0x0008
 #define 				PFM_STAT_PSRDY						0x0100
 			                                    
-#define 				PFM_ERR_SIMM1							0x0001
-#define 				PFM_ERR_SIMM2							0x0002
-#define 				PFM_ERR_UB  							0x0004
-#define 				PFM_ERR_LNG 							0x0008
-#define 				PFM_ERR_TEMP							0x0010
-#define 				PFM_ERR_DRVERR						0x0020
-#define 				PFM_SCRFIRED  						0x0040
-#define 				PFM_ERR_PULSEENABLE				0x0080
-#define 				PFM_ERR_PSRDYN						0x0100
-#define 				PFM_ERR_48V  							0x0200
-#define 				PFM_ERR_15V 							0x0400
-#define					PFM_ADCWDG_ERR						0x1000
-#define					PFM_FAN_ERR								0x2000
-#define					PFM_HV2_ERR								0x4000
-#define					PFM_I2C_ERR								0x8000
+#define 				PFM_ERR_SIMM1							0x0001					// simmer 1 error
+#define 				PFM_ERR_SIMM2							0x0002					// simmer 2 error
+#define 				PFM_ERR_UB  							0x0004					// can message 0x73, _PFM_SetHVmode error, charger not responding
+#define 				PFM_ERR_LNG 							0x0008					// flash tube idle voltage error
+#define 				PFM_ERR_TEMP							0x0010					// IGBT overheat
+#define 				PFM_ERR_DRVERR						0x0020					// dasaturation protection active
+#define 				PFM_SCRFIRED  						0x0040					//
+#define 				PFM_ERR_PULSEENABLE				0x0080					// crowbar
+#define 				PFM_ERR_PSRDYN						0x0100					// pwm threshold error
+#define 				PFM_ERR_48V  							0x0200					// 20V igbt supply error
+#define 				PFM_ERR_15V 							0x0400					// -5V igbt supply error
+#define					PFM_ADCWDG_ERR						0x1000					// adc watchdog fired
+#define					PFM_FAN_ERR								0x2000					// igbt fan error 
+#define					PFM_HV2_ERR								0x4000					// center cap voltaghe out of range
+#define					PFM_I2C_ERR								0x8000					// i2c comm. not responding
 
 //#define					_EVENT(p,a)					(p->events & (1<<(a)))
 //#define					_SET_EVENT(p,a)			p->events |= (1<<(a))
@@ -282,33 +283,38 @@ int							USBH_Iap(int);
 #define					_Eof									-1
 //________________________________________________________________________
 typedef 				struct {
-short						Repeat,								// _PFM_reset command parameters
-								N,											
-								Length,		            
-								E,									  
-								U,										// _PFM_set command parameters
-								Time;		              
+short						N,										// burst pulse count 
+								Length,					      // burst length, us
+								U,										// pulse voltage
+								Time;
+int							Count;								// burst count
 char						Ereq;		              
 short						Pmax,			            
-								Psimm[2],							// simmer pwm, izracunan iz _PFM_simmer_set
-								LowSimm[2],						// simmer pwm freq.
-								LowSimmerMode,				// simmer pwm freq.
-								HighSimmerMode,				// simmer pwm freq.
 								Pdelay,								// burst interval	pwm
 								Delay,								// -"- delay
 								Einterval,						// cas integracije energije
-								Imax,									// not used 
-								Isimm,								// not used 
-								Idelay,								// not used 
-								HVo,									// op. voltage, ADC value x ADC3_AVG	
-								Erpt,
-								ki,
-								kp,
-								Count;								// count for multiple  triggers sequence
+								max[2],								// burst time current limit
+								HVo;									// op. voltage, ADC value x ADC3_AVG	
+mode						Mode;									// burst time mode
 } burst;
 //________________________________________________________________________
 typedef 				struct {
+short						pw[2],								// simmer pwm, izracunan iz _PFM_simmer_set
+								rate[2],							// simmer pwm rate
+								max[2];								// simmer current limits
+mode						Mode;									// simmer time mode
+} simmer;
+//________________________________________________________________________
+typedef 				struct {
+short						Period,								// _PFM_reset command parameters, ms
+								Erpt,
+								Count;								// count for multiple  triggers sequence	
+} trigger;
+//________________________________________________________________________
+typedef 				struct {
 burst						Burst;
+simmer					Simmer;
+trigger					Trigger;
 short						Error,	
 								Status,	
 								HV,										// Cap1+Cap2	ADC value x ADC3_AVG
@@ -492,7 +498,7 @@ int							SetChargerVoltage(int);
 #define					_PFM_FAULT_SENSE	(GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_8) == Bit_SET)
 
 				        
-#define					_CRITICAL_ERR_MASK		(PFM_ERR_DRVERR | PFM_ERR_PULSEENABLE | PFM_ADCWDG_ERR | PFM_ERR_PSRDYN | PFM_STAT_UBHIGH | PFM_HV2_ERR)
+#define					_CRITICAL_ERR_MASK		(PFM_ERR_DRVERR | PFM_ERR_PULSEENABLE | PFM_ADCWDG_ERR | PFM_ERR_PSRDYN | PFM_ERR_LNG | PFM_HV2_ERR)
 #define					_PFM_CWBAR_STAT				PFM_ERR_PULSEENABLE
 				        
 enum	err_parse	{

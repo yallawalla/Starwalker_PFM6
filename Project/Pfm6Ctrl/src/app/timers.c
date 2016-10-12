@@ -98,14 +98,14 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		GPIO_PinAFConfig(GPIOE, GPIO_PinSource11, GPIO_AF_TIM1);
 		GPIO_PinAFConfig(GPIOE, GPIO_PinSource13, GPIO_AF_TIM1);
 		GPIO_PinAFConfig(GPIOE, GPIO_PinSource14, GPIO_AF_TIM1);
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 |	GPIO_Pin_11 |GPIO_Pin_13 |	GPIO_Pin_14 ;
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_11 | GPIO_Pin_13 | GPIO_Pin_14 ;
 		GPIO_Init(GPIOE, &GPIO_InitStructure);
 
 		GPIO_PinAFConfig(GPIOC, GPIO_PinSource6, GPIO_AF_TIM8);
 		GPIO_PinAFConfig(GPIOC, GPIO_PinSource7, GPIO_AF_TIM8);
 		GPIO_PinAFConfig(GPIOC, GPIO_PinSource8, GPIO_AF_TIM8);
 		GPIO_PinAFConfig(GPIOC, GPIO_PinSource9, GPIO_AF_TIM8);
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 |	GPIO_Pin_7 |GPIO_Pin_8 |	GPIO_Pin_9 ;
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9 ;
 		GPIO_Init(GPIOC, &GPIO_InitStructure);
 
 // DMA setup _____________________________________________________________________
@@ -293,7 +293,17 @@ short		z1,z2;
 																																	// get current DMA data index
 				z1 = TIM18_buf[n].T1;																			// vmesni izracun vrednosti za timerje 
 				z2 = TIM18_buf[n].T3;
-			
+
+				if(_MODE(pfm,__TEST__)) {
+					_SET_MODE(pfm,_U_LOOP);
+					z1 = (z1*Vcaps+(1<<15)) >> 16;
+					z2 = (z2*Vcaps+(1<<15)) >> 16;
+					if(k>5)
+						Vcaps -= (ADC1_buf[k-5].I + ADC2_buf[k-5].I)/Caps;				
+					z1 = __max(pfm->Burst.Pdelay, z1);
+					z2 = __max(pfm->Burst.Pdelay, z2);
+				}
+				
 				if(_MODE(pfm,_U_LOOP)) {
 					z1 = (z1 * io + i/2)/i;
 					z2 = (z2 * io + i/2)/i;
@@ -351,15 +361,6 @@ short		z1,z2;
 							}
 						}
 					}
-				}
-
-				if(_MODE(pfm,__TEST__)) {
-					z1 = (z1*Vcaps+(1<<15)) >> 16;
-					z2 = (z2*Vcaps+(1<<15)) >> 16;
-					if(k>5)
-						Vcaps -= (ADC1_buf[k-5].I + ADC2_buf[k-5].I)/Caps;				
-					z1 = __max(pfm->Burst.Pdelay, z1);
-					z2 = __max(pfm->Burst.Pdelay, z2);
 				}
 				
 // vpis v timerje

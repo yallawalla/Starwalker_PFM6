@@ -13,7 +13,6 @@
 */
 
 #include	"pfm.h"
-
 #include	<ctype.h>
 #include	<math.h>
 #include	<string.h>
@@ -31,7 +30,7 @@
 //			SPIx_DMA_TX_IRQ();
 //}
 //___________________________________________________________________________
-extern	int32_t		_U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
+extern	int32_t		_U1off,_U2off,_I1off,_I2off;
 extern	uint32_t	Caps,Pcaps;
 
 void		Initialize_host_msc(void);
@@ -185,9 +184,8 @@ FATFS						fs_cpu;
 					return _PARSE_ERR_SYNTAX;
 //__________________________________________________ disable error _________
 				case 'E':
-					n=numscan(++c,cc,',');
-					while(n--)
-						pfm->Errmask |= getHEX(cc[n],-1);
+					n=strscan(c,cc,' ');
+					pfm->Errmask |= getHEX(cc[1],-1);
 					break;
 //__________________________________________________ mode setup _____________
 				case 'm':
@@ -222,9 +220,8 @@ int			DecodePlus(char *c) {
 				switch(*c) {
 //__________________________________________________ enable error ___________
 				case 'E':
-					n=numscan(++c,cc,',');
-					while(n--)
-						pfm->Errmask &= ~getHEX(cc[n],-1);
+					n=strscan(c,cc,' ');
+					pfm->Errmask &= ~getHEX(cc[1],-1);
 					break;
 //__________________________________________________ mode setup _____________
 				case 'm':
@@ -280,6 +277,9 @@ int			DecodePlus(char *c) {
 //______________________________________________________________________________________
 //______________________________________________________________________________________
 int			DecodeEq(char *c) {
+				char		*cc[8];
+				int			n;
+//______________________________________________________________________________________
 				switch(*c) {
 //______________________________________________________________________________________
 				case 'C':
@@ -288,6 +288,12 @@ int			DecodeEq(char *c) {
 //______________________________________________________________________________________
 				case 'P':					
 					Pcaps=0xffff*atof(++c)/_AD2HV(pfm->Burst.HVo);
+					break;
+//______________________________________________________________________________________
+				case 'E':
+					n=numscan(++c,cc,',');
+					while(n--)
+						_SET_ERROR(pfm,getHEX(cc[n],-1));
 					break;
 //______________________________________________________________________________________
 				default:
@@ -932,7 +938,7 @@ int				i;
 				case 'b':
 					n=numscan(++c,cc,',');
 					if(n==0) {
-						__print("\r>b(urst)  N,len,per     ... %d,%dus,%dms",pfm->Burst.N, pfm->Burst.Length,pfm->Burst.Repeat);
+						__print("\r>b(urst)  N,len,per     ... %d,%dus,%dms",pfm->Burst.N, pfm->Burst.Length,pfm->Trigger.Period);
 						break;
 						}
 					if(n>0 && atoi(cc[0]) > 0)
@@ -942,13 +948,13 @@ int				i;
 					if(n>1)
 						pfm->Burst.Length=atoi(cc[1]);
 					if(n>2)
-						pfm->Burst.Repeat=atoi(cc[2]);
+						pfm->Trigger.Period=atoi(cc[2]);
 					if(n>3) {
-						pfm->Burst.Count=atoi(cc[3]);
+						pfm->Trigger.Count=atoi(cc[3]);
 						_CLEAR_MODE(pfm,_TRIGGER_PERIODIC);
 					}
 					else
-						pfm->Burst.Count=1;
+						pfm->Trigger.Count=1;
 					SetPwmTab(pfm);
 					break;
 //______________________________________________________________________________________
@@ -982,34 +988,36 @@ int				i;
 					switch(numscan(++c,cc,',')) {
 						case 0:
 							__print("\r>s(immer) n // t1,t2,f1,f2..%dns,%dns,%dus,%dus",
-									(int)(1000*pfm->Burst.Psimm[0])/_uS,
-										(int)(1000*pfm->Burst.Psimm[1])/_uS,
-											pfm->Burst.LowSimm[0]/_uS,
-												pfm->Burst.LowSimm[1]/_uS);
+									(int)(1000*pfm->Simmer.pw[0])/_uS,
+										(int)(1000*pfm->Simmer.pw[1])/_uS,
+											pfm->Simmer.rate[0]/_uS,
+												pfm->Simmer.rate[1]/_uS);
 							break;
 						case 1:
 							PFM_command(pfm,atoi(cc[0]) & 0x3);
 							break;
 						case 2:
-							pfm->Burst.Psimm[0]=atoi(cc[0])*_uS/1000;
-							pfm->Burst.Psimm[1]=atoi(cc[1])*_uS/1000;
+							pfm->Simmer.pw[0]=atoi(cc[0])*_uS/1000;
+							pfm->Simmer.pw[1]=atoi(cc[1])*_uS/1000;
 							SetSimmerPw(pfm);
 							break;
 						case 3:
-							pfm->Burst.Psimm[0]=atoi(cc[0])*_uS/1000;
-							pfm->Burst.Psimm[1]=atoi(cc[1])*_uS/1000;
+							pfm->Simmer.pw[0]=atoi(cc[0])*_uS/1000;
+							pfm->Simmer.pw[1]=atoi(cc[1])*_uS/1000;
 							if(atoi(cc[2])<10 || atoi(cc[2])>100)
 								return _PARSE_ERR_ILLEGAL;
-							pfm->Burst.LowSimm[0]=pfm->Burst.LowSimm[1]=atoi(cc[2])*_uS;
+							pfm->Simmer.rate[0]=pfm->Simmer.rate[1]=atoi(cc[2])*_uS;
 							SetSimmerRate(pfm,_SIMMER_LOW);		
 							break;
 						case 4:																																					// #kerer734hf
-							pfm->Burst.Psimm[0]=atoi(cc[0])*_uS/1000;
-							pfm->Burst.Psimm[1]=atoi(cc[1])*_uS/1000;
-							if(atoi(cc[2])<10 || atoi(cc[2])>100 || atoi(cc[3])<10 || atoi(cc[3])>100)
+							if(!_MODE(pfm,_CHANNEL1_DISABLE) && !_MODE(pfm,_CHANNEL2_DISABLE))						// 4 parameter not allowed in double channel cfg !!!
+									return _PARSE_ERR_SYNTAX;
+							if(atoi(cc[0])> 500 || atoi(cc[1])> 500 || atoi(cc[2])<10 || atoi(cc[2])>100 || atoi(cc[3])<10 || atoi(cc[3])>100)
 								return _PARSE_ERR_ILLEGAL;
-							pfm->Burst.LowSimm[0]=atoi(cc[2])*_uS;
-							pfm->Burst.LowSimm[1]=atoi(cc[3])*_uS;
+							pfm->Simmer.pw[0]=atoi(cc[0])*_uS/1000;
+							pfm->Simmer.pw[1]=atoi(cc[1])*_uS/1000;
+							pfm->Simmer.rate[0]=atoi(cc[2])*_uS;
+							pfm->Simmer.rate[1]=atoi(cc[3])*_uS;
 							SetSimmerRate(pfm,_SIMMER_LOW);		
 							break;
 						default:
@@ -1022,7 +1030,7 @@ int				i;
 						case 0:
 							__print("\r\n");
 							__print("DAC limiter(ch 1/2)         ... %d%c,%d%c\r\n",(DAC_GetDataOutputValue(DAC_Channel_1)*100+0x7ff)/0xfff,'%',(DAC_GetDataOutputValue(DAC_Channel_2)*100+0x7ff)/0xfff,'%');
-							__print("current limits(l/h)         ... %dA,%dA\r\n",_AD2I(pfm->Burst.Isimm),_AD2I(pfm->Burst.Imax));
+							__print("current limits(l/h)         ... %dA,%dA,%dA,%dA\r\n",_AD2I(pfm->Simmer.max[0]),_AD2I(pfm->Simmer.max[1]),_AD2I(pfm->Burst.max[0]),_AD2I(pfm->Burst.max[1]));
 							__print("voltage limits(l/h)         ... %dV,%dV\r\n",ADC3_AVG*_AD2HV(ADC3->LTR),ADC3_AVG*_AD2HV(ADC3->HTR));
 
 						break;
@@ -1030,11 +1038,11 @@ int				i;
 							DAC_SetDualChannelData(DAC_Align_12b_R,(atoi(cc[1])*0xfff+50)/100,(atoi(cc[0])*0xfff+50)/100);
 							DAC_DualSoftwareTriggerCmd(ENABLE);		
 							break;
-						case 4:
-							DAC_SetDualChannelData(DAC_Align_12b_R,(atoi(cc[1])*0xfff+50)/100,(atoi(cc[0])*0xfff+50)/100);
-							DAC_DualSoftwareTriggerCmd(ENABLE);		
-							pfm->Burst.Isimm=_I2AD(atoi(cc[2]));
-							pfm->Burst.Imax=_I2AD(atoi(cc[3]));
+						case 4:	
+							pfm->Simmer.max[0]=_I2AD(atoi(cc[0]));
+							pfm->Simmer.max[1]=_I2AD(atoi(cc[1]));
+							pfm->Burst.max[0]=_I2AD(atoi(cc[2]));
+							pfm->Burst.max[1]=_I2AD(atoi(cc[3]));
 							break;
 						default:
 							return _PARSE_ERR_SYNTAX;
@@ -1047,7 +1055,6 @@ int				i;
 							__print("  \r>a(dc)    U1,I1,U2,I2   ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I-_I1off),
 																																					_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I-_I2off));
 							__print("\n\r>a(dc)    idle          ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*_U1off),_AD2I(_I1off),_AD2HV(ADC3_AVG*_U2off),_AD2I(_I2off));
-							__print("\n\r>a(dc)    Isimm,I,Uh,Ul ... %dA,%dA,%dV,%dV",_AD2I(pfm->Burst.Isimm),_AD2I(pfm->Burst.Imax),ADC3_AVG*_AD2HV(ADC3->HTR),ADC3_AVG*_AD2HV(ADC3->LTR));
 							break;
 						default:
 							return _PARSE_ERR_SYNTAX;
@@ -1059,23 +1066,17 @@ int				i;
 					while(n--)
 						_SET_EVENT(pfm,atoi(cc[n]));
 					break;
-//__________________________________________________ error trigger _____________________
-				case 'E':
-					n=numscan(++c,cc,',');
-					while(n--)
-						_SET_ERROR(pfm,getHEX(cc[n],-1));
-					break;
 //______________________________________________________________________________________
 				case 'x':
 					switch(atoi(++c)) {
 					case 1:
-						pfm->Burst.LowSimmerMode=_XLAP_SINGLE;
+						pfm->Simmer.Mode=_XLAP_SINGLE;
 						break;
 					case 2:
-						pfm->Burst.LowSimmerMode=_XLAP_DOUBLE;
+						pfm->Simmer.Mode=_XLAP_DOUBLE;
 						break;
 					case 4:
-						pfm->Burst.LowSimmerMode=_XLAP_QUAD;
+						pfm->Simmer.Mode=_XLAP_QUAD;
 						break;
 					default:
 						return _PARSE_ERR_SYNTAX;
@@ -1086,13 +1087,13 @@ int				i;
 				case 'X':
 					switch(atoi(++c)) {
 					case 1:
-						pfm->Burst.HighSimmerMode=_XLAP_SINGLE;
+						pfm->Burst.Mode=_XLAP_SINGLE;
 						break;
 					case 2:
-						pfm->Burst.HighSimmerMode=_XLAP_DOUBLE;
+						pfm->Burst.Mode=_XLAP_DOUBLE;
 						break;
 					case 4:
-						pfm->Burst.HighSimmerMode=_XLAP_QUAD;
+						pfm->Burst.Mode=_XLAP_QUAD;
 						break;
 					default:
 						return _PARSE_ERR_SYNTAX;
@@ -1268,12 +1269,6 @@ int			u=0,umax=0,umin=0;
 //______________________________________________________________________________________
 //______________________________________________________________________________________
 //______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
 int					USBH_Iap(int call) {	
 FATFS				fs0,fs1;
 DIR					dir;
@@ -1325,12 +1320,12 @@ fno.lfsize = sizeof lfn;
 											f_mount(FSDRIVE_USB,NULL);															// dismount both drives
 											f_mount(FSDRIVE_CPU,&fs1);
 											}
-							if(state>1) {
-								_YELLOW2(1000);
-							} else {
-								_RED2(1000);
-							}
+											if(state>1)
+												_YELLOW2(1000);
+											else
+												_RED2(1000);
 						}
+						
 						if(call==EOF) {
 							if(state>1)
 								WWDG_init();
