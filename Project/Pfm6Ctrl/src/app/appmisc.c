@@ -110,10 +110,10 @@ _USER_SHAPE	ushape[_MAX_USER_SHAPE];
 #define	_K1		(_STATUS(p, PFM_STAT_SIMM1)/1)
 #define	_K2		(_STATUS(p, PFM_STAT_SIMM2)/2)
 
-#define _SHPMOD_OFF		0
-#define _SHPMOD_MAIN	1
-#define _SHPMOD_CAL		2
-#define _SHPMOD_QSWCH	4
+#define _SHPMOD_OFF			0
+#define _SHPMOD_MAIN		1
+#define _SHPMOD_CAL			2
+#define _SHPMOD_QSWCH		4
 
 #define	_minmax(x,x1,x2,y1,y2) 	__min(__max(((y2-y1)*(x-x1))/(x2-x1)+y1,y1),y2)
 /*******************************************************************************
@@ -174,12 +174,6 @@ float	P2V = (float)_AD2HV(p->Burst.HVo)/_PWM_RATE_HI;
 //-------preludij-------------------
 			if(p->Burst.Ereq & (_SHPMOD_CAL | _SHPMOD_QSWCH)) {
 				int	du=0,u=0;
-//-------smafu za prestrezanje QSP ... __SWEEPS__
-				if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5) {
-					p->Burst.N = 2;
-					p->Burst.Pmax = pow(pow(p->Burst.Pmax,3)*5/2, 1.0/3.0);
-				}
-//-----------------------------------------------
 				for(i=0; i<_MAX_QSHAPE; ++i)
 					if(p->Burst.Time==qshape[i].qref) {
 						if(qshape[i].q0 > 0) {
@@ -247,18 +241,21 @@ float	P2V = (float)_AD2HV(p->Burst.HVo)/_PWM_RATE_HI;
 //						dUo=(Uo * qshape[i].q3)/100 - Uo;																								// varianta z zmanjsevanjem v % napetosti
 						} else {
 							to=qshape[i].q3;
-							Uo=(int)(pow((pow(p->Burst.Pmax,3)*p->Burst.N*qshape[i].qref - pow(qshape[i].q1,3)*qshape[i].q0)/qshape[i].qref/p->Burst.N,1.0/3.0)+0.5);
-							if(_MODE(p,__SWEEPS__))
-								tpause=10*abs((p->Burst.Count % 60)-30)+300;
-							else
+							if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5 && p->Burst.Ereq == (_SHPMOD_CAL | _SHPMOD_MAIN)) {
+								tpause=10*abs((p->Burst.Count % 60)-30)+250;
+								Uo=(int)(pow((3.0/2.0)*(pow(p->Burst.Pmax,3)*p->Burst.N*qshape[i].qref - pow(qshape[i].q1,3)*qshape[i].q0)/qshape[i].qref/p->Burst.N,1.0/3.0)+0.5);
+							}	else {
 								tpause=_minmax(Uo,260,550,20,100);
-							
+								Uo=(int)(pow((pow(p->Burst.Pmax,3)*p->Burst.N*qshape[i].qref - pow(qshape[i].q1,3)*qshape[i].q0)/qshape[i].qref/p->Burst.N,1.0/3.0)+0.5);
+							}
 						}
 					}				
 			}
 			if(p->Burst.Ereq & _SHPMOD_MAIN) {
 //-------PULSE----------------------
 				for(j=0; j<p->Burst.N; ++j) {
+					if(j== 2 && _MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5 && p->Burst.Ereq == (_SHPMOD_CAL | _SHPMOD_MAIN))
+						break;
 					for(n=2*((to*_uS + _PWM_RATE_HI/2)/_PWM_RATE_HI)-1; n>0; n -= 256, ++t) {
 						
 						if(j == 0) {
@@ -639,3 +636,4 @@ int			__print(char *format, ...) {
 >1a
 +e 0
 */
+
