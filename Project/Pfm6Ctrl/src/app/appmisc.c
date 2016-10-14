@@ -241,21 +241,27 @@ float	P2V = (float)_AD2HV(p->Burst.HVo)/_PWM_RATE_HI;
 //						dUo=(Uo * qshape[i].q3)/100 - Uo;																								// varianta z zmanjsevanjem v % napetosti
 						} else {
 							to=qshape[i].q3;
-							if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5 && p->Burst.Ereq == (_SHPMOD_CAL | _SHPMOD_MAIN)) {
-								tpause=10*abs((p->Burst.Count % 60)-30)+250;
-								Uo=(int)(pow((3.0/2.0)*(pow(p->Burst.Pmax,3)*p->Burst.N*qshape[i].qref - pow(qshape[i].q1,3)*qshape[i].q0)/qshape[i].qref/p->Burst.N,1.0/3.0)+0.5);
-							}	else {
-								tpause=_minmax(Uo,260,550,20,100);
-								Uo=(int)(pow((pow(p->Burst.Pmax,3)*p->Burst.N*qshape[i].qref - pow(qshape[i].q1,3)*qshape[i].q0)/qshape[i].qref/p->Burst.N,1.0/3.0)+0.5);
-							}
+							tpause=_minmax(Uo,260,550,20,100);
+							Uo=(int)(pow((pow(p->Burst.Pmax,3)*p->Burst.N*qshape[i].qref - pow(qshape[i].q1,3)*qshape[i].q0)/qshape[i].qref/p->Burst.N,1.0/3.0)+0.5);
 						}
 					}				
 			}
 			if(p->Burst.Ereq & _SHPMOD_MAIN) {
 //-------PULSE----------------------
 				for(j=0; j<p->Burst.N; ++j) {
-					if(j== 2 && _MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5 && p->Burst.Ereq == (_SHPMOD_CAL | _SHPMOD_MAIN))
-						break;
+//
+// SWEEPS SMAFU .....................................................
+					if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5 && p->Burst.Ereq == _SHPMOD_MAIN) {
+						if(j==0) {
+							tpause=10*abs((p->Burst.Count % 60)-30)+250;
+							Uo=(int)(pow(5.0/2.0*Uo*Uo*Uo,1.0/3.0)+0.5);
+							dUo = Uo*(tpause - 550)/1000/3-Uo/50;
+						}
+						if(j==2)
+							break;
+					}
+//..end  sweeps........................................
+					
 					for(n=2*((to*_uS + _PWM_RATE_HI/2)/_PWM_RATE_HI)-1; n>0; n -= 256, ++t) {
 						
 						if(j == 0) {
