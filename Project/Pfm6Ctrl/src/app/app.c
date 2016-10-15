@@ -231,22 +231,28 @@ static
 					else
 						_CLEAR_ERROR(p,PFM_ERR_15V);
 //-------------------------------------------------------------------------------
+// - polovicna napetost na banki +/- 20%
+// - meris sele od 100V naprej
+// - vhod v AD za HV/2 je ze HW mnozen z 2 !!!!
+//
 					if(ADC3_buf[0].HV > 100 && abs(ADC3_buf[0].HV-ADC3_buf[0].HV2) > ADC3_buf[0].HV/5)
 						_SET_ERROR(p,PFM_HV2_ERR);
 					else
 						_CLEAR_ERROR(p,PFM_HV2_ERR);
 //-------------------------------------------------------------------------------
-					if(_STATUS(p,PFM_STAT_SIMM1))	{
-						if(TIM_GetITStatus(TIM1, TIM_IT_Update)==RESET) { 
+//				get current active channel....
+//
+					k=PFM_command(NULL,1);
+					if(TIM_GetITStatus(TIM1, TIM_IT_Update)==RESET) { 
+//-------------------------------------------------------------------------------
+						if(k & PFM_STAT_SIMM1)	{
 							if(abs(ADC3_buf[0].HV - ADC1_simmer.U) < ADC3_buf[0].HV/8)
 								_SET_ERROR(p,PFM_ERR_SIMM1);
 							else
 								_CLEAR_ERROR(p,PFM_ERR_SIMM1);
 						}
-					}
 //-------------------------------------------------------------------------------
-					if(_STATUS(p,PFM_STAT_SIMM2)) {
-						if(TIM_GetITStatus(TIM1, TIM_IT_Update)==RESET) {
+						if(k & PFM_STAT_SIMM2) {
 							if(abs(ADC3_buf[0].HV - ADC2_simmer.U) < ADC3_buf[0].HV/8)
 								_SET_ERROR(p,PFM_ERR_SIMM2);
 							else
@@ -258,11 +264,7 @@ static
 						error_image = p->Error;	
 						status_image = p->Status;
 						bounce=25;
-					}
-//-------------------------------------------------------------------------------
-					_led(-1,-1);
-					k=PFM_command(NULL,1);
-					if(bounce && !--bounce)
+					} else if(bounce && !--bounce)
 						PFM_status_send(p,k);
 //-------------------------------------------------------------------------------
 					if(_MODE(pfm,__TEST__)) {
@@ -849,7 +851,7 @@ static		int	count=0,no=0;
 								_U1off=ADC1_simmer.U;																					// check idle voltage
 								if(abs(Uidle - ADC3_AVG*ADC1_simmer.U) > _HV2AD(30)) {				// HV +/- 30V range ???
 									_SET_ERROR(p,PFM_ERR_LNG);																	// if not, PFM_STAT_UBHIGH error 
-									no=0;
+//									no=0;
 								}
 							}
 							if(!_MODE(p,_CHANNEL2_DISABLE)) {																// same for NdYAG channel

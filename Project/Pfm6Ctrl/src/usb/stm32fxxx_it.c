@@ -149,6 +149,7 @@ void PendSV_Handler(void)
 volatile int	__time__;
 void SysTick_Handler(void) {
 	++__time__;
+	_led(-1,-1);
 }
 /**
   * @brief  This function handles OTG_HS Handler.
