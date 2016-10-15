@@ -241,6 +241,7 @@ static
 						_CLEAR_ERROR(p,PFM_HV2_ERR);
 //-------------------------------------------------------------------------------
 //				get current active channel....
+//				razlika med HV in napetostjo na flesu mora  biti najmanj 12%, sicer simmer error
 //
 					k=PFM_command(NULL,1);
 					if(TIM_GetITStatus(TIM1, TIM_IT_Update)==RESET) { 

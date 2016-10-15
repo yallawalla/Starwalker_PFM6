@@ -269,7 +269,7 @@ void		TIM1_UP_TIM10_IRQHandler(void) {
 static	int
 				m=0,																											// timer repetition rate register index index, DMA table
 				n=0,																											// adc index
-				io=0,
+				hvref=0,
 				xi1=0,
 				xi2=0;
 
@@ -289,7 +289,7 @@ short		z1,z2;
 				k-= DMA_GetCurrDataCounter(DMA2_Stream4) / sizeof(_ADCDMA)*sizeof(short);
 
 				if(!n || !TIM18_buf[n].n) 																// ce je to zacetek (ali konec) sekvence, vzemi to za referencno vrednost - hitrejse kot 
-					io=pfm->Burst.HVo;																			// ce vzames zahtevano vrednost iz osnovnega objekta !!!!
+					hvref=pfm->Burst.HVo;																		// ce vzames zahtevano vrednost iz osnovnega objekta !!!!
 																																	// get current DMA data index
 				z1 = TIM18_buf[n].T1;																			// vmesni izracun vrednosti za timerje 
 				z2 = TIM18_buf[n].T3;
@@ -305,8 +305,8 @@ short		z1,z2;
 				}
 				
 				if(_MODE(pfm,_U_LOOP)) {
-					z1 = (z1 * io + i/2)/i;
-					z2 = (z2 * io + i/2)/i;
+					z1 = (z1 * hvref + i/2)/i;
+					z2 = (z2 * hvref + i/2)/i;
 					
 //					if(m && z1 > pfm->Burst.Pdelay*2) {
 //						for(i=4;i<8;++i)
@@ -386,7 +386,7 @@ short		z1,z2;
 				
 				if(m++ == TIM18_buf[n].n/2) {
 					m=0;
-					if(TIM18_buf[n++].n == 0) {															// eof pulse train
+					if(TIM18_buf[n++].n == 0) {																// eof pulse train
 						n=0;
 						TIM_ITConfig(TIM1, TIM_IT_Update,DISABLE);
 						_SET_EVENT(pfm,_PULSE_FINISHED);
@@ -396,9 +396,14 @@ short		z1,z2;
 					}
 				}
 				
-				if(TIM1->CCR1==_MAX_PWM_RATE || TIM1->CCR3==_MAX_PWM_RATE)// duty cycle 100% = PSRDYN error
+				if(TIM1->CCR1==_MAX_PWM_RATE || TIM1->CCR3==_MAX_PWM_RATE)	// duty cycle 100% = PSRDYN error
  					_SET_ERROR(pfm,PFM_ERR_PSRDYN);
 }
+//	_____----------_____----------_____...
+//	__________________________________________________----------__________...
+//
+//	5_,10-,5_,10-,5_,0
+//	50_,10-,10_,0
 /*******************************************************************************/
 /**
 	* @brief	TIM3 IC2 ISR
