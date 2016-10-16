@@ -38,23 +38,32 @@ RCC_AHB1PeriphClockCmd(
 					RCC_AHB1Periph_GPIOF |
 					RCC_AHB1Periph_GPIOG, ENABLE);
 
-					pfm=calloc(1,sizeof(PFM));							
+					pfm=calloc(1,sizeof(PFM));		
+	
 					pfm->Burst.U=0;
-					pfm->Burst.HVo=0;
+					pfm->HVref=0;
 					pfm->Burst.Time=100;
 					pfm->Burst.Delay=100;
 					pfm->Burst.N=1;
 					pfm->Burst.Mode=_XLAP_QUAD;
 					pfm->Burst.Length=pfm->Burst.Einterval=3000;
-					pfm->Burst.Count=0;
+					pfm->Burst.Pdelay=pfm->Burst.Pmax=_PWM_RATE_HI*0.02;
+					pfm->Burst.max[0]=pfm->Burst.max[1]=_I2AD(1000);
+					
 					pfm->Trigger.Period=1000;
 					pfm->Trigger.Count=1;
-					pfm->Burst.max[0]=pfm->Burst.max[1]=_I2AD(1000);
-					pfm->Simmer.Mode=_XLAP_QUAD;
-					pfm->Simmer.max[0]=pfm->Simmer.max[1]=_I2AD(1000);
-					pfm->Simmer.pw[0]=pfm->Simmer.pw[1]=200*_uS/1000;
-					pfm->Simmer.rate[0]=pfm->Simmer.rate[1]=50*_uS;
-					pfm->Burst.Pdelay=pfm->Burst.Pmax=_PWM_RATE_HI*0.02;
+					
+{
+	simmer	p;	
+					p.Mode=_XLAP_QUAD;
+					p.max=_I2AD(1000);
+					p.pw=200*_uS/1000;
+					p.rate=50*_uS;
+					memcpy(&pfm->Simmer[0],&p,sizeof(simmer));
+					memcpy(&pfm->Simmer[1],&p,sizeof(simmer));
+}
+					
+					pfm->count=0;
 					pfm->ADCRate=_uS;
 
 					pfm->Pockels.delay=0;
@@ -159,7 +168,7 @@ static
 					if(_EVENT(p,_PULSE_FINISHED)) {	
 						_CLEAR_EVENT(p,_PULSE_FINISHED);											// end of pulse
 						SetSimmerRate(p,_SIMMER_LOW);													// reduce simmer
-						p->Burst.Count++;
+						p->count++;
 						if(_MODE(p,__SWEEPS__))
 							SetPwmTab(p);
 						if(Eack(p)) {																					// Energ. integrator finished
@@ -323,7 +332,7 @@ int						i=_STATUS_WORD;
 					if(p->Error)																			// non crirical error indicator
 						_RED2(100);
 //-------------------------------------------------------------------------------
-					if(abs(p->HV - p->Burst.HVo) < p->Burst.HVo/15)	{	// HV/15 +/- 50V limits at 750V
+					if(abs(p->HV - p->HVref) < p->HVref/15)	{					// HV/15 +/- 50V limits at 750V
 						_SET_STATUS(p,PFM_STAT_PSRDY);
 						ADC_ClearITPendingBit(ADC3, ADC_IT_AWD);				// enable HW voltage watchdog
 						ADC_ITConfig(ADC3,ADC_IT_AWD,ENABLE);					
@@ -332,7 +341,7 @@ int						i=_STATUS_WORD;
 					} else {
 						_CLEAR_STATUS(p,PFM_STAT_PSRDY);
 						if(!ton && !toff) {															// skip. if contdown running
-							if(p->HV > p->Burst.HVo) {										// set countdown on output overshot...
+							if(p->HV > p->HVref) {												// set countdown on output overshot...
 								toff=300;
 								ton=3000;
 							} else {																			// set countdown on output too low...
@@ -348,7 +357,7 @@ int						i=_STATUS_WORD;
 							writeI2C(__charger6,(char *)&i,2);	
 						}		
 						if(ton==10)																			// load output voltage 10 ms prior to switch-on
-							SetChargerVoltage(_AD2HV(pfm->Burst.HVo));
+							SetChargerVoltage(_AD2HV(pfm->HVref));
 					}
 						
 					if(toff)
@@ -511,7 +520,7 @@ char			*q=(char *)rx.Data;
 										p->Burst.Time=*(short *)q++;q++;
 										p->Burst.Ereq=*q++;
 // __________________________________________________________________________________________________________
-										p->Burst.Pmax = __max(0,__min(_PWM_RATE_HI, (p->Burst.U *_PWM_RATE_HI)/_AD2HV(10*p->Burst.HVo)));
+										p->Burst.Pmax = __max(0,__min(_PWM_RATE_HI, (p->Burst.U *_PWM_RATE_HI)/_AD2HV(10*p->HVref)));
 // __________________________________________________________________________________________________________
 										if(p->Burst.Pmax > 0 && p->Burst.Pmax < _PWM_RATE_HI) {
 //											p->Burst.Imax=__min(4095,_I2AD(p->Burst.U/10 + p->Burst.U/2));
@@ -559,9 +568,9 @@ char			*q=(char *)rx.Data;
 										break;
 									case _PFM_simmer_set:
 										if(rx.DLC==5) {
-											p->Simmer.pw[0]=*(short *)q/50 + 7;
+											p->Simmer[0].pw=*(short *)q/50 + 7;
 											++q;++q;
-											p->Simmer.pw[1]=*(short *)q/50 + 7;
+											p->Simmer[1].pw=*(short *)q/50 + 7;
 											SetSimmerRate(p,_SIMMER_LOW);	
 											break;
 										}		
@@ -577,10 +586,10 @@ char			*q=(char *)rx.Data;
 													pw2 >= 120 && pw2 <= 500 && 
 														r1 >= 10 && r1 <= 100 &&
 															r2 >= 10 && r2 <= 100) {
-																p->Simmer.pw[0]=pw1*_uS/1000;
-																p->Simmer.pw[1]=pw2*_uS/1000;
-																p->Simmer.rate[0]=r1*_uS;
-																p->Simmer.rate[1]=r2*_uS;
+																p->Simmer[0].pw=pw1*_uS/1000;
+																p->Simmer[1].pw=pw2*_uS/1000;
+																p->Simmer[0].rate=r1*_uS;
+																p->Simmer[1].rate=r2*_uS;
 																SetSimmerRate(pfm,_SIMMER_LOW);	
 																break;
 															}
@@ -827,7 +836,7 @@ int				PFM_status_send(PFM *p, int k) {
 //					b 1,1200,330,3
 					
 int				PFM_command(PFM *p, int n) {
-static		int	count=0,no=0;
+static		int	timeout=0,no=0;
 					int	Uidle;
 //________________________________________________________________________________
 					if(p) {
@@ -888,11 +897,11 @@ static		int	count=0,no=0;
 						
 						SetSimmerRate(p,_SIMMER_LOW);																			// set simmer
 						SetPwmTab(p);
-						count=1000;																												// set trigger countdown
-						p->Burst.Count=0;
+						timeout=1000;																								// set trigger countdown
+						p->count=0;																												// reset burst count
 //________________________________________________________________________________					
 					} else {
-						if(count && !(count -= n)) {																			// #93wefjlnw83
+						if(timeout && !(timeout -= n)) {																	// #93wefjlnw83
 							_TRIGGER1_OFF;																									// kill triggers after count interval
 							_TRIGGER2_OFF;
 						}

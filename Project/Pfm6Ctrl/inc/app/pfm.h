@@ -198,7 +198,7 @@ int							_ADCRates[];
 typedef struct	{	unsigned short			U,I;									} _ADCDMA;
 typedef struct	{	unsigned short			IgbtT1,IgbtT2,HV2,HV,
 									Up20,Um5;																	} _ADC3DMA;
-typedef struct	{	unsigned short			n,T1,T3; 							} _TIM18DMA;
+typedef struct	{	unsigned short			n,T; 									} _TIM18DMA;
 typedef struct	{	unsigned short			DAC2,DAC1;						} _DACDMA;
 typedef struct	{	unsigned short			addr,speed,ntx,nrx;
 									unsigned char				txbuf[4],rxbuf[4];		} _i2c;
@@ -287,21 +287,19 @@ short						N,										// burst pulse count
 								Length,					      // burst length, us
 								U,										// pulse voltage
 								Time;
-int							Count;								// burst count
 char						Ereq;		              
 short						Pmax,			            
 								Pdelay,								// burst interval	pwm
 								Delay,								// -"- delay
 								Einterval,						// cas integracije energije
-								max[2],								// burst time current limit
-								HVo;									// op. voltage, ADC value x ADC3_AVG	
+								max[2];								// burst time current limit
 mode						Mode;									// burst time mode
 } burst;
 //________________________________________________________________________
 typedef 				struct {
-short						pw[2],								// simmer pwm, izracunan iz _PFM_simmer_set
-								rate[2],							// simmer pwm rate
-								max[2];								// simmer current limits
+short						pw,										// simmer pwm, izracunan iz _PFM_simmer_set
+								rate,									// simmer pwm rate
+								max;									// simmer current limits
 mode						Mode;									// simmer time mode
 } simmer;
 //________________________________________________________________________
@@ -313,10 +311,11 @@ short						Period,								// _PFM_reset command parameters, ms
 //________________________________________________________________________
 typedef 				struct {
 burst						Burst;
-simmer					Simmer;
+simmer					Simmer[2];
 trigger					Trigger;
 short						Error,	
 								Status,	
+								HVref,								// req. reference HV
 								HV,										// Cap1+Cap2	ADC value x ADC3_AVG
 								HV2,									// Cap1			ADC value x ADC3_AVG								
 								Temp,									// Igbt temp,	degrees
@@ -326,7 +325,9 @@ short						Error,
 								Errmask;
 volatile int		events,
 								debug,
-								mode;
+								mode,
+								count;								// burst count
+
 struct {
 	short					delay,
 								width,
@@ -336,7 +337,7 @@ struct {
 //________________________________________________________________________
 extern					PFM										*pfm;
 														
-extern 					_TIM18DMA							TIM18_buf[];
+extern 					_TIM18DMA							pwch1[],pwch2[];
 extern 					_ADCDMA								ADC1_buf[], ADC2_buf[],ADC1_simmer,ADC2_simmer;
 extern 					_ADC3DMA							ADC3_buf[];
 				        

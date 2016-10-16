@@ -30,9 +30,9 @@ void	TriggerADC(PFM *p) {
 					ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Burst.max[1],0);			
 			} else {
 				if(!_MODE(p,_CHANNEL1_DISABLE))
-					ADC_AnalogWatchdogThresholdsConfig(ADC1,pfm->Simmer.max[0],0);
+					ADC_AnalogWatchdogThresholdsConfig(ADC1,pfm->Simmer[0].max,0);
 				if(!_MODE(p,_CHANNEL2_DISABLE))
-					ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Simmer.max[1],0);							
+					ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Simmer[1].max,0);							
 			}
 			ADC_ITConfig(ADC1,ADC_IT_AWD,ENABLE);
 			ADC_ITConfig(ADC2,ADC_IT_AWD,ENABLE);	

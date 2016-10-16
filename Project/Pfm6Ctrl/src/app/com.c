@@ -275,7 +275,7 @@ int			DecodeEq(char *c) {
 					break;
 //______________________________________________________________________________________
 				case 'P':					
-					Pcaps=0xffff*atof(++c)/_AD2HV(pfm->Burst.HVo);
+					Pcaps=0xffff*atof(++c)/_AD2HV(pfm->HVref);
 					break;
 //______________________________________________________________________________________
 				case 'E':
@@ -295,15 +295,15 @@ int			DecodeWhat(char *c) {
 				void 		*v;
 				switch(*c) {
 //______________________________________________________________________________________
-				case 't':
-					for(n=m=0; TIM18_buf[n].n; ++n) {
-						__print("\r\n%d,%d,%d",m,TIM18_buf[n].T1,TIM18_buf[n].T3);
-						m+= 10*(1+TIM18_buf[n].n)/2;
-						__print("\r\n%d,%d,%d",m,TIM18_buf[n].T1,TIM18_buf[n].T3);
-					}
-					m+= 10*(1+TIM18_buf[n].n)/2;
-					__print("\r\n%d,%d,%d\r\n>",m,TIM18_buf[n-1].T1,TIM18_buf[n-1].T3);
-					break;
+//				case 't':
+//					for(n=m=0; TIM18_buf[n].n; ++n) {
+//						__print("\r\n%d,%d,%d",m,TIM18_buf[n].T1,TIM18_buf[n].T3);
+//						m+= 10*(1+TIM18_buf[n].n)/2;
+//						__print("\r\n%d,%d,%d",m,TIM18_buf[n].T1,TIM18_buf[n].T3);
+//					}
+//					m+= 10*(1+TIM18_buf[n].n)/2;
+//					__print("\r\n%d,%d,%d\r\n>",m,TIM18_buf[n-1].T1,TIM18_buf[n-1].T3);
+//					break;
 //______________________________________________________________________________________
 				case 'a':
 					App_List();
@@ -348,18 +348,18 @@ int			DecodeWhat(char *c) {
 					__print(" %08X",pfm->Status);
 					break;
 //______________________________________________________________________________________
-				case 'e':
-					for(pfm->Burst.Pmax=0; pfm->Burst.Pmax<600; ++pfm->Burst.Pmax) {
-						SetPwmTab(pfm);
-						for(k=m=n=0; TIM18_buf[k].n; ++k) {
-							m+= pow((float)TIM18_buf[k].T1*7.0/6.0,3)/400.0*10.0*(float)(1+TIM18_buf[k].n)/2+0.5;
-							n+= pow((float)TIM18_buf[k].T3*7.0/6.0,3)/400.0*10.0*(float)(1+TIM18_buf[k].n)/2+0.5;
-						}
-						Watchdog();
-						__print("\r\n%d,%d,%d",pfm->Burst.Pmax*7/6,m/1000,n/1000);
-					}
-					__print("\r\n>");
-					break;
+//				case 'e':
+//					for(pfm->Burst.Pmax=0; pfm->Burst.Pmax<600; ++pfm->Burst.Pmax) {
+//						SetPwmTab(pfm);
+//						for(k=m=n=0; TIM18_buf[k].n; ++k) {
+//							m+= pow((float)TIM18_buf[k].T1*7.0/6.0,3)/400.0*10.0*(float)(1+TIM18_buf[k].n)/2+0.5;
+//							n+= pow((float)TIM18_buf[k].T3*7.0/6.0,3)/400.0*10.0*(float)(1+TIM18_buf[k].n)/2+0.5;
+//						}
+//						Watchdog();
+//						__print("\r\n%d,%d,%d",pfm->Burst.Pmax*7/6,m/1000,n/1000);
+//					}
+//					__print("\r\n>");
+//					break;
 //______________________________________________________________________________________
 				default:
 					return _PARSE_ERR_SYNTAX;
@@ -874,7 +874,7 @@ int				i;
 				case 'p':
 					n=numscan(++c,cc,',');
 					if(n==0) {
-						__print("\r>p(ulse)  T,U           ... %dus,%dV",pfm->Burst.Time,pfm->Burst.Pmax*_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI);
+						__print("\r>p(ulse)  T,U           ... %dus,%dV",pfm->Burst.Time,pfm->Burst.Pmax*_AD2HV(pfm->HVref)/_PWM_RATE_HI);
 						if(pfm->Pockels.delay || pfm->Pockels.width)
 							__print("\r\n>q(swch)  delay,width   ... %.1fus,%.1fus",(float)pfm->Pockels.delay/10,(float)pfm->Pockels.width/10);
 					}
@@ -884,7 +884,7 @@ int				i;
 //__________________________________
 					if(n>1) { 
 						if(atof(cc[1]) >= 1.0)
-							pfm->Burst.Pmax=atof(cc[1])*_PWM_RATE_HI/(float)_AD2HV(pfm->Burst.HVo);
+							pfm->Burst.Pmax=atof(cc[1])*_PWM_RATE_HI/(float)_AD2HV(pfm->HVref);
 						else
 							pfm->Burst.Pmax=_PWM_RATE_HI*atof(cc[1]);
 					}
@@ -949,7 +949,7 @@ int				i;
 							__print("\r>q(shape) w,U,td,to,tref ...");
 							for(k=0; qshape[k].qref && k<_MAX_QSHAPE; ++k)
 								__print("\r\n%d,%d,%d,%d,%d",				qshape[k].q0,
-																										(qshape[k].q1*_AD2HV(pfm->Burst.HVo) + _PWM_RATE_HI/2)/_PWM_RATE_HI,
+																										(qshape[k].q1*_AD2HV(pfm->HVref) + _PWM_RATE_HI/2)/_PWM_RATE_HI,
 																										qshape[k].q2,
 																										qshape[k].q3,
 																										qshape[k].qref);		
@@ -958,7 +958,7 @@ int				i;
 					if(n==5) {
 						for(k=0; qshape[k].qref && qshape[k].qref != atoi(cc[4]); ++k);
 						qshape[k].q0=atoi(cc[0]);
-						qshape[k].q1=(_PWM_RATE_HI*atoi(cc[1]))/_AD2HV(pfm->Burst.HVo);
+						qshape[k].q1=(_PWM_RATE_HI*atoi(cc[1]))/_AD2HV(pfm->HVref);
 						qshape[k].q2=atoi(cc[2]);
 						qshape[k].q3=atoi(cc[3]);
 						qshape[k].qref=atoi(cc[4]);	
@@ -972,25 +972,25 @@ int				i;
 					switch(numscan(++c,cc,',')) {
 						case 0:
 							__print("\r>s(immer) n // t1,t2,f1,f2..%dns,%dns,%dus,%dus",
-									(int)(1000*pfm->Simmer.pw[0])/_uS,
-										(int)(1000*pfm->Simmer.pw[1])/_uS,
-											pfm->Simmer.rate[0]/_uS,
-												pfm->Simmer.rate[1]/_uS);
+									(int)(1000*pfm->Simmer[0].pw)/_uS,
+										(int)(1000*pfm->Simmer[1].pw)/_uS,
+											pfm->Simmer[0].rate/_uS,
+												pfm->Simmer[1].rate/_uS);
 							break;
 						case 1:
 							PFM_command(pfm,atoi(cc[0]) & 0x3);
 							break;
 						case 2:
-							pfm->Simmer.pw[0]=atoi(cc[0])*_uS/1000;
-							pfm->Simmer.pw[1]=atoi(cc[1])*_uS/1000;
+							pfm->Simmer[0].pw=atoi(cc[0])*_uS/1000;
+							pfm->Simmer[1].pw=atoi(cc[1])*_uS/1000;
 							SetSimmerPw(pfm);
 							break;
 						case 3:
-							pfm->Simmer.pw[0]=atoi(cc[0])*_uS/1000;
-							pfm->Simmer.pw[1]=atoi(cc[1])*_uS/1000;
+							pfm->Simmer[0].pw=atoi(cc[0])*_uS/1000;
+							pfm->Simmer[1].pw=atoi(cc[1])*_uS/1000;
 							if(atoi(cc[2])<10 || atoi(cc[2])>100)
 								return _PARSE_ERR_ILLEGAL;
-							pfm->Simmer.rate[0]=pfm->Simmer.rate[1]=atoi(cc[2])*_uS;
+							pfm->Simmer[0].rate=pfm->Simmer[1].rate=atoi(cc[2])*_uS;
 							SetSimmerRate(pfm,_SIMMER_LOW);		
 							break;
 						case 4:																																					// #kerer734hf
@@ -998,10 +998,10 @@ int				i;
 									return _PARSE_ERR_SYNTAX;
 							if(atoi(cc[0])> 500 || atoi(cc[1])> 500 || atoi(cc[2])<10 || atoi(cc[2])>100 || atoi(cc[3])<10 || atoi(cc[3])>100)
 								return _PARSE_ERR_ILLEGAL;
-							pfm->Simmer.pw[0]=atoi(cc[0])*_uS/1000;
-							pfm->Simmer.pw[1]=atoi(cc[1])*_uS/1000;
-							pfm->Simmer.rate[0]=atoi(cc[2])*_uS;
-							pfm->Simmer.rate[1]=atoi(cc[3])*_uS;
+							pfm->Simmer[0].pw=atoi(cc[0])*_uS/1000;
+							pfm->Simmer[1].pw=atoi(cc[1])*_uS/1000;
+							pfm->Simmer[0].rate=atoi(cc[2])*_uS;
+							pfm->Simmer[1].rate=atoi(cc[3])*_uS;
 							SetSimmerRate(pfm,_SIMMER_LOW);		
 							break;
 						default:
@@ -1014,7 +1014,7 @@ int				i;
 						case 0:
 							__print("\r\n");
 							__print("DAC limiter(ch 1/2)         ... %d%c,%d%c\r\n",(DAC_GetDataOutputValue(DAC_Channel_1)*100+0x7ff)/0xfff,'%',(DAC_GetDataOutputValue(DAC_Channel_2)*100+0x7ff)/0xfff,'%');
-							__print("current limits(l/h)         ... %dA,%dA,%dA,%dA\r\n",_AD2I(pfm->Simmer.max[0]),_AD2I(pfm->Simmer.max[1]),_AD2I(pfm->Burst.max[0]),_AD2I(pfm->Burst.max[1]));
+							__print("current limits(l/h)         ... %dA,%dA,%dA,%dA\r\n",_AD2I(pfm->Simmer[0].max),_AD2I(pfm->Simmer[1].max),_AD2I(pfm->Burst.max[0]),_AD2I(pfm->Burst.max[1]));
 							__print("voltage limits(l/h)         ... %dV,%dV\r\n",ADC3_AVG*_AD2HV(ADC3->LTR),ADC3_AVG*_AD2HV(ADC3->HTR));
 
 						break;
@@ -1023,8 +1023,8 @@ int				i;
 							DAC_DualSoftwareTriggerCmd(ENABLE);		
 							break;
 						case 4:	
-							pfm->Simmer.max[0]=_I2AD(atoi(cc[0]));
-							pfm->Simmer.max[1]=_I2AD(atoi(cc[1]));
+							pfm->Simmer[0].max=_I2AD(atoi(cc[0]));
+							pfm->Simmer[1].max=_I2AD(atoi(cc[1]));
 							pfm->Burst.max[0]=_I2AD(atoi(cc[2]));
 							pfm->Burst.max[1]=_I2AD(atoi(cc[3]));
 							break;
@@ -1054,13 +1054,13 @@ int				i;
 				case 'x':
 					switch(atoi(++c)) {
 					case 1:
-						pfm->Simmer.Mode=_XLAP_SINGLE;
+						pfm->Simmer[0].Mode=pfm->Simmer[1].Mode=_XLAP_SINGLE;
 						break;
 					case 2:
-						pfm->Simmer.Mode=_XLAP_DOUBLE;
+						pfm->Simmer[0].Mode=pfm->Simmer[1].Mode=_XLAP_DOUBLE;
 						break;
 					case 4:
-						pfm->Simmer.Mode=_XLAP_QUAD;
+						pfm->Simmer[0].Mode=pfm->Simmer[1].Mode=_XLAP_QUAD;
 						break;
 					default:
 						return _PARSE_ERR_SYNTAX;
@@ -1123,7 +1123,7 @@ int			u=0,umax=0,umin=0;
 						umin=u-u/3;
 					if(u>800 || u<0 || umin>=u || umax<=u)										
 						return _PARSE_ERR_ILLEGAL;
-					pfm->Burst.HVo=_HV2AD(u);
+					pfm->HVref=_HV2AD(u);
 						
 					ADC_ITConfig(ADC3,ADC_IT_AWD,DISABLE);
 					ADC_AnalogWatchdogThresholdsConfig(ADC3,_HV2AD(umax)/ADC3_AVG,_HV2AD(umin)/ADC3_AVG);

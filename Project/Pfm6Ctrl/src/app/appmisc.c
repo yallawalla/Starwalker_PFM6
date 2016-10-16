@@ -106,9 +106,6 @@ const	int Rtab[]={
 
 _QSHAPE			qshape[_MAX_QSHAPE];
 _USER_SHAPE	ushape[_MAX_USER_SHAPE];
-			
-#define	_K1		(_STATUS(p, PFM_STAT_SIMM1)/1)
-#define	_K2		(_STATUS(p, PFM_STAT_SIMM2)/2)
 
 #define _SHPMOD_OFF			0
 #define _SHPMOD_MAIN		1
@@ -117,22 +114,18 @@ _USER_SHAPE	ushape[_MAX_USER_SHAPE];
 
 #define	_minmax(x,x1,x2,y1,y2) 	__min(__max(((y2-y1)*(x-x1))/(x2-x1)+y1,y1),y2)
 /*******************************************************************************
-* Function Name : SetPwmTab
-* Description   : set the pwm sequence
-* Input         : *p, PFM object pointer
+* Function Name :  
+* Description   : 
+* Input         :  
 * Return        :
 *******************************************************************************/
-void	SetPwmTab(PFM *p) {
-
-_TIM18DMA
-			*t=TIM18_buf;
-
+void	SetPwmTab00(PFM *p, _TIM18DMA *t) {
 int		i,j,n;
 int		to			=p->Burst.Time;
 int		tpause	=p->Burst.Length/p->Burst.N - p->Burst.Time;								// dodatek ups....
 int		Uo=p->Burst.Pmax;
 int		dUo=0;																															// modif. 2,3,4... pulza, v %
-float	P2V = (float)_AD2HV(p->Burst.HVo)/_PWM_RATE_HI;
+float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 //-------wait for prev to finish ---
 			while(_MODE(p,_PULSE_INPROC))
 				Wait(2,App_Loop);
@@ -142,17 +135,14 @@ float	P2V = (float)_AD2HV(p->Burst.HVo)/_PWM_RATE_HI;
 				p->Burst.Length=0;
 				for(i=1; ushape[i].T && i < _MAX_BURST/(10*_uS)-1 && i<_MAX_USER_SHAPE; ++t,++i) {
 					t->n=2*ushape[i].T/10-1;
-					t->T1=_K1*(e2E*ushape[i].U + p->Burst.Pdelay);
-					t->T3=_K2*(e2E*ushape[i].U + p->Burst.Pdelay);
-					p->Burst.Length+= ushape[i].T;
+					t->T=e2E*ushape[i].U + p->Burst.Pdelay;
 				}
 										
-				t->T1=_K1*p->Simmer.pw[0];
-				t->T3=_K2*p->Simmer.pw[1];
-				t->n=1;
-				++t;
-				t->T1=_K1*p->Simmer.pw[0];
-				t->T3=_K2*p->Simmer.pw[1];
+//				t->T1=_K1*p->Simmer[0].pw;
+//				t->T3=_K2*p->Simmer[1].pw;
+//				t->n=1;
+//				++t;
+//				t->T=p->Simmer[0].pw;
 				t->n=0;
 				
 				p->Burst.Ereq=_SHPMOD_OFF;
@@ -163,12 +153,8 @@ float	P2V = (float)_AD2HV(p->Burst.HVo)/_PWM_RATE_HI;
 			}
 //-------DELAY----------------------
 			for(n=2*((p->Burst.Delay*_uS)/_PWM_RATE_HI)-1; n>0; n -= 256, ++t) {
-				t->T1=_K1*p->Burst.Pdelay;
-				t->T3=_K2*p->Burst.Pdelay;
-				if(n > 255)
-					t->n=255;
-				else
-					t->n=n;
+				t->T=p->Burst.Pdelay;
+				(n > 255) ? (t->n=255) : (t->n=n);
 			};
 			p->Burst.Einterval= __min(p->Burst.Length + p->Burst.Delay, _MAX_BURST/_MAX_ADC_RATE);
 //-------preludij-------------------
@@ -190,8 +176,7 @@ float	P2V = (float)_AD2HV(p->Burst.HVo)/_PWM_RATE_HI;
 							for(n=((to*_uS)/_PWM_RATE_HI); n>0; n--,++t) 	{
 								du+=(2*Uo-u-2*du)*70/qshape[i].q0;
 								u+=du*70/qshape[i].q0;						
-								t[0].T1=_K1*(p->Burst.Pdelay + du + u*qshape[i].q2/100);
-								t[0].T3=_K2*(p->Burst.Pdelay + du + u*qshape[i].q2/100);
+								t->T=p->Burst.Pdelay + du + u*qshape[i].q2/100;
 								t->n=1;
 							}
 //_______________________________________________________________________________________________________
@@ -200,28 +185,22 @@ float	P2V = (float)_AD2HV(p->Burst.HVo)/_PWM_RATE_HI;
 								while(du > p->Burst.Pdelay) 	{
 									du+=(0-u-2*du)*70/qshape[i].q0; 
 									u+=du*70/qshape[i].q0;
-									t[0].T1=_K1*(p->Burst.Pdelay + du + u*qshape[i].q2/100);
-									t[0].T3=_K2*(p->Burst.Pdelay + du + u*qshape[i].q2/100);
+									t->T=p->Burst.Pdelay + du + u*qshape[i].q2/100;
 									t->n=1;
 									++t;
 									++to;
 								}
 
 								for(n=2*((p->Burst.Length*_uS/p->Burst.N-to*_uS)/_PWM_RATE_HI)-1;n>0;n -= 256,++t)	{
-									t->T1=_K1*p->Burst.Pdelay;
-									t->T3=_K2*p->Burst.Pdelay;
-									if(n > 255)
-										t->n=255;
-									else
-										t->n=n;
+									t->T=p->Burst.Pdelay;
+									(n > 255) ? (t->n=255) : (t->n=n);
 								}
 //-------end of sequence------------						
-								t->T1=_K1*p->Simmer.pw[0];
-								t->T3=_K2*p->Simmer.pw[1];
-								t->n=1;
-								++t;
-								t->T1=_K1*p->Simmer.pw[0];
-								t->T3=_K2*p->Simmer.pw[1];
+//								t->T1=_K1*p->Simmer[0].pw;
+//								t->T3=_K2*p->Simmer[1].pw;
+//								t->n=1;
+//								++t;
+//								t->T=p->Simmer[0].pw;
 								t->n=0;
 								return;
 							}
@@ -253,7 +232,7 @@ float	P2V = (float)_AD2HV(p->Burst.HVo)/_PWM_RATE_HI;
 // SWEEPS SMAFU .....................................................
 					if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5 && p->Burst.Ereq == _SHPMOD_MAIN) {
 						if(j==0) {
-							tpause=10*abs((p->Burst.Count % 60)-30)+250;
+							tpause=10*abs((p->count % 60)-30)+250;
 							Uo=(int)(pow(5.0/2.0*Uo*Uo*Uo,1.0/3.0)+0.5);
 							dUo = Uo*(tpause - 550)/1000/3-Uo/50;
 						}
@@ -265,54 +244,61 @@ float	P2V = (float)_AD2HV(p->Burst.HVo)/_PWM_RATE_HI;
 					for(n=2*((to*_uS + _PWM_RATE_HI/2)/_PWM_RATE_HI)-1; n>0; n -= 256, ++t) {
 						
 						if(j == 0) {
-							t->T1=_K1*(Uo+p->Burst.Pdelay);
-							t->T3=_K2*(Uo+p->Burst.Pdelay);				
+							t->T=Uo+p->Burst.Pdelay;			
 						} else {
-							t->T1=_K1*(Uo+dUo+p->Burst.Pdelay);
-							t->T3=_K2*(Uo+dUo+p->Burst.Pdelay);							
+							t->T=Uo+dUo+p->Burst.Pdelay;					
 						}
 						
-						if(n > 255)
-							t->n=255;
-						else {
-							t->n=n;
-//							if(p->Pockels.width)
-								p->Pockels.trigger=n;
-//							else
-//								p->Pockels.trigger=0;
-						}
+						(n > 255) ? (t->n=255) : (t->n=p->Pockels.trigger=n);
+						
+//						if(n > 255)
+//							t->n1=t->n2=255;
+//						else {
+//							t->n1=t->n2=n;
+////							if(p->Pockels.width)
+//								p->Pockels.trigger=n;
+////							else
+////								p->Pockels.trigger=0;
+//						}
 					}
 //-------PAUSE----------------------			
 					for(n=2*((tpause*_uS)/_PWM_RATE_HI)-1;n>0;n -= 256,++t)	{
-						t->T1=_K1*p->Burst.Pdelay;
-						t->T3=_K2*p->Burst.Pdelay;
-						if(n > 255)
-							t->n=255;
-						else
-							t->n=n;
+						t->T=p->Burst.Pdelay;
+						(n > 255) ? (t->n=255) : (t->n=n);
 					}
 				}
 			}
 //------- fill seq. till end, except in user mode--------		
 			if(p->Burst.Ereq != _SHPMOD_OFF) {
 				for(n=2*((p->Burst.Length*_uS - p->Burst.N*(to+tpause)*_uS)/_PWM_RATE_HI)-1;n>0;n -= 256,++t)	{
-					t->T1=_K1*p->Burst.Pdelay;
-					t->T3=_K2*p->Burst.Pdelay;
-					if(n > 255)
-						t->n=255;
-					else
-						t->n=n;
+					t->T=p->Burst.Pdelay;
+					(n > 255) ? (t->n=255) : (t->n=n);
 				}
 			}
 //-------end of sequence------------						
-			t->T1=_K1*p->Simmer.pw[0];
-			t->T3=_K2*p->Simmer.pw[1];
-			t->n=1;
-			++t;
-			t->T1=_K1*p->Simmer.pw[0];
-			t->T3=_K2*p->Simmer.pw[1];
+//			t->T=p->Simmer[0].pw;
 			t->n=0;
+//			++t;
+//			t->T1=_K1*p->Simmer[0].pw;
+//			t->T3=_K2*p->Simmer[1].pw;
+//			t->n=0;
 	}
+/*******************************************************************************
+* Function Name : SetPwmTab
+* Description   : set the pwm sequence
+* Input         : *p, PFM object pointer
+* Return        :
+*******************************************************************************/
+void	SetPwmTab(PFM *p) {
+			if(_STATUS(p,PFM_STAT_SIMM1) && !_STATUS(p,PFM_STAT_SIMM2))
+				SetPwmTab00(p,pwch1);
+			else if(!_STATUS(p,PFM_STAT_SIMM1) && _STATUS(p,PFM_STAT_SIMM2))
+				SetPwmTab00(p,pwch2);
+			else {
+				SetPwmTab00(p,pwch1);
+				memcpy(pwch2,pwch1,sizeof(_TIM18DMA)*_MAX_BURST/_PWM_RATE_HI);
+			}
+		}
 /*______________________________________________________________________________
 * Function Name : SetSimmerPw
 * Description   : simmer pulse width
@@ -322,8 +308,8 @@ float	P2V = (float)_AD2HV(p->Burst.HVo)/_PWM_RATE_HI;
 */
 void		SetSimmerPw(PFM *p) {
 
-int 		psimm0=p->Simmer.pw[0];																//		#kwwe723lwhd
-int 		psimm1=p->Simmer.pw[1];
+int 		psimm0=p->Simmer[0].pw;																//		#kwwe723lwhd
+int 		psimm1=p->Simmer[1].pw;
 	
 			if(PFM_command(NULL,0) != _STATUS(p, PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) {			
 				if(PFM_command(NULL,0) & PFM_STAT_SIMM1)
@@ -401,11 +387,13 @@ int		simmrate;
 				simmrate = _PWM_RATE_HI;
 				_SET_MODE(pfm,pfm->Burst.Mode);
 			} else {
-				if(PFM_command(NULL,0) &  PFM_STAT_SIMM1)
-					simmrate=p->Simmer.rate[0];
-				else
-					simmrate=p->Simmer.rate[1];
-				_SET_MODE(pfm,pfm->Simmer.Mode);
+				if(PFM_command(NULL,0) &  PFM_STAT_SIMM1) {
+					simmrate=p->Simmer[0].rate;
+					_SET_MODE(pfm,p->Simmer[0].Mode);
+				}	else {
+					simmrate=p->Simmer[1].rate;
+					_SET_MODE(pfm,p->Simmer[1].Mode);
+				}
 			}
 			
 			while(!(TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
