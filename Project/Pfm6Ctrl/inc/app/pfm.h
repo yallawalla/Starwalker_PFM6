@@ -300,7 +300,7 @@ typedef 				struct {
 short						pw,										// simmer pwm, izracunan iz _PFM_simmer_set
 								rate,									// simmer pwm rate
 								max;									// simmer current limits
-mode						Mode;									// simmer time mode
+mode						mode;									// simmer time mode
 } simmer;
 //________________________________________________________________________
 typedef 				struct {

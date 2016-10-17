@@ -137,17 +137,9 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 					t->n=2*ushape[i].T/10-1;
 					t->T=e2E*ushape[i].U + p->Burst.Pdelay;
 				}
-										
-//				t->T1=_K1*p->Simmer[0].pw;
-//				t->T3=_K2*p->Simmer[1].pw;
-//				t->n=1;
-//				++t;
-//				t->T=p->Simmer[0].pw;
-				t->n=0;
-				
+				t->n=0;																														// EOF
 				p->Burst.Ereq=_SHPMOD_OFF;
 				p->Burst.Einterval= __min(p->Burst.Length, _MAX_BURST/_MAX_ADC_RATE);
-
 				_CLEAR_MODE(p, _P_LOOP);																					// current stab. off !!!
 				return;
 			}
@@ -195,12 +187,6 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 									t->T=p->Burst.Pdelay;
 									(n > 255) ? (t->n=255) : (t->n=n);
 								}
-//-------end of sequence------------						
-//								t->T1=_K1*p->Simmer[0].pw;
-//								t->T3=_K2*p->Simmer[1].pw;
-//								t->n=1;
-//								++t;
-//								t->T=p->Simmer[0].pw;
 								t->n=0;
 								return;
 							}
@@ -250,16 +236,6 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 						}
 						
 						(n > 255) ? (t->n=255) : (t->n=p->Pockels.trigger=n);
-						
-//						if(n > 255)
-//							t->n1=t->n2=255;
-//						else {
-//							t->n1=t->n2=n;
-////							if(p->Pockels.width)
-//								p->Pockels.trigger=n;
-////							else
-////								p->Pockels.trigger=0;
-//						}
 					}
 //-------PAUSE----------------------			
 					for(n=2*((tpause*_uS)/_PWM_RATE_HI)-1;n>0;n -= 256,++t)	{
@@ -275,14 +251,8 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 					(n > 255) ? (t->n=255) : (t->n=n);
 				}
 			}
-//-------end of sequence------------						
-//			t->T=p->Simmer[0].pw;
 			t->n=0;
-//			++t;
-//			t->T1=_K1*p->Simmer[0].pw;
-//			t->T3=_K2*p->Simmer[1].pw;
-//			t->n=0;
-	}
+}
 /*******************************************************************************
 * Function Name : SetPwmTab
 * Description   : set the pwm sequence
@@ -298,7 +268,7 @@ void	SetPwmTab(PFM *p) {
 				SetPwmTab00(p,pwch1);
 				memcpy(pwch2,pwch1,sizeof(_TIM18DMA)*_MAX_BURST/_PWM_RATE_HI);
 			}
-		}
+}
 /*______________________________________________________________________________
 * Function Name : SetSimmerPw
 * Description   : simmer pulse width
@@ -306,10 +276,10 @@ void	SetPwmTab(PFM *p) {
 * Output        : None
 * Return        : None
 */
-void		SetSimmerPw(PFM *p) {
+void	SetSimmerPw(PFM *p) {
 
-int 		psimm0=p->Simmer[0].pw;																//		#kwwe723lwhd
-int 		psimm1=p->Simmer[1].pw;
+int 	psimm0=p->Simmer[0].pw;																//		#kwwe723lwhd
+int 	psimm1=p->Simmer[1].pw;
 	
 			if(PFM_command(NULL,0) != _STATUS(p, PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) {			
 				if(PFM_command(NULL,0) & PFM_STAT_SIMM1)
@@ -389,10 +359,10 @@ int		simmrate;
 			} else {
 				if(PFM_command(NULL,0) &  PFM_STAT_SIMM1) {
 					simmrate=p->Simmer[0].rate;
-					_SET_MODE(pfm,p->Simmer[0].Mode);
+					_SET_MODE(pfm,p->Simmer[0].mode);
 				}	else {
 					simmrate=p->Simmer[1].rate;
-					_SET_MODE(pfm,p->Simmer[1].Mode);
+					_SET_MODE(pfm,p->Simmer[1].mode);
 				}
 			}
 			

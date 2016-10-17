@@ -55,7 +55,7 @@ RCC_AHB1PeriphClockCmd(
 					
 {
 	simmer	p;	
-					p.Mode=_XLAP_QUAD;
+					p.mode=_XLAP_QUAD;
 					p.max=_I2AD(1000);
 					p.pw=200*_uS/1000;
 					p.rate=50*_uS;
@@ -896,8 +896,8 @@ static		int	timeout=0,no=0;
 							_TRIGGER2_ON;
 						
 						SetSimmerRate(p,_SIMMER_LOW);																			// set simmer
-						SetPwmTab(p);
-						timeout=1000;																								// set trigger countdown
+//						SetPwmTab(p);
+						timeout=1000;																											// set trigger countdown
 						p->count=0;																												// reset burst count
 //________________________________________________________________________________					
 					} else {

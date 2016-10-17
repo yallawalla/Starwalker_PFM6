@@ -508,7 +508,7 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 - aktiviran filter za glitche...
 
 7.9.2016
-- pri konz. vnosu HV je bila spodnja meja na HV-2*HV/3 namesto 2*HV/3, lapsus ...
+- pri konz. vnosu HV je bila default spodnja meja na HV-2*HV/3 namesto 2*HV/3, lapsus ...
 
 12.9.2016
 - zmanjšana heap in stack ( na 8k), _MAX_BURST doseže 11 ms
@@ -542,6 +542,11 @@ v 2.12 Feb 24 2016, <EFF7B41B>
   - Pri aktiviranju analog watchdog za current limit je potrebno paziti na trenutno konfiguracijo TriggerADC() v adc.c !!! 
   __SWEEPS__ mode, pfm->Burst.Count, premetat parametre po strukturah v pfm.h
   
-13.10.2016
-- __SWEEPS__, prvi približek
+14.10.2016
+- __SWEEPS__
+  - bug, app.c, Pfm_Command ina n=0 zakomentiran...
+  
+  17.10.2016, neodvisna kanala, ne dela .... !
+
+
 

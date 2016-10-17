@@ -284,15 +284,15 @@ short		z1,z2;
 
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);								// brisi ISR flage
 				for(i=j=0;j<ADC3_AVG;++j)																	// sestej zadnjih N merjenih vrednosti vrsne napetosti
-					i+=(unsigned short)(ADC3_buf[j].HV);										// 
+					i+=(unsigned short)(ADC3_buf[j].HV);
 
 				k = pfm->Burst.Einterval*_uS/_MAX_ADC_RATE;
 				k-= DMA_GetCurrDataCounter(DMA2_Stream4) / sizeof(_ADCDMA)*sizeof(short);
 
-				if(!n1 && !n2) 																// ce je to zacetek  sekvence, vzemi to za referencno vrednost - hitrejse kot 
+				if(!n1 && !n2) 																						// ce je to zacetek  sekvence, vzemi to za referencno vrednost - hitrejse kot 
 					hvref=pfm->HVref;																				// ce vzames zahtevano vrednost iz osnovnega objekta !!!!
 																																	// get current DMA data index
-				z1 = pwch1[n1].T;																			// vmesni izracun vrednosti za timerje 
+				z1 = pwch1[n1].T;																					// vmesni izracun vrednosti za timerje 
 				z2 = pwch2[n2].T;
 
 				if(_MODE(pfm,__TEST__)) {
@@ -365,23 +365,26 @@ short		z1,z2;
 				}
 				
 // vpis v timerje
-
-				if(pwch1[n1].n)
-					TIM8->CCR1 = TIM1->CCR1 = __max(0,__min(_MAX_PWM_RATE, z1));
-				else
-					TIM8->CCR1 = pfm->Simmer[0].pw;
-				
-				if(pwch2[n2].n)
-					TIM8->CCR3 = TIM1->CCR3 = __max(0,__min(_MAX_PWM_RATE, z2));
-				else
-					TIM8->CCR3 = pfm->Simmer[1].pw;
+				if(TIM1->CCR1) {
+					if(pwch1[n1].n)
+						TIM8->CCR1 = TIM1->CCR1 = __max(pfm->Burst.Pdelay,__min(_MAX_PWM_RATE, z1));
+					else
+						TIM8->CCR1 = TIM1->CCR1 = pfm->Simmer[0].pw;
+				}
+			
+				if(TIM1->CCR3) {
+					if(pwch2[n2].n)
+						TIM8->CCR3 = TIM1->CCR3 = __max(pfm->Burst.Pdelay,__min(_MAX_PWM_RATE, z2));
+					else
+						TIM8->CCR3 = TIM1->CCR3 = pfm->Simmer[1].pw;
+				}
 				
 				if(_MODE(pfm,_XLAP_SINGLE)) {
 					TIM8->CCR2 = TIM1->CCR2 = TIM1->CCR1;
 					TIM8->CCR4 = TIM1->CCR4 = TIM1->CCR3;
 				} else {
-					TIM8->CCR2 = TIM1->CCR2 = _PWM_RATE_HI-TIM1->CCR1;
-					TIM8->CCR4 = TIM1->CCR4 = _PWM_RATE_HI-TIM1->CCR3;
+					TIM8->CCR2 = TIM1->CCR2 = TIM1->ARR - TIM1->CCR1;
+					TIM8->CCR4 = TIM1->CCR4 = TIM1->ARR - TIM1->CCR3;
 				}
 				
 				if(pwch1[n1].T > pfm->Burst.Pdelay && 
@@ -415,11 +418,6 @@ short		z1,z2;
 				if(TIM1->CCR1==_MAX_PWM_RATE || TIM1->CCR3==_MAX_PWM_RATE)	// duty cycle 100% = PSRDYN error
  					_SET_ERROR(pfm,PFM_ERR_PSRDYN);
 }
-//	_____----------_____----------_____...
-//	__________________________________________________----------__________...
-//
-//	5_,10-,5_,10-,5_,0
-//	50_,10-,10_,0
 /*******************************************************************************/
 /**
 	* @brief	TIM3 IC2 ISR

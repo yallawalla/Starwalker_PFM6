@@ -1054,13 +1054,13 @@ int				i;
 				case 'x':
 					switch(atoi(++c)) {
 					case 1:
-						pfm->Simmer[0].Mode=pfm->Simmer[1].Mode=_XLAP_SINGLE;
+						pfm->Simmer[0].mode=pfm->Simmer[1].mode=_XLAP_SINGLE;
 						break;
 					case 2:
-						pfm->Simmer[0].Mode=pfm->Simmer[1].Mode=_XLAP_DOUBLE;
+						pfm->Simmer[0].mode=pfm->Simmer[1].mode=_XLAP_DOUBLE;
 						break;
 					case 4:
-						pfm->Simmer[0].Mode=pfm->Simmer[1].Mode=_XLAP_QUAD;
+						pfm->Simmer[0].mode=pfm->Simmer[1].mode=_XLAP_QUAD;
 						break;
 					default:
 						return _PARSE_ERR_SYNTAX;
