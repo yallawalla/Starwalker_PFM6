@@ -45,8 +45,8 @@ void	TriggerADC(PFM *p) {
 			if(p) {
 				DMA_MemoryTargetConfig(DMA2_Stream3,(uint32_t)ADC2_buf,DMA_Memory_0);
 				DMA_MemoryTargetConfig(DMA2_Stream4,(uint32_t)ADC1_buf,DMA_Memory_0);
-				DMA_SetCurrDataCounter(DMA2_Stream3,p->Burst.Einterval*_uS/_MAX_ADC_RATE*sizeof(_ADCDMA)/sizeof(short));
-				DMA_SetCurrDataCounter(DMA2_Stream4,p->Burst.Einterval*_uS/_MAX_ADC_RATE*sizeof(_ADCDMA)/sizeof(short));
+				DMA_SetCurrDataCounter(DMA2_Stream3,p->Burst.Eint[1]*_uS/_MAX_ADC_RATE*sizeof(_ADCDMA)/sizeof(short));
+				DMA_SetCurrDataCounter(DMA2_Stream4,p->Burst.Eint[0]*_uS/_MAX_ADC_RATE*sizeof(_ADCDMA)/sizeof(short));
 				DMA_ClearITPendingBit(DMA2_Stream3,DMA_IT_TCIF3|DMA_IT_HTIF3|DMA_IT_TEIF3|DMA_IT_DMEIF3|DMA_IT_FEIF3);
 				DMA_ClearITPendingBit(DMA2_Stream4,DMA_IT_TCIF4|DMA_IT_HTIF4|DMA_IT_TEIF4|DMA_IT_DMEIF4|DMA_IT_FEIF4);
 				DMA_ITConfig(DMA2_Stream4, DMA_IT_TC, ENABLE);

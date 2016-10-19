@@ -286,7 +286,7 @@ short		z1,z2;
 				for(i=j=0;j<ADC3_AVG;++j)																	// sestej zadnjih N merjenih vrednosti vrsne napetosti
 					i+=(unsigned short)(ADC3_buf[j].HV);
 
-				k = pfm->Burst.Einterval*_uS/_MAX_ADC_RATE;
+				k = __max(pfm->Burst.Eint[0],pfm->Burst.Eint[1])*_uS/_MAX_ADC_RATE;
 				k-= DMA_GetCurrDataCounter(DMA2_Stream4) / sizeof(_ADCDMA)*sizeof(short);
 
 				if(!n1 && !n2) 																						// ce je to zacetek  sekvence, vzemi to za referencno vrednost - hitrejse kot 

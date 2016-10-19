@@ -291,7 +291,7 @@ char						Ereq;
 short						Pmax,			            
 								Pdelay,								// burst interval	pwm
 								Delay,								// -"- delay
-								Einterval,						// cas integracije energije
+								Eint[2],							// cas integracije energije
 								max[2];								// burst time current limit
 mode						Mode;									// burst time mode
 } burst;

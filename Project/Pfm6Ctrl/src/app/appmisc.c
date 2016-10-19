@@ -119,7 +119,7 @@ _USER_SHAPE	ushape[_MAX_USER_SHAPE];
 * Input         :  
 * Return        :
 *******************************************************************************/
-void	SetPwmTab00(PFM *p, _TIM18DMA *t) {
+_TIM18DMA *SetPwmTab00(PFM *p, _TIM18DMA *t) {
 int		i,j,n;
 int		to			=p->Burst.Time;
 int		tpause	=p->Burst.Length/p->Burst.N - p->Burst.Time;								// dodatek ups....
@@ -137,25 +137,25 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 					t->n=2*ushape[i].T/10-1;
 					t->T=e2E*ushape[i].U + p->Burst.Pdelay;
 				}
-				t->n=0;																														// EOF
 				p->Burst.Ereq=_SHPMOD_OFF;
-				p->Burst.Einterval= __min(p->Burst.Length, _MAX_BURST/_MAX_ADC_RATE);
+//				p->Burst.Einterval= __min(p->Burst.Length, _MAX_BURST/_MAX_ADC_RATE);
 				_CLEAR_MODE(p, _P_LOOP);																					// current stab. off !!!
-				return;
+				t->n=0;																														// EOF
+				return t;																			
 			}
 //-------DELAY----------------------
 			for(n=2*((p->Burst.Delay*_uS)/_PWM_RATE_HI)-1; n>0; n -= 256, ++t) {
 				t->T=p->Burst.Pdelay;
 				(n > 255) ? (t->n=255) : (t->n=n);
 			};
-			p->Burst.Einterval= __min(p->Burst.Length + p->Burst.Delay, _MAX_BURST/_MAX_ADC_RATE);
+//			p->Burst.Einterval= __min(p->Burst.Length + p->Burst.Delay, _MAX_BURST/_MAX_ADC_RATE);
 //-------preludij-------------------
 			if(p->Burst.Ereq & (_SHPMOD_CAL | _SHPMOD_QSWCH)) {
 				int	du=0,u=0;
 				for(i=0; i<_MAX_QSHAPE; ++i)
 					if(p->Burst.Time==qshape[i].qref) {
 						if(qshape[i].q0 > 0) {
-							p->Burst.Einterval = __min(p->Burst.Einterval + qshape[i].q0, _MAX_BURST/_MAX_ADC_RATE);
+//							p->Burst.Einterval = __min(p->Burst.Einterval + qshape[i].q0, _MAX_BURST/_MAX_ADC_RATE);
 							to=qshape[i].q0;
 							Uo=(int)(pow((pow(p->Burst.Pmax,3)*p->Burst.N*qshape[i].qref/to),1.0/3.0)+0.5);
 							if(p->Burst.Ereq & _SHPMOD_MAIN) {
@@ -188,7 +188,7 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 									(n > 255) ? (t->n=255) : (t->n=n);
 								}
 								t->n=0;
-								return;
+								return t;
 							}
 						}
 //_______________________________________________________________________________________________________
@@ -252,21 +252,32 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 				}
 			}
 			t->n=0;
+			return t;
 }
 /*******************************************************************************
 * Function Name : SetPwmTab
-* Description   : set the pwm sequence
+* Description   : Selects the pw buffer, according to burst & simmer parameters 
+*								: Calls the waveform generator SetPwmTab00
+*								: Calculates energy integratin interval to ADC
 * Input         : *p, PFM object pointer
 * Return        :
 *******************************************************************************/
 void	SetPwmTab(PFM *p) {
-			if(_STATUS(p,PFM_STAT_SIMM1) && !_STATUS(p,PFM_STAT_SIMM2))
-				SetPwmTab00(p,pwch1);
-			else if(!_STATUS(p,PFM_STAT_SIMM1) && _STATUS(p,PFM_STAT_SIMM2))
-				SetPwmTab00(p,pwch2);
-			else {
-				SetPwmTab00(p,pwch1);
+			int n;
+			if(_STATUS(p,PFM_STAT_SIMM1) && !_STATUS(p,PFM_STAT_SIMM2)) {
+				_TIM18DMA *t=SetPwmTab00(p,pwch1);
+				for(n=0; t-- != pwch1; n+= t->n);
+				p->Burst.Eint[0] = (n+1)*5;
+			}
+			else if(!_STATUS(p,PFM_STAT_SIMM1) && _STATUS(p,PFM_STAT_SIMM2)) {
+				_TIM18DMA *t=SetPwmTab00(p,pwch2);
+				for(n=0; t-- != pwch2; n+= t->n);
+				p->Burst.Eint[1] = (n+1)*5;
+			} else {
+				_TIM18DMA *t = SetPwmTab00(p,pwch1);
 				memcpy(pwch2,pwch1,sizeof(_TIM18DMA)*_MAX_BURST/_PWM_RATE_HI);
+				for(n=0; t-- != pwch1; n+= t->n);
+				p->Burst.Eint[0] = p->Burst.Eint[1] = (n+1)*5;
 			}
 }
 /*______________________________________________________________________________

@@ -46,7 +46,7 @@ RCC_AHB1PeriphClockCmd(
 					pfm->Burst.Delay=100;
 					pfm->Burst.N=1;
 					pfm->Burst.Mode=_XLAP_QUAD;
-					pfm->Burst.Length=pfm->Burst.Einterval=3000;
+					pfm->Burst.Length=pfm->Burst.Eint[0]=pfm->Burst.Eint[1]=3000;
 					pfm->Burst.Pdelay=pfm->Burst.Pmax=_PWM_RATE_HI*0.02;
 					pfm->Burst.max[0]=pfm->Burst.max[1]=_I2AD(1000);
 					
@@ -770,14 +770,15 @@ int				i;
   */	
 int				Eack(PFM *p) {
 
-static		long long	e1=0,e2=0;
+static		uint64_t	e1=0,
+										e2=0;
 static		int				n=0;
 
 int				i,j,k;
 
 					if(p) {
 						j=k=_I2AD(20.0);
-						for(i=0; i < p->Burst.Einterval*_uS/_MAX_ADC_RATE ; ++i) {
+						for(i= __max(p->Burst.Eint[0],p->Burst.Eint[1])*_uS/_MAX_ADC_RATE; i; --i) {
 							if(ADC1_buf[i].I > j)
 								e1+=(short)(ADC1_buf[i].U) * (short)(ADC1_buf[i].I-_I1off);
 							if(ADC2_buf[i].I > k)
@@ -785,22 +786,23 @@ int				i,j,k;
 						}
 						
 						if(n++ == p->Trigger.Erpt) {
-							int e;
+							e1/=(kmJ*_uS/p->ADCRate);
+							e2/=(kmJ*_uS/p->ADCRate);
 							if(_STATUS(p,PFM_STAT_SIMM1) && !_STATUS(p,PFM_STAT_SIMM2)) {
-								e=e1*p->ADCRate/kmJ/_uS;
-								CanReply("cicP",_PFM_E_ack,e,0);	
-								_DEBUG_MSG("E1=%d.%dJ",e/1000,(e%1000)/100);
+								CanReply("cicP",_PFM_E_ack,e1,0);	
+								_DEBUG_MSG("E1=%d.%dJ (%d)",e1/1000,(e1%1000)/100,__max(p->Burst.Eint[0],p->Burst.Eint[0]));
 							}
+							
 							if(!_STATUS(p,PFM_STAT_SIMM1) && _STATUS(p,PFM_STAT_SIMM2)) {
-								e=e2*p->ADCRate/kmJ/_uS;
-								CanReply("cicP",_PFM_E_ack,e,0);					
-								_DEBUG_MSG("E2=%d.%dJ",e/1000,(e%1000)/100);
+								CanReply("cicP",_PFM_E_ack,e2,0);					
+								_DEBUG_MSG("E2=%d.%dJ (%d)",e2/1000,(e2%1000)/100,__max(p->Burst.Eint[0],p->Burst.Eint[1]));
 							}
+							
 							if(_STATUS(p,PFM_STAT_SIMM1) && _STATUS(p,PFM_STAT_SIMM2)) {
-								e=(e1+e2)*p->ADCRate/kmJ/_uS;
-								CanReply("cicP",_PFM_E_ack,e,0);		
-								_DEBUG_MSG("E1+E2=%d.%dJ",e/1000,(e%1000)/100);
+								CanReply("cicP",_PFM_E_ack,e1+e2,0);		
+								_DEBUG_MSG("E1=%d.%dJ, E2=%d.%dJ",e1/1000,(e1%1000)/100,e2/1000,(e2%1000)/100);
 							}
+							
 							e1=e2=n=0;
 							return(-1);
 						}

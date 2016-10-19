@@ -546,7 +546,10 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 - __SWEEPS__
   - bug, app.c, Pfm_Command ina n=0 zakomentiran...
   
-  17.10.2016, neodvisna kanala, ne dela .... !
+  
+17.10.2016, neodvisna kanala, ne dela .... !
+19.10.2016, neodvisna kanala, problem z locenima intervaloma meritve, se ne dela !!!
+
 
 
 
