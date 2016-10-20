@@ -271,6 +271,7 @@ static	int
 				m1=0,m2=0,																								// timer repetition rate register index index, DMA table
 				n1=0,n2=0,																								// adc index
 				hvref=0,
+				simmode=0,
 				xi1=0,
 				xi2=0;
 
@@ -280,21 +281,35 @@ static	int
 
 int 		i,j,k,
 				ki=30,kp=0;
-short		z1,z2;
-
+short		z1=0,z2=0;
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);								// brisi ISR flage
+//----- HV voltage averaging, calc. active ADC DMA index----------------------------------
 				for(i=j=0;j<ADC3_AVG;++j)																	// sestej zadnjih N merjenih vrednosti vrsne napetosti
 					i+=(unsigned short)(ADC3_buf[j].HV);
 
 				k = __max(pfm->Burst.Eint[0],pfm->Burst.Eint[1])*_uS/_MAX_ADC_RATE;
 				k-= DMA_GetCurrDataCounter(DMA2_Stream4) / sizeof(_ADCDMA)*sizeof(short);
-
-				if(!n1 && !n2) 																						// ce je to zacetek  sekvence, vzemi to za referencno vrednost - hitrejse kot 
+//----- on first entry, take HV reference && current simmer mode -------------------------
+				if(!n1 && !n2 & !m1 & !m2) {															// ce je to zacetek  sekvence, vzemi to za referencno vrednost - hitrejse kot 
 					hvref=pfm->HVref;																				// ce vzames zahtevano vrednost iz osnovnega objekta !!!!
-																																	// get current DMA data index
-				z1 = pwch1[n1].T;																					// vmesni izracun vrednosti za timerje 
-				z2 = pwch2[n2].T;
-
+					simmode=PFM_command(NULL,0);														// simmer mode, sampled at the beginning of the burst
+				}
+//----- switch channels on single channel mode -------------------------------------------
+				if(_MODE(pfm,_CHANNEL1_DISABLE)) {
+					if(simmode & PFM_STAT_SIMM1)
+						z2 = pwch1[n1].T;
+					else if(simmode & PFM_STAT_SIMM2)
+						z2 = pwch2[n2].T;
+				} else if(_MODE(pfm,_CHANNEL2_DISABLE)) {
+					if(simmode & PFM_STAT_SIMM1)
+						z1 = pwch1[n1].T;
+					else if(simmode & PFM_STAT_SIMM2)
+						z1 = pwch2[n2].T;
+				} else {
+					z1 = pwch1[n1].T;
+					z2 = pwch2[n2].T;
+				}
+//----- mode 30=true simulacija klasicnega odziva, =C cap (mF), =P current(A) ------------
 				if(_MODE(pfm,__TEST__)) {
 					_SET_MODE(pfm,_U_LOOP);
 					z1 = (z1*Vcaps+(1<<15)) >> 16;
@@ -304,7 +319,7 @@ short		z1,z2;
 					z1 = __max(pfm->Burst.Pdelay, z1);
 					z2 = __max(pfm->Burst.Pdelay, z2);
 				}
-				
+//----- mode 9, forward voltage stab. ---------------------------------------------------	
 				if(_MODE(pfm,_U_LOOP)) {
 					z1 = (z1 * hvref + i/2)/i;
 					z2 = (z2 * hvref + i/2)/i;
@@ -325,22 +340,18 @@ short		z1,z2;
 //						_E2ref=e2;
 //						e2=0;
 //					}
-								
+//----- mode 10, current stab. ---------------------------------------------------									
+//
 					if(pfm->Burst.Time>200 && _MODE(pfm,_P_LOOP)) {
-
+						
+//----- current loop for ch1, if Pref1 present !----------------------------------									
 						if(k > 5 && Pref1 && pwch1[n1].T > pfm->Burst.Pdelay*2) {
 							int dx=(Pref1 - ADC1_buf[k-5].U * ADC1_buf[k-5].I)/4096;
 							xi1 += dx*ki;
 							z1 += xi1/4096 + dx*kp/4096;
 						}
-
-						if(k > 5 && Pref2 && pwch2[n2].T > pfm->Burst.Pdelay*2) {
-							int dx=(Pref2 - ADC2_buf[k-5].U * ADC2_buf[k-5].I)/4096;
-							xi2 += dx*ki;
-							z2 += xi2/4096 + dx*kp/4096;
-						}
-
-						if(k > 200 + pfm->Burst.Delay) {
+//----- calc. Pref1 after 200 us for ch1 -----------------------------------------									
+						if(TIM1->CCR1 && k > 200 + pfm->Burst.Delay) {
 							if(!Pref1 && pwch1[n1].T > 2*pfm->Burst.Pdelay) {
 								int jU=0,jI=0;
 								for(i=5;i<13;++i)	{
@@ -350,35 +361,40 @@ short		z1,z2;
 								Pref1=jU*jI/64;
 								xi1=0;
 							}
-
-							if(!Pref2 && pwch2[n2].T > 2*pfm->Burst.Pdelay) {
-								int jU=0,jI=0;
-								for(i=5;i<13;++i)	{
-									jU+=ADC2_buf[k-i].U;
-									jI+=ADC2_buf[k-i].I;
-								}
-								Pref2=jU*jI/64;
-								xi2=0;
+						}			
+//----- current loop for ch2, if Pref2 present !----------------------------------									
+						if(k > 5 && Pref2 && pwch2[n2].T > pfm->Burst.Pdelay*2) {
+							int dx=(Pref2 - ADC2_buf[k-5].U * ADC2_buf[k-5].I)/4096;
+							xi2 += dx*ki;
+							z2 += xi2/4096 + dx*kp/4096;
+						}
+//----- calc. Pref2 after 200 us for ch2 -----------------------------------------									
+						if(TIM1->CCR3 && !Pref2 && pwch2[n2].T > 2*pfm->Burst.Pdelay) {
+							int jU=0,jI=0;
+							for(i=5;i<13;++i)	{
+								jU+=ADC2_buf[k-i].U;
+								jI+=ADC2_buf[k-i].I;
 							}
+							Pref2=jU*jI/64;
+							xi2=0;
 						}
 					}
 				}
-				
-// vpis v timerje
-				if(TIM1->CCR1) {
-					if(pwch1[n1].n)
+//----- vpis v OC registre ---------------------------------------------------------------
+				if(_STATUS(pfm,PFM_STAT_SIMM1)) {
+					if(pwch1[n1].n)																// set simmer pw on last sample !
 						TIM8->CCR1 = TIM1->CCR1 = __max(pfm->Burst.Pdelay,__min(_MAX_PWM_RATE, z1));
 					else
 						TIM8->CCR1 = TIM1->CCR1 = pfm->Simmer[0].pw;
 				}
 			
-				if(TIM1->CCR3) {
-					if(pwch2[n2].n)
+				if(_STATUS(pfm,PFM_STAT_SIMM2)) {
+					if(pwch2[n2].n)																// set simmer pw on last sample !
 						TIM8->CCR3 = TIM1->CCR3 = __max(pfm->Burst.Pdelay,__min(_MAX_PWM_RATE, z2));
 					else
 						TIM8->CCR3 = TIM1->CCR3 = pfm->Simmer[1].pw;
 				}
-				
+//----- x1, x2, x4 -----------------------------------------------------------------------				
 				if(_MODE(pfm,_XLAP_SINGLE)) {
 					TIM8->CCR2 = TIM1->CCR2 = TIM1->CCR1;
 					TIM8->CCR4 = TIM1->CCR4 = TIM1->CCR3;
@@ -386,15 +402,15 @@ short		z1,z2;
 					TIM8->CCR2 = TIM1->CCR2 = TIM1->ARR - TIM1->CCR1;
 					TIM8->CCR4 = TIM1->CCR4 = TIM1->ARR - TIM1->CCR3;
 				}
-				
+//----- qswitch pasus, dela samo na ch 1 -------------------------------------------------
 				if(pwch1[n1].T > pfm->Burst.Pdelay && 
 					(pwch1[n1].n == pfm->Pockels.trigger || 
-						pwch1[n1].n == 255)) {															// #jhw9847duhd		dodatek za qswitch	
+						pwch1[n1].n == 255)) {																// #jhw9847duhd		dodatek za qswitch	
 					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Repetitive);		// triganje na kakrsnokoli stanje nad delay x 2
 					TIM_Cmd(TIM4,ENABLE);																		// trigger !!!
 				} else
 					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);				// single pulse, timer se disabla po izteku				
-				
+//----- pwch tabs increment --------------------------------------------------------------				
 				if(m1++ == pwch1[n1].n/2) {
 					m1=0;
 					if(pwch1[n1].n != 0)																	// eof pulse train
@@ -405,7 +421,7 @@ short		z1,z2;
 					if(pwch2[n2].n != 0)																	// eof pulse train
 						++n2;
 				}
-
+//----- end of burst, stop IT, notify main loop -----------------------------------------				
 				if(pwch1[n1].n == 0 && pwch2[n2].n == 0) {
 					n1=n2=0;
 					TIM_ITConfig(TIM1, TIM_IT_Update,DISABLE);

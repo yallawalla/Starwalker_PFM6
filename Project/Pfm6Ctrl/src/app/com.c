@@ -1107,7 +1107,7 @@ int				i;
 				case 'f':
 					n=numscan(++c,cc,',');
 					if(!n) {
-						__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%d",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',pfm->Temp);
+						__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%3.1f,%3.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',IgbtTemp1(),IgbtTemp2());
 						break;
 					} else {
 						if(n==4) {

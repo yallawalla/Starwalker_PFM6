@@ -263,13 +263,13 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 * Return        :
 *******************************************************************************/
 void	SetPwmTab(PFM *p) {
-			int n;
-			if(_STATUS(p,PFM_STAT_SIMM1) && !_STATUS(p,PFM_STAT_SIMM2)) {
+			int n,simmode=PFM_command(NULL,0);	
+			if(simmode == _STATUS(p,PFM_STAT_SIMM1)) {
 				_TIM18DMA *t=SetPwmTab00(p,pwch1);
 				for(n=0; t-- != pwch1; n+= t->n);
 				p->Burst.Eint[0] = (n+1)*5;
 			}
-			else if(!_STATUS(p,PFM_STAT_SIMM1) && _STATUS(p,PFM_STAT_SIMM2)) {
+			else if(simmode == _STATUS(p,PFM_STAT_SIMM2)) {
 				_TIM18DMA *t=SetPwmTab00(p,pwch2);
 				for(n=0; t-- != pwch2; n+= t->n);
 				p->Burst.Eint[1] = (n+1)*5;
@@ -430,12 +430,10 @@ int		simmrate;
 			if(_MODE(p,_PULSE_INPROC)) {
 				_DEBUG_MSG("trigger at... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I-_I1off),
 																											_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I-_I2off));	
+				_DEBUG_MSG("interval...   %d,%d",p->Burst.Eint[0],p->Burst.Eint[1]);
 			} else {
 				_DEBUG_MSG("simmer %3d kHz, mode %d", _mS/simmrate,pfm->mode & 0x07);
 			}
-//_____________________________________________________________	
-// 		if(!(p->Error  & _CRITICAL_ERR_MASK))
-// 			EnableIgbt();
 }
 /*******************************************************************************/
 void	EnableIgbt(void) {
@@ -452,6 +450,13 @@ int		fanPmin=20;
 int		fanPmax=95;
 int		fanTL=3000;
 int		fanTH=4000;
+/*******************************************************************************/
+float	IgbtTemp1(void) {
+		return (float)__fit(ADC3_buf[0].IgbtT1,Rtab,Ttab)/100.0;
+}
+float	IgbtTemp2(void) {
+		return (float)__fit(ADC3_buf[0].IgbtT2,Rtab,Ttab)/100.0;
+}
 /*******************************************************************************/
 int		IgbtTemp(void) {
 int		cc,t=__max( __fit(ADC3_buf[0].IgbtT1,Rtab,Ttab),

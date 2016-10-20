@@ -357,7 +357,9 @@ int							IgbtTemp(void),
 								PFM_command(PFM *, int),
 								PFM_pockels(PFM *),
 								PFM_status_send(PFM *, int);
-				        
+float						IgbtTemp1(void),
+								IgbtTemp2(void);
+								
 void 						USBD_Storage_Init(void);
 				        
 #define					_VOUT_MODE						0x20

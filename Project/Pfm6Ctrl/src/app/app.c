@@ -778,9 +778,11 @@ int				i,j,k;
 
 					if(p) {
 						j=k=_I2AD(20.0);
-						for(i= __max(p->Burst.Eint[0],p->Burst.Eint[1])*_uS/_MAX_ADC_RATE; i; --i) {
+						for(i=p->Burst.Eint[0]*_uS/_MAX_ADC_RATE; i; --i) {
 							if(ADC1_buf[i].I > j)
-								e1+=(short)(ADC1_buf[i].U) * (short)(ADC1_buf[i].I-_I1off);
+								e1+=(short)(ADC1_buf[i].U) * (short)(ADC1_buf[i].I-_I1off);			
+						}
+						for(i=p->Burst.Eint[1]*_uS/_MAX_ADC_RATE; i; --i) {
 							if(ADC2_buf[i].I > k)
 								e2+=(short)(ADC2_buf[i].U) * (short)(ADC2_buf[i].I-_I2off);							
 						}
@@ -790,12 +792,12 @@ int				i,j,k;
 							e2/=(kmJ*_uS/p->ADCRate);
 							if(_STATUS(p,PFM_STAT_SIMM1) && !_STATUS(p,PFM_STAT_SIMM2)) {
 								CanReply("cicP",_PFM_E_ack,e1,0);	
-								_DEBUG_MSG("E1=%d.%dJ (%d)",e1/1000,(e1%1000)/100,__max(p->Burst.Eint[0],p->Burst.Eint[0]));
+								_DEBUG_MSG("E1=%d.%dJ",e1/1000,(e1%1000)/100);
 							}
 							
 							if(!_STATUS(p,PFM_STAT_SIMM1) && _STATUS(p,PFM_STAT_SIMM2)) {
 								CanReply("cicP",_PFM_E_ack,e2,0);					
-								_DEBUG_MSG("E2=%d.%dJ (%d)",e2/1000,(e2%1000)/100,__max(p->Burst.Eint[0],p->Burst.Eint[1]));
+								_DEBUG_MSG("E2=%d.%dJ",e2/1000,(e2%1000)/100);
 							}
 							
 							if(_STATUS(p,PFM_STAT_SIMM1) && _STATUS(p,PFM_STAT_SIMM2)) {
@@ -817,10 +819,10 @@ int				i,j,k;
   *
   */
 int				PFM_status_send(PFM *p, int k) {
-						if(p->Error & (PFM_STAT_SIMM1 | PFM_STAT_SIMM2))
+						if(p->Error & (PFM_ERR_SIMM1 | PFM_ERR_SIMM2))
 							CanReply("cwiP",_PFM_status_req,
 								(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | k,
-								(p->Error & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | k
+								(p->Error & ~(PFM_ERR_SIMM1 | PFM_ERR_SIMM2)) | k
 								);
 						else
 							CanReply("cwiP",_PFM_status_req,
@@ -833,10 +835,7 @@ int				PFM_status_send(PFM *p, int k) {
   * @param 	pfmcmd: PFM command word as defined in CAN protocol  ICD 
   * @retval : None
   *
-  */
-//					p 1000,400,0,1200
-//					b 1,1200,330,3
-					
+  */					
 int				PFM_command(PFM *p, int n) {
 static		int	timeout=0,no=0;
 					int	Uidle;
