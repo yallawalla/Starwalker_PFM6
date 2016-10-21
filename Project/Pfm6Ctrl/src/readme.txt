@@ -549,6 +549,8 @@ v 2.12 Feb 24 2016, <EFF7B41B>
   
 17.10.2016, neodvisna kanala, ne dela .... !
 19.10.2016, neodvisna kanala, problem z locenima intervaloma meritve, se ne dela !!!
+21.10.2016, timer 1,8 interrupt koncno dela
+			spremenjen koncept za _TEST_ mode
 
 
 

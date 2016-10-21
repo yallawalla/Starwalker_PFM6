@@ -204,7 +204,7 @@ static
   * @retval : None
   *
 ______________________________________________________________________________*/
-extern unsigned volatile int Caps,Vcaps,Pcaps;
+extern int	Hvref,Icaps,Caps;
 
 void			ProcessingStatus(PFM *p) {
 int 			i,j,k;
@@ -277,12 +277,11 @@ static
 					} else if(bounce && !--bounce)
 						PFM_status_send(p,k);
 //-------------------------------------------------------------------------------
-					if(_MODE(pfm,__TEST__)) {
-						if(!_MODE(pfm,_PULSE_INPROC)) 
-							Vcaps = __min(0xffff, Vcaps + Pcaps*4096/1100/Caps);
-							if(Vcaps != 0xffff)
-								_YELLOW2(20);
-					}
+					if(_MODE(pfm,__TEST__) && !_MODE(pfm,_PULSE_INPROC) && !(__time__ % 100))
+						if( Hvref < p->HVref - p->HVref/15) {
+							Hvref += Icaps*400*4096/880/Caps;
+							_YELLOW2(20);
+						}
 }
 /*______________________________________________________________________________
   * @brief	Charger6 control procedure; Disables Charger6 if PFM_ERR_DRVERR,PFM_ERR_PULSEENABLE or 

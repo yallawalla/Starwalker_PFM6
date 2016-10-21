@@ -326,7 +326,7 @@ short						Error,
 volatile int		events,
 								debug,
 								mode,
-								count;								// burst count
+								countt;								// burst count
 
 struct {
 	short					delay,

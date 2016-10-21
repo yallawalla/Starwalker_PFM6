@@ -31,7 +31,7 @@
 //}
 //___________________________________________________________________________
 extern	int32_t		_U1off,_U2off,_I1off,_I2off;
-extern	uint32_t	Caps,Pcaps;
+extern	uint32_t	Caps,Icaps;
 
 void		Initialize_host_msc(void);
 void		Initialize_device_msc(void);
@@ -271,11 +271,11 @@ int			DecodeEq(char *c) {
 				switch(*c) {
 //______________________________________________________________________________________
 				case 'C':
-					Caps=4096/1100*atoi(++c);
+					Caps=__max(100,1000.0*atof(++c));	// scale fakt. za C v mF pri 880V/1100A full scale, 100kHz sample rate in ADC3_AVG = 4 pride 20... ni placa za izpeljavo
 					break;
 //______________________________________________________________________________________
 				case 'P':					
-					Pcaps=0xffff*atof(++c)/_AD2HV(pfm->HVref);
+					Icaps=__max(100,1000.0*atof(++c));
 					break;
 //______________________________________________________________________________________
 				case 'E':
