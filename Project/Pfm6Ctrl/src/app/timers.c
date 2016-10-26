@@ -264,7 +264,7 @@ int			Pref1=0,Pref2=0,Hvref=0,Caps=5000,Icaps=1000;
 void		TIM1_UP_TIM10_IRQHandler(void) {
 
 static	int		
-				m1=0,m2=0,																								// timer repetition rate register index index, DMA table																							// adc index
+				m1=0,m2=0,																								// timer repetition rate register index index, DMA table
 				simmode=0,
 				xi1=0,xi2=0;
 static 	_TIM18DMA
@@ -279,15 +279,15 @@ int 		i,j,k,x,
 
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);								// brisi ISR flage
 //----- HV voltage averaging, calc. active ADC DMA index----------------------------------
-				for(i=j=0;j<ADC3_AVG;++j)																	// sestej zadnjih N merjenih vrednosti vrsne napetosti
+				for(i=j=0;j<ADC3_AVG;++j)																	// 
 					i+=(unsigned short)(ADC3_buf[j].HV);
-
+																																	// --- on first entry, compute DMA index 
 				k = __max(pfm->Burst.Eint[0],pfm->Burst.Eint[1])*_uS/_MAX_ADC_RATE;
 				k-= DMA_GetCurrDataCounter(DMA2_Stream4) / sizeof(_ADCDMA)*sizeof(short);
 
-				if(!p1 && !p2) {																					//----- on first entry, take HV reference && current simmer mode ----------
-					simmode=PFM_command(NULL,0);														// simmer mode, sampled at the beginning of the burst
-					if(_MODE(pfm,_CHANNEL1_DISABLE)) {											//----- switch channels on single channel mode ----------------------------
+				if(!p1 && !p2) {																					// --- on first entry, take HV reference && current simmer mode
+					simmode=PFM_command(NULL,0);														// --- simmer mode, sampled at the beginning of the burst
+					if(_MODE(pfm,_CHANNEL1_DISABLE)) {											// --- switch channels on single channel mode
 						if(simmode & PFM_STAT_SIMM1)
 							p2 = pwch1;
 						else if(simmode & PFM_STAT_SIMM2)
@@ -298,8 +298,20 @@ int 		i,j,k,x,
 						else if(simmode & PFM_STAT_SIMM2)
 							p1 = pwch2;
 					} else {
-						p1 = pwch1;
-						p2 = pwch2;
+						if(_MODE(pfm,_ALTERNATE_TRIGGER)) {
+							if(pfm->count % 2) {
+								if(simmode & PFM_STAT_SIMM2)
+									p2 = pwch2;
+							} else {
+								if(simmode & PFM_STAT_SIMM1)
+									p1 = pwch1;
+							}
+						} else {
+							if(simmode & PFM_STAT_SIMM1)
+								p1 = pwch1;
+							if(simmode & PFM_STAT_SIMM2)
+								p2 = pwch2;
+						}
 					}
 //____________________________________________________________
 					if(!_MODE(pfm,__TEST__))
@@ -431,7 +443,7 @@ int 		i,j,k,x,
 				}
 				if(!p1 && !p2) {																					//----- end of burst, stop IT, notify main loop ---------------------------				
 					TIM_ITConfig(TIM1, TIM_IT_Update,DISABLE);
-					_SET_EVENT(pfm,_PULSE_FINISHED);
+//					_SET_EVENT(pfm,_PULSE_FINISHED);
 					_CLEAR_MODE(pfm,_PULSE_INPROC);
 					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);
 					return;

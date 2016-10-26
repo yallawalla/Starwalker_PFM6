@@ -162,7 +162,7 @@ static
 						Trigger(p);
 						if(!_MODE(p,_TRIGGER_PERIODIC))
 							--trigger_count;
-						trigger_time = __time__ + p->Trigger.Period;						// rearm counters		
+						trigger_time = __time__ + p->Trigger.Period;					// rearm counters		
 					}
 //______________________________________________________________________________
 					if(_EVENT(p,_PULSE_FINISHED)) {	
@@ -773,35 +773,34 @@ static		uint64_t	e1=0,
 										e2=0;
 static		int				n=0;
 
-int				i,j,k;
+int				i;
 
 					if(p) {
-						j=k=_I2AD(20.0);
-						for(i=p->Burst.Eint[0]*_uS/_MAX_ADC_RATE; i; --i) {
-							if(ADC1_buf[i].I > j)
+						for(i=p->Burst.Eint[0]*_uS/_MAX_ADC_RATE-1; i>=0; --i) {
+							if(ADC1_buf[i].I > _I2AD(20.0))
 								e1+=(short)(ADC1_buf[i].U) * (short)(ADC1_buf[i].I-_I1off);			
 						}
-						for(i=p->Burst.Eint[1]*_uS/_MAX_ADC_RATE; i; --i) {
-							if(ADC2_buf[i].I > k)
+						for(i=p->Burst.Eint[1]*_uS/_MAX_ADC_RATE-1; i>=0; --i) {
+							if(ADC2_buf[i].I > _I2AD(20.0))
 								e2+=(short)(ADC2_buf[i].U) * (short)(ADC2_buf[i].I-_I2off);							
 						}
-						
+
 						if(n++ == p->Trigger.Erpt) {
 							e1/=(kmJ*_uS/p->ADCRate);
 							e2/=(kmJ*_uS/p->ADCRate);
 							if(_STATUS(p,PFM_STAT_SIMM1) && !_STATUS(p,PFM_STAT_SIMM2)) {
 								CanReply("cicP",_PFM_E_ack,e1,0);	
-								_DEBUG_MSG("E1=%d.%dJ",e1/1000,(e1%1000)/100);
+								_DEBUG_(4,"E1=%d.%dJ",e1/1000,(e1%1000)/100);
 							}
 							
 							if(!_STATUS(p,PFM_STAT_SIMM1) && _STATUS(p,PFM_STAT_SIMM2)) {
 								CanReply("cicP",_PFM_E_ack,e2,0);					
-								_DEBUG_MSG("E2=%d.%dJ",e2/1000,(e2%1000)/100);
+								_DEBUG_(4,"E2=%d.%dJ",e2/1000,(e2%1000)/100);
 							}
 							
 							if(_STATUS(p,PFM_STAT_SIMM1) && _STATUS(p,PFM_STAT_SIMM2)) {
 								CanReply("cicP",_PFM_E_ack,e1+e2,0);		
-								_DEBUG_MSG("E1=%d.%dJ, E2=%d.%dJ",e1/1000,(e1%1000)/100,e2/1000,(e2%1000)/100);
+								_DEBUG_(4,"E1=%d.%dJ, E2=%d.%dJ",e1/1000,(e1%1000)/100,e2/1000,(e2%1000)/100);
 							}
 							
 							e1=e2=n=0;

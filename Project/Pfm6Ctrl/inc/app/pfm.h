@@ -46,8 +46,8 @@
 			          
 #define					_AD2HV(a)			((int)(((a)*_UREF)/4096.0/ADC3_AVG/_Rdiv(7.5e3,2e6)+0.5))
 #define					_HV2AD(a)			((int)(((a)*4096.0*ADC3_AVG*_Rdiv(7.5e3,2e6))/_UREF+0.5))
-#define					_I2AD(a)			(((a)*4096)/(int)(3.3/2.9999/0.001+0.5))
-#define					_AD2I(a)			(((a)*(int)(3.3/2.9999/0.001+0.5))/4096)
+#define					_I2AD(a)			((int)(((a)*4096)/(int)(3.3/2.9999/0.001+0.5)))
+#define					_AD2I(a)			((int)(((a)*(int)(3.3/2.9999/0.001+0.5))/4096))
 
 #define					_m5V2AD(a)		((int)(4096+((a)-_UREF)*(_Rdiv(12.0,24.0)*4096.0/_UREF))*8)
 #define					_p20V2AD(a)		((int)((a)*8*(_Rdiv(12.0,68.0)*4096.0/_UREF)))
@@ -78,7 +78,6 @@ typedef					enum
 {								_TRIGGER,
 								_PULSE_ENABLED,
 								_PULSE_FINISHED,
-//								_ADC_FINISHED,
 								_FAN_TACHO,
 								_REBOOT=31
 } 							_event;
@@ -115,6 +114,7 @@ typedef					enum
 								_CHANNEL2_DISABLE,				//12
 								_CHANNEL1_SINGLE_TRIGGER,	//13
 								_CHANNEL2_SINGLE_TRIGGER,	//14
+								_ALTERNATE_TRIGGER,				//15
 	
 								__SWEEPS__=29,
 								__TEST__=30
@@ -326,7 +326,7 @@ short						Error,
 volatile int		events,
 								debug,
 								mode,
-								countt;								// burst count
+								count;								// burst count
 
 struct {
 	short					delay,
@@ -514,6 +514,9 @@ enum	err_parse	{
 								_PARSE_ERR_MEM
 								};
 
+
+								
+								
 __inline void dbg1(char *s) {
 			if(_DBG(pfm,_DBG_SYS_MSG)) {
 				_io *io=_stdio(__dbug);
@@ -564,6 +567,61 @@ __inline void dbg5(char *s, int arg1, int arg2, int arg3, int arg4) {
 
 #define	GET_MACRO(_1,_2,_3,_4,_5,NAME,...) NAME
 #define	_DEBUG_MSG(...) GET_MACRO(__VA_ARGS__, dbg5, dbg4, dbg3, dbg2, dbg1)(__VA_ARGS__)
+
+
+
+__inline void dbg_2(int n, char *s) {
+			if(pfm->debug & (1<<(n))) {
+				_io *io=_stdio(__dbug);
+				__print(":%04d %s\r\n>",__time__ % 10000, s);
+				_stdio(io);
+			}
+}
+
+__inline void dbg_3(int n, char *s, int arg1) {
+			if(pfm->debug & (1<<(n))) {
+				_io *io=_stdio(__dbug);
+				__print(":%04d ",__time__ % 10000);
+				__print((s),(arg1));
+				__print("\r\n>");
+				_stdio(io);
+			}
+}
+
+__inline void dbg_4(int n,char *s, int arg1, int arg2) {
+			if(pfm->debug & (1<<(n))) {
+				_io *io=_stdio(__dbug);
+				__print(":%04d ",__time__ % 10000);
+				__print((s),(arg1),(arg2));
+				__print("\r\n>");
+				_stdio(io);
+			}
+}
+
+__inline void dbg_5(int n,char *s, int arg1, int arg2, int arg3) {
+			if(pfm->debug & (1<<(n))) {
+				_io *io=_stdio(__dbug);
+				__print(":%04d ",__time__ % 10000);
+				__print((s),(arg1),(arg2),(arg3));
+				__print("\r\n>");
+				_stdio(io);
+			}
+}
+
+__inline void dbg_6(int n,char *s, int arg1, int arg2, int arg3, int arg4) {
+			if(pfm->debug & (1<<(n))) {
+				_io *io=_stdio(__dbug);
+				__print(":%04d ",__time__ % 10000);
+				__print((s),(arg1),(arg2),(arg3),(arg4));
+				__print("\r\n>");
+				_stdio(io);
+			}
+}
+
+
+#define	GET_MAC(_1,_2,_3,_4,_5,_6,NAME,...) NAME
+#define	_DEBUG_(...) GET_MAC(__VA_ARGS__,dbg_6,dbg_5,dbg_4,dbg_3,dbg_2)(__VA_ARGS__)
+
 
 #define	_k_Er	(20.0*20.0)
 #define	_k_Nd	(28.5 * 28.5)

@@ -552,6 +552,6 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 21.10.2016, timer 1,8 interrupt koncno dela
 			spremenjen koncept za _TEST_ mode
 
-
-
+26.10.2016	PULSE_FINISHED se prestavi iz TIM Isr na konec ADC DMA interrupt, da se zakjuci odziv na ADC preden se gre racunat energija. 
+			za  nazaj naj bi blo OK, ker je bil dozdaj itak samo en interval za vse kanale ???
 

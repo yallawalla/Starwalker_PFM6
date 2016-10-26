@@ -138,7 +138,6 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 					t->T=e2E*ushape[i].U + p->Burst.Pdelay;
 				}
 				p->Burst.Ereq=_SHPMOD_OFF;
-//				p->Burst.Einterval= __min(p->Burst.Length, _MAX_BURST/_MAX_ADC_RATE);
 				_CLEAR_MODE(p, _P_LOOP);																					// current stab. off !!!
 				t->n=0;																														// EOF
 				return t;																			
@@ -148,14 +147,12 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 				t->T=p->Burst.Pdelay;
 				(n > 255) ? (t->n=255) : (t->n=n);
 			};
-//			p->Burst.Einterval= __min(p->Burst.Length + p->Burst.Delay, _MAX_BURST/_MAX_ADC_RATE);
 //-------preludij-------------------
 			if(p->Burst.Ereq & (_SHPMOD_CAL | _SHPMOD_QSWCH)) {
 				int	du=0,u=0;
 				for(i=0; i<_MAX_QSHAPE; ++i)
 					if(p->Burst.Time==qshape[i].qref) {
 						if(qshape[i].q0 > 0) {
-//							p->Burst.Einterval = __min(p->Burst.Einterval + qshape[i].q0, _MAX_BURST/_MAX_ADC_RATE);
 							to=qshape[i].q0;
 							Uo=(int)(pow((pow(p->Burst.Pmax,3)*p->Burst.N*qshape[i].qref/to),1.0/3.0)+0.5);
 							if(p->Burst.Ereq & _SHPMOD_MAIN) {
