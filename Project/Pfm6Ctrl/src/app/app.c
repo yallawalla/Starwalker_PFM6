@@ -181,22 +181,6 @@ static
 						_CLEAR_EVENT(p,_REBOOT);															// end of pulse
 						WWDG_init();
 					}
-//______________________________________________________________________________
-//					if(_EVENT(p,_ADC_FINISHED)) {	
-//						_CLEAR_EVENT(p,_ADC_FINISHED);											// end of pulse
-//						_DEBUG_MSG("adc finished...");
-//					}
-//						if(_DBG(p,_DBG_E_PARTIAL) && (_E1ref || _E2ref)) {
-//							_io *io=_stdio(__dbug);
-//							int e1=_E1ref*p->ADCRate/kmJ/_uS;
-//							int e2=_E2ref*p->ADCRate/kmJ/_uS;
-//							_E1ref=_E2ref=0;			
-//							__print("E1=%d.%d ",e1/1000,(e1%1000)/100);
-//							__print("E2=%d.%d\r\n>",e2/1000,(e2%1000)/100);
-//							_stdio(io);
-//					}
-//					if(!_MODE(p,_PULSE_INPROC))
-//						IncrementSimmerRate(0);	
 }
 /*______________________________________________________________________________
   * @brief	periodic status/error  polling, main loop call from 1 msec event flag
@@ -476,7 +460,7 @@ char			*q=(char *)rx.Data;
 							break;				
 //______________________________________________________________________________________
 							case _ID_PFMcom2SYS:
-								if(_DBG(p,_DBG_CAN_COM))	{
+								if(_MODE(p,_CAN_2_COM))	{
 									_io *io=_stdio(__dbug);
 									for(n=0;n<rx.DLC;++n)
 										fputc(rx.Data[n],&__stdout);
@@ -671,13 +655,8 @@ char			*q=(char *)rx.Data;
 								case _ID_ENRG2SYS: 																						// energometer-2-system message 
 								{
 									union {short w[4];} *e = (void *)q; 
-									if(_DBG(p,_DBG_MSG_ENG) && (unsigned short)e->w[0]==0xD103) {
-										_io *io=_stdio(__dbug);				
-										__print(":%04d e1=%.1lf,e2=%.1lf\r\n>",__time__ % 10000, 
-											(double)__max(0,e->w[2])/10,
-												(double)__max(0,e->w[3])/10);
-										_stdio(io);
-									}
+									if((unsigned short)e->w[0]==0xD103)
+										_DEBUG_(_DBG_ENERG_MSG,"e1=%d.%dmJ, e2=%d.%dmJ",e->w[2]/10,e->w[2]%10,e->w[3]/10,e->w[3]%10);
 								}
 								break;
 //______________________________________________________________________________________
@@ -790,17 +769,17 @@ int				i;
 							e2/=(kmJ*_uS/p->ADCRate);
 							if(_STATUS(p,PFM_STAT_SIMM1) && !_STATUS(p,PFM_STAT_SIMM2)) {
 								CanReply("cicP",_PFM_E_ack,e1,0);	
-								_DEBUG_(4,"E1=%d.%dJ",e1/1000,(e1%1000)/100);
+								_DEBUG_(_DBG_PULSE_MSG,"E1=%d.%dJ",e1/1000,(e1%1000)/100);
 							}
 							
 							if(!_STATUS(p,PFM_STAT_SIMM1) && _STATUS(p,PFM_STAT_SIMM2)) {
 								CanReply("cicP",_PFM_E_ack,e2,0);					
-								_DEBUG_(4,"E2=%d.%dJ",e2/1000,(e2%1000)/100);
+								_DEBUG_(_DBG_PULSE_MSG,"E2=%d.%dJ",e2/1000,(e2%1000)/100);
 							}
 							
 							if(_STATUS(p,PFM_STAT_SIMM1) && _STATUS(p,PFM_STAT_SIMM2)) {
 								CanReply("cicP",_PFM_E_ack,e1+e2,0);		
-								_DEBUG_(4,"E1=%d.%dJ, E2=%d.%dJ",e1/1000,(e1%1000)/100,e2/1000,(e2%1000)/100);
+								_DEBUG_(_DBG_PULSE_MSG,"E1=%d.%dJ, E2=%d.%dJ",e1/1000,(e1%1000)/100,e2/1000,(e2%1000)/100);
 							}
 							
 							e1=e2=n=0;

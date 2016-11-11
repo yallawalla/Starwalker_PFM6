@@ -285,20 +285,36 @@ int 		i,j,k,x,
 				k = __max(pfm->Burst.Eint[0],pfm->Burst.Eint[1])*_uS/_MAX_ADC_RATE;
 				k-= DMA_GetCurrDataCounter(DMA2_Stream4) / sizeof(_ADCDMA)*sizeof(short);
 
-				if(!p1 && !p2) {																					// --- on first entry, take HV reference && current simmer mode
-					simmode=PFM_command(NULL,0);														// --- simmer mode, sampled at the beginning of the burst
-					if(_MODE(pfm,_CHANNEL1_DISABLE)) {											// --- switch channels on single channel mode
-						if(simmode & PFM_STAT_SIMM1)
+				if(!p1 && !p2) {																					// on first entry, take HV reference && current simmer mode
+					simmode=PFM_command(NULL,0);														// simmer mode, sampled at the beginning of the burst
+					if(_MODE(pfm,_CHANNEL1_DISABLE)) {											// single channel 2 mode
+						if(_MODE(pfm,_ALTERNATE_TRIGGER)) {										// altenate trigger
+							if(pfm->count % 2) {
+								if(simmode & PFM_STAT_SIMM2)
+									p2 = pwch2;
+							} else {
+								if(simmode & PFM_STAT_SIMM1)
+									p2 = pwch1;
+							} 
+						} else if(simmode & PFM_STAT_SIMM1)										// simult. trigger
 							p2 = pwch1;
 						else if(simmode & PFM_STAT_SIMM2)
 							p2 = pwch2;
-					} else if(_MODE(pfm,_CHANNEL2_DISABLE)) {
-						if(simmode & PFM_STAT_SIMM1)
+					} else if(_MODE(pfm,_CHANNEL2_DISABLE)) {								// single channel 1 mode
+							if(_MODE(pfm,_ALTERNATE_TRIGGER)) {									// altenate trigger
+								if(pfm->count % 2) {
+									if(simmode & PFM_STAT_SIMM2)
+										p1 = pwch2;
+								} else {
+									if(simmode & PFM_STAT_SIMM1)
+										p1 = pwch1;
+								} 
+						} else if(simmode & PFM_STAT_SIMM1)										// simult. trigger
 							p1 = pwch1;
 						else if(simmode & PFM_STAT_SIMM2)
 							p1 = pwch2;
-					} else {
-						if(_MODE(pfm,_ALTERNATE_TRIGGER)) {
+					} else {																								// dual channel mode
+						if(_MODE(pfm,_ALTERNATE_TRIGGER)) {										// altenate trigger
 							if(pfm->count % 2) {
 								if(simmode & PFM_STAT_SIMM2)
 									p2 = pwch2;
@@ -306,7 +322,7 @@ int 		i,j,k,x,
 								if(simmode & PFM_STAT_SIMM1)
 									p1 = pwch1;
 							}
-						} else {
+						} else {																							// simult. trigger
 							if(simmode & PFM_STAT_SIMM1)
 								p1 = pwch1;
 							if(simmode & PFM_STAT_SIMM2)
@@ -519,7 +535,7 @@ void 		EXTI15_10_IRQHandler(void)
 /*******************************************************************************/
 void			Trigger(PFM *p) {
 					if(_MODE(p,_PULSE_INPROC)) {
-						_DEBUG_MSG("trigger aborted...");
+						_DEBUG_(_DBG_SYS_MSG,"trigger aborted...");
 					}
 					else {
 						ADC_DMARequestAfterLastTransferCmd(ADC1, DISABLE);				// at least ADC conv. time before ADC/DMA change 

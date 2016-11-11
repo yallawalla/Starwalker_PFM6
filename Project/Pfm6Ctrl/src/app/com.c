@@ -186,17 +186,18 @@ FATFS						fs_cpu;
 				case 'E':
 					n=strscan(c,cc,' ');
 					pfm->Errmask |= getHEX(cc[1],-1);
+					pfm->Error &= ~getHEX(cc[1],-1);
 					break;
 //__________________________________________________ mode setup _____________
 				case 'm':
-					n=strscan(++c,cc,',');
+					n=numscan(++c,cc,',');
 					while(n--)
 						_CLEAR_MODE(pfm,atoi(cc[n]));	
 					break;
 //__________________________________________________ debug setup _____________
 				case 'D':
 					__dbug=__stdin.io;
-					n=strscan(++c,cc,',');
+					n=numscan(++c,cc,',');
 					while(n--)
 						_CLEAR_DBG(pfm,strtol(cc[n],NULL,0));
 					break;
@@ -225,7 +226,7 @@ int			DecodePlus(char *c) {
 					break;
 //__________________________________________________ mode setup _____________
 				case 'm':
-					n=strscan(++c,cc,',');
+					n=numscan(++c,cc,',');
 					while(n--)
 						_SET_MODE(pfm,atoi(cc[n]));
 					break;
@@ -239,7 +240,7 @@ int			DecodePlus(char *c) {
 //__________________________________________________ debug setup _____________
 				case 'D':
 					__dbug=__stdin.io;
-					n=strscan(++c,cc,',');
+					n=numscan(++c,cc,',');
 					while(n--)
 						_SET_DBG(pfm,atoi(cc[n]));
 					break;
@@ -329,10 +330,6 @@ int			DecodeWhat(char *c) {
 					App_List();
 					break;
 //______________________________________________________________________________________
-				case 'E':
-					__print(" error=%04X,mask=%04X",pfm->Error,pfm->Errmask);
-					break;
-//______________________________________________________________________________________
 				case 'h':
 					k=0;
 					while(1) {
@@ -362,6 +359,17 @@ int			DecodeWhat(char *c) {
 //______________________________________________________________________________________
 				case 'm':
 					__print(" %08X",pfm->mode);
+					break;
+//______________________________________________________________________________________
+				case 'D':
+					if(__dbug)
+						__print(" %08X",pfm->debug);
+					else
+						__print(" ...");
+					break;
+//______________________________________________________________________________________
+				case 'E':
+					__print(" error=%04X,mask=%04X",pfm->Error,pfm->Errmask);
 					break;
 //______________________________________________________________________________________
 				case 's':
@@ -1340,4 +1348,3 @@ fno.lfsize = sizeof lfn;
 /**
 * @}
 */
-

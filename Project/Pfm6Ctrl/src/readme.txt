@@ -555,3 +555,4 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 26.10.2016	PULSE_FINISHED se prestavi iz TIM Isr na konec ADC DMA interrupt, da se zakjuci odziv na ADC preden se gre racunat energija. 
 			za  nazaj naj bi blo OK, ker je bil dozdaj itak samo en interval za vse kanale ???
 
+9.11.2016 smafu v razporeditvi SetPwmTab ...

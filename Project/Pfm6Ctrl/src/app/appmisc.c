@@ -261,12 +261,12 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 *******************************************************************************/
 void	SetPwmTab(PFM *p) {
 			int n,simmode=PFM_command(NULL,0);	
-			if(simmode == _STATUS(p,PFM_STAT_SIMM1)) {
+			if(simmode == PFM_STAT_SIMM1) {
 				_TIM18DMA *t=SetPwmTab00(p,pwch1);
 				for(n=0; t-- != pwch1; n+= t->n);
 				p->Burst.Eint[0] = (n+1)*5;
 			}
-			else if(simmode == _STATUS(p,PFM_STAT_SIMM2)) {
+			else if(simmode == PFM_STAT_SIMM2) {
 				_TIM18DMA *t=SetPwmTab00(p,pwch2);
 				for(n=0; t-- != pwch2; n+= t->n);
 				p->Burst.Eint[1] = (n+1)*5;
@@ -425,11 +425,11 @@ int		simmrate;
 			TIM_Cmd(TIM1,ENABLE);
 
 			if(_MODE(p,_PULSE_INPROC)) {
-				_DEBUG_MSG("trigger at... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I-_I1off),
+				_DEBUG_(_DBG_SYS_MSG,"trigger at... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I-_I1off),
 																											_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I-_I2off));	
-				_DEBUG_MSG("interval...   %d,%d",p->Burst.Eint[0],p->Burst.Eint[1]);
+				_DEBUG_(_DBG_SYS_MSG,"interval...   %d,%d",p->Burst.Eint[0],p->Burst.Eint[1]);
 			} else {
-				_DEBUG_MSG("simmer %3d kHz, mode %d", _mS/simmrate,pfm->mode & 0x07);
+				_DEBUG_(_DBG_SYS_MSG,"simmer %3d kHz, mode %d", _mS/simmrate,pfm->mode & 0x07);
 			}
 }
 /*******************************************************************************/
@@ -564,7 +564,7 @@ void	CAN_console(void) {
 char	c[128];
 int		i,j;
 			__dbug=__stdin.io;
-			_SET_DBG(pfm,_DBG_CAN_COM);
+			_SET_MODE(pfm,_CAN_2_COM);
 			printf("\r\n remote console open... \r\n>");
 			sprintf(c,">%02X%02X%02X",_ID_SYS2PFMcom,'v','\r');
 			DecodeCom(c);
@@ -581,7 +581,7 @@ int		i,j;
 			} while (j != _CtrlE);
 			sprintf(c,">%02X",_ID_SYS2PFMcom);
 			DecodeCom(c);
-			_CLEAR_DBG(pfm,_DBG_CAN_COM);
+			_CLEAR_MODE(pfm,_CAN_2_COM);
 			__dbug=NULL;
 			printf("\r\n ....remote console closed\r\n>");
 }

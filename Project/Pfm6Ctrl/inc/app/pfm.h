@@ -90,12 +90,11 @@ typedef					 enum
 {								_DBG_CAN_TX,
 								_DBG_CAN_RX,
 								_DBG_ERR_MSG,
+								_DBG_PULSE_MSG,
+								_DBG_ENERG_MSG,
 								_DBG_SYS_MSG,
 								_DBG_I2C_TX,
 								_DBG_I2C_RX,
-								_DBG_MSG_ENG=20,
-								_DBG_CAN_COM=21,
-								_DBG_E_PARTIAL=22
 } 							_debug;
 
 typedef					enum
@@ -115,7 +114,7 @@ typedef					enum
 								_CHANNEL1_SINGLE_TRIGGER,	//13
 								_CHANNEL2_SINGLE_TRIGGER,	//14
 								_ALTERNATE_TRIGGER,				//15
-	
+								_CAN_2_COM,
 								__SWEEPS__=29,
 								__TEST__=30
 } 							mode;
@@ -142,13 +141,13 @@ typedef					enum
 #define					PFM_HV2_ERR								0x4000					// center cap voltaghe out of range
 #define					PFM_I2C_ERR								0x8000					// i2c comm. not responding
 
-//#define					_EVENT(p,a)					(p->events & (1<<(a)))
-//#define					_SET_EVENT(p,a)			p->events |= (1<<(a))
-//#define					_CLEAR_EVENT(p,a)		p->events &= ~(1<<(a))
+//#define				_EVENT(p,a)					(p->events & (1<<(a)))
+//#define				_SET_EVENT(p,a)			p->events |= (1<<(a))
+//#define				_CLEAR_EVENT(p,a)		p->events &= ~(1<<(a))
 //
-//#define					_MODE(p,a)					(p->mode & (1<<(a)))
-//#define					_SET_MODE(p,a)			p->mode |= (1<<(a))
-//#define					_CLEAR_MODE(p,a)		p->mode &= ~(1<<(a))
+//#define				_MODE(p,a)					(p->mode & (1<<(a)))
+//#define				_SET_MODE(p,a)			p->mode |= (1<<(a))
+//#define				_CLEAR_MODE(p,a)		p->mode &= ~(1<<(a))
 
 #define					_STATUS(p,a)					(p->Status & (a))
 #define					_SET_STATUS(p,a)			(p->Status |= (a))
@@ -165,30 +164,24 @@ typedef					enum
 
 #define					_ERROR(p,a)						(p->Error & (a))
 
-#define					_CLEAR_ERROR(p,a)	do {																												\
-									if(_DBG(p,_DBG_ERR_MSG) && (p->Error & (a))) {															\
-_io 								*io=_stdio(__dbug);																												\
-										__print(":%04d error %04X,%04X, clear\r\n>",__time__ % 10000,p->Error,a);	\
-										_stdio(io);																																\
-									}																																						\
-									p->Error &= ~(a);																														\
-									} while(0)
-
-#define					_SET_ERROR(p,a)	do {																													\
-									if(~(p->Errmask) & a) { 																										\
-									if(a & _CRITICAL_ERR_MASK) {																								\
-										TIM_CtrlPWMOutputs(TIM1, DISABLE);																				\
-										TIM_CtrlPWMOutputs(TIM8, DISABLE);																				\
-									}																																						\
-									if(_DBG(p,_DBG_ERR_MSG) && a != (p->Error & (a))) {													\
-_io 								*io=_stdio(__dbug);																												\
-										__print(":%04d error %04X,%04X, set\r\n>",__time__ % 10000,p->Error,a);		\
-										__print(":%04d stats %04X\r\n>",__time__ % 10000,p->Status);							\
-										_stdio(io);																																\
-									}																																						\
-									p->Error |= (a);																														\
-								}																																							\
+#define					_CLEAR_ERROR(p,a)	do {																																				\
+									if(p->Error & (a)) {																																				\
+										_DEBUG_(_DBG_ERR_MSG,"error %04X,clear from %04X, status=%04X",a,p->Error,p->Status);			\
+										p->Error &= ~(a);																																					\
+									} 																																													\
 								} while(0)
+
+#define					_SET_ERROR(p,a)	do {																																					\
+									if(!(p->Errmask & (a)) && !(p->Error & (a))) {																							\
+										if(a & _CRITICAL_ERR_MASK) {																															\
+											TIM_CtrlPWMOutputs(TIM1, DISABLE);																											\
+											TIM_CtrlPWMOutputs(TIM8, DISABLE);																											\
+										}																																													\
+										_DEBUG_(_DBG_ERR_MSG,"error %04X,  set from %04X, status=%04X",a,p->Error,p->Status);			\
+										p->Error |= a;																																						\
+									}																																														\
+								} while(0)
+								
 //________________________________________________________________________
 #define 				ADC3_AVG							4
 #define					_MAX_QSHAPE						8
@@ -475,22 +468,22 @@ int							SetChargerVoltage(int);
 #define 				_TRIGGER2			(!GPIO_ReadOutputDataBit(GPIOD,GPIO_Pin_13))			        
 #define 				_TRIGGER1_ON	do {															\
 											if(!_TRIGGER1)														\
-												_DEBUG_MSG("trigger 1 enabled");				\
+												_DEBUG_(_DBG_SYS_MSG,"trigger 1 enabled");				\
 												GPIO_ResetBits(GPIOD,GPIO_Pin_12);			\
 											} while(0)
 #define 				_TRIGGER1_OFF	do {															\
 											if(_TRIGGER1)															\
-												_DEBUG_MSG("trigger 1 disabled");				\
+												_DEBUG_(_DBG_SYS_MSG,"trigger 1 disabled");				\
 												GPIO_SetBits(GPIOD,GPIO_Pin_12);	  		\
 											} while(0)
 #define 				_TRIGGER2_ON	do {															\
 											if(!_TRIGGER2)														\
-												_DEBUG_MSG("trigger 2 enabled");				\
+												_DEBUG_(_DBG_SYS_MSG,"trigger 2 enabled");				\
 												GPIO_ResetBits(GPIOD,GPIO_Pin_13);			\
 											} while(0)
 #define 				_TRIGGER2_OFF	do {															\
 											if(_TRIGGER2)															\
-												_DEBUG_MSG("trigger 2 disabled");				\
+												_DEBUG_(_DBG_SYS_MSG,"trigger 2 disabled");				\
 												GPIO_SetBits(GPIOD,GPIO_Pin_13);		  	\
 											} while(0)
 				        
@@ -513,62 +506,6 @@ enum	err_parse	{
 								_PARSE_ERR_OPENFILE,
 								_PARSE_ERR_MEM
 								};
-
-
-								
-								
-__inline void dbg1(char *s) {
-			if(_DBG(pfm,_DBG_SYS_MSG)) {
-				_io *io=_stdio(__dbug);
-				__print(":%04d %s\r\n>",__time__ % 10000, s);
-				_stdio(io);
-			}
-}
-
-__inline void dbg2(char *s, int arg1) {
-			if(_DBG(pfm,_DBG_SYS_MSG)) {
-				_io *io=_stdio(__dbug);
-				__print(":%04d ",__time__ % 10000);
-				__print((s),(arg1));
-				__print("\r\n>");
-				_stdio(io);
-			}
-}
-
-__inline void dbg3(char *s, int arg1, int arg2) {
-			if(_DBG(pfm,_DBG_SYS_MSG)) {
-				_io *io=_stdio(__dbug);
-				__print(":%04d ",__time__ % 10000);
-				__print((s),(arg1),(arg2));
-				__print("\r\n>");
-				_stdio(io);
-			}
-}
-
-__inline void dbg4(char *s, int arg1, int arg2, int arg3) {
-			if(_DBG(pfm,_DBG_SYS_MSG)) {
-				_io *io=_stdio(__dbug);
-				__print(":%04d ",__time__ % 10000);
-				__print((s),(arg1),(arg2),(arg3));
-				__print("\r\n>");
-				_stdio(io);
-			}
-}
-
-__inline void dbg5(char *s, int arg1, int arg2, int arg3, int arg4) {
-			if(_DBG(pfm,_DBG_SYS_MSG)) {
-				_io *io=_stdio(__dbug);
-				__print(":%04d ",__time__ % 10000);
-				__print((s),(arg1),(arg2),(arg3),(arg4));
-				__print("\r\n>");
-				_stdio(io);
-			}
-}
-
-#define	GET_MACRO(_1,_2,_3,_4,_5,NAME,...) NAME
-#define	_DEBUG_MSG(...) GET_MACRO(__VA_ARGS__, dbg5, dbg4, dbg3, dbg2, dbg1)(__VA_ARGS__)
-
-
 
 __inline void dbg_2(int n, char *s) {
 			if(pfm->debug & (1<<(n))) {
