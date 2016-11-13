@@ -150,17 +150,10 @@
 
 #define PLL_M      HSE_VALUE/1000000
 
-//#ifdef __DISCO__
-//#define PLL_N      336							
-//#define PLL_P      4
-//#define PLL_Q      7
-//#endif
-
-//#ifdef __PFM6__
 #define PLL_N      240
 #define PLL_P      2
 #define PLL_Q      5
-//#endif
+
 
 /**
   * @}
@@ -389,9 +382,13 @@ static void SetSysClock(void)
     }
    
     /* Configure Flash prefetch, Instruction cache, Data cache and wait state */
-
+#if defined (__DISC4__)
     FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN | FLASH_ACR_LATENCY_3WS;
-
+#elif defined (__DISC7__)
+    FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN | FLASH_ACR_LATENCY_7WS;
+#else
+    FLASH->ACR = FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN | FLASH_ACR_LATENCY_3WS;
+#endif
     /* Select the main PLL as system clock source */
     RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
     RCC->CFGR |= RCC_CFGR_SW_PLL;

@@ -15,9 +15,15 @@ extern "C" {
 #include "integer.h"
 #include "stdint.h"
 	
-
-#define	PAGE_SIZE					0x20000
-#define	PAGE_COUNT				5
+#if defined  (__PFM6__) || defined  (__DISC4__)
+	#define	PAGE_SIZE					0x20000
+	#define	PAGE_COUNT				5
+#elif defined  (__DISC7__)
+	#define	PAGE_SIZE					0x40000
+	#define	PAGE_COUNT				3
+#else
+	*** error, undefined HW
+#endif
 	
 #define	SECTOR_SIZE				512
 #define	CLUSTER_SIZE			4096

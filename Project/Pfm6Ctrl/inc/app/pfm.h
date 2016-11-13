@@ -8,6 +8,7 @@
 #include				"io.h"
 #include 				"proc.h"
 #include				"ff.h"
+#include				"diskio.h"
 //#include			"CAN_MAP.h"
 
 #include				"usbh_core.h"
@@ -30,7 +31,15 @@
 #define					_MAX_BURST		(10*_mS)
 #define					__CAN__				CAN2
 #define					__FILT_BASE__	14
-#define					FATFS_SECTOR	FLASH_Sector_6
+
+#if defined  (__PFM6__) || defined  (__DISC4__)
+	#define FATFS_SECTOR	FLASH_Sector_6
+#elif defined  (__DISC7__)
+	#define FATFS_SECTOR	FLASH_Sector_5
+#else
+	*** error, undefined HW
+#endif
+
 #define					FATFS_ADDRESS	0x8040000
 
 //______________________________________________________
@@ -141,26 +150,46 @@ typedef					enum
 #define					PFM_HV2_ERR								0x4000					// center cap voltaghe out of range
 #define					PFM_I2C_ERR								0x8000					// i2c comm. not responding
 
-//#define				_EVENT(p,a)					(p->events & (1<<(a)))
-//#define				_SET_EVENT(p,a)			p->events |= (1<<(a))
-//#define				_CLEAR_EVENT(p,a)		p->events &= ~(1<<(a))
-//
-//#define				_MODE(p,a)					(p->mode & (1<<(a)))
-//#define				_SET_MODE(p,a)			p->mode |= (1<<(a))
-//#define				_CLEAR_MODE(p,a)		p->mode &= ~(1<<(a))
-
 #define					_STATUS(p,a)					(p->Status & (a))
 #define					_SET_STATUS(p,a)			(p->Status |= (a))
 #define					_CLEAR_STATUS(p,a)		(p->Status &= ~(a))
 
-#define					_MODE(p,a)						(bool)(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a))
-#define					_SET_MODE(p,a)				(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 1
-#define					_CLEAR_MODE(p,a)			(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 0
+#define					_EVENT(p,a)					(p->events & (1<<(a)))
 
-#define					_EVENT(p,a)						(bool)(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a))
-#define					_SET_EVENT(p,a)				(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a)) = 1
-#define					_CLEAR_EVENT(p,a)			(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a)) = 0
+#define					_SET_EVENT(p,a)			do {				\
+									int primask=__get_PRIMASK();	\
+									__disable_irq();							\
+									p->events |= (1<<(a));				\
+									if(!primask)									\
+										__enable_irq();							\
+								} while(0)											\
 
+#define					_CLEAR_EVENT(p,a)		do {				\
+									int primask=__get_PRIMASK();	\
+									__disable_irq();							\
+									p->events &= ~(1<<(a));				\
+									if(!primask)									\
+										__enable_irq();							\
+								} while(0)											\
+
+#define					_MODE(p,a)					(p->mode & (1<<(a)))
+
+#define					_SET_MODE(p,a)			do {				\
+									int primask=__get_PRIMASK();	\
+									__disable_irq();							\
+									p->mode |= (1<<(a));					\
+									if(!primask)									\
+										__enable_irq();							\
+								} while(0)											\
+
+#define					_CLEAR_MODE(p,a)		do {				\
+									int primask=__get_PRIMASK();	\
+									__disable_irq();							\
+									p->mode &= ~(1<<(a));					\
+									if(!primask)									\
+										__enable_irq();							\
+								} while(0)											\
+								
 
 #define					_ERROR(p,a)						(p->Error & (a))
 

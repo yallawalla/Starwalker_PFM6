@@ -82,7 +82,7 @@ volatile int32_t
 		ITM_RxBuffer=ITM_RXBUFFER_EMPTY; 
 int	__getDMA(_buffer *rx) {
 int	i=0;
-#ifdef __DISCO__
+#if defined (__DISC4__)	|| defined (__DISC7__)
 	if(ITM_CheckChar()) {
 		i=ITM_ReceiveChar();
 		_buffer_push(rx,&i,1);
@@ -100,7 +100,7 @@ int	i=0;
 }
 //______________________________________________________________________________________
 int	__putDMA(_buffer *tx, int	c) {
-#ifdef __DISCO__
+#if defined (__DISC4__)	|| defined (__DISC7__)
 	return	ITM_SendChar(c);
 #else
 static
@@ -143,7 +143,7 @@ _io 										*io;
 
  	GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_USART1);		
  	GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_USART1);		
-#elif  defined (__DISCO__)
+#elif defined (__DISC4__)	|| defined (__DISC7__)
 	GPIO_StructInit(&GPIO_InitStructure);
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
  	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;

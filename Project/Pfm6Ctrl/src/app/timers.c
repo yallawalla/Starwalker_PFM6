@@ -42,13 +42,19 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 EXTI_InitTypeDef   				EXTI_InitStructure;
 // ________________________________________________________________________________
 // GPIO setup
-#ifdef __DISCO__					// USB host power supply
+		GPIO_StructInit(&GPIO_InitStructure);
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 		GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+#if defined (__DISC4__)
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
 		GPIO_Init(GPIOC, &GPIO_InitStructure);
 		GPIO_SetBits(GPIOC,GPIO_Pin_0);
+#elif defined (__DISC7__)
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+		GPIO_Init(GPIOD, &GPIO_InitStructure);
+		GPIO_SetBits(GPIOD,GPIO_Pin_5);
 #endif
+	
 		GPIO_StructInit(&GPIO_InitStructure);
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;

@@ -44,8 +44,8 @@ int			DecodeMinus(char *c) {
 //__________________________________________________usb host/file/serial_____
 				case 'u':
 				if(strscan(c,cc,' ')==2) {
-					Initialize_host_msc();										// reset host
-					Wait(200,App_Loop);
+//					Initialize_host_msc();										// reset host
+//					Wait(200,App_Loop);
 					switch(*cc[1]) {
 						case 'h':
 							Initialize_host_msc();
@@ -119,7 +119,7 @@ FATFS				fs_usb;
 							if(m == 'y') {
 FATFS						fs_cpu;				
 								__print(" erasing ");
-								for(n=0; n<6; ++n)
+								for(n=0; n<PAGE_COUNT; ++n)
 									if(FLASH_Erase(FATFS_SECTOR+n*FLASH_Sector_1)==FLASH_COMPLETE)
 										__print(".");
 									else
