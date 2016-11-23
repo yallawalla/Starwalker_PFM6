@@ -236,24 +236,20 @@ static
 //				get current active channel....
 //				razlika med HV in napetostjo na flesu mora  biti najmanj 12%, sicer simmer error
 //
-					k=PFM_command(NULL,1);
 					if(TIM_GetITStatus(TIM1, TIM_IT_Update)==RESET) { 
 //-------------------------------------------------------------------------------
-						if(k & PFM_STAT_SIMM1)	{
-							if(abs(ADC3_buf[0].HV - ADC1_simmer.U) < ADC3_buf[0].HV/8)
-								_SET_ERROR(p,PFM_ERR_SIMM1);
-							else
-								_CLEAR_ERROR(p,PFM_ERR_SIMM1);
-						}
+						if(_STATUS(pfm,PFM_STAT_SIMM1) && abs(ADC3_buf[0].HV - ADC1_simmer.U) < ADC3_buf[0].HV/8)
+							_SET_ERROR(p,PFM_ERR_SIMM1);
+						else
+							_CLEAR_ERROR(p,PFM_ERR_SIMM1);
 //-------------------------------------------------------------------------------
-						if(k & PFM_STAT_SIMM2) {
-							if(abs(ADC3_buf[0].HV - ADC2_simmer.U) < ADC3_buf[0].HV/8)
-								_SET_ERROR(p,PFM_ERR_SIMM2);
-							else
-								_CLEAR_ERROR(p,PFM_ERR_SIMM2);
-						}
+						if(_STATUS(pfm,PFM_STAT_SIMM2) && abs(ADC3_buf[0].HV - ADC2_simmer.U) < ADC3_buf[0].HV/8)
+							_SET_ERROR(p,PFM_ERR_SIMM2);
+						else
+							_CLEAR_ERROR(p,PFM_ERR_SIMM2);
 					}
 //-------------------------------------------------------------------------------
+					k=PFM_command(NULL,1);
 					if((status_image != p->Status) || (error_image != p->Error)) {
 						error_image = p->Error;	
 						status_image = p->Status;
@@ -755,11 +751,9 @@ static		int				n=0;
 int				i;
 
 					if(p) {
-						for(i=p->Burst.Eint[0]*_uS/_MAX_ADC_RATE-1; i>=0; --i) {
+						for(i=__max(p->Burst.Eint[0],p->Burst.Eint[1])*_uS/_MAX_ADC_RATE-1; i>=0; --i) {
 							if(ADC1_buf[i].I > _I2AD(20.0))
-								e1+=(short)(ADC1_buf[i].U) * (short)(ADC1_buf[i].I-_I1off);			
-						}
-						for(i=p->Burst.Eint[1]*_uS/_MAX_ADC_RATE-1; i>=0; --i) {
+								e1+=(short)(ADC1_buf[i].U) * (short)(ADC1_buf[i].I-_I1off);	
 							if(ADC2_buf[i].I > _I2AD(20.0))
 								e2+=(short)(ADC2_buf[i].U) * (short)(ADC2_buf[i].I-_I2off);							
 						}
@@ -837,7 +831,7 @@ static		int	timeout=0,no=0;
 									Uidle=p->HV/7;
 								_I1off=ADC1_simmer.I;																					// get current sensor offset
 								_U1off=ADC1_simmer.U;																					// check idle voltage
-								if(abs(Uidle - ADC3_AVG*ADC1_simmer.U) > _HV2AD(30)) {				// HV +/- 30V range ???
+								if(abs(Uidle - ADC3_AVG*ADC1_simmer.U) > _HV2AD(50)) {				// HV +/- 30V range ???
 									_SET_ERROR(p,PFM_ERR_LNG);																	// if not, PFM_STAT_UBHIGH error 
 //									no=0;
 								}
@@ -849,7 +843,7 @@ static		int	timeout=0,no=0;
 									Uidle=p->HV/7;
 								_I2off=ADC2_simmer.I;
 								_U2off=ADC2_simmer.U;
-								if(abs(Uidle - ADC3_AVG*ADC2_simmer.U) > _HV2AD(30)) {
+								if(abs(Uidle - ADC3_AVG*ADC2_simmer.U) > _HV2AD(50)) {
 									_SET_ERROR(p,PFM_ERR_LNG);
 //									no=0;
 								}

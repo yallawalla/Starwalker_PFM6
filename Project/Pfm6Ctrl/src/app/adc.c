@@ -23,19 +23,26 @@ void	TriggerADC(PFM *p) {
 //
 // trigger tresholds, must be set before ADC's disabled
 //
-			if(p) {
-				if(!_MODE(p,_CHANNEL1_DISABLE))
+			ADC_ClearITPendingBit(ADC1, ADC_IT_AWD);
+			ADC_ClearITPendingBit(ADC2, ADC_IT_AWD);
+	
+			ADC_ITConfig(ADC1,ADC_IT_AWD,DISABLE);
+			ADC_ITConfig(ADC2,ADC_IT_AWD,DISABLE);	
+
+			if(!_MODE(pfm,_CHANNEL1_DISABLE)) {
+				if(p)
 					ADC_AnalogWatchdogThresholdsConfig(ADC1,pfm->Burst.max[0],0);
-				if(!_MODE(p,_CHANNEL2_DISABLE))
-					ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Burst.max[1],0);			
-			} else {
-				if(!_MODE(p,_CHANNEL1_DISABLE))
+				else
 					ADC_AnalogWatchdogThresholdsConfig(ADC1,pfm->Simmer[0].max,0);
-				if(!_MODE(p,_CHANNEL2_DISABLE))
-					ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Simmer[1].max,0);							
+				ADC_ITConfig(ADC1,ADC_IT_AWD,ENABLE);
 			}
-			ADC_ITConfig(ADC1,ADC_IT_AWD,ENABLE);
-			ADC_ITConfig(ADC2,ADC_IT_AWD,ENABLE);	
+			if(!_MODE(pfm,_CHANNEL2_DISABLE)) {
+				if(p)
+					ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Burst.max[1],0);
+				else
+					ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Simmer[1].max,0);
+				ADC_ITConfig(ADC2,ADC_IT_AWD,ENABLE);
+			}
 //
 			ADC_Cmd(ADC1, DISABLE);							ADC_Cmd(ADC2, DISABLE);
 			DMA_Cmd(DMA2_Stream4,DISABLE);			DMA_Cmd(DMA2_Stream3,DISABLE);

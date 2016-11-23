@@ -556,3 +556,8 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 			za  nazaj naj bi blo OK, ker je bil dozdaj itak samo en interval za vse kanale ???
 
 9.11.2016 smafu v razporeditvi SetPwmTab ...
+
+23.11.2016 bug v TriggerADC... argument p je lahko NULL in ga ne smes uporabljat v proceduri kot pointer na pfm objekt :):):)
+			>v 2.13 Nov 23 2016, <31584BBF>
+			
+			

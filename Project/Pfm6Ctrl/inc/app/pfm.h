@@ -87,14 +87,14 @@ typedef					enum
 #define					_CLEAR_DBG(p,a)	 p->debug &= ~(1<<(a))
 
 typedef					 enum
-{								_DBG_CAN_TX,
-								_DBG_CAN_RX,
-								_DBG_ERR_MSG,
-								_DBG_PULSE_MSG,
-								_DBG_ENERG_MSG,
-								_DBG_SYS_MSG,
-								_DBG_I2C_TX,
-								_DBG_I2C_RX,
+{								_DBG_CAN_TX,							//0
+								_DBG_CAN_RX,							//1
+								_DBG_ERR_MSG,							//2
+								_DBG_PULSE_MSG,						//3
+								_DBG_ENERG_MSG,						//4
+								_DBG_SYS_MSG,							//5
+								_DBG_I2C_TX,							//6
+								_DBG_I2C_RX,							//7
 } 							_debug;
 
 typedef					enum
@@ -141,23 +141,52 @@ typedef					enum
 #define					PFM_HV2_ERR								0x4000					// center cap voltaghe out of range
 #define					PFM_I2C_ERR								0x8000					// i2c comm. not responding
 
-//#define				_EVENT(p,a)					(p->events & (1<<(a)))
-//#define				_SET_EVENT(p,a)			p->events |= (1<<(a))
-//#define				_CLEAR_EVENT(p,a)		p->events &= ~(1<<(a))
-//
-//#define				_MODE(p,a)					(p->mode & (1<<(a)))
-//#define				_SET_MODE(p,a)			p->mode |= (1<<(a))
-//#define				_CLEAR_MODE(p,a)		p->mode &= ~(1<<(a))
+//#define					_EVENT(p,a)					(p->events & (1<<(a)))
+
+//#define					_SET_EVENT(p,a)			do {				\
+//									int primask=__get_PRIMASK();	\
+//									__disable_irq();							\
+//									p->events |= (1<<(a));				\
+//									if(!primask)									\
+//										__enable_irq();							\
+//								} while(0)											\
+
+//#define					_CLEAR_EVENT(p,a)		do {				\
+//									int primask=__get_PRIMASK();	\
+//									__disable_irq();							\
+//									p->events &= ~(1<<(a));				\
+//									if(!primask)									\
+//										__enable_irq();							\
+//								} while(0)											\
+
+//#define					_MODE(p,a)					(p->mode & (1<<(a)))
+
+//#define					_SET_MODE(p,a)			do {				\
+//									int primask=__get_PRIMASK();	\
+//									__disable_irq();							\
+//									p->mode |= (1<<(a));					\
+//									if(!primask)									\
+//										__enable_irq();							\
+//								} while(0)											\
+
+//#define					_CLEAR_MODE(p,a)		do {				\
+//									int primask=__get_PRIMASK();	\
+//									__disable_irq();							\
+//									p->mode &= ~(1<<(a));					\
+//									if(!primask)									\
+//										__enable_irq();							\
+//								} while(0)											\
+								
 
 #define					_STATUS(p,a)					(p->Status & (a))
 #define					_SET_STATUS(p,a)			(p->Status |= (a))
 #define					_CLEAR_STATUS(p,a)		(p->Status &= ~(a))
 
-#define					_MODE(p,a)						(bool)(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a))
+#define					_MODE(p,a)			(bool)(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a))
 #define					_SET_MODE(p,a)				(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 1
 #define					_CLEAR_MODE(p,a)			(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 0
 
-#define					_EVENT(p,a)						(bool)(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a))
+#define					_EVENT(p,a)			(bool)(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a))
 #define					_SET_EVENT(p,a)				(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a)) = 1
 #define					_CLEAR_EVENT(p,a)			(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a)) = 0
 
