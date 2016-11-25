@@ -23,10 +23,10 @@
 *** undefined target !!!!
 #endif
 
-#if		defined (__PFM6__)
+#if		defined (__PFM6__) || defined (__kk__)
 	#define	__LED_ON(a,b)			GPIO_ResetBits(a,b);
 	#define	__LED_OFF(a,b)		GPIO_SetBits(a,b);
-#elif  defined (__DISCO__)
+#elif defined (__DISC4__)	|| defined (__DISC7__)
 	#define	__LED_OFF(a,b)		GPIO_ResetBits(a,b);
 	#define	__LED_ON(a,b)			GPIO_SetBits(a,b);
 #elif  defined (__PVC__)
@@ -97,14 +97,14 @@ static	int	t1=0,t2=0,t3=0;
 // leds GPIO setup _____________________________________________________
 //
 void	Initialize_LED(char *p[], int n) {
-#if		defined (__PFM6__) || defined(__DISCO__)
+#if		defined (__PFM6__) || defined (__DISC4__)	|| defined (__DISC7__)
 GPIO_InitTypeDef	GPIO_InitStructure;
 int		i;
 			GPIO_StructInit(&GPIO_InitStructure);
 			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 #if		defined (__PFM6__)
 			GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-#elif  defined (__DISCO__)
+#elif defined (__DISC4__)	|| defined (__DISC7__)
 			GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 #else
 	#### error, no HW defined

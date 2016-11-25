@@ -117,15 +117,19 @@ extern 	USBD_Class_cb_TypeDef  	USBD_MSC_cb,
 																USBD_CDC_cb;
 
 void	 	Initialize_device_msc(void) {
-#ifdef __DISCO__																		// USB power on
+#if defined (__DISC4__)
 				GPIO_SetBits(GPIOC,GPIO_Pin_0);
+#elif defined (__DISC7__)
+				GPIO_SetBits(GPIOD,GPIO_Pin_5);
 #endif
 				USBD_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USR_MSC_desc, &USBD_MSC_cb, &USR_MSC_cb);
 }
 
 void		Initialize_device_vcp(void) {
-#ifdef __DISCO__																		// USB power on
+#if defined (__DISC4__)
 				GPIO_SetBits(GPIOC,GPIO_Pin_0);
+#elif defined (__DISC7__)
+				GPIO_SetBits(GPIOD,GPIO_Pin_5);
 #endif
 				USBD_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USR_VCP_desc, &USBD_CDC_cb, &USR_CDC_cb);
 }

@@ -77,7 +77,7 @@ RCC_AHB1PeriphClockCmd(
 #if  			defined (__PFM6__)
 					__charger6=Initialize_I2C(0x58,50000);
 					__can=Initialize_CAN(0);	
-#elif  		defined (__DISCO__)
+#elif defined (__DISC4__)	|| defined (__DISC7__)
 {
 int				i;
 					for(i=0; i<ADC3_AVG; ++i) {
@@ -127,7 +127,7 @@ static int
 					trigger_count=0;
 //_______Fan tacho processing context___________________________________________
 {
-#ifndef __DISCO__
+#ifdef __PFM6__
 static 
 	int			LastTachoEvent=0;
 
@@ -854,7 +854,7 @@ static		int	timeout=0,no=0;
 						else
 							_SET_STATUS(p, no);																							// else set status as requested
 //________________________________________________________________________________
-#ifndef __DISCO__
+#ifdef __PFM6__
 						if(!_STATUS(p,_PFM_CWBAR_STAT))																		// crowbar not cleared
 							_SET_ERROR(p,PFM_ERR_PULSEENABLE);
 #endif

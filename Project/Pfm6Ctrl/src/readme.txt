@@ -559,5 +559,6 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 
 23.11.2016 bug v TriggerADC... argument p je lahko NULL in ga ne smes uporabljat v proceduri kot pointer na pfm objekt :):):)
 			>v 2.13 Nov 23 2016, <31584BBF>
-			
-			
+		
+25.11.2016 spremenjen trigger in timers.c, handler, Eack in TriggerADC uporabljajo skupno strukturo, eint se doloca glede na obratovalni rezim
+

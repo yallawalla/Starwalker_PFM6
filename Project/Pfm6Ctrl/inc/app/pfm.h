@@ -8,6 +8,7 @@
 #include				"io.h"
 #include 				"proc.h"
 #include				"ff.h"
+#include				"diskio.h"
 //#include			"CAN_MAP.h"
 
 #include				"usbh_core.h"
