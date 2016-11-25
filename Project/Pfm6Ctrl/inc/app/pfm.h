@@ -115,8 +115,7 @@ typedef					enum
 								_CHANNEL2_SINGLE_TRIGGER,	//14
 								_ALTERNATE_TRIGGER,				//15
 								_CAN_2_COM,
-								__SWEEPS__=29,
-								__TEST__=30
+								__TEST__=29
 } 							mode;
 
 #define 				PFM_STAT_SIMM1						0x0001
@@ -220,7 +219,7 @@ int							_ADCRates[];
 typedef struct	{	unsigned short			U,I;									} _ADCDMA;
 typedef struct	{	unsigned short			IgbtT1,IgbtT2,HV2,HV,
 									Up20,Um5;																	} _ADC3DMA;
-typedef struct	{	unsigned short			n,T; 									} _TIM18DMA;
+//typedef struct	{	unsigned short			n,T; 									} _TIM_DMA;
 typedef struct	{	unsigned short			DAC2,DAC1;						} _DACDMA;
 typedef struct	{	unsigned short			addr,speed,ntx,nrx;
 									unsigned char				txbuf[4],rxbuf[4];		} _i2c;
@@ -228,6 +227,22 @@ typedef struct	{					 short			q0,q1,q2,q3,qref;			}	_QSHAPE;
 typedef struct	{					 short			T,U;									}	_USER_SHAPE;
 extern					_QSHAPE 		qshape[_MAX_QSHAPE];			
 extern					_USER_SHAPE ushape[_MAX_USER_SHAPE];			
+
+
+extern  struct _TIM {
+	struct _TIM_DMA {
+		unsigned short			n,T;
+	} pwch1[_MAX_BURST/_PWM_RATE_HI],												// output tables
+		pwch2[_MAX_BURST/_PWM_RATE_HI],
+		*p1,*p2;																							// output pointers
+	int		
+		eint,eint1,eint2,																			// adc dma length
+		m1,m2,																								// timer repetition rate register index index, DMA table
+		active,																								// active channel
+		xi1,xi2;																							// misc
+} _TIM;
+
+typedef struct _TIM_DMA _TIM_DMA; 
 //________________________________________________________________________
 int 						readI2C(_i2c *,char *, int),
 								writeI2C(_i2c *,char *, int),
@@ -313,7 +328,6 @@ char						Ereq;
 short						Pmax,			            
 								Pdelay,								// burst interval	pwm
 								Delay,								// -"- delay
-								Eint[2],							// cas integracije energije
 								max[2];								// burst time current limit
 mode						Mode;									// burst time mode
 } burst;
@@ -359,7 +373,6 @@ struct {
 //________________________________________________________________________
 extern					PFM										*pfm;
 														
-extern 					_TIM18DMA							pwch1[],pwch2[];
 extern 					_ADCDMA								ADC1_buf[], ADC2_buf[],ADC1_simmer,ADC2_simmer;
 extern 					_ADC3DMA							ADC3_buf[];
 				        

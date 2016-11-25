@@ -46,7 +46,6 @@ RCC_AHB1PeriphClockCmd(
 					pfm->Burst.Delay=100;
 					pfm->Burst.N=1;
 					pfm->Burst.Mode=_XLAP_QUAD;
-					pfm->Burst.Length=pfm->Burst.Eint[0]=pfm->Burst.Eint[1]=3000;
 					pfm->Burst.Pdelay=pfm->Burst.Pmax=_PWM_RATE_HI*0.02;
 					pfm->Burst.max[0]=pfm->Burst.max[1]=_I2AD(1000);
 					
@@ -148,7 +147,7 @@ static
 //
 					if(_EVENT(p,_TRIGGER)) {																// trigger request
 						_CLEAR_EVENT(p,_TRIGGER);
-						if((p->Error & _CRITICAL_ERR_MASK) || trigger_count)	// if error, trigger mot allowed
+						if((p->Error & _CRITICAL_ERR_MASK) || trigger_count)	// if error, trigger not allowed
 							trigger_count=0;																		// if trigger_time set (multiple triggers), switch it off
 						else {
 							trigger_count =  p->Trigger.Count;
@@ -169,8 +168,6 @@ static
 						_CLEAR_EVENT(p,_PULSE_FINISHED);											// end of pulse
 						SetSimmerRate(p,_SIMMER_LOW);													// reduce simmer
 						p->count++;
-						if(_MODE(p,__SWEEPS__))
-							SetPwmTab(p);
 						if(Eack(p)) {																					// Energ. integrator finished
 							Pref1=Pref2=0;
 							ScopeDumpBinary(NULL,0);														// scope printout, for testing(if enabled ?)
@@ -751,7 +748,7 @@ static		int				n=0;
 int				i;
 
 					if(p) {
-						for(i=__max(p->Burst.Eint[0],p->Burst.Eint[1])*_uS/_MAX_ADC_RATE-1; i>=0; --i) {
+						for(i=_TIM.eint*_uS/_MAX_ADC_RATE-1; i>=0; --i) {
 							if(ADC1_buf[i].I > _I2AD(20.0))
 								e1+=(short)(ADC1_buf[i].U) * (short)(ADC1_buf[i].I-_I1off);	
 							if(ADC2_buf[i].I > _I2AD(20.0))

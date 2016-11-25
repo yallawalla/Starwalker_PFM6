@@ -307,20 +307,20 @@ int			DecodeWhat(char *c) {
 				case 't':
 				{
 					int p1=0,p2=0,t=0;
-					int n1=5*(pwch1[p1].n+1),n2=5*(pwch2[p2].n+1);
-					while(pwch1[p1].n || pwch2[p2].n) {
+					int n1=5*(_TIM.pwch1[p1].n+1),n2=5*(_TIM.pwch2[p2].n+1);
+					while(_TIM.pwch1[p1].n || _TIM.pwch2[p2].n) {
 						int d=__min(n1,n2);
 						if(d==0)
 							d=__max(n1,n2);
 						n1=__max(-1,n1-d);
 						n2=__max(-1,n2-d);
-						__print("\r\n%4d,%4d,%4d",t,pwch1[p1].T,pwch2[p2].T);
+						__print("\r\n%4d,%4d,%4d",t,_TIM.pwch1[p1].T,_TIM.pwch2[p2].T);
 						t+=d;
-						__print("\r\n%4d,%4d,%4d",t,pwch1[p1].T,pwch2[p2].T);
-						if(pwch1[p1].n && n1==0)
-							n1=5*(pwch1[++p1].n+1);
-						if(pwch2[p2].n && n2==0)
-							n2=5*(pwch2[++p2].n+1);
+						__print("\r\n%4d,%4d,%4d",t,_TIM.pwch1[p1].T,_TIM.pwch2[p2].T);
+						if(_TIM.pwch1[p1].n && n1==0)
+							n1=5*(_TIM.pwch1[++p1].n+1);
+						if(_TIM.pwch2[p2].n && n2==0)
+							n2=5*(_TIM.pwch2[++p2].n+1);
 					}
 					__print("\r\n");
 				}

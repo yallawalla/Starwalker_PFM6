@@ -119,16 +119,13 @@ _USER_SHAPE	ushape[_MAX_USER_SHAPE];
 * Input         :  
 * Return        :
 *******************************************************************************/
-_TIM18DMA *SetPwmTab00(PFM *p, _TIM18DMA *t) {
+_TIM_DMA *SetPwmTab00(PFM *p, _TIM_DMA *t) {
 int		i,j,n;
 int		to			=p->Burst.Time;
 int		tpause	=p->Burst.Length/p->Burst.N - p->Burst.Time;								// dodatek ups....
 int		Uo=p->Burst.Pmax;
 int		dUo=0;																															// modif. 2,3,4... pulza, v %
 float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
-//-------wait for prev to finish ---
-			while(_MODE(p,_PULSE_INPROC))
-				Wait(2,App_Loop);
 //-------user shape part -----------																			// 3. koren iz razmerja energij, ajde :)
 			if(*(int *)ushape) {
 				float e2E=pow(pow(P2V*p->Burst.Pmax,3)/400000.0*p->Burst.Time*p->Burst.N/(*(int *)ushape),1.0/3.0)/P2V;
@@ -210,20 +207,7 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 			}
 			if(p->Burst.Ereq & _SHPMOD_MAIN) {
 //-------PULSE----------------------
-				for(j=0; j<p->Burst.N; ++j) {
-//
-// SWEEPS SMAFU .....................................................
-					if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5 && p->Burst.Ereq == _SHPMOD_MAIN) {
-						if(j==0) {
-							tpause=10*abs((p->count % 60)-30)+250;
-							Uo=(int)(pow(5.0/2.0*Uo*Uo*Uo,1.0/3.0)+0.5);
-							dUo = Uo*(tpause - 550)/1000/3-Uo/50;
-						}
-						if(j==2)
-							break;
-					}
-//..end  sweeps........................................
-					
+				for(j=0; j<p->Burst.N; ++j) {			
 					for(n=2*((to*_uS + _PWM_RATE_HI/2)/_PWM_RATE_HI)-1; n>0; n -= 256, ++t) {
 						
 						if(j == 0) {
@@ -255,26 +239,29 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 * Function Name : SetPwmTab
 * Description   : Selects the pw buffer, according to burst & simmer parameters 
 *								: Calls the waveform generator SetPwmTab00
-*								: Calculates energy integratin interval to ADC
+*								: Calculates energy integrating interval to ADC
 * Input         : *p, PFM object pointer
 * Return        :
 *******************************************************************************/
-void	SetPwmTab(PFM *p) {
+			
+			void	SetPwmTab(PFM *p) {
 			int n,simmode=PFM_command(NULL,0);	
-			if(simmode == PFM_STAT_SIMM1) {
-				_TIM18DMA *t=SetPwmTab00(p,pwch1);
-				for(n=0; t-- != pwch1; n+= t->n);
-				p->Burst.Eint[0] = (n+1)*5;
+			while(_MODE(p,_PULSE_INPROC))												// wait the prev setup to finish !!!
+				Wait(2,App_Loop);
+			if(simmode == PFM_STAT_SIMM1) {				
+				_TIM_DMA *t=SetPwmTab00(p,_TIM.pwch1);
+				for(n=0; t-- != _TIM.pwch1; n+= t->n);
+				_TIM.eint1 = (n+1)*5;
 			}
 			else if(simmode == PFM_STAT_SIMM2) {
-				_TIM18DMA *t=SetPwmTab00(p,pwch2);
-				for(n=0; t-- != pwch2; n+= t->n);
-				p->Burst.Eint[1] = (n+1)*5;
+				_TIM_DMA *t=SetPwmTab00(p,_TIM.pwch2);
+				for(n=0; t-- != _TIM.pwch2; n+= t->n);
+				_TIM.eint2 = (n+1)*5;
 			} else {
-				_TIM18DMA *t = SetPwmTab00(p,pwch1);
-				memcpy(pwch2,pwch1,sizeof(_TIM18DMA)*_MAX_BURST/_PWM_RATE_HI);
-				for(n=0; t-- != pwch1; n+= t->n);
-				p->Burst.Eint[0] = p->Burst.Eint[1] = (n+1)*5;
+				_TIM_DMA *t = SetPwmTab00(p,_TIM.pwch1);
+				memcpy(_TIM.pwch2,_TIM.pwch1,sizeof(_TIM_DMA)*_MAX_BURST/_PWM_RATE_HI);
+				for(n=0; t-- != _TIM.pwch1; n+= t->n);
+				_TIM.eint1=_TIM.eint2 = (n+1)*5;
 			}
 }
 /*______________________________________________________________________________
@@ -412,9 +399,9 @@ int		simmrate;
 			}
 
 			if(_MODE(p,_PULSE_INPROC)) {
+				TriggerADC(p);
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
 				TIM_ITConfig(TIM1,TIM_IT_Update,ENABLE);
-				TriggerADC(p);
 			} else {
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
 				TIM_ITConfig(TIM1,TIM_IT_Update,DISABLE);
@@ -427,7 +414,7 @@ int		simmrate;
 			if(_MODE(p,_PULSE_INPROC)) {
 				_DEBUG_(_DBG_SYS_MSG,"trigger at... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I-_I1off),
 																											_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I-_I2off));	
-				_DEBUG_(_DBG_SYS_MSG,"interval...   %d,%d",p->Burst.Eint[0],p->Burst.Eint[1]);
+				_DEBUG_(_DBG_SYS_MSG,"interval...   %08X,%08X,%d",(int)_TIM.p1,(int)_TIM.p2,_TIM.eint);
 			} else {
 				_DEBUG_(_DBG_SYS_MSG,"simmer %3d kHz, mode %d", _mS/simmrate,pfm->mode & 0x07);
 			}

@@ -43,17 +43,18 @@ void	TriggerADC(PFM *p) {
 					ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Simmer[1].max,0);
 				ADC_ITConfig(ADC2,ADC_IT_AWD,ENABLE);
 			}
-//
+
 			ADC_Cmd(ADC1, DISABLE);							ADC_Cmd(ADC2, DISABLE);
 			DMA_Cmd(DMA2_Stream4,DISABLE);			DMA_Cmd(DMA2_Stream3,DISABLE);
 
 			while(DMA_GetCmdStatus(DMA2_Stream4) != DISABLE);
 			while(DMA_GetCmdStatus(DMA2_Stream3) != DISABLE);
+
 			if(p) {
 				DMA_MemoryTargetConfig(DMA2_Stream3,(uint32_t)ADC2_buf,DMA_Memory_0);
 				DMA_MemoryTargetConfig(DMA2_Stream4,(uint32_t)ADC1_buf,DMA_Memory_0);
-				DMA_SetCurrDataCounter(DMA2_Stream3,__max(p->Burst.Eint[0],p->Burst.Eint[1])*_uS/_MAX_ADC_RATE*sizeof(_ADCDMA)/sizeof(short));
-				DMA_SetCurrDataCounter(DMA2_Stream4,__max(p->Burst.Eint[0],p->Burst.Eint[1])*_uS/_MAX_ADC_RATE*sizeof(_ADCDMA)/sizeof(short));
+				DMA_SetCurrDataCounter(DMA2_Stream3,_TIM.eint*_uS/_MAX_ADC_RATE*sizeof(_ADCDMA)/sizeof(short));
+				DMA_SetCurrDataCounter(DMA2_Stream4,_TIM.eint*_uS/_MAX_ADC_RATE*sizeof(_ADCDMA)/sizeof(short));
 				DMA_ClearITPendingBit(DMA2_Stream3,DMA_IT_TCIF3|DMA_IT_HTIF3|DMA_IT_TEIF3|DMA_IT_DMEIF3|DMA_IT_FEIF3);
 				DMA_ClearITPendingBit(DMA2_Stream4,DMA_IT_TCIF4|DMA_IT_HTIF4|DMA_IT_TEIF4|DMA_IT_DMEIF4|DMA_IT_FEIF4);
 				DMA_ITConfig(DMA2_Stream4, DMA_IT_TC, ENABLE);
@@ -66,6 +67,7 @@ void	TriggerADC(PFM *p) {
 				ADC_DMARequestAfterLastTransferCmd(ADC1, ENABLE);
 				ADC_DMARequestAfterLastTransferCmd(ADC2, ENABLE);	
 			}
+			
 			DMA_ClearFlag(DMA2_Stream3,DMA_FLAG_TCIF3|DMA_FLAG_HTIF3|DMA_FLAG_TEIF3|DMA_FLAG_DMEIF3|DMA_FLAG_FEIF3);
 			DMA_ClearFlag(DMA2_Stream4,DMA_FLAG_TCIF4|DMA_FLAG_HTIF4|DMA_FLAG_TEIF4|DMA_FLAG_DMEIF4|DMA_FLAG_FEIF4);
 
@@ -77,8 +79,8 @@ void	TriggerADC(PFM *p) {
 /*******************************************************************************/
 void	DMA2_Stream4_IRQHandler(void) {
 			TriggerADC(NULL);
-			_SET_EVENT(pfm,_PULSE_FINISHED);
-
+//			_SET_EVENT(pfm,_PULSE_FINISHED);
+//			_CLEAR_MODE(pfm,_PULSE_INPROC);
 }
 /*******************************************************************************/
 /**
