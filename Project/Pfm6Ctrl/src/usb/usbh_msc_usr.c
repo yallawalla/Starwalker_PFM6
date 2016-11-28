@@ -64,7 +64,7 @@ int		(*USBH_App)(int);
 
 void	Initialize_host_msc(void) {
 #if defined (__DISC4__)
-				GPIO_ReetBits(GPIOC,GPIO_Pin_0);
+				GPIO_ResetBits(GPIOC,GPIO_Pin_0);
 #elif defined (__DISC7__)
 				GPIO_ResetBits(GPIOD,GPIO_Pin_5);
 #endif

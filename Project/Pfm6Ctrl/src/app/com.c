@@ -44,8 +44,8 @@ int			DecodeMinus(char *c) {
 //__________________________________________________usb host/file/serial_____
 				case 'u':
 				if(strscan(c,cc,' ')==2) {
-//					Initialize_host_msc();										// reset host
-//					Wait(200,App_Loop);
+					Initialize_host_msc();										// reset host
+					Wait(200,App_Loop);
 					switch(*cc[1]) {
 						case 'h':
 							Initialize_host_msc();
