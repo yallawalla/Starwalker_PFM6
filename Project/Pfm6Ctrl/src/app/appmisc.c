@@ -18,7 +18,7 @@
 * Output        :
 * Return        :
 *******************************************************************************/
-void	Wait(int t,void (*f)(void)) {
+void	_wait(int t,void (*f)(void)) {
 int		to=__time__+t;
 			while(to > __time__) {
 				if(f)
@@ -247,7 +247,7 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 			void	SetPwmTab(PFM *p) {
 			int n,simmode=PFM_command(NULL,0);	
 			while(_MODE(p,_PULSE_INPROC))												// wait the prev setup to finish !!!
-				Wait(2,App_Loop);
+				_wait(2,App_Loop);
 			if(simmode == PFM_STAT_SIMM1) {				
 				_TIM_DMA *t=SetPwmTab00(p,_TIM.pwch1);
 				for(n=0; t-- != _TIM.pwch1; n+= t->n);
@@ -340,7 +340,6 @@ int		r=0,flag;
 * Output        : None
 * Return        : None
 */
-extern int _U1off,_U2off,_I1off,_I2off;
 void	SetSimmerRate(PFM *p, SimmerType type) {										// #kd890304ri
 int		simmrate;
 	
@@ -412,8 +411,8 @@ int		simmrate;
 			TIM_Cmd(TIM1,ENABLE);
 
 			if(_MODE(p,_PULSE_INPROC)) {
-				_DEBUG_(_DBG_SYS_MSG,"trigger at... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I-_I1off),
-																											_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I-_I2off));	
+				_DEBUG_(_DBG_SYS_MSG,"trigger at... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I-_TIM.I1off),
+																											_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I-_TIM.I2off));	
 				_DEBUG_(_DBG_SYS_MSG,"interval...   %08X,%08X,%d",(int)_TIM.p1,(int)_TIM.p2,_TIM.eint);
 			} else {
 				_DEBUG_(_DBG_SYS_MSG,"simmer %3d kHz, mode %d", _mS/simmrate,pfm->mode & 0x07);
@@ -590,7 +589,7 @@ int			__print(char *format, ...) {
 	va_end(aptr);
 	for(p=buf; *p; ++p)
 		while(fputc(*p,&__stdout)==EOF)
-			Wait(2,App_Loop);
+			_wait(2,App_Loop);
   return(ret);
 }
 /**

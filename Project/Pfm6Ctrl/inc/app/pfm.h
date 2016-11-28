@@ -228,7 +228,6 @@ int							_ADCRates[];
 typedef struct	{	unsigned short			U,I;									} _ADCDMA;
 typedef struct	{	unsigned short			IgbtT1,IgbtT2,HV2,HV,
 									Up20,Um5;																	} _ADC3DMA;
-//typedef struct	{	unsigned short			n,T; 									} _TIM_DMA;
 typedef struct	{	unsigned short			DAC2,DAC1;						} _DACDMA;
 typedef struct	{	unsigned short			addr,speed,ntx,nrx;
 									unsigned char				txbuf[4],rxbuf[4];		} _i2c;
@@ -236,21 +235,23 @@ typedef struct	{					 short			q0,q1,q2,q3,qref;			}	_QSHAPE;
 typedef struct	{					 short			T,U;									}	_USER_SHAPE;
 extern					_QSHAPE 		qshape[_MAX_QSHAPE];			
 extern					_USER_SHAPE ushape[_MAX_USER_SHAPE];			
-
-
-extern  struct _TIM {
-	struct _TIM_DMA {
+//________________________________________________________________________
+extern  struct _TIM {																			// realtime structure, used with timer stack
+	struct _TIM_DMA {	
 		unsigned short			n,T;
-	} pwch1[_MAX_BURST/_PWM_RATE_HI],												// output tables
-		pwch2[_MAX_BURST/_PWM_RATE_HI],
-		*p1,*p2;																							// output pointers
+	} pwch1[_MAX_BURST/_PWM_RATE_HI],												
+		pwch2[_MAX_BURST/_PWM_RATE_HI],												// output tables
+		*p1,*p2;																							// pointers to output tables
 	int		
-		eint,eint1,eint2,																			// adc dma length
-		m1,m2,																								// timer repetition rate register index index, DMA table
+		U1off,U2off,																					// flash voltage, idle status
+		I1off,I2off,																					// flash current, idle status
+		eint,eint1,eint2,																			// adc dma length, usec
+		m1,m2,																								// timer repetition rate counter index, DMA table
 		active,																								// active channel
-		xi1,xi2;																							// misc
+		cref1,cref2,																					// current loop reference (after 200usec)
+		ci1,ci2,																							// current loop gain
+		Hvref,Caps,Icaps;																			// test mode parameters
 } _TIM;
-
 typedef struct _TIM_DMA _TIM_DMA; 
 //________________________________________________________________________
 int 						readI2C(_i2c *,char *, int),
@@ -451,7 +452,7 @@ _i2c*						Initialize_I2C(int, int);
 				
 extern int			fanPmin,fanPmax,fanTL,fanTH;
 extern void			App_Loop(void);
-void						Wait(int,void (*)(void));
+void						_wait(int,void (*)(void));
 
 extern _io			*__com0,
 								*__com1,
@@ -509,7 +510,6 @@ void						CAN_console(void);
 extern					uint32_t	__Vectors[],__heap_base[],__heap_limit[],__initial_sp[];
 ;
 extern					int				_PWM_RATE_LO;
-extern 					int				Pref1,Pref2;
 
 void						SectorQuery(void);
 int 						Defragment(int);
@@ -614,8 +614,8 @@ __inline void dbg_6(int n,char *s, int arg1, int arg2, int arg3, int arg4) {
 #define	_k_Er	(20.0*20.0)
 #define	_k_Nd	(28.5 * 28.5)
 // __________________________________________________________________________________________________________
-//											Pref1=_I2AD(p->Burst.U * p->Burst.U) * _HV2AD(p->Burst.U) / (ADC3_AVG *_k_Er * 1000 * 4096);
-//											Pref2=_I2AD(p->Burst.U * p->Burst.U) * _HV2AD(p->Burst.U) / (ADC3_AVG *_k_Nd * 1000 * 4096);
+//											cref1=_I2AD(p->Burst.U * p->Burst.U) * _HV2AD(p->Burst.U) / (ADC3_AVG *_k_Er * 1000 * 4096);
+//											cref2=_I2AD(p->Burst.U * p->Burst.U) * _HV2AD(p->Burst.U) / (ADC3_AVG *_k_Nd * 1000 * 4096);
 #define	kVf	(3.3/4096.0*2000.0/7.5)					// 		flash voltage			
 #define	kIf	(3.3/4096.0/2.9999/0.001)				// 		flash curr.
 #define Ts	 1e-6														// 		ADC sample rate

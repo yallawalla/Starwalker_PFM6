@@ -30,9 +30,6 @@
 //			SPIx_DMA_TX_IRQ();
 //}
 //___________________________________________________________________________
-extern	int32_t		_U1off,_U2off,_I1off,_I2off;
-extern	uint32_t	Caps,Icaps;
-
 void		Initialize_host_msc(void);
 void		Initialize_device_msc(void);
 void		Initialize_device_vcp(void);
@@ -45,7 +42,7 @@ int			DecodeMinus(char *c) {
 				case 'u':
 				if(strscan(c,cc,' ')==2) {
 					Initialize_host_msc();										// reset host
-					Wait(200,App_Loop);
+					_wait(200,App_Loop);
 					switch(*cc[1]) {
 						case 'h':
 							Initialize_host_msc();
@@ -99,7 +96,7 @@ FATFS				fs_usb;
 						case 'u':
 							__print("\rFormat usb ...[y/n]");
 							do {
-								Wait(5,App_Loop);
+								_wait(5,App_Loop);
 								m=fgetc(&__stdin);
 							} while(m==-1);
 							if(m == 'y') {
@@ -113,7 +110,7 @@ FATFS				fs_usb;
 							__print("\rFormat flash ...[y/n]");
 							Watchdog_init(4000);
 							do {
-								Wait(5,App_Loop);
+								_wait(5,App_Loop);
 								m=fgetc(&__stdin);
 							} while(m==-1);
 							if(m == 'y') {
@@ -204,7 +201,7 @@ FATFS						fs_cpu;
 //__________________________________________________ delay execution ________
 				case 'd':
 					if(strscan(c,cc,' ')==2) {
-						Wait(atoi(cc[1]),App_Loop);
+						_wait(atoi(cc[1]),App_Loop);
 					}
 					break;
 //___________________________________________________________________________
@@ -272,11 +269,11 @@ int			DecodeEq(char *c) {
 				switch(*c) {
 //______________________________________________________________________________________
 				case 'C':
-					Caps=__max(100,1000.0*atof(++c));	// scale fakt. za C v mF pri 880V/1100A full scale, 100kHz sample rate in ADC3_AVG = 4 pride 20... ni placa za izpeljavo
+					_TIM.Caps=__max(100,1000.0*atof(++c));	// scale fakt. za C v mF pri 880V/1100A full scale, 100kHz sample rate in ADC3_AVG = 4 pride 20... ni placa za izpeljavo
 					break;
 //______________________________________________________________________________________
 				case 'P':					
-					Icaps=__max(100,1000.0*atof(++c));
+					_TIM.Caps=__max(100,1000.0*atof(++c));
 					break;
 //______________________________________________________________________________________
 				case 'E':
@@ -327,7 +324,7 @@ int			DecodeWhat(char *c) {
 				break;
 //______________________________________________________________________________________
 				case 'a':
-					App_List();
+					_proc_list();
 					break;
 //______________________________________________________________________________________
 				case 'h':
@@ -700,7 +697,7 @@ static 		FATFS	fatfs;
 //					sscanf(++c,"%X",&i);
 //					i=((i<<16) | i) | 0x00a000a0;
 //					ExchgSpi(i, 4);
-//					Wait(2,App_Loop);
+//					_wait(2,App_Loop);
 //					i=ExchgSpi(0x00000000, 4);
 //					__print(" >> %02X,%02X",i&0xff,(i>>16)&0xff);
 //					break;
@@ -1064,9 +1061,9 @@ int				i;
 				case 'a':
 					switch(numscan(++c,cc,',')) {
 						case 0:
-							__print("  \r>a(dc)    U1,I1,U2,I2   ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I-_I1off),
-																																					_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I-_I2off));
-							__print("\n\r>a(dc)    idle          ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*_U1off),_AD2I(_I1off),_AD2HV(ADC3_AVG*_U2off),_AD2I(_I2off));
+							__print("  \r>a(dc)    U1,I1,U2,I2   ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I-_TIM.I1off),
+																																					_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I-_TIM.I2off));
+							__print("\n\r>a(dc)    idle          ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*_TIM.U1off),_AD2I(_TIM.I1off),_AD2HV(ADC3_AVG*_TIM.U2off),_AD2I(_TIM.I2off));
 							break;
 						default:
 							return _PARSE_ERR_SYNTAX;
@@ -1181,7 +1178,7 @@ int			u=0,umax=0,umin=0;
 //______________________________________________________________________________________
 				case '!':
 					CanReply("wwwwX",0xC101,PFM_command(NULL,0),40000,pfm->Burst.Time,_ID_SYS2ENRG);
-					Wait(100,App_Loop);
+					_wait(100,App_Loop);
 					CanReply("X",0x1A,_ID_SYS2ENRG);
 					_SET_EVENT(pfm,_TRIGGER);
 				break;

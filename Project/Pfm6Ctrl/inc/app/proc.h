@@ -6,9 +6,11 @@ typedef struct {
 	arg 	*arg;
 	int		t,dt,to;
 	char	*name;
-} app;
+} _proc;
 
-void	App_Add(func *,arg *,char *, int);
-app		*App_Find(func *,arg *);
-void	App_Remove(func *,arg *);
-void	App_List(void);
+void	_proc_add(func *,arg *,char *, int);
+_proc		*_proc_find(func *,arg *);
+void	_proc_remove(func *,arg *);
+void	_proc_list(void);
+
+void	_wait(int,void (*)(void));

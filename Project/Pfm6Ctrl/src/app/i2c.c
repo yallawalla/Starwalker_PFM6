@@ -27,7 +27,7 @@ GPIO_InitTypeDef	GPIO_InitStructure;
 						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
 						GPIO_Init(GPIOB, &GPIO_InitStructure);
 						GPIO_ResetBits(GPIOB,GPIO_Pin_6 | GPIO_Pin_7);
-						Wait(25,App_Loop);
+						_wait(25,App_Loop);
 						I2C_SoftwareResetCmd(I2C1,ENABLE);
 						I2C_SoftwareResetCmd(I2C1,DISABLE);
 						p=Initialize_I2C(p->addr,p->speed);	

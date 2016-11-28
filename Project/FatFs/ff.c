@@ -3818,9 +3818,9 @@ FRESULT f_mkfs (
 {
 extern 
 void	(*App_Loop)(void);
-void	Wait(int,void (*)(void));
+void	_wait(int,void (*)(void));
 
-			Wait(5,App_Loop);
+			_wait(5,App_Loop);
 }
 #endif
 			if((n*100+n_fat/2)/n_fat % 10 == 0)

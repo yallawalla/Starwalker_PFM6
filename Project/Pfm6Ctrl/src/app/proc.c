@@ -5,7 +5,7 @@
 * Output				:
 * Return				:
 *******************************************************************************/
-app list[20] = {
+_proc list[20] = {
 	{(func *)ParseCom,					(arg *)&__com0,0,0,0,"ParseCOM"},
 	{(func *)ParseCom,					(arg *)&__com1,0,0,0,"ParseUSB"},
 	{(func *)ParseCanTx,				(arg *)&pfm,0,0,0,"txCAN"},
@@ -25,9 +25,9 @@ app list[20] = {
 *******************************************************************************/
 void	App_Loop(void) {
 static 
-	int	current_job=-1;
+int	current_job=-1;
 int		i=current_job;
-			if(++current_job >= sizeof(list)/sizeof(app))
+			if(++current_job >= sizeof(list)/sizeof(_proc))
 				current_job=0;				
 			if(list[i].f && list[i].dt >= 0 && __time__ >= list[i].t) {
 				int		dt=list[i].dt;
@@ -45,9 +45,9 @@ int		i=current_job;
 * Output				:
 * Return				:
 *******************************************************************************/
-app		*App_Find(func *f,arg *a) {
+_proc		*_proc_find(func *f,arg *a) {
 int		i;
-			for(i=0; i<sizeof(list)/sizeof(app); ++i)
+			for(i=0; i<sizeof(list)/sizeof(_proc); ++i)
 				if(list[i].f == f && (!a || list[i].arg == a)) 
 					return &list[i];
 			return NULL;
@@ -58,9 +58,9 @@ int		i;
 * Output				:
 * Return				:
 *******************************************************************************/
-void	App_Add(func *f,arg *a,char *name, int dt) {
+void	_proc_add(func *f,arg *a,char *name, int dt) {
 int		i;
-			for(i=0; i<sizeof(list)/sizeof(app); ++i)
+			for(i=0; i<sizeof(list)/sizeof(_proc); ++i)
 				if(list[i].f == NULL) {
 						list[i].to=0;
 						list[i].t=__time__+dt;
@@ -77,9 +77,9 @@ int		i;
 * Output				:
 * Return				:
 *******************************************************************************/
-void	App_Remove(func *f,arg *a) {
+void	_proc_remove(func *f,arg *a) {
 int		i;
-			for(i=0; i<sizeof(list)/sizeof(app); ++i)
+			for(i=0; i<sizeof(list)/sizeof(_proc); ++i)
 				if(list[i].f == f && list[i].arg == a)
 					list[i].f=NULL;
 }
@@ -89,9 +89,9 @@ int		i;
 * Output				:
 * Return				:
 *******************************************************************************/
-void	App_List(void) {
+void	_proc_list(void) {
 int		i;
-			for(i=0; i<sizeof(list)/sizeof(app); ++i) {
+			for(i=0; i<sizeof(list)/sizeof(_proc); ++i) {
 				if(list[i].f == 0)
 					continue;
 				if(list[i].dt >= 0)

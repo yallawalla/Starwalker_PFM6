@@ -206,12 +206,12 @@ void USB_OTG_BSP_DriveVBUS(USB_OTG_CORE_HANDLE *pdev, uint8_t state)
 * @retval None
 */
 extern void			App_Loop(void);
-void						Wait(int,void (*)(void));
+void						_wait(int,void (*)(void));
 
 void USB_OTG_BSP_mDelay (const uint32_t msec)
 {
 	//USB_OTG_BSP_uDelay(msec * 1000); 
-	Wait(msec,App_Loop);
+	_wait(msec,App_Loop);
 }
 
 void USB_OTG_BSP_DeInit(USB_OTG_CORE_HANDLE *pdev)

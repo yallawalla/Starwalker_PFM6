@@ -17,10 +17,6 @@
 #include 	<stdio.h>
 
 PFM				*pfm;
-int32_t		_I1off=0,_I2off=0,
-					_U1off=0,_U2off=0,
-					_E1ref=0,_E2ref=0;
-
 /*______________________________________________________________________________
 * Function Name : App_Init
 * Description   : Initialize PFM object
@@ -169,7 +165,7 @@ static
 						SetSimmerRate(p,_SIMMER_LOW);													// reduce simmer
 						p->count++;
 						if(Eack(p)) {																					// Energ. integrator finished
-							Pref1=Pref2=0;
+							_TIM.cref1=_TIM.cref2=0;
 							ScopeDumpBinary(NULL,0);														// scope printout, for testing(if enabled ?)
 						}
 					}
@@ -185,8 +181,6 @@ static
   * @retval : None
   *
 ______________________________________________________________________________*/
-extern int	Hvref,Icaps,Caps;
-
 void			ProcessingStatus(PFM *p) {
 int 			i,j,k;
 static
@@ -255,8 +249,8 @@ static
 						PFM_status_send(p,k);
 //-------------------------------------------------------------------------------
 					if(_MODE(pfm,__TEST__) && !_MODE(pfm,_PULSE_INPROC) && !(__time__ % 100))
-						if( Hvref < p->HVref - p->HVref/15) {
-							Hvref += Icaps*400*4096/880/Caps;
+						if(_TIM.Hvref < p->HVref - p->HVref/15) {
+							_TIM.Hvref += _TIM.Icaps*400*4096/880/_TIM.Caps;
 							_YELLOW2(20);
 						}
 }
@@ -465,13 +459,13 @@ char			*q=(char *)rx.Data;
 								if(rx.DLC) {
 									if(__can->arg.io == NULL) {
 										__can->arg.io=_io_init(128,128);
-										App_Add((func *)ParseCom,(arg*)&__can->arg.io,"ParseCAN-IO",0);
+										_proc_add((func *)ParseCom,(arg*)&__can->arg.io,"ParseCAN-IO",0);
 									}
 									while(__can->arg.io->rx->size - _buffer_count(__can->arg.io->rx) < 8)
-										Wait(2,App_Loop);
+										_wait(2,App_Loop);
 									_buffer_push(__can->arg.io->rx,rx.Data,rx.DLC);
 								} else {
-									App_Remove((func *)ParseCom,(arg*)&__can->arg.io);
+									_proc_remove((func *)ParseCom,(arg*)&__can->arg.io);
 									__can->arg.io=_io_close(__can->arg.io);
 								}
 								break;
@@ -750,9 +744,9 @@ int				i;
 					if(p) {
 						for(i=_TIM.eint*_uS/_MAX_ADC_RATE-1; i>=0; --i) {
 							if(ADC1_buf[i].I > _I2AD(20.0))
-								e1+=(short)(ADC1_buf[i].U) * (short)(ADC1_buf[i].I-_I1off);	
+								e1+=(short)(ADC1_buf[i].U) * (short)(ADC1_buf[i].I-_TIM.I1off);	
 							if(ADC2_buf[i].I > _I2AD(20.0))
-								e2+=(short)(ADC2_buf[i].U) * (short)(ADC2_buf[i].I-_I2off);							
+								e2+=(short)(ADC2_buf[i].U) * (short)(ADC2_buf[i].I-_TIM.I2off);							
 						}
 
 						if(n++ == p->Trigger.Erpt) {
@@ -810,7 +804,7 @@ static		int	timeout=0,no=0;
 //________________________________________________________________________________
 					if(p) {
 						while(_MODE(p,_PULSE_INPROC))																			// no change during pulse
-							Wait(2,App_Loop);
+							_wait(2,App_Loop);
 //________________________________________________________________________________
 						if(no != n) {																											// simmer status changed ???
 							_TRIGGER1_OFF;																									// kill both triggers
@@ -819,15 +813,15 @@ static		int	timeout=0,no=0;
 							_CLEAR_STATUS(p,PFM_STAT_SIMM2);
 							SetSimmerPw(p);																									// kill both simmers
 							no=n & (PFM_STAT_SIMM1 | PFM_STAT_SIMM2);												// mask filter command
-							Wait(100,App_Loop);																							// wait 100 msecs
+							_wait(100,App_Loop);																							// wait 100 msecs
 							
 							if(!_MODE(p,_CHANNEL1_DISABLE)) {																// if not Erbium  single channel
 								if(_MODE(p,_CHANNEL1_SINGLE_TRIGGER))													// single trigger config.. as from V1.11
 									Uidle=2*p->HV/7;
 								else
 									Uidle=p->HV/7;
-								_I1off=ADC1_simmer.I;																					// get current sensor offset
-								_U1off=ADC1_simmer.U;																					// check idle voltage
+								_TIM.I1off=ADC1_simmer.I;																					// get current sensor offset
+								_TIM.U1off=ADC1_simmer.U;																					// check idle voltage
 								if(abs(Uidle - ADC3_AVG*ADC1_simmer.U) > _HV2AD(50)) {				// HV +/- 30V range ???
 									_SET_ERROR(p,PFM_ERR_LNG);																	// if not, PFM_STAT_UBHIGH error 
 //									no=0;
@@ -838,8 +832,8 @@ static		int	timeout=0,no=0;
 									Uidle=2*p->HV/7;
 								else
 									Uidle=p->HV/7;
-								_I2off=ADC2_simmer.I;
-								_U2off=ADC2_simmer.U;
+								_TIM.I2off=ADC2_simmer.I;
+								_TIM.U2off=ADC2_simmer.U;
 								if(abs(Uidle - ADC3_AVG*ADC2_simmer.U) > _HV2AD(50)) {
 									_SET_ERROR(p,PFM_ERR_LNG);
 //									no=0;
