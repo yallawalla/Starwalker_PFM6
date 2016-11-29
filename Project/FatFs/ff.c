@@ -3817,10 +3817,10 @@ FRESULT f_mkfs (
 #if defined(__PFM6__) || defined (__DISC4__)	|| defined (__DISC7__)
 {
 extern 
-void	(*App_Loop)(void);
+void	(*_proc_loop)(void);
 void	_wait(int,void (*)(void));
 
-			_wait(5,App_Loop);
+			_wait(5,_proc_loop);
 }
 #endif
 			if((n*100+n_fat/2)/n_fat % 10 == 0)

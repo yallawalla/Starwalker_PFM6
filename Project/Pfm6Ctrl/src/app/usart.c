@@ -78,11 +78,14 @@ void DMA_Configuration(_io *io)
 	USART_DMACmd(USART1, USART_DMAReq_Rx | USART_DMAReq_Tx, ENABLE);
 }
 //______________________________________________________________________________________
+#if defined (__DISC4__) || defined (__DISC7__)
 volatile int32_t 
 		ITM_RxBuffer=ITM_RXBUFFER_EMPTY; 
+#endif
+
 int	__getDMA(_buffer *rx) {
 int	i=0;
-#if defined (__DISC4__)	|| defined (__DISC7__)
+#if defined (__DISC4__) || defined (__DISC7__)
 	if(ITM_CheckChar()) {
 		i=ITM_ReceiveChar();
 		_buffer_push(rx,&i,1);
@@ -100,7 +103,7 @@ int	i=0;
 }
 //______________________________________________________________________________________
 int	__putDMA(_buffer *tx, int	c) {
-#if defined (__DISC4__)	|| defined (__DISC7__)
+#if defined (__DISC4__) || defined (__DISC7__)
 	return	ITM_SendChar(c);
 #else
 static

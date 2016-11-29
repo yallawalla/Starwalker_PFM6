@@ -12,20 +12,6 @@
 * @{
 */
 /*******************************************************************************
-* Function Name : Wait
-* Description   :	recursive call to main loop !!!
-* Input         :
-* Output        :
-* Return        :
-*******************************************************************************/
-void	_wait(int t,void (*f)(void)) {
-int		to=__time__+t;
-			while(to > __time__) {
-				if(f)
-					f();
-			}
-}
-/*******************************************************************************
 * Function Name : ScopeDumpBinary
 * Description   :
 * Input         :
@@ -247,7 +233,7 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 			void	SetPwmTab(PFM *p) {
 			int n,simmode=PFM_command(NULL,0);	
 			while(_MODE(p,_PULSE_INPROC))												// wait the prev setup to finish !!!
-				_wait(2,App_Loop);
+				_wait(2,_proc_loop);
 			if(simmode == PFM_STAT_SIMM1) {				
 				_TIM_DMA *t=SetPwmTab00(p,_TIM.pwch1);
 				for(n=0; t-- != _TIM.pwch1; n+= t->n);
@@ -435,10 +421,10 @@ int		fanTL=3000;
 int		fanTH=4000;
 /*******************************************************************************/
 float	IgbtTemp1(void) {
-		return (float)__fit(ADC3_buf[0].IgbtT1,Rtab,Ttab)/100.0;
+			return (float)__fit(ADC3_buf[0].IgbtT1,Rtab,Ttab)/100.0;
 }
 float	IgbtTemp2(void) {
-		return (float)__fit(ADC3_buf[0].IgbtT2,Rtab,Ttab)/100.0;
+			return (float)__fit(ADC3_buf[0].IgbtT2,Rtab,Ttab)/100.0;
 }
 /*******************************************************************************/
 int		IgbtTemp(void) {
@@ -482,7 +468,7 @@ int		f1=(ft[1]*(t[0]-to)-ft[0]*(t[1]-to)) / (t[0]-t[1]);
 * Return        :
 *******************************************************************************/
 float	__lin2f(short i) {
-		return((i&0x7ff)*pow(2,i>>11));
+			return((i&0x7ff)*pow(2,i>>11));
 }
 /*******************************************************************************
 * Function Name : __f2lin
@@ -492,7 +478,7 @@ float	__lin2f(short i) {
 * Return        :
 *******************************************************************************/
 short	__f2lin(float u, short exp) {
-		return ((((int)(u/pow(2,exp>>11)))&0x7ff)  | (exp & 0xf800));
+			return ((((int)(u/pow(2,exp>>11)))&0x7ff)  | (exp & 0xf800));
 }
 /*******************************************************************************
 * Function Name : SetChargerVoltage
@@ -563,7 +549,7 @@ int		i,j;
 				}
 				if(i > 0)
 					DecodeCom(c);
-				App_Loop();
+				_proc_loop();
 			} while (j != _CtrlE);
 			sprintf(c,">%02X",_ID_SYS2PFMcom);
 			DecodeCom(c);
@@ -578,19 +564,83 @@ int		i,j;
 * Output        :
 * Return        :
 *******************************************************************************/
-int			__print(char *format, ...) {
+int		__print(char *format, ...) {
 
-	char 		buf[128],*p;
-	va_list	aptr;
-	int			ret;
-	
-	va_start(aptr, format);
-	ret = vsnprintf(buf, sizeof(buf), format, aptr);
-	va_end(aptr);
-	for(p=buf; *p; ++p)
-		while(fputc(*p,&__stdout)==EOF)
-			_wait(2,App_Loop);
-  return(ret);
+			char 		buf[128],*p;
+			va_list	aptr;
+			int			ret;
+			
+			va_start(aptr, format);
+			ret = vsnprintf(buf, sizeof(buf), format, aptr);
+			va_end(aptr);
+			for(p=buf; *p; ++p)
+				while(fputc(*p,&__stdout)==EOF)
+					_wait(2,_proc_loop);
+			return(ret);
+}
+/**
+  * @}
+  */ 
+/*-----------------------------------------------------------------------*/
+void	SectorQuery(void) {
+int		i,j,*p,*q;
+
+			p=(int *)FATFS_ADDRESS;
+			for(i=0; i<SECTOR_COUNT; ++i) {
+				if(!((i%255)%16))
+					__print("\r\n");
+				if(!(i%255))
+					__print("\r\n");		
+				if(p[SECTOR_SIZE/4] == -1)
+					__print(" --- ");
+				else {
+					q=&p[SECTOR_SIZE/4+1];
+					j=i;
+					while(++j<SECTOR_COUNT && p[SECTOR_SIZE/4] != q[SECTOR_SIZE/4])
+						q=&q[SECTOR_SIZE/4+1];
+					if(j==SECTOR_COUNT)
+						__print(" %-4d",p[SECTOR_SIZE/4]);
+					else
+						__print("%c%-4d",'*',p[SECTOR_SIZE/4]);
+				}
+				p=&p[SECTOR_SIZE/4+1];
+			}
+}
+/*-----------------------------------------------------------------------*/
+int		Defragment(int mode) {
+int 	i,f,e,*p,*q,buf[SECTOR_SIZE/4];
+int		c0=0,c1=0;
+
+			f=FATFS_SECTOR;																															// f=koda prvega 128k sektorja
+			e=PAGE_SIZE;																																// e=velikost sektorja
+			p=(int *)FATFS_ADDRESS;																											// p=hw adresa sektorja
+			do {
+				do {
+					++c0;
+					Watchdog();																															//jk822iohfw
+					q=&p[SECTOR_SIZE/4+1];																									
+					while(p[SECTOR_SIZE/4] != q[SECTOR_SIZE/4] && q[SECTOR_SIZE/4] != -1)		// iskanje ze prepisanih sektorjev
+						q=&q[SECTOR_SIZE/4+1];
+					if(q[SECTOR_SIZE/4] == -1) {																						// ce ni kopija, se ga prepise na konec fs
+						for(i=0; i<SECTOR_SIZE/4;++i)
+							buf[i]=~p[i];
+						Watchdog();
+						if(mode)
+							STORAGE_Write (FSDRIVE_CPU,(uint8_t *)buf,p[SECTOR_SIZE/4],1);			// STORAGE_Write bo po prvem brisanju zacel na
+					} else																																	// zacetku !!!
+						++c1;
+					p=&p[SECTOR_SIZE/4+1]; 
+				} while(((int)p)-FATFS_ADDRESS <  e && p[SECTOR_SIZE/4] != -1);						// prepisana cela stran...
+				if(mode)
+					FLASH_Erase(f);																													// brisi !
+				f+=FLASH_Sector_1; 
+				e+=PAGE_SIZE;
+			} while(p[SECTOR_SIZE/4] != -1);	
+			if(mode) {
+				FLASH_Erase(f);																														// se zadnja !
+				return 0;
+			} else 
+				return(100*c1/c0);
 }
 /**
 * @}

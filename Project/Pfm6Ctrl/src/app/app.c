@@ -66,13 +66,16 @@ RCC_AHB1PeriphClockCmd(
 					pfm->Pockels.trigger=0;
 
 					Initialize_NVIC();
-					__com0=Initialize_USART(921600);			
+
+					__com0=Initialize_USART(921600);		
+					_proc_add((func *)ParseCom,__com0,"ParseCOM",0);
+
 					Initialize_ADC();
 					Initialize_TIM();
-
+//---------------------------------------------------------------------------------
 #if  			defined (__PFM6__)
 					__charger6=Initialize_I2C(0x58,50000);
-					__can=Initialize_CAN(0);	
+					__can=Initialize_CAN(0);
 #elif defined (__DISC4__)	|| defined (__DISC7__)
 {
 int				i;
@@ -83,11 +86,22 @@ int				i;
 						ADC3_buf[i].Up20=_p20V2AD(20)/8;
 					}
 					__can=Initialize_CAN(1);	
-
 }
+
 #else
 	#### 		error, no HW defined
 #endif
+//---------------------------------------------------------------------------------
+					_proc_add((func *)ParseCanTx,pfm,"txCAN",0);
+					_proc_add((func *)ParseCanRx,pfm,"rxCAN",0);
+					_proc_add((func *)ProcessingEvents,pfm,"events",0);
+					_proc_add((func *)ProcessingStatus,pfm,"status",1);
+					_proc_add((func *)ProcessingCharger,pfm,"charger6",1);
+#ifdef __PFM6__
+					_proc_add((func *)Watchdog,NULL,"watchdog",0);
+					_proc_add((func *)Lightshow,(void *)&__time__,"leds",0);
+#endif
+//---------------------------------------------------------------------------------
 					SysTick_init();
 					SetSimmerRate(pfm,_SIMMER_LOW);
 					SetPwmTab(pfm);
@@ -459,13 +473,13 @@ char			*q=(char *)rx.Data;
 								if(rx.DLC) {
 									if(__can->arg.io == NULL) {
 										__can->arg.io=_io_init(128,128);
-										_proc_add((func *)ParseCom,(arg*)&__can->arg.io,"ParseCAN-IO",0);
+										_proc_add((func *)ParseCom,&__can->arg.io,"ParseCAN-IO",0);
 									}
 									while(__can->arg.io->rx->size - _buffer_count(__can->arg.io->rx) < 8)
-										_wait(2,App_Loop);
+										_wait(2,_proc_loop);
 									_buffer_push(__can->arg.io->rx,rx.Data,rx.DLC);
 								} else {
-									_proc_remove((func *)ParseCom,(arg*)&__can->arg.io);
+									_proc_remove((func *)ParseCom,&__can->arg.io);
 									__can->arg.io=_io_close(__can->arg.io);
 								}
 								break;
@@ -804,7 +818,7 @@ static		int	timeout=0,no=0;
 //________________________________________________________________________________
 					if(p) {
 						while(_MODE(p,_PULSE_INPROC))																			// no change during pulse
-							_wait(2,App_Loop);
+							_wait(2,_proc_loop);
 //________________________________________________________________________________
 						if(no != n) {																											// simmer status changed ???
 							_TRIGGER1_OFF;																									// kill both triggers
@@ -813,7 +827,7 @@ static		int	timeout=0,no=0;
 							_CLEAR_STATUS(p,PFM_STAT_SIMM2);
 							SetSimmerPw(p);																									// kill both simmers
 							no=n & (PFM_STAT_SIMM1 | PFM_STAT_SIMM2);												// mask filter command
-							_wait(100,App_Loop);																							// wait 100 msecs
+							_wait(100,_proc_loop);																							// wait 100 msecs
 							
 							if(!_MODE(p,_CHANNEL1_DISABLE)) {																// if not Erbium  single channel
 								if(_MODE(p,_CHANNEL1_SINGLE_TRIGGER))													// single trigger config.. as from V1.11

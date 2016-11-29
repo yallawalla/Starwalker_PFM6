@@ -27,7 +27,7 @@ GPIO_InitTypeDef	GPIO_InitStructure;
 						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
 						GPIO_Init(GPIOB, &GPIO_InitStructure);
 						GPIO_ResetBits(GPIOB,GPIO_Pin_6 | GPIO_Pin_7);
-						_wait(25,App_Loop);
+						_wait(25,_proc_loop);
 						I2C_SoftwareResetCmd(I2C1,ENABLE);
 						I2C_SoftwareResetCmd(I2C1,DISABLE);
 						p=Initialize_I2C(p->addr,p->speed);	
@@ -104,7 +104,7 @@ int				to=__time__+25;
 						I2C_ITConfig(I2C1, (I2C_IT_EVT | I2C_IT_BUF), ENABLE);
 						I2C_GenerateSTART(I2C1, ENABLE);
 						while(p->ntx && __time__< to)
-							App_Loop();
+							_proc_loop();
 						if(p->ntx) {
 							Reset_I2C(p);
 							if(--nrpt)
@@ -147,7 +147,7 @@ int				to=__time__+25;
 						else
 							writeI2C(p,dBuffer,1);
 						while(p->nrx && __time__< to)
-							App_Loop();
+							_proc_loop();
 						if(p->nrx) {
 							Reset_I2C(p);
 							if(--nrpt)

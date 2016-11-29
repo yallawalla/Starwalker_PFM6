@@ -49,7 +49,8 @@ short					pin[10];		// oznaka pina
   */
 void	_led(int a, int b) {
 int				i;
-static 	int 	t[]={1,1,1,1,1,1,1,1,1,1};
+static 	
+int 	t[]={1,1,1,1,1,1,1,1,1,1};
 
 				if(a==-1) {
 					for(i=0;i<10;++i) {
@@ -73,11 +74,16 @@ static 	int 	t[]={1,1,1,1,1,1,1,1,1,1};
 //______________________________________________________________________
 #define	NN 30
 #define	Nk 10
-extern volatile int __time__;
 //______________________________________________________________________
-void		Lightshow(void) {
-static	int	t1=0,t2=0,t3=0;
-				if(__time__ < 10000) {
+void		Lightshow(int *time) {
+static	int	t=0,t1=0,t2=0,t3=0;
+	
+				if(*time != t) {
+					t=*time;
+					_led(-1,-1);
+				}
+
+				if(t < 10000) {
 					if(!(++t1 % NN)) {
 						_led(t3,0);
 						++t2;

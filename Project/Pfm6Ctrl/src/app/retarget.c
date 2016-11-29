@@ -23,7 +23,7 @@
 #include "ff.h"
 #include "io.h"
 
-extern void			App_Loop(void);
+extern void			_proc_loop(void);
 void						_wait(int,void (*)(void));
 //_________________________________________________________________________________
 FILE 		__stdout;
@@ -40,7 +40,7 @@ int 		fputc(int c, FILE *f) {
 				if(f==stdout) {
 					if(f->io) {
 						while(f->io->put(f->io->tx,c) == EOF)
-							_wait(2,App_Loop);
+							_wait(2,_proc_loop);
 						if(f->io->file)
 							f_putc(c,f->io->file);
 					}

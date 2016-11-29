@@ -205,13 +205,13 @@ void USB_OTG_BSP_DriveVBUS(USB_OTG_CORE_HANDLE *pdev, uint8_t state)
 * @param  msec : Value of delay required in milli sec
 * @retval None
 */
-extern void			App_Loop(void);
+extern void			_proc_loop(void);
 void						_wait(int,void (*)(void));
 
 void USB_OTG_BSP_mDelay (const uint32_t msec)
 {
 	//USB_OTG_BSP_uDelay(msec * 1000); 
-	_wait(msec,App_Loop);
+	_wait(msec,_proc_loop);
 }
 
 void USB_OTG_BSP_DeInit(USB_OTG_CORE_HANDLE *pdev)

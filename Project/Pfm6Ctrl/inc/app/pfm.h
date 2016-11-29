@@ -451,8 +451,6 @@ _io 						*Initialize_USART(int),
 _i2c*						Initialize_I2C(int, int);
 				
 extern int			fanPmin,fanPmax,fanTL,fanTH;
-extern void			App_Loop(void);
-void						_wait(int,void (*)(void));
 
 extern _io			*__com0,
 								*__com1,
@@ -462,9 +460,7 @@ extern _io			*__com0,
 extern _i2c			*__i2c1,
 								*__i2c2;
 								
-				
-extern volatile int		__time__;
-			
+						
 char						*cgets(int, int);
 int							DecodeCom(char *),
 								DecodeFs(char *);
@@ -477,8 +473,6 @@ void 						ParseCan(PFM *),
 								
 int							ScopeDumpBinary(_ADCDMA *, int);
 							
-void						USBHost(void);
-
 int							getHEX(char *, int);
 void						putHEX(unsigned int,int);
 int							hex2asc(int);

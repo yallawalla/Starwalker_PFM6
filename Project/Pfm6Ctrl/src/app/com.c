@@ -18,17 +18,6 @@
 #include	<string.h>
 #include	<ff.h>
 #include	"limits.h"
-
-// override vektorjev za STM32F401-Discovery.lib
-
-//void	DMA1_Stream3_IRQHandler(void) {
-//void	SPIx_DMA_RX_IRQ(void);
-//			SPIx_DMA_RX_IRQ();
-//}
-//void	DMA1_Stream4_IRQHandler(void) {
-//void	SPIx_DMA_TX_IRQ(void);
-//			SPIx_DMA_TX_IRQ();
-//}
 //___________________________________________________________________________
 void		Initialize_host_msc(void);
 void		Initialize_device_msc(void);
@@ -42,7 +31,7 @@ int			DecodeMinus(char *c) {
 				case 'u':
 				if(strscan(c,cc,' ')==2) {
 					Initialize_host_msc();										// reset host
-					_wait(200,App_Loop);
+					_wait(200,_proc_loop);
 					switch(*cc[1]) {
 						case 'h':
 							Initialize_host_msc();
@@ -96,7 +85,7 @@ FATFS				fs_usb;
 						case 'u':
 							__print("\rFormat usb ...[y/n]");
 							do {
-								_wait(5,App_Loop);
+								_wait(5,_proc_loop);
 								m=fgetc(&__stdin);
 							} while(m==-1);
 							if(m == 'y') {
@@ -110,7 +99,7 @@ FATFS				fs_usb;
 							__print("\rFormat flash ...[y/n]");
 							Watchdog_init(4000);
 							do {
-								_wait(5,App_Loop);
+								_wait(5,_proc_loop);
 								m=fgetc(&__stdin);
 							} while(m==-1);
 							if(m == 'y') {
@@ -153,7 +142,7 @@ FATFS						fs_cpu;
 								}
 								__print("\r\n----------------------------------------------------------------");
 								for(m=-1;m==-1;m=fgetc(&__stdin))
-									App_Loop();
+									_proc_loop();
 								if(m==0x1b)
 									break;
 							}
@@ -201,7 +190,7 @@ FATFS						fs_cpu;
 //__________________________________________________ delay execution ________
 				case 'd':
 					if(strscan(c,cc,' ')==2) {
-						_wait(atoi(cc[1]),App_Loop);
+						_wait(atoi(cc[1]),_proc_loop);
 					}
 					break;
 //___________________________________________________________________________
@@ -697,7 +686,7 @@ static 		FATFS	fatfs;
 //					sscanf(++c,"%X",&i);
 //					i=((i<<16) | i) | 0x00a000a0;
 //					ExchgSpi(i, 4);
-//					_wait(2,App_Loop);
+//					_wait(2,_proc_loop);
 //					i=ExchgSpi(0x00000000, 4);
 //					__print(" >> %02X,%02X",i&0xff,(i>>16)&0xff);
 //					break;
@@ -1178,7 +1167,7 @@ int			u=0,umax=0,umin=0;
 //______________________________________________________________________________________
 				case '!':
 					CanReply("wwwwX",0xC101,PFM_command(NULL,0),40000,pfm->Burst.Time,_ID_SYS2ENRG);
-					_wait(100,App_Loop);
+					_wait(100,_proc_loop);
 					CanReply("X",0x1A,_ID_SYS2ENRG);
 					_SET_EVENT(pfm,_TRIGGER);
 				break;

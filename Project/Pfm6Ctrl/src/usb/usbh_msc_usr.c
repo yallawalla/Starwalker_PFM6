@@ -54,26 +54,28 @@
 /** @defgroup USBH_USR_Private_Defines
 * @{
 */ 
-#define IMAGE_BUFFER_SIZE   		512
+#define	IMAGE_BUFFER_SIZE   		512
 extern	USB_OTG_CORE_HANDLE			USB_OTG_Core;
+int			(*USBH_App)(int);
+
 __ALIGN_BEGIN
 USBH_HOST           						USB_Host;
 __ALIGN_END
 
-int		(*USBH_App)(int);
+void		USBHost (USBH_HOST *h) {
+				USBH_Process(&USB_OTG_Core, h);
+}
 
-void	Initialize_host_msc(void) {
+void		Initialize_host_msc(void) {
 #if defined (__DISC4__)
 				GPIO_ResetBits(GPIOC,GPIO_Pin_0);
 #elif defined (__DISC7__)
 				GPIO_ResetBits(GPIOD,GPIO_Pin_5);
 #endif
-			USBH_App=USBH_Iap;
-			USBH_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USB_Host, &USBH_MSC_cb, &USR_USBH_MSC_cb);
-}
-
-void	USBHost (void) {
-	USBH_Process(&USB_OTG_Core, &USB_Host);
+				USBH_App=USBH_Iap;
+				USBH_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USB_Host, &USBH_MSC_cb, &USR_USBH_MSC_cb);
+				if(!_proc_find((func *)USBHost,&USB_Host))
+					_proc_add((func *)USBHost,&USB_Host,"host USB",0);
 }
 /**
 * @}
