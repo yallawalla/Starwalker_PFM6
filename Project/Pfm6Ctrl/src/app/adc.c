@@ -25,7 +25,6 @@ void	TriggerADC(PFM *p) {
 //
 			ADC_ClearITPendingBit(ADC1, ADC_IT_AWD);
 			ADC_ClearITPendingBit(ADC2, ADC_IT_AWD);
-	
 			ADC_ITConfig(ADC1,ADC_IT_AWD,DISABLE);
 			ADC_ITConfig(ADC2,ADC_IT_AWD,DISABLE);	
 
@@ -67,7 +66,7 @@ void	TriggerADC(PFM *p) {
 				ADC_DMARequestAfterLastTransferCmd(ADC1, ENABLE);
 				ADC_DMARequestAfterLastTransferCmd(ADC2, ENABLE);	
 			}
-			
+
 			DMA_ClearFlag(DMA2_Stream3,DMA_FLAG_TCIF3|DMA_FLAG_HTIF3|DMA_FLAG_TEIF3|DMA_FLAG_DMEIF3|DMA_FLAG_FEIF3);
 			DMA_ClearFlag(DMA2_Stream4,DMA_FLAG_TCIF4|DMA_FLAG_HTIF4|DMA_FLAG_TEIF4|DMA_FLAG_DMEIF4|DMA_FLAG_FEIF4);
 
@@ -132,7 +131,7 @@ void 	Initialize_ADC1(void)
 			ADC_InitStructure.ADC_ScanConvMode = ENABLE;
 			ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;
 			ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising;
-			ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T8_TRGO;
+			ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T3_CC1;
 
 			ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
 			ADC_InitStructure.ADC_NbrOfConversion = sizeof(_ADCDMA)/sizeof(short);
@@ -197,7 +196,7 @@ void 	Initialize_ADC2(void)
 			ADC_InitStructure.ADC_ScanConvMode = ENABLE;
 			ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;
 			ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising;
-			ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T8_TRGO;
+			ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T3_CC1;
 
 			ADC_InitStructure.ADC_NbrOfConversion = sizeof(_ADCDMA)/sizeof(short);
 			ADC_Init(ADC2, &ADC_InitStructure);

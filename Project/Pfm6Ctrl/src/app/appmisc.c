@@ -512,7 +512,7 @@ int	batch(char *filename) {
 FIL		f;
 FATFS	fs;
 
-			if(f_chdrive(0)==FR_OK && f_mount(0,&fs)==FR_OK && f_open(&f,filename,FA_READ)==FR_OK) {
+			if(f_chdrive(FS_CPU)==FR_OK && f_mount(&fs,FS_CPU,1)==FR_OK && f_open(&f,filename,FA_READ)==FR_OK) {
 				__print("\r\n>");
 				__stdin.io->file=&f;
 				do
@@ -520,7 +520,7 @@ FATFS	fs;
 				while(!f_eof(&f));
 				__stdin.io->file=NULL;
 				f_close(&f);
-				f_mount(0,NULL);
+				f_mount(NULL,FS_CPU,1);
 				return _PARSE_OK;
 			} else
 				return _PARSE_ERR_OPENFILE;
@@ -626,7 +626,7 @@ int		c0=0,c1=0;
 							buf[i]=~p[i];
 						Watchdog();
 						if(mode)
-							STORAGE_Write (FSDRIVE_CPU,(uint8_t *)buf,p[SECTOR_SIZE/4],1);			// STORAGE_Write bo po prvem brisanju zacel na
+							disk_write (*FS_CPU-'0',(uint8_t *)buf,p[SECTOR_SIZE/4],1);					// STORAGE_Write bo po prvem brisanju zacel na
 					} else																																	// zacetku !!!
 						++c1;
 					p=&p[SECTOR_SIZE/4+1]; 

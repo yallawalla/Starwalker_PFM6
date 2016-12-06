@@ -218,8 +218,8 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_ICInitStructure.TIM_ICFilter = 15;
 
 		TIM_ICInitStructure.TIM_Channel = TIM_Channel_2;
+		
 		TIM_ICInit(TIM3, &TIM_ICInitStructure);
-
 		TIM_ITConfig(TIM3, TIM_IT_CC2,ENABLE);
 
 // ________________________________________________________________________________
@@ -412,7 +412,7 @@ int 		hv,j,k,x,
 					TIM8->CCR4 = TIM1->CCR4 = TIM1->ARR - TIM1->CCR3;
 				}
 				if(!_TIM.p1 && !_TIM.p2) {																//----- end of burst, stop IT, notify main loop ---------------------------				
-					TIM_ITConfig(TIM1, TIM_IT_Update,DISABLE);
+					TIM_ITConfig(TIM1,TIM_IT_Update,DISABLE);
 					_SET_EVENT(pfm,_PULSE_FINISHED);
 					_CLEAR_MODE(pfm,_PULSE_INPROC);
 					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);

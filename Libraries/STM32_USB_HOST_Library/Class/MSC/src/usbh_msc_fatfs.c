@@ -1,6 +1,7 @@
 #include "usb_conf.h"
 #include "diskio.h"
 #include "usbh_msc_core.h"
+#include "usbd_msc_mem.h"
 /*--------------------------------------------------------------------------
 
 Module Private Functions and Variables
@@ -10,6 +11,7 @@ static volatile DSTATUS Stat = STA_NOINIT;	/* Disk status */
 
 extern USB_OTG_CORE_HANDLE          USB_OTG_Core;
 extern USBH_HOST                    USB_Host;
+extern USBD_STORAGE_cb_TypeDef USBD_MICRO_SDIO_fops;
 
 /*-----------------------------------------------------------------------*/
 /* Initialize Disk Drive                                                 */
@@ -19,7 +21,7 @@ DSTATUS disk_initialize	(
             BYTE drv		/* Physical drive number (0) */
 						)
 {
-	if(drv==0)	return(STORAGE_Init(drv));
+	if(drv==0)	return(USBD_MICRO_SDIO_fops.Init(drv));
   
   if(HCD_IsDeviceConnected(&USB_OTG_Core))
   {  
@@ -39,7 +41,7 @@ DSTATUS disk_status (
 					BYTE drv		/* Physical drive number (0) */
 					)
 {
-	if(drv==0)	return(STORAGE_IsReady(drv));
+	if(drv==0)	return(USBD_MICRO_SDIO_fops.IsReady(drv));
 	return Stat;
 }
 
@@ -53,11 +55,12 @@ DRESULT disk_read (
                    BYTE drv,			/* Physical drive number (0) */
                    BYTE *buff,		/* Pointer to the data buffer to store read data */
                    DWORD sector,	/* Start sector number (LBA) */
-                   BYTE count			/* Sector count (1..255) */
+                   UINT count			/* Sector count (1..255) */
                   )
 {
   BYTE status = USBH_MSC_OK;  
-  if(drv==0)	return (DRESULT)STORAGE_Read(drv,buff,sector,count);
+  if(drv==0)	
+		return (DRESULT)USBD_MICRO_SDIO_fops.Read(drv,buff,sector,count);
   if (Stat & STA_NOINIT) return RES_NOTRDY;
   if(HCD_IsDeviceConnected(&USB_OTG_Core))
   {  
@@ -87,11 +90,12 @@ DRESULT disk_write (
                     BYTE drv,					/* Physical drive number (0) */
                     const BYTE *buff,	/* Pointer to the data to be written */
                     DWORD sector,			/* Start sector number (LBA) */
-                    BYTE count				/* Sector count (1..255) */
+                    UINT count				/* Sector count (1..255) */
                    )
 {
   BYTE status = USBH_MSC_OK;
-  if(drv==0)	return (DRESULT)STORAGE_Write(drv,(uint8_t *)buff,sector,count);
+  if(drv==0)	
+		return (DRESULT)USBD_MICRO_SDIO_fops.Write(drv,(uint8_t *)buff,sector,count);
   if (Stat & STA_NOINIT) return RES_NOTRDY;
   if (Stat & STA_PROTECT) return RES_WRPRT;
   
@@ -124,7 +128,7 @@ DRESULT disk_write (
 /* Miscellaneous Functions                                               */
 /*-----------------------------------------------------------------------*/
 
-#if _USE_IOCTL != 0
+#if _USE_IOCTL == 1
 DRESULT disk_ioctl (
                     BYTE drv,		/* Physical drive number (0) */
                     BYTE ctrl,		/* Control code */

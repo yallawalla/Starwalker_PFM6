@@ -15,7 +15,7 @@
         <TargetCommonOption>
           <Device>STM32F205VGTx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.6.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.2.2.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IRAM(0x20000000,0x20000) IROM(0x08000000,0x100000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -334,7 +334,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__PFM6__,HSE_VALUE=25000000</Define>
               <Undefine></Undefine>
-              <IncludePath>..\inc;..\inc\app;..\inc\usbd_msc;..\inc\usbd_cdc;..\inc\usbh_msc;..\src\wifi;..\..\..\Libraries\CMSIS\Include;..\..\..\Libraries\CMSIS\Device\ST\STM32F2xx\Include;..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\inc;..\..\..\Libraries\STM32_USB_OTG_Driver\inc;..\..\..\Libraries\STM32_USB_Device_Library\Core\inc;..\..\..\Libraries\STM32_USB_HOST_Library\Core\inc;..\..\..\Libraries\STM32_USB_Host_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\cdc\inc;..\..\FatFs</IncludePath>
+              <IncludePath>..\inc;..\inc\app;..\inc\usbd_msc;..\inc\usbd_cdc;..\inc\usbh_msc;..\src\wifi;..\..\..\Libraries\CMSIS\Include;..\..\..\Libraries\CMSIS\Device\ST\STM32F2xx\Include;..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\inc;..\..\..\Libraries\STM32_USB_OTG_Driver\inc;..\..\..\Libraries\STM32_USB_Device_Library\Core\inc;..\..\..\Libraries\STM32_USB_HOST_Library\Core\inc;..\..\..\Libraries\STM32_USB_Host_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\cdc\inc;..\..\FatFs R0.12b\src</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -442,6 +442,11 @@
               <FileType>1</FileType>
               <FilePath>..\src\app\led.c</FilePath>
             </File>
+            <File>
+              <FileName>stm32fxxx_it.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\app\stm32fxxx_it.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -456,11 +461,6 @@
               <FileName>proc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\app\proc.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32fxxx_it.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\src\usb\stm32fxxx_it.c</FilePath>
             </File>
             <File>
               <FileName>retarget.c</FileName>
@@ -787,12 +787,12 @@
             <File>
               <FileName>ff.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\FatFs\ff.c</FilePath>
+              <FilePath>..\..\FatFs R0.12b\src\ff.c</FilePath>
             </File>
             <File>
               <FileName>ccsbcs.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\FatFs\option\ccsbcs.c</FilePath>
+              <FilePath>..\..\FatFs R0.12b\src\option\ccsbcs.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -979,6 +979,11 @@
               <FileType>5</FileType>
               <FilePath>..\src\readme.txt</FilePath>
             </File>
+            <File>
+              <FileName>Pfm8Discovery.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\..\..\..\F7lib\MDK-ARM\STM327x6G-EVAL_USBD-FS\Pfm8Discovery.lib</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
@@ -992,7 +997,7 @@
         <TargetCommonOption>
           <Device>STM32F205VGTx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.6.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.2.2.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IRAM(0x20000000,0x20000) IROM(0x08000000,0x100000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -1311,7 +1316,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__DISC4__,HSE_VALUE=8000000</Define>
               <Undefine></Undefine>
-              <IncludePath>..\inc;..\inc\app;..\inc\usbd_msc;..\inc\usbd_cdc;..\inc\usbh_msc;..\src\wifi;..\..\..\Libraries\CMSIS\Include;..\..\..\Libraries\CMSIS\Device\ST\STM32F2xx\Include;..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\inc;..\..\..\Libraries\STM32_USB_OTG_Driver\inc;..\..\..\Libraries\STM32_USB_Device_Library\Core\inc;..\..\..\Libraries\STM32_USB_HOST_Library\Core\inc;..\..\..\Libraries\STM32_USB_Host_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\cdc\inc;..\..\FatFs;..\..\..\Utilities\STM32F4-Discovery</IncludePath>
+              <IncludePath>..\inc;..\inc\app;..\inc\usbd_msc;..\inc\usbd_cdc;..\inc\usbh_msc;..\src\wifi;..\..\..\Libraries\CMSIS\Include;..\..\..\Libraries\CMSIS\Device\ST\STM32F2xx\Include;..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\inc;..\..\..\Libraries\STM32_USB_OTG_Driver\inc;..\..\..\Libraries\STM32_USB_Device_Library\Core\inc;..\..\..\Libraries\STM32_USB_HOST_Library\Core\inc;..\..\..\Libraries\STM32_USB_Host_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\cdc\inc;..\..\FatFs R0.12b\src;..\..\..\Utilities\STM32F4-Discovery</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -1419,6 +1424,11 @@
               <FileType>1</FileType>
               <FilePath>..\src\app\led.c</FilePath>
             </File>
+            <File>
+              <FileName>stm32fxxx_it.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\app\stm32fxxx_it.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1433,11 +1443,6 @@
               <FileName>proc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\app\proc.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32fxxx_it.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\src\usb\stm32fxxx_it.c</FilePath>
             </File>
             <File>
               <FileName>retarget.c</FileName>
@@ -1764,12 +1769,12 @@
             <File>
               <FileName>ff.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\FatFs\ff.c</FilePath>
+              <FilePath>..\..\FatFs R0.12b\src\ff.c</FilePath>
             </File>
             <File>
               <FileName>ccsbcs.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\FatFs\option\ccsbcs.c</FilePath>
+              <FilePath>..\..\FatFs R0.12b\src\option\ccsbcs.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1956,6 +1961,11 @@
               <FileType>5</FileType>
               <FilePath>..\src\readme.txt</FilePath>
             </File>
+            <File>
+              <FileName>Pfm8Discovery.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\..\..\..\F7lib\MDK-ARM\STM327x6G-EVAL_USBD-FS\Pfm8Discovery.lib</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
@@ -2003,8 +2013,8 @@
           </TargetStatus>
           <OutputDirectory>.\output\</OutputDirectory>
           <OutputName>Pfm8Discovery</OutputName>
-          <CreateExecutable>0</CreateExecutable>
-          <CreateLib>1</CreateLib>
+          <CreateExecutable>1</CreateExecutable>
+          <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
           <DebugInformation>1</DebugInformation>
           <BrowseInformation>1</BrowseInformation>
@@ -2288,7 +2298,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__DISC7__,HSE_VALUE=25000000</Define>
               <Undefine></Undefine>
-              <IncludePath>..\inc;..\inc\app;..\inc\usbd_msc;..\inc\usbd_cdc;..\inc\usbh_msc;..\src\wifi;..\..\..\Libraries\CMSIS\Include;..\..\..\Libraries\CMSIS\Device\ST\STM32F2xx\Include;..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\inc;..\..\..\Libraries\STM32_USB_OTG_Driver\inc;..\..\..\Libraries\STM32_USB_Device_Library\Core\inc;..\..\..\Libraries\STM32_USB_HOST_Library\Core\inc;..\..\..\Libraries\STM32_USB_Host_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\cdc\inc;..\..\FatFs;..\..\..\Utilities\STM32F4-Discovery</IncludePath>
+              <IncludePath>..\inc;..\inc\app;..\inc\usbd_msc;..\inc\usbd_cdc;..\inc\usbh_msc;..\src\wifi;..\..\..\Libraries\CMSIS\Include;..\..\..\Libraries\CMSIS\Device\ST\STM32F2xx\Include;..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\inc;..\..\..\Libraries\STM32_USB_OTG_Driver\inc;..\..\..\Libraries\STM32_USB_Device_Library\Core\inc;..\..\..\Libraries\STM32_USB_HOST_Library\Core\inc;..\..\..\Libraries\STM32_USB_Host_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\cdc\inc;..\..\..\Utilities\STM32F4-Discovery;..\..\FatFs R0.12b\src</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -2396,6 +2406,11 @@
               <FileType>1</FileType>
               <FilePath>..\src\app\led.c</FilePath>
             </File>
+            <File>
+              <FileName>stm32fxxx_it.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\app\stm32fxxx_it.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2476,11 +2491,6 @@
               <FileName>proc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\app\proc.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32fxxx_it.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\src\usb\stm32fxxx_it.c</FilePath>
             </File>
             <File>
               <FileName>retarget.c</FileName>
@@ -3269,12 +3279,12 @@
             <File>
               <FileName>ff.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\FatFs\ff.c</FilePath>
+              <FilePath>..\..\FatFs R0.12b\src\ff.c</FilePath>
             </File>
             <File>
               <FileName>ccsbcs.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\FatFs\option\ccsbcs.c</FilePath>
+              <FilePath>..\..\FatFs R0.12b\src\option\ccsbcs.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -3526,6 +3536,11 @@
               <FileName>readme.txt</FileName>
               <FileType>5</FileType>
               <FilePath>..\src\readme.txt</FilePath>
+            </File>
+            <File>
+              <FileName>Pfm8Discovery.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\..\..\..\F7lib\MDK-ARM\STM327x6G-EVAL_USBD-FS\Pfm8Discovery.lib</FilePath>
             </File>
           </Files>
         </Group>

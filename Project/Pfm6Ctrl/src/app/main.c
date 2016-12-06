@@ -13,7 +13,7 @@
 * @{
 */
 #include	"pfm.h"
-int				main(void) {
+int				mainnn(void) {
 					App_Init();
 					while(1)
 						_proc_loop();

@@ -25,14 +25,12 @@
   * limitations under the License.
   *
   ******************************************************************************
-  */ 
-
+  */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32fxxx_it.h"
 #include "usb_core.h"
 #include "usbd_core.h"
 #include "usb_conf.h"
-#include "usb_hcd_int.h"
 #include "pfm.h"
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,14 +38,11 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 extern USB_OTG_CORE_HANDLE  USB_OTG_Core;
+extern uint32_t USBD_OTG_ISR_Handler (USB_OTG_CORE_HANDLE *);
+extern uint32_t USBH_OTG_ISR_Handler (USB_OTG_CORE_HANDLE *);
+extern void __OTG_FS_IRQHandler(void);
 
 /* Private function prototypes -----------------------------------------------*/
-extern uint32_t USBD_OTG_ISR_Handler (USB_OTG_CORE_HANDLE *pdev);
-
-#ifdef USB_OTG_HS_DEDICATED_EP1_ENABLED 
-extern uint32_t USBD_OTG_EP1IN_ISR_Handler (USB_OTG_CORE_HANDLE *pdev);
-extern uint32_t USBD_OTG_EP1OUT_ISR_Handler (USB_OTG_CORE_HANDLE *pdev);
-#endif
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -148,19 +143,13 @@ void PendSV_Handler(void)
   */
 volatile int	__time__;
 void SysTick_Handler(void) {
+#if defined (__DISC7__)
+extern 
+	void HAL_IncTick(void);
+	HAL_IncTick();
+#endif
 	++__time__;
 }
-/**
-  * @brief  This function handles OTG_HS Handler.
-  * @param  None
-  * @retval None
-  */
-#ifdef USE_USB_OTG_HS  
-void OTG_HS_IRQHandler(void)
-{
-  USBD_OTG_ISR_Handler (&USB_OTG_dev);
-}
-#endif
 
 /**
   * @brief  OTG_FS_IRQHandler
@@ -170,12 +159,11 @@ void OTG_HS_IRQHandler(void)
   * @retval None
   */
 
-#ifdef USE_USB_OTG_FS
 void OTG_FS_IRQHandler(void)
-#else
-void OTG_HS_IRQHandler(void)
-#endif
 {
+#if defined (__DISC7__)
+	void __OTG_FS_IRQHandler(void);
+#else	
   if (USB_OTG_IsHostMode(&USB_OTG_Core)) /* ensure that we are in device mode */
   {
     USBH_OTG_ISR_Handler(&USB_OTG_Core);
@@ -184,57 +172,6 @@ void OTG_HS_IRQHandler(void)
   {
     USBD_OTG_ISR_Handler(&USB_OTG_Core);
   }
-  
-}
-
-
-#ifdef USB_OTG_HS_DEDICATED_EP1_ENABLED 
-/**
-  * @brief  This function handles EP1_IN Handler.
-  * @param  None
-  * @retval None
-  */
-void OTG_HS_EP1_IN_IRQHandler(void)
-{
-  USBD_OTG_EP1IN_ISR_Handler (&USB_OTG_dev);
-}
-
-/**
-  * @brief  This function handles EP1_OUT Handler.
-  * @param  None
-  * @retval None
-  */
-void OTG_HS_EP1_OUT_IRQHandler(void)
-{
-  USBD_OTG_EP1OUT_ISR_Handler (&USB_OTG_dev);
-}
 #endif
-
-#ifndef USE_STM3210C_EVAL  
-/**
-  * @brief  This function handles SDIO global interrupt request.
-  * @param  None
-  * @retval None
-  */
-void SDIO_IRQHandler(void)
-{
 }
-#endif
-
-/******************************************************************************/
-/*                 STM32Fxxx Peripherals Interrupt Handlers                   */
-/*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
-/*  available peripheral interrupt handler's name please refer to the startup */
-/*  file (startup_stm32fxxx.s).                                               */
-/******************************************************************************/
-
-/**
-  * @brief  This function handles PPP interrupt request.
-  * @param  None
-  * @retval None
-  */
-/*void PPP_IRQHandler(void)
-{
-}*/
-
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

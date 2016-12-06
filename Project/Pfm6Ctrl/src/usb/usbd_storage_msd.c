@@ -57,6 +57,13 @@
 /** @defgroup STORAGE_Private_Defines
   * @{
   */ 
+int8_t	STORAGE_Init (uint8_t);
+int8_t	STORAGE_GetCapacity (uint8_t, uint32_t *, uint32_t *);
+int8_t	STORAGE_IsReady (uint8_t);
+int8_t	STORAGE_IsWriteProtected (uint8_t);
+int8_t	STORAGE_Read (uint8_t, uint8_t *, uint32_t, uint16_t);
+int8_t	STORAGE_Write (uint8_t, uint8_t *, uint32_t, uint16_t);
+int8_t	STORAGE_GetMaxLun (void);
 
 #define STORAGE_LUN_NBR                  2
 /**

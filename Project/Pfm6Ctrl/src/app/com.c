@@ -30,7 +30,7 @@ int			DecodeMinus(char *c) {
 //__________________________________________________usb host/file/serial_____
 				case 'u':
 				if(strscan(c,cc,' ')==2) {
-					Initialize_host_msc();										// reset host
+//					Initialize_host_msc();										// reset host
 					_wait(200,_proc_loop);
 					switch(*cc[1]) {
 						case 'h':
@@ -76,6 +76,7 @@ int			DecodeMinus(char *c) {
 					Watchdog_init(300);
 				}
 				break;
+				
 //__________________________________________________formatting flash drive___
 				case 'F':
 					if(strscan(c,cc,' ')<2)
@@ -89,9 +90,10 @@ FATFS				fs_usb;
 								m=fgetc(&__stdin);
 							} while(m==-1);
 							if(m == 'y') {
-								f_mount(FSDRIVE_USB,&fs_usb);
-								f_mkfs(FSDRIVE_USB,1,4096);
-								f_mount(FSDRIVE_USB,NULL);
+int							wbuf[SECTOR_SIZE];
+								f_mount(&fs_usb,FS_USB,1);
+								f_mkfs(FS_USB,FM_ANY,0,wbuf,SECTOR_SIZE*sizeof(int));
+								f_mount(NULL,FS_USB,1);
 							}
 							break;
 
@@ -103,6 +105,7 @@ FATFS				fs_usb;
 								m=fgetc(&__stdin);
 							} while(m==-1);
 							if(m == 'y') {
+int							wbuf[SECTOR_SIZE];
 FATFS						fs_cpu;				
 								__print(" erasing ");
 								for(n=0; n<PAGE_COUNT; ++n)
@@ -110,9 +113,9 @@ FATFS						fs_cpu;
 										__print(".");
 									else
 										__print("?");
-								f_mount(FSDRIVE_CPU,&fs_cpu);
-								f_mkfs(FSDRIVE_CPU,1,4096);
-								f_mount(FSDRIVE_CPU,NULL);
+								f_mount(&fs_cpu,FS_CPU,1);
+								f_mkfs(FS_CPU,FM_ANY,0,wbuf,SECTOR_SIZE*sizeof(int));
+								f_mount(NULL,FS_CPU,1);
 							}
 							break;
 							
@@ -450,9 +453,9 @@ char			*q,*qq;
 					while(1) {
 						if(f_readdir(dir,fno) != FR_OK || !dir->sect)
 							return NULL;
-						if(dir->lfn_idx != (WORD)-1)
-							q=qq=fno->lfname;
-						else
+//						if(dir->lfn_idx != (WORD)-1)
+//							q=qq=fno->lfname;
+//						else
 							q=qq=fno->fname;
 						while(*q) {
 							if(*p == *q) {
@@ -479,20 +482,16 @@ int				DecodeFs(char *c) {
 
 static 		DIR		dir;
 static 		FATFS	fatfs;
-	
-					TCHAR lfn[_MAX_LFN + 1];									// long filename support
-					FILINFO	fno;
-
-					fno.lfname = lfn;
-					fno.lfsize = sizeof lfn;
+FILINFO		fno;
+TCHAR			buf[128];
 
 					if(!c) {
 						__print("\r\n");
-						if(f_getcwd(lfn,_MAX_LFN)==FR_OK && f_opendir(&dir,lfn)==FR_OK) {
-							if(lfn[strlen(lfn)-1]=='/')
-								__print("%s",lfn);
+						if(f_getcwd(buf,_MAX_LFN)==FR_OK && f_opendir(&dir,buf)==FR_OK) {
+							if(buf[strlen(buf)-1]=='/')
+								__print("%s",buf);
 							else
-								__print("%s/",lfn);
+								__print("%s/",buf);
 						} else
 							__print("?:/"); 		
 					} else if(*c) {
@@ -500,11 +499,11 @@ static 		FATFS	fatfs;
 						int n=strscan(c,sc,' ');
 						int len=strlen(sc[0]);
 //______________________________________________________________________________________
-						if(!(strncmp("0",sc[0],len) && strncmp("1",sc[0],len))) {
-							if(f_chdrive(atoi(sc[0]))!=FR_OK ||
-								f_mount(atoi(sc[0]),&fatfs)!=FR_OK ||
-									f_getcwd(lfn,_MAX_LFN)!=FR_OK ||
-										f_opendir(&dir,lfn)!=FR_OK)
+						if(!(strncmp("0:",sc[0],len) && strncmp("1:",sc[0],len))) {
+							if(f_chdrive(c)!=FR_OK ||
+								f_mount(&fatfs,c,1)!=FR_OK ||
+									f_getcwd(buf,_MAX_LFN)!=FR_OK ||
+										f_opendir(&dir,buf)!=FR_OK)
 											return _PARSE_ERR_SYNTAX;
 							__stdin.io->arg.parse=DecodeFs;
 						}
@@ -636,9 +635,9 @@ static 		FATFS	fatfs;
 								f_readdir(&dir,&fno);
 								if(!dir.sect)
 									break;
-								if(dir.lfn_idx != (WORD)-1) {
-									__print("\r\n%-16s",fno.lfname);
-								} else
+//								if(dir.lfn_idx != (WORD)-1) {
+//									__print("\r\n%-16s",fno.lfname);
+//								} else
 									__print("\r\n%-16s",fno.fname);
 								if (fno.fattrib & AM_DIR)
 									__print("/");
@@ -1187,8 +1186,9 @@ int			u=0,umax=0,umin=0;
 				case '=':
 					return DecodeEq(++c);
 //______________________________________________________________________________________
-				case ':':
-					return DecodeFs(++c);
+				case '0':
+				case '1':
+					return DecodeFs(c);
 //______________________________________________________________________________________
 				default:
 					return _PARSE_ERR_SYNTAX;
@@ -1284,30 +1284,30 @@ TCHAR				*t;
 static
 int					state=0;
 
-#if _USE_LFN
-static char lfn[_MAX_LFN + 1];   /* Buffer to store the LFN */
-fno.lfname = lfn;
-fno.lfsize = sizeof lfn;
-#endif
+//#if _USE_LFN
+//static char lfn[_MAX_LFN + 1];   /* Buffer to store the LFN */
+//fno.lfname = lfn;
+//fno.lfsize = sizeof lfn;
+//#endif
 
 						if(state==0 && call==0) {
 							++state;
 							Watchdog_init(4000);
-							fno.lfname = lfn;																								//	set long filename buffer 
-							fno.lfsize = sizeof lfn;
+//							fno.lfname = lfn;																							//	set long filename buffer 
+//							fno.lfsize = sizeof lfn;
 							_RED2(0);_GREEN2(0);_BLUE2(0);_YELLOW2(0);
-							if(f_mount(FSDRIVE_USB,&fs0)==FR_OK)														// mount usb 
-								if(f_mount(FSDRIVE_CPU,&fs1)==FR_OK)													// mount flash
-									if(f_chdrive(FSDRIVE_USB)== FR_OK)													// go to usb drive
+							if(f_mount(&fs0,FS_USB,1)==FR_OK)																// mount usb 
+								if(f_mount(&fs1,FS_CPU,1)==FR_OK)															// mount flash
+									if(f_chdrive(FS_USB)== FR_OK)																// go to usb drive
 										if(f_chdir("/sync")==FR_OK)																// goto /sync directory
-											if(f_opendir(&dir,lfn)==FR_OK) {												// & open it !
+											if(f_opendir(&dir,fno.fname)==FR_OK) {												// & open it !
 												while(f_readdir(&dir,&fno)==FR_OK && dir.sect) {			// scan the files, if end, exit
 													if (fno.fattrib & AM_DIR)														// skip if it is a subdirectory 
 														continue;
-													t = *fno.lfname ? fno.lfname : fno.fname;						// check for long filenames
+													t = *fno.fname ? fno.fname : fno.fname;						// check for long filenames
 													
-													if(f_chdrive(FSDRIVE_USB)== FR_OK && f_open(&f0,t,FA_OPEN_EXISTING | FA_READ)!=FR_OK) continue;
-													if(f_chdrive(FSDRIVE_CPU)== FR_OK && f_open(&f1,t,FA_CREATE_ALWAYS | FA_WRITE)!=FR_OK) continue;
+													if(f_chdrive(FS_USB)== FR_OK && f_open(&f0,t,FA_OPEN_EXISTING | FA_READ)!=FR_OK) continue;
+													if(f_chdrive(FS_CPU)== FR_OK && f_open(&f1,t,FA_CREATE_ALWAYS | FA_WRITE)!=FR_OK) continue;
 
 													for (;;) {
 														fr = f_read(&f0, buffer, sizeof buffer, &br);			/* Read a chunk of source file */
@@ -1320,13 +1320,14 @@ fno.lfsize = sizeof lfn;
 												f_close(&f0);																					// close both files
 												f_close(&f1);	
 												}
-											f_mount(FSDRIVE_USB,NULL);															// dismount both drives
-											f_mount(FSDRIVE_CPU,&fs1);
+											f_mount(NULL,FS_USB,1);																	// dismount both drives
+											f_mount(NULL,FS_CPU,1);
 											}
-											if(state>1)
+											if(state>1) {
 												_YELLOW2(1000);
-											else
+											} else {
 												_RED2(1000);
+											}
 						}
 						
 						if(call==EOF) {

@@ -31,15 +31,6 @@
 #define					_MAX_BURST		(10*_mS)
 #define					__CAN__				CAN2
 #define					__FILT_BASE__	14
-
-#if defined  (__PFM6__) || defined  (__DISC4__)
-	#define					FATFS_SECTOR	FLASH_Sector_6
-#elif defined  (__DISC7__)
-	#define					FATFS_SECTOR	FLASH_Sector_5
-#else
-	*** error, undefined HW
-#endif
-#define					FATFS_ADDRESS	0x8040000
 //______________________________________________________
 #define					_mS						(1000*_uS)
 #define					_PWM_RATE_HI	(10*_uS)
@@ -162,17 +153,15 @@ typedef					enum
 										int primask=__get_PRIMASK();	\
 										__disable_irq();							\
 										p->events |= (1<<(a));				\
-										if(!primask)									\
-											__enable_irq();							\
-									} while(0)											\
+										__set_PRIMASK(primask);				\
+									} while(0)
 
 	#define					_CLEAR_EVENT(p,a)		do {				\
 										int primask=__get_PRIMASK();	\
 										__disable_irq();							\
 										p->events &= ~(1<<(a));				\
-										if(!primask)									\
-											__enable_irq();							\
-									} while(0)											\
+										__set_PRIMASK(primask);				\
+									} while(0)
 
 	#define					_MODE(p,a)					(p->mode & (1<<(a)))
 
@@ -180,16 +169,14 @@ typedef					enum
 										int primask=__get_PRIMASK();	\
 										__disable_irq();							\
 										p->mode |= (1<<(a));					\
-										if(!primask)									\
-											__enable_irq();							\
-									} while(0)											\
+										__set_PRIMASK(primask);				\
+									} while(0)
 
 	#define					_CLEAR_MODE(p,a)		do {				\
 										int primask=__get_PRIMASK();	\
 										__disable_irq();							\
 										p->mode &= ~(1<<(a));					\
-										if(!primask)									\
-											__enable_irq();							\
+										__set_PRIMASK(primask);				\
 									} while(0)					
 #else
 	*** error, undefined HW
@@ -420,11 +407,6 @@ void 						USBD_Storage_Init(void);
 #define					_READ_RATE						0xFE3A
 #define					_STATUS_WORD 					0x79
 
-typedef enum		{
-								FSDRIVE_CPU=0,
-								FSDRIVE_USB=1
-} _fsdrive;
-
 int							FLASH_Program(uint32_t, uint32_t); 
 int							FLASH_Erase(uint32_t);
 	
@@ -443,8 +425,7 @@ void						SysTick_init(void),
 								Reset_I2C(_i2c *),
 								Initialize_LED(char *[], int),
 								Initialize_TIM(void),
-								Initialize_NVIC(void),
-								Cfg(_fsdrive, char *);
+								Initialize_NVIC(void);
 										
 _io 						*Initialize_USART(int),
 								*Initialize_CAN(int);
