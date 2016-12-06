@@ -55,7 +55,7 @@ DRESULT disk_read (
                    BYTE drv,			/* Physical drive number (0) */
                    BYTE *buff,		/* Pointer to the data buffer to store read data */
                    DWORD sector,	/* Start sector number (LBA) */
-                   UINT count			/* Sector count (1..255) */
+                   BYTE count			/* Sector count (1..255) */
                   )
 {
   BYTE status = USBH_MSC_OK;  
@@ -90,7 +90,7 @@ DRESULT disk_write (
                     BYTE drv,					/* Physical drive number (0) */
                     const BYTE *buff,	/* Pointer to the data to be written */
                     DWORD sector,			/* Start sector number (LBA) */
-                    UINT count				/* Sector count (1..255) */
+                    BYTE count				/* Sector count (1..255) */
                    )
 {
   BYTE status = USBH_MSC_OK;

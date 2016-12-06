@@ -15,7 +15,7 @@
         <TargetCommonOption>
           <Device>STM32F205VG</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.6.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.2.2.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IROM(0x08000000,0x100000) IRAM(0x20000000,0x20000) CPUTYPE("Cortex-M3") CLOCK(120000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -770,14 +770,14 @@
           <GroupName>STM32F2xx</GroupName>
           <Files>
             <File>
-              <FileName>startup_stm32f2xx.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\..\..\Libraries\CMSIS\Device\ST\STM32F2xx\Source\Templates\arm\startup_stm32f2xx.s</FilePath>
-            </File>
-            <File>
               <FileName>system_stm32f2xx.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\system_stm32f2xx.c</FilePath>
+            </File>
+            <File>
+              <FileName>startup_stm32f2xx.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\src\startup_stm32f2xx.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -1336,7 +1336,7 @@
         <TargetCommonOption>
           <Device>STM32F207VG</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.6.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.2.2.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IROM(0x08000000,0x100000) IRAM(0x20000000,0x20000) CPUTYPE("Cortex-M3") CLOCK(120000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -2091,14 +2091,14 @@
           <GroupName>STM32F2xx</GroupName>
           <Files>
             <File>
-              <FileName>startup_stm32f2xx.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\..\..\Libraries\CMSIS\Device\ST\STM32F2xx\Source\Templates\arm\startup_stm32f2xx.s</FilePath>
-            </File>
-            <File>
               <FileName>system_stm32f2xx.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\system_stm32f2xx.c</FilePath>
+            </File>
+            <File>
+              <FileName>startup_stm32f2xx.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\src\startup_stm32f2xx.s</FilePath>
             </File>
           </Files>
         </Group>

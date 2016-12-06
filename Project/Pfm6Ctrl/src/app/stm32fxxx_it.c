@@ -162,7 +162,7 @@ extern
 void OTG_FS_IRQHandler(void)
 {
 #if defined (__DISC7__)
-	void __OTG_FS_IRQHandler(void);
+	__OTG_FS_IRQHandler();
 #else	
   if (USB_OTG_IsHostMode(&USB_OTG_Core)) /* ensure that we are in device mode */
   {
