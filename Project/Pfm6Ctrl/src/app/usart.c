@@ -30,21 +30,21 @@ _io	*__com0, *__com1, *__dbug;
 * Output         : None
 * Return         : None
 *******************************************************************************/
-#define USART1_DR_Base  USART1_BASE+4
 #define RxBufferSize		256
 #define TxBufferSize		256
 /* Private variables ---------------------------------------------------------*/
 USART_InitTypeDef USART_InitStructure;
+#if  defined (__PFM6__)
 void DMA_Configuration(_io *io)
-{
+{	
 	DMA_InitTypeDef DMA_InitStructure;
 	DMA_StructInit(&DMA_InitStructure);
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
 
-/*DMA Channel4 USART1 TX*/
+/*DMA2 channel4, stream7  USART1 TX*/
 	DMA_DeInit(DMA2_Stream7);
 	DMA_InitStructure.DMA_Channel = DMA_Channel_4;
-	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)USART1_DR_Base;
+	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)USART1_BASE+4;
 	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)(io->tx->_buf);
 	DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
 	DMA_InitStructure.DMA_BufferSize = 0;
@@ -55,18 +55,16 @@ void DMA_Configuration(_io *io)
 	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
 	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
 	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-//	DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Enable;
-//	DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_HalfFull;
 	DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
 	DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
 
 	DMA_Init(DMA2_Stream7, &DMA_InitStructure);
 	DMA_Cmd(DMA2_Stream7, ENABLE);
 
-/*DMA Channel4 USART1 RX*/
+/*DMA2 channel4, stream2 USART1 RX*/
 	DMA_DeInit(DMA2_Stream2);
 	DMA_InitStructure.DMA_Channel = DMA_Channel_4;
-	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)USART1_DR_Base;
+	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)USART1_BASE+4;
 	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)(io->rx->_buf);
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
 	DMA_InitStructure.DMA_BufferSize = RxBufferSize;
@@ -76,18 +74,6 @@ void DMA_Configuration(_io *io)
 	DMA_Cmd(DMA2_Stream2, ENABLE);
 
 	USART_DMACmd(USART1, USART_DMAReq_Rx | USART_DMAReq_Tx, ENABLE);
-}
-//______________________________________________________________________________________
-int	__getDMA(_buffer *rx) {
-int	i=0;
-	if(DMA2_Stream2->NDTR)
-		rx->_push=&(rx->_buf[rx->size - DMA2_Stream2->NDTR]);
-	else
-		rx->_push=rx->_buf;
-	if(_buffer_pull(rx,&i,1))
-		return i;
-	else
-		return EOF;
 }
 //______________________________________________________________________________________
 int	__putDMA(_buffer *tx, int	c) {
@@ -111,6 +97,96 @@ static
 	return(c);
 }
 //______________________________________________________________________________________
+int	__getDMA(_buffer *rx) {
+int	i=0;
+	if(DMA2_Stream2->NDTR)
+		rx->_push=&(rx->_buf[rx->size - DMA2_Stream2->NDTR]);
+	else
+		rx->_push=rx->_buf;
+	if(_buffer_pull(rx,&i,1))
+		return i;
+	else
+		return EOF;
+}
+#elif defined (__DISC4__)	|| defined (__DISC7__)
+//______________________________________________________________________________________
+void DMA_Configuration(_io *io)
+{	
+	DMA_InitTypeDef DMA_InitStructure;
+	DMA_StructInit(&DMA_InitStructure);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
+
+/*DMA1 channel4, stream3 USART1 TX*/
+	DMA_DeInit(DMA1_Stream3);
+	DMA_InitStructure.DMA_Channel = DMA_Channel_4;
+	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)USART3_BASE+4;
+	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)(io->tx->_buf);
+	DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
+	DMA_InitStructure.DMA_BufferSize = 0;
+	DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
+
+	DMA_InitStructure.DMA_Priority = DMA_Priority_High;
+	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+	DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
+	DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+
+	DMA_Init(DMA1_Stream3, &DMA_InitStructure);
+	DMA_Cmd(DMA1_Stream3, ENABLE);
+
+/*DMA1 channel4, stream1 USART1 RX*/
+	DMA_DeInit(DMA1_Stream1);
+	DMA_InitStructure.DMA_Channel = DMA_Channel_4;
+	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)USART3_BASE+4;
+	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)(io->rx->_buf);
+	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
+	DMA_InitStructure.DMA_BufferSize = RxBufferSize;
+	DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
+
+	DMA_Init(DMA1_Stream1, &DMA_InitStructure);
+	DMA_Cmd(DMA1_Stream1, ENABLE);
+
+	USART_DMACmd(USART3, USART_DMAReq_Rx | USART_DMAReq_Tx, ENABLE);
+}
+//______________________________________________________________________________________
+int	__putDMA(_buffer *tx, int	c) {
+static
+	int n=0;
+	if(DMA1_Stream3->NDTR==0)																					// end of buffer reached
+		n=0;																														// reset static index
+	if(n == TxBufferSize-1)																						// buffer full ?
+		return(EOF);	
+	
+	DMA1_Stream3->CR &= ~0x00000001;																	// stream 3 off
+	while(DMA1_Stream3->CR & 0x00000001);															// wait for HW
+
+	DMA1_Stream3->M0AR=(uint32_t)(&tx->_buf[n-DMA1_Stream3->NDTR]);		// set DMA pointer to new character
+	DMA1_Stream3->NDTR++;																							// increase DMA counter
+	tx->_buf[n++]=c;																									// enter new character
+	
+	DMA1->LIFCR = 0x0F400000;																					// clear all flags
+	DMA1_Stream3->CR |= 0x00000001;																		// stream 3 on
+	return(c);
+}
+//______________________________________________________________________________________
+int	__getDMA(_buffer *rx) {
+int	i=0;
+	if(DMA1_Stream1->NDTR)
+		rx->_push=&(rx->_buf[rx->size - DMA1_Stream1->NDTR]);
+	else
+		rx->_push=rx->_buf;
+	if(_buffer_pull(rx,&i,1))
+		return i;
+	else
+		return EOF;
+}
+#else
+	#### error, no HW defined
+#endif
+
+//______________________________________________________________________________________
 _io *Initialize_USART(int speed) {
 
 USART_InitTypeDef 			USART_InitStructure;
@@ -118,6 +194,7 @@ USART_ClockInitTypeDef  USART_ClockInitStructure;
 GPIO_InitTypeDef				GPIO_InitStructure;
 _io 										*io;
 #if  defined (__PFM6__)
+// serial to usart1
 	GPIO_StructInit(&GPIO_InitStructure);
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
  	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -130,26 +207,7 @@ _io 										*io;
 
  	GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_USART1);		
  	GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_USART1);		
-#elif defined (__DISC4__)	|| defined (__DISC7__)
-	GPIO_StructInit(&GPIO_InitStructure);
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
- 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
- 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-
- 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_USART1);		
- 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource7, GPIO_AF_USART1);		
-#else
-	#### error, no HW defined
-#endif
-	io=_io_init(RxBufferSize,TxBufferSize);	// initialize buffer
-	io->get= __getDMA;	
-	io->put= __putDMA;
-
+	
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
  
 	USART_ClockInitStructure.USART_Clock = USART_Clock_Disable;
@@ -165,11 +223,48 @@ _io 										*io;
 	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 	USART_Init(USART1, &USART_InitStructure);
-
-	/* Enable USART1 */
-	DMA_Configuration(io);
 	USART_Cmd(USART1, ENABLE);
+
+#elif defined (__DISC4__)	|| defined (__DISC7__)
+//serial to usart3
+GPIO_StructInit(&GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+ 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+ 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+ 	GPIO_PinAFConfig(GPIOC, GPIO_PinSource10, GPIO_AF_USART3);		
+ 	GPIO_PinAFConfig(GPIOC, GPIO_PinSource11, GPIO_AF_USART3);		
+	
+	RCC_APB2PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
+ 
+	USART_ClockInitStructure.USART_Clock = USART_Clock_Disable;
+	USART_ClockInitStructure.USART_CPOL = USART_CPOL_Low;
+	USART_ClockInitStructure.USART_CPHA = USART_CPHA_2Edge;
+	USART_ClockInitStructure.USART_LastBit = USART_LastBit_Disable;
+	USART_ClockInit(USART3, &USART_ClockInitStructure);
+ 
+	USART_InitStructure.USART_BaudRate = speed;
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;
+	USART_InitStructure.USART_Parity = USART_Parity_No;
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+	USART_Init(USART3, &USART_InitStructure);
+	USART_Cmd(USART3, ENABLE);
+
+#else
+	#### error, no HW defined
+#endif
+
 //	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);		
+	io=_io_init(RxBufferSize,TxBufferSize);	// initialize buffer
+	io->get= __getDMA;	
+	io->put= __putDMA;
+	DMA_Configuration(io);
 	return io;
 }
 //______________________________________________________________________________________

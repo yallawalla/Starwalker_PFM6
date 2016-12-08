@@ -96,8 +96,9 @@ int				i;
 						ADC3_buf[i].Up20=_p20V2AD(20)/8;
 					}
 					__can=Initialize_CAN(1);
+//					__com0=Initialize_USART(115200);		
 					
-					__com0=_io_init(8,8);	
+					__com0=_io_init(128,128);	
 					__com0->get=getITM;
 					__com0->put=putITM;
 }

@@ -14,7 +14,7 @@
         <TargetCommonOption>
           <Device>STM32F207VG</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.2.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.2.6.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IROM(0x08000000,0x100000) IRAM(0x20000000,0x20000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -559,11 +559,6 @@
               <FileType>4</FileType>
               <FilePath>..\..\Libraries\DSP-Lib\CMSIS\Lib\ARM\arm_cortexM3l_math.lib</FilePath>
             </File>
-            <File>
-              <FileName>usbh.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\usbh\usbh.lib</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -587,7 +582,7 @@
         <TargetCommonOption>
           <Device>STM32F207VG</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.2.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.2.6.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IROM(0x08000000,0x100000) IRAM(0x20000000,0x20000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -1132,11 +1127,6 @@
               <FileType>4</FileType>
               <FilePath>..\..\Libraries\DSP-Lib\CMSIS\Lib\ARM\arm_cortexM3l_math.lib</FilePath>
             </File>
-            <File>
-              <FileName>usbh.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\usbh\usbh.lib</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -1160,7 +1150,7 @@
         <TargetCommonOption>
           <Device>STM32F207VG</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.2.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.2.6.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IROM(0x08000000,0x100000) IRAM(0x20000000,0x20000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -1655,30 +1645,6 @@
               <FileName>arm_cortexM3l_math.lib</FileName>
               <FileType>4</FileType>
               <FilePath>..\..\Libraries\DSP-Lib\CMSIS\Lib\ARM\arm_cortexM3l_math.lib</FilePath>
-            </File>
-            <File>
-              <FileName>usbh.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\usbh\usbh.lib</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>2</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>0</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds/>
-              </FileOption>
             </File>
           </Files>
         </Group>
