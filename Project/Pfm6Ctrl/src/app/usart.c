@@ -78,24 +78,12 @@ void DMA_Configuration(_io *io)
 	USART_DMACmd(USART1, USART_DMAReq_Rx | USART_DMAReq_Tx, ENABLE);
 }
 //______________________________________________________________________________________
-#if defined (__DISC4__) || defined (__DISC7__)
-volatile int32_t 
-		ITM_RxBuffer=ITM_RXBUFFER_EMPTY; 
-#endif
-
 int	__getDMA(_buffer *rx) {
 int	i=0;
-#if defined (__DISC4__) || defined (__DISC7__)
-	if(ITM_CheckChar()) {
-		i=ITM_ReceiveChar();
-		_buffer_push(rx,&i,1);
-	}		
-#else
 	if(DMA2_Stream2->NDTR)
 		rx->_push=&(rx->_buf[rx->size - DMA2_Stream2->NDTR]);
 	else
 		rx->_push=rx->_buf;
-#endif
 	if(_buffer_pull(rx,&i,1))
 		return i;
 	else
@@ -103,9 +91,6 @@ int	i=0;
 }
 //______________________________________________________________________________________
 int	__putDMA(_buffer *tx, int	c) {
-#if defined (__DISC4__) || defined (__DISC7__)
-	return	ITM_SendChar(c);
-#else
 static
 	int n=0;
 
@@ -124,7 +109,6 @@ static
 	DMA2->HIFCR = 0x0F400000;																					// clear all flags
 	DMA2_Stream7->CR |= 0x00000001;																		// stream 7 on
 	return(c);
-#endif
 }
 //______________________________________________________________________________________
 _io *Initialize_USART(int speed) {

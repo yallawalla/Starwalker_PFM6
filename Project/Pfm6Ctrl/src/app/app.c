@@ -17,22 +17,35 @@
 #include 	<stdio.h>
 
 PFM				*pfm;
+
+#if defined (__DISC4__) || defined (__DISC7__)
+volatile int32_t  ITM_RxBuffer=ITM_RXBUFFER_EMPTY; 
+int	getITM(_buffer *p) {
+		if(ITM_CheckChar())
+			return ITM_ReceiveChar();
+		else
+			return EOF;
+		}		
+int	putITM(_buffer *p, int	c) {
+			return	ITM_SendChar(c);
+}
+#endif
 /*______________________________________________________________________________
 * Function Name : App_Init
 * Description   : Initialize PFM object
 * Input         : None
 * Output        : None
 * Return        : None
-*/
+*/	
 void 			App_Init(void) {
-RCC_AHB1PeriphClockCmd(
-					RCC_AHB1Periph_GPIOA |
-					RCC_AHB1Periph_GPIOB |
-					RCC_AHB1Periph_GPIOC | 
-					RCC_AHB1Periph_GPIOD | 
-					RCC_AHB1Periph_GPIOE |
-					RCC_AHB1Periph_GPIOF |
-					RCC_AHB1Periph_GPIOG, ENABLE);
+					RCC_AHB1PeriphClockCmd(
+						RCC_AHB1Periph_GPIOA |
+						RCC_AHB1Periph_GPIOB |
+						RCC_AHB1Periph_GPIOC | 
+						RCC_AHB1Periph_GPIOD | 
+						RCC_AHB1Periph_GPIOE |
+						RCC_AHB1Periph_GPIOF |
+						RCC_AHB1Periph_GPIOG, ENABLE);
 
 					pfm=calloc(1,sizeof(PFM));		
 	
@@ -46,8 +59,7 @@ RCC_AHB1PeriphClockCmd(
 					pfm->Burst.max[0]=pfm->Burst.max[1]=_I2AD(1000);
 					
 					pfm->Trigger.Period=1000;
-					pfm->Trigger.Count=1;
-					
+					pfm->Trigger.Count=1;	
 {
 	simmer	p;	
 					p.mode=_XLAP_QUAD;
@@ -66,16 +78,14 @@ RCC_AHB1PeriphClockCmd(
 					pfm->Pockels.trigger=0;
 
 					Initialize_NVIC();
-
-					__com0=Initialize_USART(921600);		
-					_proc_add((func *)ParseCom,__com0,"ParseCOM",0);
-
 					Initialize_ADC();
 					Initialize_TIM();
 //---------------------------------------------------------------------------------
 #if  			defined (__PFM6__)
 					__charger6=Initialize_I2C(0x58,50000);
 					__can=Initialize_CAN(0);
+					__com0=Initialize_USART(921600);		
+
 #elif defined (__DISC4__)	|| defined (__DISC7__)
 {
 int				i;
@@ -85,21 +95,25 @@ int				i;
 						ADC3_buf[i].Um5=_m5V2AD(-4)/8;
 						ADC3_buf[i].Up20=_p20V2AD(20)/8;
 					}
-					__can=Initialize_CAN(1);	
+					__can=Initialize_CAN(1);
+					
+					__com0=_io_init(8,8);	
+					__com0->get=getITM;
+					__com0->put=putITM;
 }
-
 #else
 	#### 		error, no HW defined
 #endif
 //---------------------------------------------------------------------------------
-					_proc_add((func *)ParseCanTx,pfm,"txCAN",0);
-					_proc_add((func *)ParseCanRx,pfm,"rxCAN",0);
-					_proc_add((func *)ProcessingEvents,pfm,"events",0);
-					_proc_add((func *)ProcessingStatus,pfm,"status",1);
-					_proc_add((func *)ProcessingCharger,pfm,"charger6",1);
+					_proc_add((func *)ParseCom,__com0,							"ParseCOM",0);
+					_proc_add((func *)ParseCanTx,pfm,								"txCAN",0);
+					_proc_add((func *)ParseCanRx,pfm,								"rxCAN",0);
+					_proc_add((func *)ProcessingEvents,pfm,					"events",0);
+					_proc_add((func *)ProcessingStatus,pfm,					"status",1);
+					_proc_add((func *)ProcessingCharger,pfm,				"charger6",1);
 #ifdef __PFM6__
-					_proc_add((func *)Watchdog,NULL,"watchdog",0);
-					_proc_add((func *)Lightshow,(void *)&__time__,"leds",0);
+					_proc_add((func *)Watchdog,NULL,								"watchdog",0);
+					_proc_add((func *)Lightshow,(void *)&__time__,	"leds",0);
 #endif
 //---------------------------------------------------------------------------------
 					SysTick_init();
@@ -122,7 +136,7 @@ int				i;
 					{} else
 						{}
 					RCC_ClearFlag();   	
-					ungets("@cfg.ini\r");
+					batch("cfg.ini");
 					_stdio(NULL);
 }
 /*______________________________________________________________________________

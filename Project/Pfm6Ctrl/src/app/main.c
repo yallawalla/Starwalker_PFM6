@@ -12,15 +12,9 @@
 * @brief PFM6 application group
 * @{
 */
-#ifdef __DISC7__
-void	F7_init(void);
-#endif
-
 #include	"pfm.h"
 int				main(void) {
-#ifdef __DISC7__
-					F7_init();
-#endif
+
 					App_Init();
 					while(1)
 						_proc_loop();
