@@ -17,19 +17,6 @@
 #include 	<stdio.h>
 
 PFM				*pfm;
-
-#if defined (__DISC4__) || defined (__DISC7__)
-volatile int32_t  ITM_RxBuffer=ITM_RXBUFFER_EMPTY; 
-int	getITM(_buffer *p) {
-		if(ITM_CheckChar())
-			return ITM_ReceiveChar();
-		else
-			return EOF;
-		}		
-int	putITM(_buffer *p, int	c) {
-			return	ITM_SendChar(c);
-}
-#endif
 /*______________________________________________________________________________
 * Function Name : App_Init
 * Description   : Initialize PFM object
@@ -98,8 +85,6 @@ int				i;
 					__can=Initialize_CAN(1);
 					
 					__com0=_io_init(128,128);	
-					__com0->get=getITM;
-					__com0->put=putITM;
 }
 #else
 	#### 		error, no HW defined
@@ -136,7 +121,7 @@ int				i;
 					{} else
 						{}
 					RCC_ClearFlag();   	
-					batch("cfg.ini");
+					ungets("@cfg.ini\r");
 					_stdio(NULL);
 }
 /*______________________________________________________________________________
