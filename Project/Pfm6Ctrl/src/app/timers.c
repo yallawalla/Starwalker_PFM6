@@ -44,27 +44,25 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		GPIO_StructInit(&GPIO_InitStructure);
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 		GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-#if defined (__DISC4__)
+// Usb Host VBUS pin
+#ifndef __DISC7__
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
 		GPIO_Init(GPIOC, &GPIO_InitStructure);
 		GPIO_SetBits(GPIOC,GPIO_Pin_0);
-#elif defined (__DISC7__)
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
-		GPIO_Init(GPIOD, &GPIO_InitStructure);
-		GPIO_SetBits(GPIOD,GPIO_Pin_5);
-#endif
-	
 		GPIO_StructInit(&GPIO_InitStructure);
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-
-		GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_TIM3);
-		GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_TIM3);
-
 		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
 		GPIO_Init(GPIOA, &GPIO_InitStructure);
+		GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_TIM3);
+		GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_TIM3);
+#else
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+		GPIO_Init(GPIOD, &GPIO_InitStructure);
+		GPIO_SetBits(GPIOD,GPIO_Pin_5);
+#endif
 // ________________________________________________________________________________
 // TRIGGER 1, TRIGGER 2
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;

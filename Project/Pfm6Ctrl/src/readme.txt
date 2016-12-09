@@ -545,8 +545,8 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 14.10.2016
 - __SWEEPS__
   - bug, app.c, Pfm_Command ina n=0 zakomentiran...
-  
-  
+
+
 17.10.2016, neodvisna kanala, ne dela .... !
 19.10.2016, neodvisna kanala, problem z locenima intervaloma meritve, se ne dela !!!
 21.10.2016, timer 1,8 interrupt koncno dela
@@ -560,5 +560,10 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 23.11.2016 bug v TriggerADC... argument p je lahko NULL in ga ne smes uporabljat v proceduri kot pointer na pfm objekt :):):)
 			>v 2.13 Nov 23 2016, <31584BBF>
 		
-25.11.2016 spremenjen trigger in timers.c, handler, Eack in TriggerADC uporabljajo skupno strukturo, eint se doloca glede na obratovalni rezim
+25.11.2016 Spremenjen trigger in timers.c, handler, Eack in TriggerADC uporabljajo skupno strukturo, eint se doloca glede na obratovalni rezim
+
+9.12.2016	ITM debug prenesen v App_Init. metodi getITM in putITM nadomestita orig. __get() in __put()
+			*** kanala za flash U in I sta spremenjena za test __DISC7__
+			*** TRGO za TIM8 koda je razlicna za stm32f4xx in stm32f7xxx
+			
 

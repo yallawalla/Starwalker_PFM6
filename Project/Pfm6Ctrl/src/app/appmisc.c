@@ -48,7 +48,7 @@ union	{
 							io=_stdio(io);
 							for(j=0; j<sizeof(_ADCDMA); ++j)
 								while(__stdout.io->put(__stdout.io->tx,_ADC.c[j])==EOF)
-									Watchdog();
+									_proc_loop();
 							io=_stdio(io);
 							_ADC.adc.U =0;
 							_ADC.adc.I =0;
