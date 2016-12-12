@@ -503,7 +503,7 @@ int		i=_VOUT_MODE;
 }
 /*******************************************************************************
 * Function Name : batch
-* Description   :	ADP1047 output voltage setup, using the default format
+* Description   :	
 * Input         :
 * Output        :
 * Return        :

@@ -67,13 +67,12 @@ void 			App_Init(void) {
 					Initialize_NVIC();
 					Initialize_ADC();
 					Initialize_TIM();
-//---------------------------------------------------------------------------------
-#if  			defined (__PFM6__)
+
 					__charger6=Initialize_I2C(0x58,50000);
 					__can=Initialize_CAN(0);
 					__com0=Initialize_USART(921600);		
 
-#elif defined (__DISC4__)	|| defined (__DISC7__)
+#if defined (__DISC4__)	|| defined (__DISC7__)
 {
 int				i;
 					for(i=0; i<ADC3_AVG; ++i) {
@@ -82,12 +81,7 @@ int				i;
 						ADC3_buf[i].Um5=_m5V2AD(-4)/8;
 						ADC3_buf[i].Up20=_p20V2AD(20)/8;
 					}
-					__can=Initialize_CAN(1);
-					
-					__com0=_io_init(128,128);	
 }
-#else
-	#### 		error, no HW defined
 #endif
 //---------------------------------------------------------------------------------
 					_proc_add((func *)ParseCom,__com0,							"ParseCOM",0);
@@ -242,12 +236,12 @@ static
 //
 					if(TIM_GetITStatus(TIM1, TIM_IT_Update)==RESET) { 
 //-------------------------------------------------------------------------------
-						if(_STATUS(pfm,PFM_STAT_SIMM1) && abs(ADC3_buf[0].HV - ADC1_simmer.U) < ADC3_buf[0].HV/8)
+						if(_STATUS(p,PFM_STAT_SIMM1) && abs(ADC3_buf[0].HV - ADC1_simmer.U) < ADC3_buf[0].HV/8)
 							_SET_ERROR(p,PFM_ERR_SIMM1);
 						else
 							_CLEAR_ERROR(p,PFM_ERR_SIMM1);
 //-------------------------------------------------------------------------------
-						if(_STATUS(pfm,PFM_STAT_SIMM2) && abs(ADC3_buf[0].HV - ADC2_simmer.U) < ADC3_buf[0].HV/8)
+						if(_STATUS(p,PFM_STAT_SIMM2) && abs(ADC3_buf[0].HV - ADC2_simmer.U) < ADC3_buf[0].HV/8)
 							_SET_ERROR(p,PFM_ERR_SIMM2);
 						else
 							_CLEAR_ERROR(p,PFM_ERR_SIMM2);
@@ -261,7 +255,7 @@ static
 					} else if(bounce && !--bounce)
 						PFM_status_send(p,k);
 //-------------------------------------------------------------------------------
-					if(_MODE(pfm,__TEST__) && !_MODE(pfm,_PULSE_INPROC) && !(__time__ % 100))
+					if(_MODE(p,__TEST__) && !_MODE(p,_PULSE_INPROC) && !(__time__ % 100))
 						if(_TIM.Hvref < p->HVref - p->HVref/15) {
 							_TIM.Hvref += _TIM.Icaps*400*4096/880/_TIM.Caps;
 							_YELLOW2(20);
@@ -340,7 +334,7 @@ int						i=_STATUS_WORD;
 							writeI2C(__charger6,(char *)&i,2);	
 						}		
 						if(ton==10)																			// load output voltage 10 ms prior to switch-on
-							SetChargerVoltage(_AD2HV(pfm->HVref));
+							SetChargerVoltage(_AD2HV(p->HVref));
 					}
 						
 					if(toff)
@@ -472,13 +466,13 @@ char			*q=(char *)rx.Data;
 								if(rx.DLC) {
 									if(__can->arg.io == NULL) {
 										__can->arg.io=_io_init(128,128);
-										_proc_add((func *)ParseCom,&__can->arg.io,"ParseCAN-IO",0);
+										_proc_add((func *)ParseCom,__can->arg.io,"ParseCAN-IO",0);
 									}
 									while(__can->arg.io->rx->size - _buffer_count(__can->arg.io->rx) < 8)
 										_wait(2,_proc_loop);
 									_buffer_push(__can->arg.io->rx,rx.Data,rx.DLC);
 								} else {
-									_proc_remove((func *)ParseCom,&__can->arg.io);
+									_proc_remove((func *)ParseCom,__can->arg.io);
 									__can->arg.io=_io_close(__can->arg.io);
 								}
 								break;

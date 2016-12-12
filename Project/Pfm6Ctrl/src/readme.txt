@@ -565,5 +565,10 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 9.12.2016	ITM debug prenesen v App_Init. metodi getITM in putITM nadomestita orig. __get() in __put()
 			*** kanala za flash U in I sta spremenjena za test __DISC7__
 			*** TRGO za TIM8 koda je razlicna za stm32f4xx in stm32f7xxx
-			
+10.12.2016	VcpDeInit bug.... arg. __com1 je bil klican z naslovom namesto z vsebino... ni blo za opazit, ker se ne klice 
+			v normalnem delovanju	
+			bug v CAN remote console, klic na _proc_add je imel v argumentu (io *)&__com namesto (io *)__com; ostanek od prejšnjega
+			nacina klicanja _proc_loop iz statatice strukture !!!
+			v App_Init ni vec posebej kodiranja za can in i2c inicializacijo na _DISC4/7. Konfiguracijo se nastavi 
+			iz konzole (-i in -can loop, zaradi unit testa)
 

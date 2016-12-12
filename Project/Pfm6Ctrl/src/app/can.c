@@ -94,7 +94,10 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 //					CAN_FilterInit(&CAN_FilterInitStructure);
 
 					CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
-					return(_io_init(100*sizeof(CanRxMsg),100*sizeof(CanTxMsg)));
+					if(__can)
+						return __can;
+					else
+						return(_io_init(100*sizeof(CanRxMsg),100*sizeof(CanTxMsg)));
 }
 /*******************************************************************************/
 void 			CAN1_TX_IRQHandler(void)

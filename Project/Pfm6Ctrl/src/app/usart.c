@@ -283,9 +283,9 @@ _buffer		*p=__stdin.io->gets;
 				p=__stdin.io->gets=_buffer_init(__stdin.io->rx->size);
 			switch(c) {
 				case EOF:		
+				case '\n':
 					break;
 				case '\r':
-				case '\n':
 					*p->_push = '\0';
 					p->_push=p->_pull=p->_buf;
 					return(p->_buf);

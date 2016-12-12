@@ -143,7 +143,7 @@ static uint16_t VCP_Init(void)
 static uint16_t VCP_DeInit(void)
 {
 					_io_close(__com1);
-					_proc_remove((func *)ParseCom,&__com1);
+					_proc_remove((func *)ParseCom,__com1);
 					return USBD_OK;
 }
 //_____________________________________________________________________________________
