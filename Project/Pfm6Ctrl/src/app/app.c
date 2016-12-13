@@ -211,12 +211,13 @@ int				error_image=0,
 						k+=ADC3_buf[i].HV2;
 					}
 					p->HV=j;
+					
 					p->HV2=k;
 					p->Up20 += (8*(ADC3_buf[0].Up20) - p->Up20)/8;
 					p->Um5  += (8*(ADC3_buf[0].Um5)  - p->Um5)/8;
 //-------------------------------------------------------------------------------			
 					p->Temp=IgbtTemp();
-					if(p->Temp > (fanTH+fanTH/2)/100)
+					if((p->Temp > (fanTH+fanTH/2)/100) || (p->Temp < -20))
 						_SET_ERROR(p,PFM_ERR_TEMP);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_TEMP);
@@ -722,6 +723,7 @@ int				PFM_status_send(PFM *p, int k) {
   * @retval : None
   *
   */
+void 			EXTI15_10_IRQHandler(void);
 int				PFM_command(PFM *p, int n) {
 static
 int				count=0,no=0;
@@ -758,16 +760,15 @@ int				count=0,no=0;
 						else
 							_SET_STATUS(p, no);																							// else set status as requested
 
+						if(!_STATUS(p,_PFM_CWBAR_STAT))
+							_SET_ERROR(p,PFM_ERR_PULSEENABLE);
+	
 						if(no & PFM_STAT_SIMM1)																						// activate triggers
 							_TRIGGER1_ON;
 						if(no & PFM_STAT_SIMM2)
 							_TRIGGER2_ON;						
+						SetSimmerRate(p,_PWM_RATE_LO);																		// set simmer
 						count=1000;																												// set trigger countdown
-						SetSimmerPw(p);																										// set Pwm
-						SetPwmTab(p);																											// adjust pulse tab
-//________________________________________________________________________________					
-						if(!(p->Error  & _CRITICAL_ERR_MASK))															// activate Igbt drivers if error register empty
-							EnableIgbt();
 //________________________________________________________________________________					
 					} else {
 						if(count && !--count) {

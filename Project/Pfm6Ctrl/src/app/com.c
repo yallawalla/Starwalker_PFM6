@@ -179,10 +179,12 @@ FATFS						fs_cpu;
 //__________________________________________________ simmer frequency __________________
 				case 's':
 					n=strscan(++c,cc,',');
-					if(n && atoi(cc[0])>=10)
-						SetSimmerRate(pfm,_uS*atoi(cc[0]));		
-					else
-						return(_PARSE_ERR_ILLEGAL);
+					if(!n)
+						return(_PARSE_ERR_MISSING);
+					if(atoi(cc[2])<10 || atoi(cc[2])>100)
+						return _PARSE_ERR_ILLEGAL;
+					_PWM_RATE_LO=atoi(cc[2])*_uS;
+					SetSimmerRate(pfm,_PWM_RATE_LO);		
 					break;
 //______________________________________________________________________________________
 				case '?':
@@ -655,8 +657,11 @@ int				n;
 						case 3:
 							pfm->Burst.Psimm[0]=atoi(cc[0])*_uS/1000;
 							pfm->Burst.Psimm[1]=atoi(cc[1])*_uS/1000;
+							if(atoi(cc[2])<10 || atoi(cc[2])>100)
+								return _PARSE_ERR_ILLEGAL;
 							_PWM_RATE_LO=atoi(cc[2])*_uS;
-							SetSimmerPw(pfm);
+//							SetSimmerPw(pfm);
+							SetSimmerRate(pfm,_PWM_RATE_LO);		
 							break;
 						default:
 							return _PARSE_ERR_SYNTAX;

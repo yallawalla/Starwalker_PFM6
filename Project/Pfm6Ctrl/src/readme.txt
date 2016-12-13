@@ -360,6 +360,19 @@ us		mA Er		mA Nd
 25		300			240
 20					380
 
+14.10.2014
+verzija 103
+
+>s(immer) aktivira spremembo takoj
+
+- pogoj _PFM_CWBAR_STAT v PfmCommand in forsiranje ugasanja simmerja v _SET_ERROR
+ ad.inf.	
+- crowbar deluje zgolj na flanko in slednje ni bilo po resetu
+- ce je pri prizganem simmerju pride do napake se slednji vzge sam od sebe, ko crowbar pobrise error status
+- interpret. temp sistema kot error, ce je manjsa od -20 (odtrgan senzor)
+- omejitev "trcece svetlo na 30 sec.
+- ponovno blokiranje driver error med triganjem
+
 
 >L 200000e0,000BEF42
 >L 200000e0,000BE998
@@ -367,3 +380,7 @@ us		mA Er		mA Nd
 >L 200000e0,000BD456
 
 U/Uo*4096*I/Io*4096
+
+TODO stabilizacija moci (Pref ?)
+
+

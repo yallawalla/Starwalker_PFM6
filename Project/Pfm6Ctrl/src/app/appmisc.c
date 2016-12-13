@@ -207,7 +207,7 @@ int		Uo=p->Burst.Pmax;
 					}
 				}
 			}
-//-------PAUSE----------------------			
+//------- fill seq. till end--------		
 			for(n=2*((p->Burst.Length*_uS - p->Burst.N*(to+too)*_uS)/_PWM_RATE_HI)-1;n>0;n -= 255,++t)	{
 				t->T1=t->T2=_K1*p->Burst.Pdelay;
 				t->T3=t->T4=_K2*p->Burst.Pdelay;

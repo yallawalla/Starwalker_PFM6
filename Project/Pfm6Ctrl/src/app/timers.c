@@ -362,20 +362,22 @@ void		TIM3_IRQHandler(void) {
 }
 /*******************************************************************************/
 /**
-  * @brief  This function handles External line 8 interrupt request (IGBT driver fault). Disables all PWM outputs
-	* sets _IGBT_FAULT error event and locks the fault indicator
+  * @brief  Igbt driver error ISR
+	* sets _IGBT_FAULT error, not active during triggering interval
   * @param  None
   * @retval None
   */
 void 		EXTI9_5_IRQHandler(void)
 {
 				EXTI_ClearITPendingBit(EXTI_Line8);
+				if(!_TRIGGER1 && !_TRIGGER2)
 					_SET_ERROR(pfm,PFM_ERR_DRVERR);
+				_YELLOW2(300);
 }
 /*******************************************************************************/
 /**
-  * @brief  This function handles External line 14 interrupt request (crowbar error)
-	* Disables all PWM outputs & sets PFM_ERR_PULSEENABLE error event
+  * @brief  Crowbar error interrupt
+	* sets PFM_ERR_PULSEENABLE error event
   * @param  None
   * @retval None
   */

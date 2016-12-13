@@ -20,7 +20,7 @@
 #include				"usb_conf.h"
 #include				"usbh_core.h"
 			          
-#define 				SW_version		102
+#define 				SW_version		103
 			          
 #if  						defined (__PFM6__)
 #define					__CAN__				CAN2
@@ -138,6 +138,8 @@ _io 								*io=_stdio(__dbug);																												\
 									if(a & _CRITICAL_ERR_MASK) {																								\
 										TIM_CtrlPWMOutputs(TIM1, DISABLE);																				\
 										TIM_CtrlPWMOutputs(TIM8, DISABLE);																				\
+										_CLEAR_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2);													\
+										SetSimmerRate(p,_PWM_RATE_LO);																						\
 									}																																						\
 								} while(0)
 
