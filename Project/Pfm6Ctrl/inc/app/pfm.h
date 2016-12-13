@@ -24,7 +24,7 @@
 
 //________SW version string_____________________________	
 
-#define 				SW_version		213		
+#define 				SW_version		666		
 
 //________global HW dependent defines___________________			
 #define					_uS						60

@@ -10,7 +10,7 @@ _proc	*p=malloc(sizeof(_proc));
 				p->t=__time__;
 				p->dt=dt;
 				if(!_proc_buf)
-					_proc_buf=_buffer_init(_PROC_BUFFER_SIZE*sizeof(_proc *));
+					_proc_buf=_buffer_init(_PROC_BUFFER_SIZE*sizeof(_proc));
 				_buffer_push(_proc_buf,&p,sizeof(_proc *));
 			}
 			return p;

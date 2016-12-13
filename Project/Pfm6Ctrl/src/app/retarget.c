@@ -23,12 +23,7 @@ FILE 		__stderr;
 #if defined (__DISC4__) || defined (__DISC7__)
 volatile int32_t  ITM_RxBuffer=ITM_RXBUFFER_EMPTY; 
 #endif
-//_________________________________________________________________________________
-_io			*_stdio(_io	*p) {
-_io			*io=__stdin.io;
-				__stdin.io=__stdout.io=p;
-				return(io);
-}
+
 //__________________________________________________________________________________
 int 		fputc(int c, FILE *f) {
 				if(f==stdout) {
