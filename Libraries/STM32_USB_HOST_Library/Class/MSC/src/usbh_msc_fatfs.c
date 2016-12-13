@@ -22,7 +22,7 @@ DSTATUS disk_initialize	(
             BYTE drv		/* Physical drive number (0) */
 						)
 {
-	if(drv==FSDRIVE_CPU)	return(STORAGE_Init(drv));
+	if(drv==0)	return(STORAGE_Init(drv));
   
   if(HCD_IsDeviceConnected(&USB_OTG_Core))
   {  
@@ -42,7 +42,7 @@ DSTATUS disk_status (
 					BYTE drv		/* Physical drive number (0) */
 					)
 {
-	if(drv==FSDRIVE_CPU)	return(STORAGE_IsReady(drv));
+	if(drv==0)	return(STORAGE_IsReady(drv));
 	return Stat;
 }
 
@@ -60,7 +60,7 @@ DRESULT disk_read (
                   )
 {
   BYTE status = USBH_MSC_OK;  
-  if(drv==FSDRIVE_CPU)	return (DRESULT)STORAGE_Read(drv,buff,sector,count);
+  if(drv==0)	return (DRESULT)STORAGE_Read(drv,buff,sector,count);
   if (Stat & STA_NOINIT) return RES_NOTRDY;
   if(HCD_IsDeviceConnected(&USB_OTG_Core))
   {  
@@ -96,7 +96,7 @@ DRESULT disk_write (
                    )
 {
   BYTE status = USBH_MSC_OK;
-  if(drv==FSDRIVE_CPU)	return (DRESULT)STORAGE_Write(drv,(uint8_t *)buff,sector,count);
+  if(drv==0)	return (DRESULT)STORAGE_Write(drv,(uint8_t *)buff,sector,count);
   if (Stat & STA_NOINIT) return RES_NOTRDY;
   if (Stat & STA_PROTECT) return RES_WRPRT;
   
@@ -145,7 +145,7 @@ DRESULT disk_ioctl (
     break;
     
   case GET_SECTOR_COUNT :	/* Get number of sectors on the disk (DWORD) */
-		if(drv==FSDRIVE_CPU)
+		if(drv==0)
 			*(DWORD*)buff = (DWORD) SECTOR_COUNT;
 		else
 			*(DWORD*)buff = (DWORD) USBH_MSC_Param.MSCapacity;
@@ -153,7 +153,7 @@ DRESULT disk_ioctl (
     break;
     
   case GET_SECTOR_SIZE :	/* Get R/W sector size (WORD) */
-		if(drv==FSDRIVE_CPU)
+		if(drv==0)
 			*(DWORD*)buff = (DWORD) SECTOR_SIZE;
 		else
 			*(WORD*)buff = 512;
@@ -161,7 +161,7 @@ DRESULT disk_ioctl (
     break;
     
   case GET_BLOCK_SIZE :	/* Get erase block size in unit of sector (DWORD) */
-		if(drv==FSDRIVE_CPU)
+		if(drv==0)
 			*(DWORD*)buff = (DWORD) PAGE_SIZE;
 		else
 			*(DWORD*)buff = 512;
@@ -171,7 +171,7 @@ DRESULT disk_ioctl (
   default:
     res = RES_PARERR;
   }
-	if(drv==FSDRIVE_CPU)
+	if(drv==0)
 		return res; 
 	if (Stat & STA_NOINIT) return RES_NOTRDY;
 		return res; 	

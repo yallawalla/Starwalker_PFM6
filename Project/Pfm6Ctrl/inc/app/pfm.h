@@ -20,7 +20,7 @@
 #include				"usb_conf.h"
 #include				"usbh_core.h"
 			          
-#define 				SW_version		101
+#define 				SW_version		102
 			          
 #if  						defined (__PFM6__)
 #define					__CAN__				CAN2
@@ -135,7 +135,7 @@ _io 								*io=_stdio(__dbug);																												\
 										_stdio(io);																																\
 									}																																						\
 									p->Error |= (a);																														\
-									if(!(a & (PFM_ERR_SIMM1 | PFM_ERR_SIMM2 | _PFM_I2C_ERR))) {									\
+									if(a & _CRITICAL_ERR_MASK) {																								\
 										TIM_CtrlPWMOutputs(TIM1, DISABLE);																				\
 										TIM_CtrlPWMOutputs(TIM8, DISABLE);																				\
 									}																																						\
@@ -301,7 +301,8 @@ void						App_Init(void),
 int							IgbtTemp(void),
 								CanReply(char *, ...),
 								Eack(PFM *),
-								PFM_command(PFM *, int);
+								PFM_command(PFM *, int),
+								PFM_status_send(PFM *, int);
 				        
 void 						USBD_Storage_Init(void);
 				        
@@ -319,8 +320,8 @@ void 						USBD_Storage_Init(void);
 #define					_STATUS_WORD 		0x79
 
 typedef enum		{
-								FSDRIVE_USB=0,
-								FSDRIVE_CPU=1
+								FSDRIVE_CPU=0,
+								FSDRIVE_USB=1
 } _fsdrive;
 
 int							FLASH_Program(uint32_t, uint32_t); 
@@ -416,8 +417,8 @@ int8_t					STORAGE_GetMaxLun (void);
 void						SectorQuery(void);
 int 						Defragment(int);
 				        
-#define 				_TRIGGER1			!GPIO_ReadOutputDataBit(GPIOD,GPIO_Pin_12)				        
-#define 				_TRIGGER2			!GPIO_ReadOutputDataBit(GPIOD,GPIO_Pin_13)				        
+#define 				_TRIGGER1			(!GPIO_ReadOutputDataBit(GPIOD,GPIO_Pin_12))				        
+#define 				_TRIGGER2			(!GPIO_ReadOutputDataBit(GPIOD,GPIO_Pin_13))			        
 #define 				_TRIGGER1_ON	do {															\
 											if(!_TRIGGER1)														\
 												_DEBUG_MSG("trigger 1 enabled");				\

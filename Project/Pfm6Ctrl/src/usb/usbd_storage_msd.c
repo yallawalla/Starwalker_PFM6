@@ -311,6 +311,7 @@ int		c0=0,c1=0;
 				do {
 					q=&p[SECTOR_SIZE/4+1];
 					++c0;
+					Watchdog();													//jk822iohfw
 					while(p[SECTOR_SIZE/4] != q[SECTOR_SIZE/4] && q[SECTOR_SIZE/4] != -1)
 						q=&q[SECTOR_SIZE/4+1];
 					if(q[SECTOR_SIZE/4] == -1) {

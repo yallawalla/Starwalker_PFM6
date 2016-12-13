@@ -225,11 +225,14 @@ int		Uo=p->Burst.Pmax;
 			t->T3=t->T4=_K2*p->Burst.Psimm[1];
 			t->n=0;
 	}
-/*
+/*______________________________________________________________________________
+* Function Name : SetSimmerPw
+* Description   : simmer pulse width
+* Input         : None
+* Output        : None
+* Return        : None
 */
-/*
-*/
-void	SetSimmerPw(PFM *p) {
+void		SetSimmerPw(PFM *p) {
 _TIM18DMA	*t;
 
 			if(_MODE(p,_XLAP_SINGLE)) {
@@ -267,7 +270,12 @@ _TIM18DMA	*t;
 			}
 	}
 }
-/*
+/*______________________________________________________________________________
+* Function Name : SetSimmerRate
+* Description   : simmer pulse width
+* Input         : None
+* Output        : None
+* Return        : None
 */
 void	SetSimmerRate(PFM *p, int simmrate) {
 
@@ -282,11 +290,10 @@ void	SetSimmerRate(PFM *p, int simmrate) {
 			TIM_Cmd(TIM1,DISABLE);
 			TIM_Cmd(TIM8,DISABLE);
 		
-			TIM_SetCounter(TIM1,TIM_GetCounter(TIM1) % simmrate);
+			TIM_SetCounter(TIM1,simmrate/4);				//08203hjfkw8
+			TIM_SetCounter(TIM8,simmrate/4);
 			if(_MODE(p,_XLAP_QUAD))
-				TIM_SetCounter(TIM8,(TIM_GetCounter(TIM1) + simmrate/2) % simmrate );
-			else
-				TIM_SetCounter(TIM8,TIM_GetCounter(TIM1));
+				TIM_SetCounter(TIM8,3*simmrate/4);
 			TIM_SetAutoreload(TIM1,simmrate);
 			TIM_SetAutoreload(TIM8,simmrate);
 			SetSimmerPw(p);
@@ -313,6 +320,7 @@ void	SetSimmerRate(PFM *p, int simmrate) {
 			}			
 
 			TIM_Cmd(TIM1,ENABLE);
+
 //_____________________________________________________________	
 // 		if(!(p->Error  & _CRITICAL_ERR_MASK))
 // 			EnableIgbt();

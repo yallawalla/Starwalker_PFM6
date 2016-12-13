@@ -18,16 +18,16 @@ PFM				*pfm;
 int				_PWM_RATE_HI=(10*_uS),
 					_PWM_RATE_LO=(50*_uS),
 					_I1off=0,_I2off=0,
-					_U1off=0,_U2off=0;
+					_U1off=0,_U2off=0,
+					_U1ref=0,_U2ref=0;
 /*______________________________________________________________________________
 * Function Name : App_Init
 * Description   : Initialize PFM object
 * Input         : None
 * Output        : None
 * Return        : None
-*******************************************************************************/
+*/
 void 			App_Init(void) {
-
 RCC_AHB1PeriphClockCmd(	
 					RCC_AHB1Periph_GPIOA |
 					RCC_AHB1Periph_GPIOB |
@@ -139,7 +139,7 @@ int				t,lastFanTachoEvent=0,trigger_cont=0;
 //______________________________________________________________________________						
 						if(!(t % 100) && !_ERROR(p,_PFM_I2C_ERR))	{						// 100 ms charger6 scan
 short					m=_STATUS_WORD;
-								if(readI2C(__charger6,(char *)&m,2))
+							if(readI2C(__charger6,(char *)&m,2))
 								p->Error = (p->Error & 0xffff) | ((m & 0xff)<<16);
 						}
 						if(!(t % 3000))																				// clear i2c error every 3 secs
@@ -166,18 +166,18 @@ short					m=_STATUS_WORD;
 						_CLEAR_ERROR(p,_PFM_FAN_ERR);		
 //______________________________________________________________________________
 					if(_EVENT(p,_TRIGGER)) {																// trigger request
-					_CLEAR_EVENT(p,_TRIGGER);
-					if(p->Error & _CRITICAL_ERR_MASK)
-						_CLEAR_MODE(p,_TRIGGER_REPEAT);
-					else {
-						if(trigger_cont)																			// if continuous, then stop
-						trigger_cont=0;
+						_CLEAR_EVENT(p,_TRIGGER);
+						if(p->Error & _CRITICAL_ERR_MASK)
+							_CLEAR_MODE(p,_TRIGGER_REPEAT);
 						else {
-							Trigger(p);																					// else calling trigger
-							if(_MODE(p,_TRIGGER_REPEAT))												// rearm for continuous										
-								trigger_cont=p->Burst.Repeat;						
-							}
-						}	
+							if(trigger_cont)																		// if continuous, then stop
+							trigger_cont=0;
+							else {
+								Trigger(p);																				// else calling trigger
+								if(_MODE(p,_TRIGGER_REPEAT))											// rearm for continuous										
+									trigger_cont=p->Burst.Repeat;						
+								}
+							}	
 					}
 //______________________________________________________________________________
 					if(_EVENT(p,_PULSE_FINISHED)) {													// end of pulse
@@ -231,7 +231,7 @@ int				error_image=0,
 					else
 						_CLEAR_ERROR(p,PFM_ERR_15V);
 //-------------------------------------------------------------------------------
-					if(abs(ADC3_buf[0].HV-ADC3_buf[0].HV2) > ADC3_buf[0].HV/5)
+					if(ADC3_buf[0].HV > 100 && abs(ADC3_buf[0].HV-ADC3_buf[0].HV2) > ADC3_buf[0].HV/5)
 						_SET_ERROR(p,_PFM_HV2_ERR);
 					else
 						_CLEAR_ERROR(p,_PFM_HV2_ERR);
@@ -259,21 +259,11 @@ int				error_image=0,
 						status_image = p->Status;
 						bounce=25;
 					}
-//-------------------------------------------------------------------------------					
-					k=PFM_command(NULL,0);							
+//-------------------------------------------------------------------------------
+					k=PFM_command(NULL,0);	
 					if(bounce && !--bounce) 
-					{
-						if(p->Error & (PFM_STAT_SIMM1 | PFM_STAT_SIMM2))
-							CanReply("cwiP",_PFM_status_req,
-								(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | k,
-								(p->Error & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | k
-								);
-						else
-							CanReply("cwiP",_PFM_status_req,
-								(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | k,
-								p->Error);									
-					}
-}					
+						PFM_status_send(p,k);
+}		
 /*______________________________________________________________________________
   * @brief	Charger6 control procedure; Disables Charger6 if PFM_ERR_DRVERR,PFM_ERR_PULSEENABLE or 
 	* _PFM_ADCWDG_ERR are set (from interrupts). Sets the PFM_STAT_PSRDY status bit, 
@@ -427,7 +417,9 @@ union			{
 					} Can;
 char			*q=(char *)&Can;
 short			n;
-//________ flushik CAN buffer ____________________________ 
+static		
+int 			inproc=0;	
+//________ flushing CAN buffer ____________________________ 
 					while((__CAN__->TSR & CAN_TSR_TME) && (!_buffer_empty(__can->tx)) && _buffer_pull(__can->tx,&Can.tx,sizeof(CanTxMsg))) {
 							CAN_Transmit(__CAN__,&Can.tx);
 //______________________________________________________________________________________
@@ -448,6 +440,7 @@ short			n;
 //					}
 //________ flushing CAN <> COM buffer ______________________ 
 					putCAN(NULL,0);
+					if(!inproc++) {																		 //kuwf8823hu
 //______________________________________________________________________________________					
 					if(_buffer_pull(__can->rx,&Can.rx,sizeof(CanRxMsg))) {
 						q=(char *)Can.rx.Data;
@@ -477,16 +470,7 @@ short			n;
 							case _ID_SYS2PFM:
 								switch(*(uint8_t *)q++) {
 									case _PFM_status_req:
-										n=PFM_command(NULL,0);							
-										if(p->Error & (PFM_STAT_SIMM1 | PFM_STAT_SIMM2))
-											CanReply("cwiP",_PFM_status_req,
-												(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | n,
-												(p->Error & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | n
-												);
-										else
-											CanReply("cwiP",_PFM_status_req,
-												(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | n,
-												p->Error);																
+										PFM_status_send(p,PFM_command(NULL,0));
 										break;
 									case _PFM_IgbtTemp_req:
 										CanReply("ccP",_PFM_IgbtTemp_ack,p->Temp);
@@ -566,7 +550,7 @@ short			n;
 //_________________________________________________________________________________
 //
 // Pfm6 add..
-//	
+//
 									case _PFM_CurrentLimit:																			// .10
 									{
 										int dac1,dac2;
@@ -605,7 +589,9 @@ short			n;
 								break;
 //______________________________________________________________________________________
 							}
+						}
 					}
+					--inproc;
 }
 /*______________________________________________________________________________
   * @brief  CAN data transmission reply
@@ -668,12 +654,15 @@ int				i;
 #define		kVf	(3.3/4096.0*2000.0/7.5)					// 		flash voltage			
 #define		kIf	(3.3/4096.0/2.9999/0.001)				// 		flash curr.
 #define 	Ts	 1e-6														// 		ADC sample rate
-#define 	kmJ	(int)(0.001/kVf/kIf/Ts+0.5) 		//		mJ, fakt. delitve kum. energije < 1 !!! 
+#define 	kmJ	(int)(0.001/kVf/kIf/Ts+0.5) 		//		mJ, fakt. delitve kum. energije < 1 !!!  0.4865351
+	
 int				Eack(PFM *p) {
 
 static		long long	e1=0,e2=0;
 static		int				n=0;
+
 int				i,j,k;
+
 					if(p) {
 						j=k=_I2AD(50.0);
 						for(i=0; i<_MAX_BURST/_uS; ++i) {
@@ -709,6 +698,24 @@ int				i,j,k;
 						e1=e2=n=0;
 					return(0);
 }
+/*______________________________________________________________________________
+  * @brief  Composes & sends the PFM status message
+  * @param  : PFM object p, simmer status k
+  * @retval : None
+  *
+  */
+int				PFM_status_send(PFM *p, int k) {
+						if(p->Error & (PFM_STAT_SIMM1 | PFM_STAT_SIMM2))
+							CanReply("cwiP",_PFM_status_req,
+								(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | k,
+								(p->Error & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | k
+								);
+						else
+							CanReply("cwiP",_PFM_status_req,
+								(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | k,
+								p->Error);		
+					return k;
+					}
 /*______________________________________________________________________________
   * @brief  Interprets the PFM command message
   * @param 	pfmcmd: PFM command word as defined in CAN protocol  ICD 

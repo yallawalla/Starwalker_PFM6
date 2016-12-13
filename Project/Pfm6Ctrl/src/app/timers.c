@@ -370,7 +370,7 @@ void		TIM3_IRQHandler(void) {
 void 		EXTI9_5_IRQHandler(void)
 {
 				EXTI_ClearITPendingBit(EXTI_Line8);
-				_SET_ERROR(pfm,PFM_ERR_DRVERR);
+					_SET_ERROR(pfm,PFM_ERR_DRVERR);
 }
 /*******************************************************************************/
 /**

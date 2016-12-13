@@ -290,6 +290,7 @@ naslov v TxMessage objektu-bolj elegantno ! Vse sprobat !!!!
 
 27.5.2014
 TODO
+
 - popravljen bug v putCAN, com port ne blokira vec, problem se vedno pri dolgih izpisih
 - pri single channel lucke bliskajo tudi na neaktivnem kanalu ....????
 - izpis status iz ADP
@@ -326,12 +327,11 @@ Na testiranjih max. mode vrze ven po cca 10-15 min, gui sier javlja 0081-0006, k
 
 25.7.2014
 
-major. verzija 100
+verzija 100
 
 - odpravljen bug z fan error na max mode
 - skrajsan cakalni cas na SetPwmTab
 - CAN debug output premaknjen na izhod (ParseCan)
-
 
 verzija 101
 
@@ -340,6 +340,30 @@ verzija 101
 - dodan CAN command za nastavitev DAC iz GUI, sprememba GUI 
 - dodan konzolni ukaz za nastavitev int izpis DAC vrednosti
 - na konzolni izpis za (f)an dodana temperatura (samo pri izpisu...)
-- debug izpis energije na desetinko J
+- debug izpis energije na desetinko 
+- sprememba nazaj na fiksno sinhronizacijo TIM1 i  TIM8 o vhodu v interval  				//08203hjfkw8
+
+14.10.2014
+verzija 102
+
+- sprememba defragment, jeba s predolgim ctrl-z												//jk822iohfw
+- preprecitev rekurzije na ParseCan															//kuwf8823hu
+
+- simmer meritve
+us		mA Er		mA Nd
+
+60		30			25	
+50		80			40
+45		100			50
+40		130			100
+30		210			160
+25		300			240
+20					380
 
 
+>L 200000e0,000BEF42
+>L 200000e0,000BE998
+>L 200000e0,000BBBA5
+>L 200000e0,000BD456
+
+U/Uo*4096*I/Io*4096

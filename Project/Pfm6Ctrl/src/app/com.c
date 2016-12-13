@@ -7,7 +7,7 @@
   * @brief	 COM port parsing related functionality
   *
   */
-	
+
 /** @addtogroup PFM6_Application
 * @{
 */
@@ -38,7 +38,7 @@ _io*		io;
 							f_mount(n,NULL);
 						}
 }
-
+//___________________________________________________________________________
 void		deInitialize_usb(void);
 void		Initialize_host_msc(void);
 void		Initialize_device_msc(void);
@@ -91,11 +91,12 @@ int			DecodeMinus(char *c) {
 				case 'P':
 				{
 					int i;
-					Watchdog_init(4000);
 					i=Defragment(0);
 					printf("\r\n>Packing sectors... %d%c",i,'%');
-					if(i>10)
+					if(i>10) {
+						Watchdog_init(4000);
 						Defragment(-1);
+					}
 					printf(" Done");
 					Watchdog_init(300);
 				}
@@ -210,7 +211,7 @@ FATFS						fs_cpu;
 				case 'E':
 				n=strscan(++c,cc,',');
 				while(n--)
-					_CLEAR_ERROR(pfm,atoi(cc[n]));
+					_CLEAR_ERROR(pfm,getHEX(cc[n],-1));
 				break;
 //__________________________________________________ debug setup _____________
 				case 'D':
@@ -260,14 +261,14 @@ int		DecodePlus(char *c) {
 				case 'E':
 				n=strscan(++c,cc,',');
 				while(n--)
-					_SET_ERROR(pfm,atoi(cc[n]));
+					_SET_ERROR(pfm,getHEX(cc[n],-1));
 				break;
 //__________________________________________________ debug setup _____________
 				case 'D':
 				__dbug=__stdin.handle.io;
 				n=strscan(++c,cc,',');
 				while(n--)
-					_SET_DBG(pfm,strtol(cc[n],NULL,0));
+					_SET_DBG(pfm,atoi(cc[n]));
 				break;
 //______________________________________________________________________________________
 				default:
@@ -434,9 +435,13 @@ int	DecodeCom(char *c) {
 			switch(*c) {
 //__________________________________________________SW version query____________________
 				case 'v':
+				case 'V':
 					RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
 					CRC_ResetDR();
-					printf(" %d %s, <%08X>",SW_version,__DATE__,CRC_CalcBlockCRC(__Vectors, 0x10000));
+					printf(" %d.%02d %s, <%08X>",
+						SW_version/100,SW_version%100,
+						__DATE__,
+							CRC_CalcBlockCRC(__Vectors, (PAGE_ADDRESS-(int)__Vectors)/sizeof(int)));			//crc od vektorjev do zacetka FS
 					break;
 //__________________________________________________single interger read/write__________
 				case 'B':
@@ -660,7 +665,7 @@ int				n;
 //______________________________________________________________________________________
 				case 'a':
 					switch(strscan(++c,cc,',')) {
-extern int	_U1off,_U2off,_I1off,_I2off;
+extern int	_U1off,_U2off,_U1ref,_U2ref,_I1off,_I2off;
 						case 0:
 							printf("  \r>a(dc)    U1,I1,U2,I2   ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I),_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I));
 							printf("\n\r>a(dc)    idle          ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*_U1off),_AD2I(_I1off),_AD2HV(ADC3_AVG*_U2off),_AD2I(_I2off));
