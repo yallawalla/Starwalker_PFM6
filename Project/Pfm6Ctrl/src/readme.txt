@@ -366,12 +366,24 @@ verzija 103
 >s(immer) aktivira spremembo takoj
 
 - pogoj _PFM_CWBAR_STAT v PfmCommand in forsiranje ugasanja simmerja v _SET_ERROR
- ad.inf.	
+  ad.inf.	
 - crowbar deluje zgolj na flanko in slednje ni bilo po resetu
-- ce je pri prizganem simmerju pride do napake se slednji vzge sam od sebe, ko crowbar pobrise error status
+- ce je pri prizganem simmerju pride do napake se slednji vzge sam od sebe, ko crowbar pobrise error status,
+  ugasanje statusa in SetSimmerRate(p,_PWM_RATE_LO) gre v ProcessingCharger !!!
 - interpret. temp sistema kot error, ce je manjsa od -20 (odtrgan senzor)
 - omejitev "trcece svetlo na 30 sec.
-- ponovno blokiranje driver error med triganjem
+- blokiranje driver error med triganjem
+
+6.11.2014
+verzija 104
+
+- err 4000, HV/2 je critical error
+- console interface za shaped pulse
+
+
+
+
+
 
 
 >L 200000e0,000BEF42

@@ -184,7 +184,6 @@ _io*	 			Initialize_USART(void) {
 						NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 						NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
 						NVIC_Init(&NVIC_InitStructure);
-						USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);		
 
 						RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA, ENABLE);
 						GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -196,6 +195,8 @@ _io*	 			Initialize_USART(void) {
 						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
 						GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 						GPIO_Init(GPIOA, &GPIO_InitStructure);
+	
+						USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);		
 }
 
 #else
@@ -234,7 +235,7 @@ int					i;
 						}
 						if(USART_GetFlagStatus(USART1, USART_FLAG_TXE) != RESET) {
 							USART_ClearITPendingBit(USART1, USART_IT_TXE);
-							i=0;																				// tx ready to send
+							i=0;																																		// tx ready to send
 							if(_buffer_pull(__this_io->tx,&i,1))																		// if data available
 								USART_SendData(USART1, i);																						// send!
 							else																																		// else

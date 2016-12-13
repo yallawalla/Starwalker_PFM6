@@ -58,7 +58,7 @@ char	*p;
 				case _CtrlZ:
 					while(1);
 				case '1':
-#ifdef	STM32F10X_HD
+#ifdef	__PVC__
 					for(j=0; j<32; ++j) {
 #endif
 #ifdef	STM32F2XX

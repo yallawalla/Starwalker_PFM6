@@ -34,6 +34,7 @@
 #include <integer.h>
 
 #include "pfm.h"
+#include "diskio.h"
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
   * @{
@@ -208,7 +209,7 @@ int8_t STORAGE_Read(uint8_t lun,
                  uint16_t blk_len)
 {
 int i,*p,*q=NULL;
-	for(p=(int *)PAGE_ADDRESS; p[SECTOR_SIZE/4]!=-1; p=&p[SECTOR_SIZE/4+1])
+	for(p=(int *)FATFS_ADDRESS; p[SECTOR_SIZE/4]!=-1; p=&p[SECTOR_SIZE/4+1])
 		if(p[SECTOR_SIZE/4] == blk_addr)
 			q=p;
 	if(q)
@@ -235,7 +236,7 @@ int8_t STORAGE_Write (uint8_t lun,
                   uint16_t blk_len)
 {
 int i,*p,*q=NULL;
-	for(p=(int *)PAGE_ADDRESS; p[SECTOR_SIZE/4]!=-1; p=&p[SECTOR_SIZE/4+1])
+	for(p=(int *)FATFS_ADDRESS; p[SECTOR_SIZE/4]!=-1; p=&p[SECTOR_SIZE/4+1])
 		if(p[SECTOR_SIZE/4] == blk_addr)
 			q=p;
 		
@@ -278,7 +279,7 @@ int8_t STORAGE_GetMaxLun (void)
 void	SectorQuery(void) {
 int		i,j,*p,*q;
 
-			p=(int *)PAGE_ADDRESS;
+			p=(int *)FATFS_ADDRESS;
 			for(i=0; i<SECTOR_COUNT; ++i) {
 				if(!((i%255)%16))
 					printf("\r\n");
@@ -304,9 +305,9 @@ int		Defragment(int mode) {
 int 	i,f,e,*p,*q,buf[SECTOR_SIZE/4];
 int		c0=0,c1=0;
 
-			f=PAGE_START;
+			f=FATFS_SECTOR;
 			e=PAGE_SIZE;
-			p=(int *)PAGE_ADDRESS;
+			p=(int *)FATFS_ADDRESS;
 			do {
 				do {
 					q=&p[SECTOR_SIZE/4+1];
@@ -323,7 +324,7 @@ int		c0=0,c1=0;
 					} else
 						++c1;
 					p=&p[SECTOR_SIZE/4+1]; 
-				} while(((int)p)-PAGE_ADDRESS <  e && p[SECTOR_SIZE/4] != -1);
+				} while(((int)p)-FATFS_ADDRESS <  e && p[SECTOR_SIZE/4] != -1);
 				if(mode)
 					FLASH_Erase(f);
 				f+=FLASH_Sector_1; 

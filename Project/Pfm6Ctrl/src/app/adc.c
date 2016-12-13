@@ -313,7 +313,6 @@ void ADC_IRQHandler(void)	{
 			ADC_ClearITPendingBit(ADC1, ADC_IT_AWD);
 			_SET_ERROR(pfm,_PFM_ADCWDG_ERR);
 		}
-		
 		if(ADC_GetITStatus(ADC2, ADC_IT_AWD) != RESET) {
 			ADC_ClearITPendingBit(ADC2, ADC_IT_AWD);
 			_SET_ERROR(pfm,_PFM_ADCWDG_ERR);
@@ -321,8 +320,6 @@ void ADC_IRQHandler(void)	{
 		if(ADC_GetITStatus(ADC3, ADC_IT_AWD) != RESET) {
 			ADC_ClearITPendingBit(ADC3, ADC_IT_AWD);
 				_SET_ERROR(pfm,_PFM_ADCWDG_ERR);
-				_SET_EVENT(pfm,_ADC_WATCHDOG);
-
 		}
 }
 

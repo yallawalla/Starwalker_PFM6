@@ -1,10 +1,10 @@
-#if defined  (STM32F2XX)
+#if defined	(STM32F2XX)
 #include		"stm32f2xx.h"
 
-#if defined  (__PFM6__)
+#if defined	(__PFM6__)
 	#define			__CAN__						CAN2
 	#define			__FILTER_BASE__		14
-#elif defined (__DISCO__)
+#elif defined	(__DISCO__)
 	#define			__CAN__						CAN2
 	#define			__FILTER_BASE__		14
 #endif
@@ -16,7 +16,13 @@
 #define			_BOOT_SECTOR		FLASH_Sector_0
 #define			_IAP_STRING_LEN	128
 
-#elif defined (STM32F10X_HD)
+#define			ERASE_SIZE		0x20000
+#define			ERASE_COUNT		6
+
+#define			STORAGE_TOP		0x8040000
+/*-----------------------------------------------------------------------*/
+
+#elif defined (__PVC__)
 #include		"stm32f10x.h"
 
 #define			__CAN__						CAN1
@@ -29,17 +35,9 @@
 #define			_BOOT_SECTOR		_BOOT_TOP
 #define			_IAP_STRING_LEN	128
 
-#elif	undefined (STM32F2XX || STM32F10X_HD)
+#else
 *** undefined target !!!!
 #endif
-/*-----------------------------------------------------------------------*/
-#define			ERASE_SIZE		0x20000
-#define			ERASE_COUNT		6
-
-#define			STORAGE_TOP		0x8040000
-#define			SECTOR_SIZE		512
-#define 		SECTOR_COUNT	((int)ERASE_SIZE*ERASE_COUNT/(SECTOR_SIZE+4))
-#define 		CLUSTER_SIZE	4096
 
 int					FlashProgram32(uint32_t, uint32_t);
 int					FlashErase(int);

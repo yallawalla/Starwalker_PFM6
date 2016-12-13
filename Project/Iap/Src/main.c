@@ -43,10 +43,12 @@ int					*p=(int *)*_FW_START;
 							((void (*)(void))*p)();
 						}
 						App_Init();
+#if	defined (__PFM6__) || defined(__DISCO__)
 						if(RCC_GetFlagStatus(RCC_FLAG_WWDGRST) != RESET) {
 							RCC_ClearFlag();	
 							FileHexProg();
 						}
+#endif
 						RCC_ClearFlag();	
 						while(1)
 							App_Loop();							
@@ -86,7 +88,7 @@ char 				*leds[]={"d0","d1","d2","d3","","d4","d5","d6","d7"};
 
 void 				App_Init(void) {
 
-#if defined (STM32F10X_HD)
+#if defined (__PVC__)
 						RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_GPIOB|RCC_APB2Periph_GPIOC|RCC_APB2Periph_GPIOD|RCC_APB2Periph_GPIOE|RCC_APB2Periph_GPIOF|RCC_APB2Periph_GPIOG,ENABLE);				
 #elif defined  (STM32F2XX)
 						RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA|RCC_AHB1Periph_GPIOB|RCC_AHB1Periph_GPIOC|RCC_AHB1Periph_GPIOD|RCC_AHB1Periph_GPIOE|RCC_AHB1Periph_GPIOF|RCC_AHB1Periph_GPIOG,ENABLE);	
@@ -100,6 +102,7 @@ void 				App_Init(void) {
 						printf(IAP_MSG);
 						Initialize_LED(leds,9);
 #endif
+#if		defined (__PFM6__)
 // pfm ventilatorji off		
 {
 						GPIO_InitTypeDef GPIO_InitStructure;   
@@ -109,7 +112,8 @@ void 				App_Init(void) {
 						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
 						GPIO_Init(GPIOA, &GPIO_InitStructure);
 						GPIO_ResetBits(GPIOA,GPIO_Pin_6);		
-}						
+}			
+#endif
 						_Words32Received=0;
 						CAN_Transmit(__CAN__,&tx);
 }
@@ -147,7 +151,7 @@ int					i;
 						if(n == _BOOT_SECTOR) 
 							return(-1);
 						FLASH_Unlock();
-#if defined (STM32F10X_HD)
+#if defined (__PVC__)
 						FLASH_ClearFlag(FLASH_FLAG_BSY | FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPRTERR);						
 						do i=FLASH_ErasePage(n); while(i==FLASH_BUSY);
 #elif defined  (STM32F2XX)
@@ -174,7 +178,7 @@ int					i;
 							return(0);
 						else {
 							FLASH_Unlock();
-#if defined (STM32F10X_HD)
+#if defined (__PVC__)
 							FLASH_ClearFlag(FLASH_FLAG_BSY | FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPRTERR);						
 							do i=FLASH_ProgramWord(Address,Data); while(i==FLASH_BUSY);
 #elif defined  (STM32F2XX)
@@ -198,7 +202,7 @@ int					i;
 int					crcError(void) {
 int 				i;
 
-#if defined (STM32F10X_HD)
+#if defined (__PVC__)
 						RCC_AHBPeriphClockCmd(RCC_AHBPeriph_CRC, ENABLE);
 #elif defined  (STM32F2XX)
 						RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
@@ -216,7 +220,7 @@ int 				i;
 int					crcSIGN(void) {
 int 				i=-1,crc;
 
-#if defined (STM32F10X_HD)
+#if defined (__PVC__)
 						RCC_AHBPeriphClockCmd(RCC_AHBPeriph_CRC, ENABLE);
 #elif defined  (STM32F2XX)
 						RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
@@ -266,7 +270,7 @@ void				SendAck(int a) {
 *******************************************************************************/
 int					ParseCAN(CanRxMsg *p) {
 
-static int	addr,n=0,dots=0;									// statièni register za zaèetno. adreso, index IAP stringa
+static int	addr,n=0;													// statièni register za zaèetno. adreso, index IAP stringa
 int					i,ret=EOF;												// ....
 CanRxMsg		rx;
 						if(p)
@@ -352,6 +356,7 @@ CanRxMsg		rx;
 						}
 #ifdef WITH_COM_PORT
 						if(p && ret != EOF) {
+static int	dots=0;
 							if(!(++dots % 32)) 
 								printf("\r\n");
 							if(ret)
@@ -592,6 +597,11 @@ CAN_FilterInitTypeDef	CAN_FilterInitStructure;
 						CAN_FilterInitStructure.CAN_FilterNumber=2;
 						CAN_FilterInit(&CAN_FilterInitStructure);
 						
+						CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_IAP_STRING<<5;
+						CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_IAP_PING<<5;
+						CAN_FilterInitStructure.CAN_FilterNumber=3;
+						CAN_FilterInit(&CAN_FilterInitStructure);
+						
 #elif defined  (STM32F2XX)
 CAN_InitTypeDef					CAN_InitStructure;
 CAN_FilterInitTypeDef		CAN_FilterInitStructure;
@@ -681,6 +691,7 @@ int 				__time__;
 void 				SysTick_Handler(void) {
 						++__time__;
 }
+#if	defined (__PFM6__) || defined(__DISCO__)
 /******************************************************************************/
 void				FileHexProg(void) {
 FATFS	fs;
@@ -704,6 +715,7 @@ char	s[128];
 						f_close(&f);
 						f_mount(0,NULL);
 }
+#endif
 /**
 * @}
 */ 

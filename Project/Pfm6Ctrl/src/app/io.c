@@ -29,7 +29,7 @@ _buffer	*p=calloc(1,sizeof(_buffer));
 }
 //___push_______________________________________________________________________________
 int			_buffer_push(_buffer *p, void *q, int n) {
-char		*r=q, 
+char		*r=q,
 				*t=p->_push;
 				while(n--) {
 					*t++ = *r++;

@@ -20,7 +20,7 @@
 #include				"usb_conf.h"
 #include				"usbh_core.h"
 			          
-#define 				SW_version		103
+#define 				SW_version		104
 			          
 #if  						defined (__PFM6__)
 #define					__CAN__				CAN2
@@ -80,8 +80,7 @@ typedef					 enum
 								_PULSE_ENABLED,
 								_PULSE_FINISHED,
 								_ADC_FINISHED,
-								_FAN_TACHO,
-								_ADC_WATCHDOG,
+								_FAN_TACHO
 } 							_event;
 
 #define					_DBG(p,a)				(p->debug & (1<<(a)))
@@ -136,10 +135,9 @@ _io 								*io=_stdio(__dbug);																												\
 									}																																						\
 									p->Error |= (a);																														\
 									if(a & _CRITICAL_ERR_MASK) {																								\
+										_CLEAR_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2);													\
 										TIM_CtrlPWMOutputs(TIM1, DISABLE);																				\
 										TIM_CtrlPWMOutputs(TIM8, DISABLE);																				\
-										_CLEAR_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2);													\
-										SetSimmerRate(p,_PWM_RATE_LO);																						\
 									}																																						\
 								} while(0)
 
@@ -172,27 +170,21 @@ int 						readI2C(_i2c *,char *, int),
 #define					_FLASH_TOP				0x08008000
 #define					_BOOT_SECTOR			0x08000000
 
-#define 				_FW_START				((int *)(_FLASH_TOP-16))
-#define 				_FW_CRC					((int *)(_FLASH_TOP-20))
-#define 				_FW_SIZE				((int *)(_FLASH_TOP-24))
-#define 				_SIGN_CRC				((int *)(_FLASH_TOP-28))
+#define 				_FW_START					((int *)(_FLASH_TOP-16))
+#define 				_FW_CRC						((int *)(_FLASH_TOP-20))
+#define 				_FW_SIZE					((int *)(_FLASH_TOP-24))
+#define 				_SIGN_CRC					((int *)(_FLASH_TOP-28))
 #define					_FLASH_BLANK			((int)-1)
 //________________________________________________________________________
 #ifdef __DISCO__
-#define					PAGE_START				FLASH_Sector_5
-#define					PAGE_ADDRESS			0x8020000
+#define					FATFS_SECTOR			FLASH_Sector_5
+#define					FATFS_ADDRESS			0x8020000
 #endif
 
 #ifdef __PFM6__
-#define					PAGE_START				FLASH_Sector_6
-#define					PAGE_ADDRESS			0x8040000
+#define					FATFS_SECTOR			FLASH_Sector_6
+#define					FATFS_ADDRESS			0x8040000
 #endif
-
-#define					PAGE_SIZE					0x20000
-#define					PAGE_COUNT				5
-#define					SECTOR_SIZE				512
-#define 				CLUSTER_SIZE			4096
-#define 				SECTOR_COUNT			((int)PAGE_SIZE*PAGE_COUNT/(SECTOR_SIZE+4))
 //________________________________________________________________________            
 extern int			(*USBH_App)(int);
 int							USBH_Iap(int);
@@ -407,15 +399,6 @@ extern					int			_PWM_RATE_HI;
 extern					int			_PWM_RATE_LO;
 extern 					int				Pref1,Pref2;
 
-int8_t					STORAGE_Init (uint8_t);
-int8_t					STORAGE_GetCapacity (uint8_t, uint32_t *, uint32_t *);
-int8_t					STORAGE_IsReady (uint8_t);
-int8_t					STORAGE_IsWriteProtected (uint8_t);
-int8_t					STORAGE_Read (uint8_t, uint8_t *, uint32_t, uint16_t);
-int8_t					STORAGE_Write (uint8_t, uint8_t *, uint32_t, uint16_t);
-int8_t					STORAGE_GetMaxLun (void);
-
-
 void						SectorQuery(void);
 int 						Defragment(int);
 				        
@@ -445,7 +428,7 @@ int 						Defragment(int);
 #define					_PFM_CWBAR_SENSE	(GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_14)== Bit_RESET)
 #define					_PFM_FAULT_SENSE	(GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_8) == Bit_SET)
 
-#define					_CRITICAL_ERR_MASK		(PFM_ERR_DRVERR | PFM_ERR_PULSEENABLE | _PFM_ADCWDG_ERR | PFM_ERR_PSRDYN | PFM_STAT_UBHIGH)
+#define					_CRITICAL_ERR_MASK		(PFM_ERR_DRVERR | PFM_ERR_PULSEENABLE | _PFM_ADCWDG_ERR | PFM_ERR_PSRDYN | PFM_STAT_UBHIGH | _PFM_HV2_ERR)
 
 #define					_PFM_ADCWDG_ERR		0x1000
 #define					_PFM_FAN_ERR			0x2000

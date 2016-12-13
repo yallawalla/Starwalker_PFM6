@@ -18,6 +18,7 @@
 #include	<string.h>
 #include	<ff.h>
 #include	"limits.h"
+short			user_shape[2048];
 //___________________________________________________________________________
 void		Cfg(_fsdrive n, char *filename) {
 int			i,j;
@@ -66,6 +67,9 @@ int			DecodeMinus(char *c) {
 						break;
 					case 's':
 						Initialize_device_vcp();
+						break;
+					case 't':
+
 						break;
 					}
 					break;
@@ -131,7 +135,7 @@ FATFS				fs_usb;
 FATFS						fs_cpu;				
 								printf(" erasing ");
 								for(n=0; n<6; ++n)
-									if(FLASH_Erase(PAGE_START+n*FLASH_Sector_1)==FLASH_COMPLETE)
+									if(FLASH_Erase(FATFS_SECTOR+n*FLASH_Sector_1)==FLASH_COMPLETE)
 										printf(".");
 									else
 										printf("?");
@@ -152,7 +156,7 @@ FATFS						fs_cpu;
 				case 'q':
 					n=strscan(++c,cc,',');
 					if(n) {
-						for(p=(int *)PAGE_ADDRESS; p[512/4] != -1; p=&p[512/4+1]) {
+						for(p=(int *)FATFS_ADDRESS; p[512/4] != -1; p=&p[512/4+1]) {
 							if(p[512/4] == getHEX(cc[0],EOF)) {
 								for(m=0; m<512; m+=16) {
 									printf("\r\n");
@@ -279,26 +283,26 @@ int		DecodePlus(char *c) {
 				return _PARSE_OK;
 }
 //______________________________________________________________________________________
-int		EnterFile(char *c) {
+int			EnterFile(char *c) {
 static
-FIL 	*f=NULL;																	// file object pointer												
-			if(!f) {																	// first alloc
-				f=calloc(1,sizeof(FIL));	
-				if(!f)																	// mem error, exit
-					return _PARSE_ERR_MEM;
-				if(f_open(f,c,FA_READ|FA_WRITE|FA_OPEN_ALWAYS)==FR_OK &&
-					f_lseek(f,f_size(f))==FR_OK) {				// open & pointer to eof
- 						fprintf((FILE *)f,"\r");						// init. needed kwdf???
-						__stdin.handle.io->parse=EnterFile;	// parser redirect
- 						return _PARSE_OK;
-					} else {
-						free(f);														// free & eroor exit othw
-						return _PARSE_ERR_OPENFILE;
-					}	
-			}
-			if(!c)																		// eol parser entry...
-				printf("\r\n");	
-			else
+FIL			*f=NULL;																// file object pointer												
+				if(!f) {																// first alloc
+					f=calloc(1,sizeof(FIL));	
+					if(!f)																// mem error, exit
+						return _PARSE_ERR_MEM;
+					if(f_open(f,c,FA_READ|FA_WRITE|FA_OPEN_ALWAYS)==FR_OK &&
+						f_lseek(f,f_size(f))==FR_OK) {			// open & pointer to eof
+							fprintf((FILE *)f,"\r");					// init. needed kwdf???
+							__stdin.handle.io->parse=EnterFile;
+							return _PARSE_OK;									// parser redirect
+						} else {
+							free(f);													// free & eroor exit othw
+							return _PARSE_ERR_OPENFILE;
+						}	
+				}
+				if(!c)																	// eol parser entry...
+					printf("\r\n");	
+				else
 //______________________________________________________________________________________
 				switch(*c) {
 				case 0x04:
@@ -443,7 +447,7 @@ int	DecodeCom(char *c) {
 					printf(" %d.%02d %s, <%08X>",
 						SW_version/100,SW_version%100,
 						__DATE__,
-							CRC_CalcBlockCRC(__Vectors, (PAGE_ADDRESS-(int)__Vectors)/sizeof(int)));			//crc od vektorjev do zacetka FS
+							CRC_CalcBlockCRC(__Vectors, (FATFS_ADDRESS-(int)__Vectors)/sizeof(int)));			//crc od vektorjev do zacetka FS
 					break;
 //__________________________________________________single interger read/write__________
 				case 'B':
@@ -559,6 +563,24 @@ int				n;
 					} else
 						return _PARSE_ERR_SYNTAX;
 					break;
+//______________________________________________________________________________________
+				case '#':
+					n=strscan(++c,cc,',');
+					if(!n) {
+						for(n=0;n<sizeof(user_shape)/sizeof(short);++n)
+							user_shape[n]=0;	
+						break;
+					}
+					if(n==2) {
+						for(n=2;n<sizeof(user_shape)/sizeof(short);++n,++n)
+							if(!user_shape[n])
+								break;
+						*(int *)user_shape += (pow(atoi(cc[1]),3)*atof(cc[0]))/400000.0 + 0.5;			// mJ !!!
+						user_shape[n+0]=atoi(cc[0]);
+						user_shape[n+1]=atoi(cc[1]);
+						break;
+					}
+					return _PARSE_ERR_SYNTAX;
 //______________________________________________________________________________________
 				case 'p':
 					n=strscan(++c,cc,',');

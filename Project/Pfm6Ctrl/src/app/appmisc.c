@@ -100,6 +100,8 @@ const	int Rtab[]={
 			};
 
 _QSHAPE	shape[8];
+extern
+short 	user_shape[];			
 #define	_K1											(_STATUS(p, PFM_STAT_SIMM1)/1)
 #define	_K2											(_STATUS(p, PFM_STAT_SIMM2)/2)
 #define	_minmax(x,x1,x2,y1,y2) 	__min(__max(((y2-y1)*(x-x1))/(x2-x1)+y1,y1),y2)
@@ -111,12 +113,28 @@ _QSHAPE	shape[8];
 *******************************************************************************/
 void	SetPwmTab(PFM *p) {
 _TIM18DMA	*t=TIM18_buf;
+
 int		i,j,n;
 int		to=p->Burst.Time,too=100;
 int		Uo=p->Burst.Pmax;
 //-------wait for prev to finish ---
 			while(_MODE(p,_PULSE_INPROC))
 				Wait(2,App_Loop);
+//-------user shape check-----------										// 3. koren iz razmerja energij, ajde :)
+			if(*(int *)user_shape) {													
+				double k=(6.0/7.0)*pow(pow((7.0/6.0)*p->Burst.Pmax,3)/400000.0*p->Burst.Time*p->Burst.N/(*(int *)user_shape),1.0/3.0);		
+				for(i=2; user_shape[i]; ++t,++i,++i) {
+					t->n=2*user_shape[i]/10-1;
+					t->T1=t->T2=_K1*(user_shape[i+1]*k + p->Burst.Pdelay);
+					t->T3=t->T4=_K2*(user_shape[i+1]*k + p->Burst.Pdelay);
+				}
+				p->Burst.Ereq=0;																// da prepreci default pulze
+				p->Burst.Delay=0;																// brez delaya
+				p->Burst.Time=100;															// da prepreci regulacijo 
+				p->Burst.Length=100;
+				p->Burst.N=1;
+				to=too=0;
+			} 
 //-------DELAY----------------------
 			for(n=2*((p->Burst.Delay*_uS)/_PWM_RATE_HI)-1; n>0; n -= 255, ++t) {
 				t->T1=t->T2=_K1*p->Burst.Pdelay;
@@ -240,7 +258,7 @@ _TIM18DMA	*t;
 					TIM8->CCR2=TIM8->CCR1=TIM1->CCR2=TIM1->CCR1=p->Burst.Psimm[0];
 				else
 					TIM8->CCR2=TIM8->CCR1=TIM1->CCR2=TIM1->CCR1=0;
-			if(_STATUS(p, PFM_STAT_SIMM2))
+				if(_STATUS(p, PFM_STAT_SIMM2))
 					TIM8->CCR4=TIM8->CCR3=TIM1->CCR4=TIM1->CCR3=p->Burst.Psimm[1];
 				else
 					TIM8->CCR4=TIM8->CCR3=TIM1->CCR4=TIM1->CCR3=0;
@@ -248,7 +266,6 @@ _TIM18DMA	*t;
 					t->T2=t->T1;
 					t->T4=t->T3;
 				};
-
 			} else {
 				if(_STATUS(p, PFM_STAT_SIMM1))  {
 					TIM8->CCR1=TIM1->CCR1=p->Burst.Psimm[0];
@@ -269,6 +286,31 @@ _TIM18DMA	*t;
 				t->T4=TIM1->ARR-t->T3;
 			}
 	}
+}
+/*______________________________________________________________________________
+*/
+void	IncrementSimmerRate(int rate) {
+static
+int		r=0,flag;
+			if(flag == (TIM1->CR1 & TIM_CR1_DIR))
+				return;
+			flag = (TIM1->CR1 & TIM_CR1_DIR);
+			if(!r && !rate)
+				return;
+			if(rate)
+				r=rate;
+			else {
+				if(TIM1->ARR < r) {
+					++TIM1->ARR;
+					++TIM8->ARR;
+					if(!_MODE(pfm,_XLAP_SINGLE)) {
+						++TIM1->CCR2;
+						++TIM1->CCR4;
+						++TIM8->CCR2;
+						++TIM8->CCR4;
+					}
+				}
+			}
 }
 /*______________________________________________________________________________
 * Function Name : SetSimmerRate
@@ -342,8 +384,6 @@ int		fanTL=3000;
 int		fanTH=4000;
 /*******************************************************************************/
 int		IgbtTemp(void) {
-	
-	
 int		cc,t=__max( __fit(ADC3_buf[0].IgbtT1,Rtab,Ttab),
 									__fit(ADC3_buf[0].IgbtT2,Rtab,Ttab));
 

@@ -124,12 +124,6 @@ void			ProcessingEvents(PFM *p) {
 //______________________________________________________________________________
 static	
 int				t,lastFanTachoEvent=0,trigger_cont=0;
-					if(__dbug && _EVENT(p,_ADC_WATCHDOG)) {
-						_io *io=_stdio(__dbug);	
-						_CLEAR_EVENT(p,_ADC_WATCHDOG);
-						printf(":%04d adc %d,%d,%d,%d\r\n>",__time__ % 10000,ADC3_buf[0].HV,ADC3_buf[1].HV,ADC3_buf[2].HV,ADC3_buf[3].HV);
-						_stdio(io);
-					}
 //________1 ms periodic events__________________________________________________
 					if(t != __time__) {
 						t = __time__;
@@ -148,10 +142,6 @@ short					m=_STATUS_WORD;
 						if(trigger_cont && !(--trigger_cont))									// continuous trigger counter, for testing only
 							_SET_EVENT(p,_TRIGGER);		
 					}							
-//________continuous events_____________________________________________________		
-//______________________________________________________________________________													
-//______________________________________________________________________________													
-//______________________________________________________________________________													
 //______________________________________________________________________________													
 					if(_EVENT(p,_FAN_TACHO)) {															// fan timeout counter reset
 						static int n=0;
@@ -182,7 +172,7 @@ short					m=_STATUS_WORD;
 //______________________________________________________________________________
 					if(_EVENT(p,_PULSE_FINISHED)) {													// end of pulse
 						_CLEAR_EVENT(p,_PULSE_FINISHED);
-						SetSimmerRate(p, _PWM_RATE_LO);												// reduce simmer
+						SetSimmerRate(p,_PWM_RATE_LO);												// reduce simmer
 						if(Eack(p)) {																					// Energ. integrator finished
 							Pref1=Pref2=0;
 							while(!_EVENT(p,_ADC_FINISHED))											// wait for end of ADC recording
@@ -191,6 +181,8 @@ short					m=_STATUS_WORD;
 							ScopeDumpBinary(NULL,0);														// scope printout, for testing(if enabled ?)
 							}
 					}
+//					if(!_MODE(p,_PULSE_INPROC))
+//						IncrementSimmerRate(0);	
 }
 /*______________________________________________________________________________
   * @brief	periodic status/error  polling, main loop call from 1 msec event flag

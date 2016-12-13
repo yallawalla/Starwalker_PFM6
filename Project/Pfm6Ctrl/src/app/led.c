@@ -17,9 +17,9 @@
 #if defined  (STM32F2XX)
 #include		"stm32f2xx.h"
 #
-#elif defined (STM32F10X_HD)
+#elif defined (__PVC__)
 #include		"stm32f10x.h"
-#elif	undefined (STM32F2XX || STM32F10X_HD)
+#elif	undefined (STM32F2XX || __PVC__)
 *** undefined target !!!!
 #endif
 

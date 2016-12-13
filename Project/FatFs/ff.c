@@ -3948,7 +3948,6 @@ TCHAR* f_gets (
 	BYTE s[2];
 	UINT rc;
 
-
 	while (n < len - 1) {			/* Read bytes until buffer gets filled */
 		f_read(fil, s, 1, &rc);
 		if (rc != 1) break;			/* Break on EOF or error */

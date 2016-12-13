@@ -13,7 +13,22 @@ extern "C" {
 #define _USE_IOCTL	1	/* 1: Enable disk_ioctl fucntion */
 
 #include "integer.h"
+#include "stdint.h"
+	
+#define	PAGE_SIZE					0x20000
+#define	PAGE_COUNT				5
+	
+#define	SECTOR_SIZE				512
+#define	CLUSTER_SIZE			4096
+#define	SECTOR_COUNT			((int)PAGE_SIZE*PAGE_COUNT/(SECTOR_SIZE+4))
 
+int8_t	STORAGE_Init (uint8_t);
+int8_t	STORAGE_GetCapacity (uint8_t, uint32_t *, uint32_t *);
+int8_t	STORAGE_IsReady (uint8_t);
+int8_t	STORAGE_IsWriteProtected (uint8_t);
+int8_t	STORAGE_Read (uint8_t, uint8_t *, uint32_t, uint16_t);
+int8_t	STORAGE_Write (uint8_t, uint8_t *, uint32_t, uint16_t);
+int8_t	STORAGE_GetMaxLun (void);
 
 /* Status of Disk Functions */
 typedef BYTE	DSTATUS;

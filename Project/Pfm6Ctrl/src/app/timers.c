@@ -370,7 +370,7 @@ void		TIM3_IRQHandler(void) {
 void 		EXTI9_5_IRQHandler(void)
 {
 				EXTI_ClearITPendingBit(EXTI_Line8);
-				if(!_TRIGGER1 && !_TRIGGER2)
+				if(!_TRIGGER1 && !_TRIGGER2 && _PFM_CWBAR_SENSE)
 					_SET_ERROR(pfm,PFM_ERR_DRVERR);
 				_YELLOW2(300);
 }
@@ -384,11 +384,7 @@ void 		EXTI9_5_IRQHandler(void)
 void 		EXTI15_10_IRQHandler(void)
 {
 				EXTI_ClearITPendingBit(EXTI_Line14);
-#ifdef __DISCO__
-				if(!_PFM_CWBAR_SENSE) {
-#else
 				if(_PFM_CWBAR_SENSE) {
-#endif
 					_SET_STATUS(pfm,_PFM_CWBAR_STAT);
 					_CLEAR_ERROR(pfm, _CRITICAL_ERR_MASK);
 					TIM_CtrlPWMOutputs(TIM1, ENABLE);
