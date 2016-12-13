@@ -326,16 +326,24 @@ void	SetSimmerRate(PFM *p, int simmrate) {
 			while(!(TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
 			while((TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
 	
-// 		TIM_CtrlPWMOutputs(TIM1, DISABLE);
-// 		TIM_CtrlPWMOutputs(TIM8, DISABLE);
-//_____________________________________________________________	
+			TIM_CtrlPWMOutputs(TIM1, DISABLE);
+			TIM_CtrlPWMOutputs(TIM8, DISABLE);
+
+			TIM_SetCounter(TIM1,0);
+			TIM_SetCounter(TIM8,0);
+
 			TIM_Cmd(TIM1,DISABLE);
-			TIM_Cmd(TIM8,DISABLE);
-		
-			TIM_SetCounter(TIM1,simmrate/4);				//08203hjfkw8
-			TIM_SetCounter(TIM8,simmrate/4);
+			TIM_Cmd(TIM8,DISABLE);			
+			
+			TIM_SetCounter(TIM1,0);
+			TIM_SetCounter(TIM8,0);
+
+			TIM_SetCounter(TIM1,simmrate/4);
 			if(_MODE(p,_XLAP_QUAD))
 				TIM_SetCounter(TIM8,3*simmrate/4);
+			else
+				TIM_SetCounter(TIM8,simmrate/4);
+
 			TIM_SetAutoreload(TIM1,simmrate);
 			TIM_SetAutoreload(TIM8,simmrate);
 			SetSimmerPw(p);
@@ -360,7 +368,14 @@ void	SetSimmerRate(PFM *p, int simmrate) {
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
 				TIM_ITConfig(TIM1,TIM_IT_Update,DISABLE);
 			}			
+			
+			if(_DBG(pfm,_DBG_MSG_TIM)) {
+				_DEBUG_MSG("cr1  %04X, cr8  %04X", TIM1->CR1, TIM8->CR1);
+				_DEBUG_MSG("cnt1 %04X, cnt8 %04X", TIM1->CNT, TIM8->CNT);
+			}
 
+			TIM_CtrlPWMOutputs(TIM1, ENABLE);
+			TIM_CtrlPWMOutputs(TIM8, ENABLE);
 			TIM_Cmd(TIM1,ENABLE);
 
 //_____________________________________________________________	

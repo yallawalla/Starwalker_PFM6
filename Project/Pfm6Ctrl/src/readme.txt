@@ -389,7 +389,15 @@ verzija 105
 - za QSP zmanjsan razmik na 20-100 us !!!
 >v 1.00 May  6 2014, <247DD939>
 
+9.12.2014
+verzija 106
 
+- se dvakrat v SetSimmerRate (pred in po TIM disable) 
+  SetCounter(TIM1(8),0) ... zaradi resetiranja DIR bita v TIMx_CR1 
+>v 1.00 May  7 2014, <137D8D3C>
+
+
+  
 
 
 

@@ -20,7 +20,7 @@
 #include				"usb_conf.h"
 #include				"usbh_core.h"
 			          
-#define 				SW_version		100																				//ex 105
+#define 				SW_version		100																				//ex 106
 			          
 #if  						defined (__PFM6__)
 #define					__CAN__				CAN2
@@ -91,7 +91,8 @@ typedef					 enum
 {								_DBG_CAN_TX,
 								_DBG_CAN_RX,
 								_DBG_ERR_MSG,
-								_DBG_SYS_MSG
+								_DBG_SYS_MSG,
+								_DBG_MSG_TIM=20
 } 							_debug;
 
 typedef					enum
