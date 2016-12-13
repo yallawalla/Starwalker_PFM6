@@ -657,7 +657,7 @@ static		int				n=0;
 int				i,j,k;
 
 					if(p) {
-						j=k=_I2AD(50.0);
+						j=k=_I2AD(20.0);
 						for(i=0; i<_MAX_BURST/_uS; ++i) {
 							if(ADC1_buf[i].I > j)
 								e1+=(short)(ADC1_buf[i].U) * (short)(ADC1_buf[i].I-_I1off);

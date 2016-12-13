@@ -199,7 +199,7 @@ int		Uo=p->Burst.Pmax;
 						to=shape[i].q3;
 //					Uo=(int)(pow((pow(p->Burst.Pmax,3)*p->Burst.N*shape[i].qref - pow(shape[i].q1,3)*shape[i].q0)/shape[i].q3  /p->Burst.N,1.0/3.0)+0.5);
 						Uo=(int)(pow((pow(p->Burst.Pmax,3)*p->Burst.N*shape[i].qref - pow(shape[i].q1,3)*shape[i].q0)/shape[i].qref/p->Burst.N,1.0/3.0)+0.5);
-						too=_minmax(Uo,260,550,30,120);
+						too=_minmax(Uo,260,550,20,100);
 					}						
 				}	
 			if(p->Burst.Ereq & 0x01) {

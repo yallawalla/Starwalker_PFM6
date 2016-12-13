@@ -20,7 +20,7 @@
 #include				"usb_conf.h"
 #include				"usbh_core.h"
 			          
-#define 				SW_version		104
+#define 				SW_version		100																				//ex 105
 			          
 #if  						defined (__PFM6__)
 #define					__CAN__				CAN2

@@ -379,6 +379,27 @@ verzija 104
 
 - err 4000, HV/2 je critical error
 - console interface za shaped pulse
+>v 1.04 Nov 13 2014, <3F161304>
+
+
+4.12.2014
+verzija 105
+
+- spuscen threshold  za integracijo energije (Eack) na 20A 
+- za QSP zmanjsan razmik na 20-100 us !!!
+>v 1.00 May  6 2014, <247DD939>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
