@@ -109,8 +109,8 @@ FATFS				fs_usb;
 						case 'u':
 							printf("\rFormat usb ...[y/n]");
 							do {
+								Wait(5,App_Loop);
 								m=fgetc(&__stdin);
-								Watchdog();
 							} while(m==-1);
 							if(m == 'y') {
 								f_mount(FSDRIVE_USB,&fs_usb);
@@ -123,14 +123,14 @@ FATFS				fs_usb;
 							printf("\rFormat flash ...[y/n]");
 							Watchdog_init(4000);
 							do {
+								Wait(5,App_Loop);
 								m=fgetc(&__stdin);
-								Watchdog();
 							} while(m==-1);
 							if(m == 'y') {
 FATFS						fs_cpu;				
 								printf(" erasing ");
 								for(n=0; n<6; ++n)
-									if(FLASH_Erase(ERASE_Sector+n*FLASH_Sector_1)==FLASH_COMPLETE)
+									if(FLASH_Erase(PAGE_START+n*FLASH_Sector_1)==FLASH_COMPLETE)
 										printf(".");
 									else
 										printf("?");
@@ -151,7 +151,7 @@ FATFS						fs_cpu;
 				case 'q':
 					n=strscan(++c,cc,',');
 					if(n) {
-						for(p=(int *)STORAGE_TOP; p[512/4] != -1; p=&p[512/4+1]) {
+						for(p=(int *)PAGE_ADDRESS; p[512/4] != -1; p=&p[512/4+1]) {
 							if(p[512/4] == getHEX(cc[0],EOF)) {
 								for(m=0; m<512; m+=16) {
 									printf("\r\n");
@@ -683,6 +683,20 @@ extern int	_U1off,_U2off,_I1off,_I2off;
 					}
 					break;	
 //______________________________________________________________________________________
+				case 'i':							
+					switch(strscan(++c,cc,',')) {
+						case 0:
+							printf("\r>i(DAC)   i1,i2         ... %d%c,%d%c",(DAC_GetDataOutputValue(DAC_Channel_1)*100+0x7ff)/0xfff,'%',(DAC_GetDataOutputValue(DAC_Channel_2)*100+0x7ff)/0xfff,'%');
+							break;
+						case 2:
+							DAC_SetDualChannelData(DAC_Align_12b_R,(atoi(cc[1])*0xfff+50)/100,(atoi(cc[0])*0xfff+50)/100);
+							DAC_DualSoftwareTriggerCmd(ENABLE);		
+							break;
+						default:
+							return _PARSE_ERR_SYNTAX;
+					}
+				break;
+//______________________________________________________________________________________
 				case 'x':
 					switch(atoi(++c)) {
 					case 1:
@@ -734,7 +748,7 @@ extern int	_U1off,_U2off,_I1off,_I2off;
 				case 'f':
 					n=strscan(++c,cc,',');
 					if(!n) {
-						printf("\r>f(an)    Tl,Th,min,max ... %d%c,%d%c,%d%c,%d%c",fanTL/100,176,fanTH/100,176,fanPmin,'%',fanPmax,'%');
+						printf("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%d",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',pfm->Temp);
 						break;
 					} else {
 						if(n==4) {
@@ -803,7 +817,7 @@ int			u=0,umax=0,umin=0;
 					return _PARSE_ERR_NORESP;
 //______________________________________________________________________________________
 				case '?':
-					ungets("u\rs\rd\rp\rb\rf\r");
+					ungets("u\ri\rs\rd\rp\rb\rf\r");
 				break;
 //______________________________________________________________________________________
 				case '-':

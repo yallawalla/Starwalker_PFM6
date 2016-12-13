@@ -19,7 +19,7 @@ extern USBH_HOST                    USB_Host;
 /*-----------------------------------------------------------------------*/
 
 DSTATUS disk_initialize	(
-                        BYTE drv		/* Physical drive number (0) */
+            BYTE drv		/* Physical drive number (0) */
 						)
 {
 	if(drv==FSDRIVE_CPU)	return(STORAGE_Init(drv));
@@ -54,8 +54,8 @@ DSTATUS disk_status (
 
 DRESULT disk_read (
                    BYTE drv,			/* Physical drive number (0) */
-                   BYTE *buff,			/* Pointer to the data buffer to store read data */
-                   DWORD sector,		/* Start sector number (LBA) */
+                   BYTE *buff,		/* Pointer to the data buffer to store read data */
+                   DWORD sector,	/* Start sector number (LBA) */
                    BYTE count			/* Sector count (1..255) */
                   )
 {
@@ -82,8 +82,6 @@ DRESULT disk_read (
   return RES_ERROR;
   
 }
-
-
 
 /*-----------------------------------------------------------------------*/
 /* Write Sector(s)                                                       */
@@ -143,7 +141,6 @@ DRESULT disk_ioctl (
 	
 	switch (ctrl) {
   case CTRL_SYNC :		/* Make sure that no pending write process */
-    
     res = RES_OK;
     break;
     
@@ -164,7 +161,7 @@ DRESULT disk_ioctl (
     break;
     
   case GET_BLOCK_SIZE :	/* Get erase block size in unit of sector (DWORD) */
-    if(drv==FSDRIVE_CPU)
+		if(drv==FSDRIVE_CPU)
 			*(DWORD*)buff = (DWORD) PAGE_SIZE;
 		else
 			*(DWORD*)buff = 512;

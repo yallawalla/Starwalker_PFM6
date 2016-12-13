@@ -319,7 +319,7 @@ inic. Pref1 in Pref2 (current loop reset ...)  se prestavi iz PFM_set komande na
 
 24.7.2014
 
-Na testiranjih max. mode vrze ven po cca 10-15 min, gui sier javlja 0081-0006, kar je rezulta zaustavitve PFM
+Na testiranjih max. mode vrze ven po cca 10-15 min, gui sier javlja 0081-0006, kar je rezultat zaustavitve PFM
 - error 0x2000 (fan ...??)
 - verjetno zaradi rekurzivne kasnitve pri kom. z chargerjem
 - po odstranitvi 10Hz pollinga za charger status stvar deluje, prihaja pa do izpadov  syscontrol 
@@ -331,4 +331,15 @@ major. verzija 100
 - odpravljen bug z fan error na max mode
 - skrajsan cakalni cas na SetPwmTab
 - CAN debug output premaknjen na izhod (ParseCan)
+
+
+verzija 101
+
+- error margin za -5 V napajac 0d -4 do -6
+- max temperatura za IGBT je 50% nad max. obrati ventilatorja
+- dodan CAN command za nastavitev DAC iz GUI, sprememba GUI 
+- dodan konzolni ukaz za nastavitev int izpis DAC vrednosti
+- na konzolni izpis za (f)an dodana temperatura (samo pri izpisu...)
+- debug izpis energije na desetinko J
+
 

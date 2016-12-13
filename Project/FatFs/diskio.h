@@ -82,7 +82,6 @@ DRESULT disk_ioctl (BYTE, BYTE, void*);
 #define CT_SDC		(CT_SD1|CT_SD2)	/* SD */
 #define CT_BLOCK	0x08		/* Block addressing */
 
-
 #ifdef __cplusplus
 }
 #endif

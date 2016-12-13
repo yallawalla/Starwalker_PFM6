@@ -216,7 +216,7 @@ int				error_image=0,
 					p->Um5  += (8*(ADC3_buf[0].Um5)  - p->Um5)/8;
 //-------------------------------------------------------------------------------			
 					p->Temp=IgbtTemp();
-					if(p->Temp > 65)
+					if(p->Temp > (fanTH+fanTH/2)/100)
 						_SET_ERROR(p,PFM_ERR_TEMP);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_TEMP);
@@ -226,7 +226,7 @@ int				error_image=0,
 					else
 						_CLEAR_ERROR(p,PFM_ERR_48V);
 //-------------------------------------------------------------------------------
-					if(p->Um5 > _m5V2AD(-4) || p->Um5 < _m5V2AD(-5))       
+					if(p->Um5 > _m5V2AD(-4) || p->Um5 < _m5V2AD(-6))       
 						_SET_ERROR(p,PFM_ERR_15V);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_15V);
@@ -567,6 +567,16 @@ short			n;
 //
 // Pfm6 add..
 //	
+									case _PFM_CurrentLimit:																			// .10
+									{
+										int dac1,dac2;
+										dac1=*(short *)q;
+										++q;++q;
+										dac2=*(short *)q;
+										DAC_SetDualChannelData(DAC_Align_12b_R,dac1,dac2);
+										DAC_DualSoftwareTriggerCmd(ENABLE);									
+									}
+										break;	
 									case _PFM_HV_req:																						// .12
 										CanReply("cwwwP",_PFM_HV_req,p->HV,p->HV2,p->Temp);
 										break;	
@@ -679,17 +689,17 @@ int				i,j,k;
 								case PFM_STAT_SIMM1:
 									e=e1*p->ADCRate/kmJ/_uS;
 									CanReply("cicP",_PFM_E_ack,e,0);	
-									_DEBUG_MSG("E1=%dJ",e/1000);
+									_DEBUG_MSG("E1=%d.%dJ",e/1000,(e%1000)/100);
 									break;
 								case PFM_STAT_SIMM2:
 									e=e2*p->ADCRate/kmJ/_uS;
 									CanReply("cicP",_PFM_E_ack,e,0);					
-									_DEBUG_MSG("E2=%dJ",e/1000);
+									_DEBUG_MSG("E2=%d.%dJ",e/1000,(e%1000)/100);
 									break;
 								case PFM_STAT_SIMM1 | PFM_STAT_SIMM2:
 									e=(e1+e2)*p->ADCRate/kmJ/_uS;
 									CanReply("cicP",e,0);		
-									_DEBUG_MSG("E1+E2=%dJ",e/1000);
+									_DEBUG_MSG("E1+E2=%d.%dJ",e/1000,(e%1000)/100);
 									break;
 							}
 							e1=e2=n=0;

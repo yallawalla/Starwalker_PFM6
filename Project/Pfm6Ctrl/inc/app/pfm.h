@@ -9,18 +9,18 @@
 #include				"ff.h"
 #include				"CAN_MAP.h"
 
-#include "usbh_core.h"
-#include "usbh_msc_usr.h"
-#include "usbd_usr.h"
-#include "usbd_desc.h"
-#include "usbh_msc_core.h"
-#include "usbd_msc_core.h"
-#include "usbd_cdc_core.h"
+#include				"usbh_core.h"
+#include				"usbh_msc_usr.h"
+#include				"usbd_usr.h"
+#include				"usbd_desc.h"
+#include				"usbh_msc_core.h"
+#include				"usbd_msc_core.h"
+#include				"usbd_cdc_core.h"
 
-#include "usb_conf.h"
-#include "usbh_core.h"
+#include				"usb_conf.h"
+#include				"usbh_core.h"
 			          
-#define 				SW_version		100
+#define 				SW_version		101
 			          
 #if  						defined (__PFM6__)
 #define					__CAN__				CAN2
@@ -149,9 +149,9 @@ _io 								*io=_stdio(__dbug);																												\
 #define					_SET_MODE(p,a)			p->mode |= (1<<(a))
 #define					_CLEAR_MODE(p,a)		p->mode &= ~(1<<(a))
 //________________________________________________________________________
-#define ADC3_AVG					4
+#define 				ADC3_AVG					4
 extern 
-int			_ADCRates[];
+int							_ADCRates[];
 typedef struct	{	unsigned short	U,I;									} _ADCDMA;
 typedef struct	{	unsigned short	IgbtT1,IgbtT2,HV2,HV,
 									Up20,Um5;															} _ADC3DMA;
@@ -160,7 +160,7 @@ typedef struct	{	unsigned short	DAC2,DAC1;						} _DACDMA;
 typedef struct	{	unsigned short	addr,speed,ntx,nrx;
 									unsigned char		txbuf[4],rxbuf[4];		}_i2c;
 typedef struct	{					 short	q0,q1,q2,q3,qref;			}	_QSHAPE;
-extern	_QSHAPE shape[8];			
+extern					_QSHAPE shape[8];			
 //________________________________________________________________________
 int 						readI2C(_i2c *,char *, int),
 								writeI2C(_i2c *,char *, int),
@@ -175,28 +175,24 @@ int 						readI2C(_i2c *,char *, int),
 #define 				_FW_SIZE				((int *)(_FLASH_TOP-24))
 #define 				_SIGN_CRC				((int *)(_FLASH_TOP-28))
 #define					_FLASH_BLANK			((int)-1)
-
-
-#define					ERASE_SIZE				0x20000
-#define					ERASE_COUNT				5
-
+//________________________________________________________________________
 #ifdef __DISCO__
-#define					ERASE_Sector			FLASH_Sector_5
-#define					STORAGE_TOP				0x8020000
+#define					PAGE_START				FLASH_Sector_5
+#define					PAGE_ADDRESS			0x8020000
 #endif
 
 #ifdef __PFM6__
-#define					ERASE_Sector			FLASH_Sector_6
-#define					STORAGE_TOP				0x8040000
+#define					PAGE_START				FLASH_Sector_6
+#define					PAGE_ADDRESS			0x8040000
 #endif
 
+#define					PAGE_SIZE					0x20000
+#define					PAGE_COUNT				5
 #define					SECTOR_SIZE				512
-#define 				SECTOR_COUNT			((int)ERASE_SIZE*ERASE_COUNT/(SECTOR_SIZE+4))
 #define 				CLUSTER_SIZE			4096
-
-	            
-extern
-int							(*USBH_App)(int);
+#define 				SECTOR_COUNT			((int)PAGE_SIZE*PAGE_COUNT/(SECTOR_SIZE+4))
+//________________________________________________________________________            
+extern int			(*USBH_App)(int);
 int							USBH_Iap(int);
 //________________________________________________________________________
 #define					_ID_SYS2PFM				0x20

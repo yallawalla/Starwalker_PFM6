@@ -208,7 +208,7 @@ int8_t STORAGE_Read(uint8_t lun,
                  uint16_t blk_len)
 {
 int i,*p,*q=NULL;
-	for(p=(int *)STORAGE_TOP; p[SECTOR_SIZE/4]!=-1; p=&p[SECTOR_SIZE/4+1])
+	for(p=(int *)PAGE_ADDRESS; p[SECTOR_SIZE/4]!=-1; p=&p[SECTOR_SIZE/4+1])
 		if(p[SECTOR_SIZE/4] == blk_addr)
 			q=p;
 	if(q)
@@ -235,7 +235,7 @@ int8_t STORAGE_Write (uint8_t lun,
                   uint16_t blk_len)
 {
 int i,*p,*q=NULL;
-	for(p=(int *)STORAGE_TOP; p[SECTOR_SIZE/4]!=-1; p=&p[SECTOR_SIZE/4+1])
+	for(p=(int *)PAGE_ADDRESS; p[SECTOR_SIZE/4]!=-1; p=&p[SECTOR_SIZE/4+1])
 		if(p[SECTOR_SIZE/4] == blk_addr)
 			q=p;
 		
@@ -278,7 +278,7 @@ int8_t STORAGE_GetMaxLun (void)
 void	SectorQuery(void) {
 int		i,j,*p,*q;
 
-			p=(int *)STORAGE_TOP;
+			p=(int *)PAGE_ADDRESS;
 			for(i=0; i<SECTOR_COUNT; ++i) {
 				if(!((i%255)%16))
 					printf("\r\n");
@@ -304,9 +304,9 @@ int		Defragment(int mode) {
 int 	i,f,e,*p,*q,buf[SECTOR_SIZE/4];
 int		c0=0,c1=0;
 
-			f=FLASH_Sector_6;
-			e=ERASE_SIZE;
-			p=(int *)STORAGE_TOP;
+			f=PAGE_START;
+			e=PAGE_SIZE;
+			p=(int *)PAGE_ADDRESS;
 			do {
 				do {
 					q=&p[SECTOR_SIZE/4+1];
@@ -322,11 +322,11 @@ int		c0=0,c1=0;
 					} else
 						++c1;
 					p=&p[SECTOR_SIZE/4+1]; 
-				} while(((int)p)-STORAGE_TOP <  e && p[SECTOR_SIZE/4] != -1);
+				} while(((int)p)-PAGE_ADDRESS <  e && p[SECTOR_SIZE/4] != -1);
 				if(mode)
 					FLASH_Erase(f);
-				f+=(FLASH_Sector_7-FLASH_Sector_6); 
-				e+=ERASE_SIZE;
+				f+=FLASH_Sector_1; 
+				e+=PAGE_SIZE;
 			} while(p[SECTOR_SIZE/4] != -1);	
 			if(mode) {
 				FLASH_Erase(f);
