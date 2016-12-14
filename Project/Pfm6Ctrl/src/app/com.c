@@ -453,9 +453,6 @@ char			*q,*qq;
 					while(1) {
 						if(f_readdir(dir,fno) != FR_OK || !dir->sect)
 							return NULL;
-//						if(dir->lfn_idx != (WORD)-1)
-//							q=qq=fno->lfname;
-//						else
 							q=qq=fno->fname;
 						while(*q) {
 							if(*p == *q) {
@@ -635,9 +632,6 @@ TCHAR			buf[128];
 								f_readdir(&dir,&fno);
 								if(!dir.sect)
 									break;
-//								if(dir.lfn_idx != (WORD)-1) {
-//									__print("\r\n%-16s",fno.lfname);
-//								} else
 									__print("\r\n%-16s",fno.fname);
 								if (fno.fattrib & AM_DIR)
 									__print("/");
