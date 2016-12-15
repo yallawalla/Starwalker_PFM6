@@ -617,10 +617,10 @@ int 			inproc=0;
 //______________________________________________________________________________________
 								case _ID_ENRG2SYS: 																						// energometer-2-system message
 								{
-void setkn(int);
+									void Sweep(int);
 									union {short w[4];} *e = (void *)q;			
-									if((unsigned short)e->w[0]==0xD103) {
-										setkn(__max(0,e->w[2])/10);
+									if(_MODE(pfm,__SWEEPS__) && (unsigned short)e->w[0]==0xD103) {	
+										Sweep(__max(0,e->w[2])/10);
 										
 										if(_DBG(p,_DBG_ENRG_SYS)) {
 _io 									*io=_stdio(__dbug);										

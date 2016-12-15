@@ -226,16 +226,36 @@ int		Uo=p->Burst.Pmax;
 			if(p->Burst.Ereq & 0x01) {
 //-------PULSE----------------------					
 				for(j=0; j<p->Burst.N; ++j) {
+
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
 // SWEEPS ...........................................................
-					if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5 && p->Burst.Ereq == 1) {
+// mode recognizeb by mode req, pulse time = 50u, burst length = 1ms, no. of pulses = 5, regular call ...
+//
+						if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5 && p->Burst.Ereq == 1) {
+// set distance after 1 pulse
 						if(j==0)
-							too=10*abs((p->Burst.Count % 60)-30)+250;					
-						if(j==1)
-							Uo += Uo*(too - 550)*ksweeps/300/1000+Uo*nsweeps/1000;
+								too=10*abs((p->Burst.Count % 60)-30)+250;					
+// break the seq. if alternate setup mode and odd pulse; else, compute voltage correction on delta t 
+						if(j==1) {
+							if(_MODE(p,__SWEEPSet__) && p->Burst.Count % 2)
+								break;
+							else
+								Uo += Uo*(too - 550)*ksweeps/300/1000+Uo*nsweeps/1000;
+						}
+// unconditional break on second pulse 
 						if(j==2)
 							break;
 					}					
 //..end  sweeps........................................
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
 					for(n=2*((to*_uS + _PWM_RATE_HI/2)/_PWM_RATE_HI)-1; n>0; n -= 255, ++t) {					
 						t->T1=t->T2=_K1*(Uo+p->Burst.Pdelay);
 						t->T3=t->T4=_K2*(Uo+p->Burst.Pdelay);
@@ -443,6 +463,15 @@ int		cc,t=__max( __fit(ADC3_buf[0].IgbtT1,Rtab,Ttab),
 			return(t/100);
 }
 /*******************************************************************************/
+//	ADP1047 linear to float converter_____________________________________________
+float	__lin2f(short i) {
+		return((i&0x7ff)*pow(2,i>>11));
+}
+//	ADP1047 float to linear converter_____________________________________________
+short	__f2lin(float u, short exp) {
+		return ((((int)(u/pow(2,exp>>11)))&0x7ff)  | (exp & 0xf800));
+}
+/*******************************************************************************/
 /**
   * @brief	: fit 2 reda, Bronštajn str. 670
   * @param t:
@@ -456,42 +485,70 @@ int		f1=(ft[1]*(t[0]-to)-ft[0]*(t[1]-to)) / (t[0]-t[1]);
 			f2=(f2*(t[1]-to)-f1*(t[2]-to)) / (t[1]-t[2]);
 			return(f3*(t[2]-to)-f2*(t[3]-to)) / (t[2]-t[3]);
 }
-//	ADP1047 linear to float converter_____________________________________________
-float	__lin2f(short i) {
-		return((i&0x7ff)*pow(2,i>>11));
-}
-//	ADP1047 float to linear converter_____________________________________________
-short	__f2lin(float u, short exp) {
-		return ((((int)(u/pow(2,exp>>11)))&0x7ff)  | (exp & 0xf800));
-}
-
-const int	V[]=		{480,490,500,520};
-const int	mJ[]=		{10,20,40,70,100};
-
-const int	Hz[]=		{10,20,30,40};
-const int	kHz[]=	{90,85,80,70};
-
-const int	n10[]=	{45,35,25,15};
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
+// SWEEPS ...........................................................
+//
+const int	mJ[]=		{10,20,40,70};						// working energies
+const int	Hz[]=		{10,20,30,40};						// working freq.
+const int	kHz[]=	{90,85,80,70};						// kdt(f) table
+const int	n10[]=	{45,35,25,15};						// ndt(f,)
 const int	n20[]=	{25,15,5,-5};
 const int	n30[]=	{20,10,0,-10};
 const int	n40[]=	{15,5,-5,-15};
 
-void		setkn(int emj) {
-int			nHz[4];
-int			f=1000/pfm->Burst.Repeat;
+void				Sweep(int emj) {
+int					nHz[4];
+int					f=1000/pfm->Burst.Repeat;
+static	int	emj00=0,noffs=0,timeout=0;
 
-				if(emj < mJ[0]) emj = mJ[0];
-				if(emj > mJ[4]) emj = mJ[4];
-				if(f < Hz[0]) f = Hz[0];
-				if(f > Hz[3]) f = Hz[3];
+				if(_MODE(pfm,__SWEEPSet__)) {				// if sweepsetup active
+					if(pfm->Burst.Count % 2) {				// correction on even shot
+						if(emj - 2*emj00 > 2)
+							noffs = __max(-100,--noffs);
+						if(emj - 2*emj00 < -2)
+							noffs = __min(100,++noffs);
+					} else
+						emj00=emj;											// remember reference energy on odd 
+					
+				}
+				
+				if(_DBG(pfm,26)) {
+					_io *io=_stdio(__dbug);
+					printf(":%04d %d,%d,%d,%d,%d\r\n>",__time__ % 10000,pfm->Burst.Count,emj,noffs,ksweeps,nsweeps);
+					_stdio(io);
+				}
+				
+				if(_MODE(pfm,__SWEEPSet__) && pfm->Burst.Count % 2)
+					return;														// don't do anything else on sweepsetup active and odd hot
+
+				emj	=__min(mJ[3],__max(mJ[0],emj));	// limit input energy anf work. frequency to table border values
+				f		=__min(Hz[3],__max(Hz[0],f));
+
 	
-				nHz[0]=__fit(emj,mJ,n10);
+				nHz[0]=__fit(emj,mJ,n10);						// fit offset on energy input for all working frequencies
 				nHz[1]=__fit(emj,mJ,n20);
 				nHz[2]=__fit(emj,mJ,n30);
 				nHz[3]=__fit(emj,mJ,n40);
 
-				nsweeps=__fit(f,Hz,nHz);
-				ksweeps=__fit(f,Hz,kHz);
+				if(__time__ > timeout) {						// if timeout expired, start new  sequence
+					nsweeps=__fit(f,Hz,nHz) + noffs;	// fit k & offset on frequency
+					ksweeps=__fit(f,Hz,kHz);
+				} else {														// for all successive calc. use incremental to avoid sudden jumps
+					if(__fit(f,Hz,nHz) + noffs > nsweeps) 
+						++nsweeps;
+					if(__fit(f,Hz,kHz) > ksweeps) 
+						++ksweeps;
+					if(__fit(f,Hz,nHz) + noffs < nsweeps) 
+						--nsweeps;
+					if(__fit(f,Hz,kHz) < ksweeps) 
+						--ksweeps;
+				}
+				timeout=__time__  +  5*pfm->Burst.Repeat;
+
 }
 
 /**

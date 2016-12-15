@@ -120,8 +120,9 @@ typedef					enum
 								_CHANNEL2_DISABLE,				//12
 								_CHANNEL1_SINGLE_TRIGGER,	//13
 								_CHANNEL2_SINGLE_TRIGGER,	//14
+								__ASP__=20,
 								__SWEEPS__=25,
-								__ASP__=26
+								__SWEEPSet__=26,
 } 							_mode;
 
 
