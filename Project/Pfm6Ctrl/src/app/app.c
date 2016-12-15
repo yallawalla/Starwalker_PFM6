@@ -162,7 +162,7 @@ short					m=_STATUS_WORD;
 						_CLEAR_ERROR(p,_PFM_FAN_ERR);		
 //______________________________________________________________________________
 					if(_EVENT(p,_TRIGGER)) {																// trigger request
-						_CLEAR_EVENT(p,_TRIGGER);
+						_CLEAR_EVENT(p,_TRIGGER);						
 						if(p->Error & _CRITICAL_ERR_MASK)
 							_CLEAR_MODE(p,_TRIGGER_PERIODIC);
 						else {
@@ -176,12 +176,18 @@ short					m=_STATUS_WORD;
 							}	
 					}
 //______________________________________________________________________________
-					if(_EVENT(p,_PULSE_FINISHED)) {													// end of pulse
+					if(_EVENT(p,_PULSE_FINISHED)) {													// end of pulse			
+						static int	count_timeout=0;
 						_CLEAR_EVENT(p,_PULSE_FINISHED);
-						SetSimmerRate(p,_PWM_RATE_LO);												// reduce simmer
-						p->Burst.Count++;
-						if(_MODE(p,__SWEEPS__))
+
+						if(__time__ > count_timeout)
+							p->Burst.Count=0;
+						if(_MODE(p,__SWEEPS__))																// if sweeps, update pwm table !!!
 							SetPwmTab(p);
+						++p->Burst.Count;
+						count_timeout = __time__ + 2*p->Burst.Repeat;		
+						
+						SetSimmerRate(p,_PWM_RATE_LO);												// reduce simmer
 						if(Eack(p)) {																					// Energ. integrator finished
 							Pref1=Pref2=0;
 							while(!_EVENT(p,_ADC_FINISHED))											// wait for end of ADC recording
@@ -619,16 +625,15 @@ int 			inproc=0;
 								{
 									void Sweep(int);
 									union {short w[4];} *e = (void *)q;			
+									if(_DBG(p,_DBG_ENRG_SYS)) {
+_io 								*io=_stdio(__dbug);										
+										printf(":%04d e1=%.1lf,e2=%.1lf\r\n>",__time__ % 10000,
+											(double)__max(0,e->w[2])/10,
+												(double)__max(0,e->w[3])/10);
+									_stdio(io);
+									}
 									if(_MODE(pfm,__SWEEPS__) && (unsigned short)e->w[0]==0xD103) {	
-										Sweep(__max(0,e->w[2])/10);
-										
-										if(_DBG(p,_DBG_ENRG_SYS)) {
-_io 									*io=_stdio(__dbug);										
-											printf(":%04d e1=%.1lf,e2=%.1lf\r\n>",__time__ % 10000,
-												(double)__max(0,e->w[2])/10,
-													(double)__max(0,e->w[3])/10);
-										_stdio(io);
-										}
+										Sweep(__max(0,e->w[2])/10);	
 									}
 								}
 								break;

@@ -241,7 +241,7 @@ int		Uo=p->Burst.Pmax;
 								too=10*abs((p->Burst.Count % 60)-30)+250;					
 // break the seq. if alternate setup mode and odd pulse; else, compute voltage correction on delta t 
 						if(j==1) {
-							if(_MODE(p,__SWEEPSet__) && p->Burst.Count % 2)
+							if(_MODE(p,__SWEEPSet__) && p->Burst.Count > 0 && p->Burst.Count % 15 == 0)
 								break;
 							else
 								Uo += Uo*(too - 550)*ksweeps/300/1000+Uo*nsweeps/1000;
@@ -503,17 +503,17 @@ const int	n40[]=	{15,5,-5,-15};
 void				Sweep(int emj) {
 int					nHz[4];
 int					f=1000/pfm->Burst.Repeat;
-static	int	emj00=0,noffs=0,timeout=0;
+static	int	emj00=-1,noffs=0;
 
-				if(_MODE(pfm,__SWEEPSet__)) {				// if sweepsetup active
-					if(pfm->Burst.Count % 2) {				// correction on even shot
-						if(emj - 2*emj00 > 2)
+				if(_MODE(pfm,__SWEEPSet__)) {				// if sweeps setup active
+					if((pfm->Burst.Count-2) % 15 == 0)
+						emj00=emj;	
+					else if(emj00 >= 0) {
+						if(emj/2 - emj00 > 1)
 							noffs = __max(-100,--noffs);
-						if(emj - 2*emj00 < -2)
+						if(emj/2 - emj00 < -1)
 							noffs = __min(100,++noffs);
-					} else
-						emj00=emj;											// remember reference energy on odd 
-					
+					}
 				}
 				
 				if(_DBG(pfm,26)) {
@@ -522,9 +522,10 @@ static	int	emj00=0,noffs=0,timeout=0;
 					_stdio(io);
 				}
 				
-				if(_MODE(pfm,__SWEEPSet__) && pfm->Burst.Count % 2)
-					return;														// don't do anything else on sweepsetup active and odd hot
-
+				if((pfm->Burst.Count-2) % 15 == 0)
+					return;
+				
+				
 				emj	=__min(mJ[3],__max(mJ[0],emj));	// limit input energy anf work. frequency to table border values
 				f		=__min(Hz[3],__max(Hz[0],f));
 
@@ -534,20 +535,8 @@ static	int	emj00=0,noffs=0,timeout=0;
 				nHz[2]=__fit(emj,mJ,n30);
 				nHz[3]=__fit(emj,mJ,n40);
 
-				if(__time__ > timeout) {						// if timeout expired, start new  sequence
-					nsweeps=__fit(f,Hz,nHz) + noffs;	// fit k & offset on frequency
-					ksweeps=__fit(f,Hz,kHz);
-				} else {														// for all successive calc. use incremental to avoid sudden jumps
-					if(__fit(f,Hz,nHz) + noffs > nsweeps) 
-						++nsweeps;
-					if(__fit(f,Hz,kHz) > ksweeps) 
-						++ksweeps;
-					if(__fit(f,Hz,nHz) + noffs < nsweeps) 
-						--nsweeps;
-					if(__fit(f,Hz,kHz) < ksweeps) 
-						--ksweeps;
-				}
-				timeout=__time__  +  5*pfm->Burst.Repeat;
+				nsweeps=__fit(f,Hz,nHz) + noffs;	// fit k & offset on frequency
+				ksweeps=__fit(f,Hz,kHz);
 
 }
 
