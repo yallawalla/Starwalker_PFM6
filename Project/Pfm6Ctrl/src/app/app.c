@@ -14,12 +14,12 @@
 #include	<string.h>
 #include 	<stdarg.h>
 #include 	<stdio.h>
+
 PFM				*pfm;
-int				_PWM_RATE_HI=(10*_uS),
-					_PWM_RATE_LO=(50*_uS),
+int				_PWM_RATE_LO=(50*_uS),
 					_I1off=0,_I2off=0,
 					_U1off=0,_U2off=0,
-					_U1ref=0,_U2ref=0;
+					_E1ref=0,_E2ref=0;
 /*______________________________________________________________________________
 * Function Name : App_Init
 * Description   : Initialize PFM object
@@ -53,6 +53,9 @@ RCC_AHB1PeriphClockCmd(
 					pfm->Burst.Pdelay=_PWM_RATE_HI*0.02;
 					pfm->Burst.Pmax=_PWM_RATE_HI*0.02;
 					pfm->ADCRate=_uS;
+					
+					pfm->qdelay=0;
+					pfm->qwidth=0;
 				
 					Initialize_NVIC();
 					__com0=Initialize_USART(921600);		
@@ -150,21 +153,23 @@ short					m=_STATUS_WORD;
 						if(++n % 5 == 0)
 							_BLUE2(20);
 					}
+#ifndef __DISCO__
 					if((__time__ - lastFanTachoEvent > 200) && (__time__ > 10000))
 						_SET_ERROR(p,_PFM_FAN_ERR);		
 					else
+#endif
 						_CLEAR_ERROR(p,_PFM_FAN_ERR);		
 //______________________________________________________________________________
 					if(_EVENT(p,_TRIGGER)) {																// trigger request
 						_CLEAR_EVENT(p,_TRIGGER);
 						if(p->Error & _CRITICAL_ERR_MASK)
-							_CLEAR_MODE(p,_TRIGGER_REPEAT);
+							_CLEAR_MODE(p,_TRIGGER_PERIODIC);
 						else {
 							if(trigger_cont)																		// if continuous, then stop
 							trigger_cont=0;
 							else {
 								Trigger(p);																				// else calling trigger
-								if(_MODE(p,_TRIGGER_REPEAT))											// rearm for continuous										
+								if(_MODE(p,_TRIGGER_PERIODIC))											// rearm for continuous										
 									trigger_cont=p->Burst.Repeat;						
 								}
 							}	
@@ -181,6 +186,10 @@ short					m=_STATUS_WORD;
 							ScopeDumpBinary(NULL,0);														// scope printout, for testing(if enabled ?)
 							}
 					}
+//					if(_E1ref || _E2ref) {
+//						_DEBUG_MSG("%d,%d\r\n",_E1ref,_E2ref);
+//						_E1ref=_E2ref=0;
+//					}
 //					if(!_MODE(p,_PULSE_INPROC))
 //						IncrementSimmerRate(0);	
 }
@@ -268,16 +277,17 @@ ______________________________________________________________________________*/
 void			ProcessingCharger(PFM *p) {
 static	
 short	 		ton=1500,toff=1000,temg=0;
-int				i;
 //-------------------------------------------------------------------------------
 					if(p->Error  & _CRITICAL_ERR_MASK) {
 						if(!temg--) {
-							i=_PFC_OFF;
+							int i=_PFC_OFF;
 							writeI2C(__charger6,(char *)&i,2);	
 							ADC_ITConfig(ADC3,ADC_IT_AWD,DISABLE);	
 							temg=500;
 							ton=300;
 							_RED2(100);
+							if(PFM_command(NULL,0))												// ugasni simmerje, ce je error
+								PFM_command(p,0);
 						}
 						return;
 					}
@@ -306,12 +316,12 @@ int				i;
 					}	
 					if(ton)
 						if(!--ton) {
-							i=_PFC_ON;
+							int i=_PFC_ON;
 							writeI2C(__charger6,(char *)&i,2);
 						}					
 					if(toff)
 						if(!--toff) {
-							i=_PFC_OFF;
+							int i=_PFC_OFF;
 							writeI2C(__charger6,(char *)&i,2);	
 						}			
 }
@@ -408,6 +418,7 @@ union			{
 					CanRxMsg	rx;
 					CanTxMsg	tx;
 					} Can;
+
 char			*q=(char *)&Can;
 short			n;
 static		
@@ -501,23 +512,24 @@ int 			inproc=0;
 										if(p->Burst.Length==0)
 											p->Burst.Length=3000;	
 										p->Burst.Erpt = 0;
+// ___________________________
 										if(_MODE(p,_LONG_INTERVAL)) {
 											for(n=0; n<8; ++n)
 												if((_ADCRates[n]+12)*(_MAX_BURST/_uS)/15 >  p->Burst.Length)
 													break;
 													
-											ADC_RegularChannelConfig(ADC1, ADC_Channel_8, 1, n);
-											ADC_RegularChannelConfig(ADC1, ADC_Channel_2, 2, n);
-											ADC_RegularChannelConfig(ADC2, ADC_Channel_11, 1, n);
-											ADC_RegularChannelConfig(ADC2, ADC_Channel_12, 2, n);
+											ADC_RegularChannelConfig(ADC1, ADC_Channel_8,		1, n);
+											ADC_RegularChannelConfig(ADC1, ADC_Channel_2,		2, n);
+											ADC_RegularChannelConfig(ADC2, ADC_Channel_11,	1, n);
+											ADC_RegularChannelConfig(ADC2, ADC_Channel_12,	2, n);
 											p->ADCRate=((_ADCRates[n]+12)*_uS)/15;											
-											
+// ___________________________											
 										} else {
 											n=0;
-											if(p->Burst.Length > 3000) {
+											if(p->Burst.Length > _MAX_BURST/_uS) {
 												p->Burst.Repeat = ((p->Burst.Length/1000) + p->Burst.N/2) / p->Burst.N;
 												p->Burst.Erpt = p->Burst.N-1;
-												p->Burst.Length=3000;
+												p->Burst.Length=_MAX_BURST/_uS;
 												p->Burst.N=1;
 											}
 										}
@@ -544,6 +556,42 @@ int 			inproc=0;
 //
 // Pfm6 add..
 //
+//
+// ________________________________________________________________________________
+									case _PFM_POCKELS: 																					// 0x72, _PFM_POCKELS ghdg78236u
+										p->qdelay=*(short *)q++;q++;
+										p->qwidth=*(short *)q++;q++;
+										PFM_pockels(p);
+										break;
+
+									case _PFM_SetHVmode:																				// 0x73, _PFM_SetHVmode 
+									{																														// HV & mode configuration modif. by host
+										char c[16];
+										sprintf(c,"u %d",*(short *)q);
+										if(DecodeCom(c) == _PARSE_OK) {
+											_CLEAR_ERROR(p,PFM_ERR_UB);
+											++q;++q;
+											if(*q & 1)
+												_CLEAR_MODE(p,_CHANNEL1_DISABLE);
+											else
+												_SET_MODE(p,_CHANNEL1_DISABLE);
+											if(*q & 2)
+												_CLEAR_MODE(p,_CHANNEL1_SINGLE_TRIGGER);
+											else
+												_SET_MODE(p,_CHANNEL1_SINGLE_TRIGGER);
+											if(*q & 4)
+												_CLEAR_MODE(p,_CHANNEL2_DISABLE);
+											else
+												_SET_MODE(p,_CHANNEL2_DISABLE);
+											if(*q & 8)
+												_CLEAR_MODE(p,_CHANNEL2_SINGLE_TRIGGER);
+											else
+												_SET_MODE(p,_CHANNEL2_SINGLE_TRIGGER);
+										} else
+											_SET_ERROR(p,PFM_ERR_UB);
+									}
+									break;
+
 									case _PFM_CurrentLimit:																			// .10
 									{
 										int dac1,dac2;
@@ -716,8 +764,8 @@ int				PFM_status_send(PFM *p, int k) {
   *
   */
 int				PFM_command(PFM *p, int n) {
-static
-int				count=0,no=0;
+static		int	count=0,no=0;
+					int	Uidle;
 //________________________________________________________________________________
 					if(p) {
 						while(_MODE(p,_PULSE_INPROC))																			// no change during pulse
@@ -729,22 +777,35 @@ int				count=0,no=0;
 							_CLEAR_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2);								// clear status
 							SetSimmerPw(p);																									// kill both simmers
 							no=n & (PFM_STAT_SIMM1 | PFM_STAT_SIMM2);												// mask filter command
-							Wait(100,App_Loop);																							// wait 100 msecs	
+							Wait(100,App_Loop);																							// wait 100 msecs
+							
 							if(!_MODE(p,_CHANNEL1_DISABLE)) {																// if not Erbium  single channel
+								if(_MODE(p,_CHANNEL1_SINGLE_TRIGGER))													// single trigger config.. as from V1.11
+									Uidle=2*p->HV/7;
+								else
+									Uidle=p->HV/7;
 								_I1off=ADC1_simmer.I;																					// get current sensor offset
 								_U1off=ADC1_simmer.U;																					// check idle voltage
-								if(abs(p->HV/7 - ADC3_AVG*ADC1_simmer.U) > _HV2AD(30)) {			// HV +/- 30V range ???
+#ifndef __DISCO__
+								if(abs(Uidle - ADC3_AVG*ADC1_simmer.U) > _HV2AD(30)) {				// HV +/- 30V range ???
 									_SET_ERROR(p,PFM_STAT_UBHIGH);															// if not, PFM_STAT_UBHIGH error 
 									no=0;
 								}
+#endif
 							}
 							if(!_MODE(p,_CHANNEL2_DISABLE)) {																// same for NdYAG channel
+								if(_MODE(p,_CHANNEL2_SINGLE_TRIGGER))													// single trigger config.. as from V1.11
+									Uidle=2*p->HV/7;
+								else
+									Uidle=p->HV/7;
 								_I2off=ADC2_simmer.I;
 								_U2off=ADC2_simmer.U;
-								if(abs(p->HV/7 - ADC3_AVG*ADC2_simmer.U) > _HV2AD(30)) {
+#ifndef __DISCO__
+								if(abs(Uidle - ADC3_AVG*ADC2_simmer.U) > _HV2AD(30)) {
 									_SET_ERROR(p,PFM_STAT_UBHIGH);
 									no=0;
 								}
+#endif
 							}
 						}
 //________________________________________________________________________________
@@ -755,14 +816,18 @@ int				count=0,no=0;
 						else
 							_SET_STATUS(p, no);																							// else set status as requested
 //________________________________________________________________________________
+#ifndef __DISCO__
 						if(!_STATUS(p,_PFM_CWBAR_STAT))																		// crowbar not cleared
 							_SET_ERROR(p,PFM_ERR_PULSEENABLE);
+#endif
 //________________________________________________________________________________
 						if(no & PFM_STAT_SIMM1)																						// activate triggers
 							_TRIGGER1_ON;
 						if(no & PFM_STAT_SIMM2)
 							_TRIGGER2_ON;
+						
 						SetSimmerRate(p,_PWM_RATE_LO);																		// set simmer
+						SetPwmTab(p);
 						count=1000;																												// set trigger countdown
 //________________________________________________________________________________					
 					} else {
@@ -772,6 +837,48 @@ int				count=0,no=0;
 						}
 					}						
 					return	no;
+}
+/*______________________________________________________________________________
+  * @brief  Pockels cell driver setup
+  * @param 	q == can buffer (short delay, short pw, short n-pulses
+	* if q==0 >> call from interrupt
+  * @retval : None
+  *
+  */
+int				PFM_pockels(PFM *p) {
+
+					TIM_TimeBaseInitTypeDef		TIM_TimeBaseStructure;
+					TIM_OCInitTypeDef					TIM_OCInitStructure;
+					GPIO_InitTypeDef					GPIO_InitStructure;
+					
+					TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+					TIM_OCStructInit(&TIM_OCInitStructure);
+					GPIO_StructInit(&GPIO_InitStructure);
+					TIM_DeInit(TIM4);
+					RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+					
+					GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+					GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+					GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+					GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+						
+					GPIO_PinAFConfig(GPIOD, GPIO_PinSource12, GPIO_AF_TIM4);
+					GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
+					GPIO_Init(GPIOD, &GPIO_InitStructure);
+															
+					TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+					TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+					TIM_OCInitStructure.TIM_Pulse=p->qdelay + 1;
+					TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+					TIM_OC1Init(TIM4, &TIM_OCInitStructure);		
+					
+					TIM_TimeBaseStructure.TIM_Period = TIM_GetCapture1(TIM4) + p->qwidth;
+					TIM_TimeBaseStructure.TIM_Prescaler = _uS-1;
+					TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+					TIM_TimeBaseInit(TIM4,&TIM_TimeBaseStructure);
+					
+					TIM_Cmd(TIM4, DISABLE);
+					return 0;
 }
 /**
 * @}

@@ -18,7 +18,20 @@
 #include	<string.h>
 #include	<ff.h>
 #include	"limits.h"
-short			user_shape[2048];
+
+
+// override vektorjev za STM32F401-Discovery.lib
+
+//void DMA1_Stream3_IRQHandler(void) {
+//void SPIx_DMA_RX_IRQ(void);
+//		 SPIx_DMA_RX_IRQ();
+//}
+//void DMA1_Stream4_IRQHandler(void) {
+//void SPIx_DMA_TX_IRQ(void);
+//		 SPIx_DMA_TX_IRQ();
+//}
+
+short		user_shape[2048];
 //___________________________________________________________________________
 void		Cfg(_fsdrive n, char *filename) {
 int			i,j;
@@ -55,36 +68,26 @@ int			DecodeMinus(char *c) {
 					deInitialize_usb();
 					Wait(200,App_Loop);
 					switch(*cc[1]) {
-					case 'h':
-#ifdef __DISCO__
-						GPIO_ResetBits(GPIOC,GPIO_Pin_0);
+						case 'h':
+#ifdef __DISCO__																		// USB power on
+							GPIO_ResetBits(GPIOC,GPIO_Pin_0);
 #endif
-						USBH_App=USBH_Iap;
-						Initialize_host_msc();
-						break;
-					case 'f':
-						Initialize_device_msc();
-						break;
-					case 's':
-						Initialize_device_vcp();
-						break;
-					case 't':
-
-						break;
+							USBH_App=USBH_Iap;
+							Initialize_host_msc();
+							break;
+						case 'f':
+							Initialize_device_msc();
+							break;
+						case 's':
+							Initialize_device_vcp();
+							break;
 					}
 					break;
 				}
 				return _PARSE_ERR_SYNTAX;
-//__________________________________________________i2c address/speed _______
+//__________________________________________________i2c disable _______
 				case 'i':
-					n=strscan(++c,cc,',');
-					if(n) {
-						if(n==1)
-							__charger6=Initialize_I2C(getHEX(cc[0],2),0);
-						else
-							__charger6=Initialize_I2C(getHEX(cc[0],2),atoi(cc[1]));
-					} else
-						__charger6=NULL;
+					__charger6=NULL;
 					break;
 //__________________________________________________can loop/net_____________
 				case 'c':
@@ -180,16 +183,6 @@ FATFS						fs_cpu;
 					} else
 					SectorQuery();
 				break;
-//__________________________________________________ simmer frequency __________________
-				case 's':
-					n=strscan(++c,cc,',');
-					if(!n)
-						return(_PARSE_ERR_MISSING);
-					if(atoi(cc[2])<10 || atoi(cc[2])>100)
-						return _PARSE_ERR_ILLEGAL;
-					_PWM_RATE_LO=atoi(cc[2])*_uS;
-					SetSimmerRate(pfm,_PWM_RATE_LO);		
-					break;
 //______________________________________________________________________________________
 				case '?':
 					n=strscan(++c,cc,',');
@@ -209,29 +202,29 @@ FATFS						fs_cpu;
 					return _PARSE_ERR_SYNTAX;
 //__________________________________________________ mode setup _____________
 				case 'm':
-				n=strscan(++c,cc,',');
-				while(n--)
-					_CLEAR_MODE(pfm,atoi(cc[n]));
-				break;
+					n=strscan(++c,cc,',');
+					while(n--)
+						_CLEAR_MODE(pfm,atoi(cc[n]));	
+					break;
 //__________________________________________________ error setup _____________
 				case 'E':
-				n=strscan(++c,cc,',');
-				while(n--)
-					_CLEAR_ERROR(pfm,getHEX(cc[n],-1));
-				break;
+					n=strscan(++c,cc,',');
+					while(n--)
+						_CLEAR_ERROR(pfm,getHEX(cc[n],-1));
+					break;
 //__________________________________________________ debug setup _____________
 				case 'D':
-				__dbug=__stdin.handle.io;
-				n=strscan(++c,cc,',');
-				while(n--)
-					_CLEAR_DBG(pfm,strtol(cc[n],NULL,0));
-				break;
+					__dbug=__stdin.handle.io;
+					n=strscan(++c,cc,',');
+					while(n--)
+						_CLEAR_DBG(pfm,strtol(cc[n],NULL,0));
+					break;
 //__________________________________________________ delay execution ________
 				case 'd':
-				if(strscan(c,cc,' ')==2) {
-					Wait(atoi(cc[1]),App_Loop);
-				}
-				break;
+					if(strscan(c,cc,' ')==2) {
+						Wait(atoi(cc[1]),App_Loop);
+					}
+					break;
 //______________________________________________________________________________________
 				default:
 					return _PARSE_ERR_SYNTAX;
@@ -239,43 +232,57 @@ FATFS						fs_cpu;
 				return _PARSE_OK;
 }
 //______________________________________________________________________________________
-int		DecodePlus(char *c) {
+int			DecodePlus(char *c) {
 
-			char		*cc[8];
-			int			n;
-			switch(*c) {
+				char		*cc[8];
+				int			n;
+				switch(*c) {
 //__________________________________________________ mode setup _____________
 				case 'm':
-				n=strscan(++c,cc,',');
-				while(n--)
-					_SET_MODE(pfm,atoi(cc[n]));
-				break;
+					n=strscan(++c,cc,',');
+					while(n--)
+						_SET_MODE(pfm,atoi(cc[n]));
+					break;
 //__________________________________________________ events setup _____________
 				case 'e':
-				n=strscan(++c,cc,',');
-				while(n--)
-					_SET_EVENT(pfm,atoi(cc[n]));
-				break;
+					n=strscan(++c,cc,',');
+					while(n--)
+						_SET_EVENT(pfm,atoi(cc[n]));
+					break;
 //__________________________________________________ watchdog setup _____________
 				case 'w':
-				if(strscan(++c,cc,','))
-					Watchdog_init(atoi(cc[0]));
-				else
-					Watchdog_init(300);
-				break;
+					if(strscan(++c,cc,','))
+						Watchdog_init(atoi(cc[0]));
+					else
+						Watchdog_init(300);
+					break;
 //__________________________________________________ error setup _____________
 				case 'E':
-				n=strscan(++c,cc,',');
-				while(n--)
-					_SET_ERROR(pfm,getHEX(cc[n],-1));
-				break;
+					n=strscan(++c,cc,',');
+					while(n--)
+						_SET_ERROR(pfm,getHEX(cc[n],-1));
+					break;
 //__________________________________________________ debug setup _____________
 				case 'D':
-				__dbug=__stdin.handle.io;
-				n=strscan(++c,cc,',');
-				while(n--)
-					_SET_DBG(pfm,atoi(cc[n]));
-				break;
+					__dbug=__stdin.handle.io;
+					n=strscan(++c,cc,',');
+					while(n--)
+						_SET_DBG(pfm,atoi(cc[n]));
+					break;
+//__________________________________________________ I2C setup _____________
+				case 'i':
+					switch(strscan(++c,cc,',')) {
+						case 0:
+							__charger6=Initialize_I2C(0x58,50000);
+						break;
+						case 1:
+							__charger6=Initialize_I2C(getHEX(cc[0],2),0);
+						break;
+						case 2:
+							__charger6=Initialize_I2C(getHEX(cc[0],2),atoi(cc[1]));
+						break;
+					}
+					break;
 //______________________________________________________________________________________
 				default:
 					return _PARSE_ERR_SYNTAX;
@@ -431,6 +438,67 @@ static FATFS	fs;
 		}
 		return _PARSE_OK;
 }
+//______________________________________________________________________________________
+//______________________________________________________________________________________
+//______________________________________________________________________________________
+//______________________________________________________________________________________
+//______________________________________________________________________________________
+//______________________________________________________________________________________
+//______________________________________________________________________________________
+//______________________________________________________________________________________
+//int		DecodeSpi(char *c) {
+//void	*InitializeSpi(void);
+//int		ExchgSpi(int, int);		
+//int		i,j,k;
+//static void
+//			*spi=NULL;
+//			if(!spi)
+//				spi=InitializeSpi();
+//			if(!spi) {
+//				printf(" not initialized ");
+//				return _PARSE_ERR_NORESP;
+//			}
+//			switch(*c) {
+//				case '\x0':
+//					break;
+//				case ' ':
+//					return DecodeSpi(++c);
+////________read register_________________________________________________________________
+//				case 'r':
+//					sscanf(++c,"%X",&i);
+//					i=((i<<16) | i) | 0x00a000a0;
+//					ExchgSpi(i, 4);
+//					Wait(2,App_Loop);
+//					i=ExchgSpi(0x00000000, 4);
+//					printf(" >> %02X,%02X",i&0xff,(i>>16)&0xff);
+//					break;
+////________reset register________________________________________________________________
+//				case '!':
+//					sscanf(++c,"%X",&i);
+//					i=((i<<16) | i) | 0x00c000c0;
+//					ExchgSpi(i,4);
+//					break;
+////________write register________________________________________________________________
+//				case 'w':
+//					if(sscanf(++c,"%X,%X,%X",&i,&j,&k)==3) {
+//						i=((i<<16) | i) | 0x00800080;
+//						j=((k<<16) | j);
+//					} else {
+//						i=((i<<16) | i) | 0x00800080;
+//						j=((j<<16) | j);
+//					}
+//					ExchgSpi(i,4);
+//					ExchgSpi(j,4);
+//					break;
+////______command___________________2w______________________________________________________
+//				default:
+//						sscanf(c,"%X",&i);
+//						i=((i<<16) | i);
+//						ExchgSpi(i,4);
+//						break;
+//			}
+//			return _PARSE_OK;
+//}
 //___________________________________________________________________________
 int	DecodeCom(char *c) {
 		char 		*cc[8];
@@ -438,7 +506,8 @@ int	DecodeCom(char *c) {
 		if(!c)
 			printf("\r\n>");
 		else
-			switch(*c) {
+
+		switch(*c) {
 //__________________________________________________SW version query____________________
 				case 'v':
 				case 'V':
@@ -586,24 +655,34 @@ int				n;
 					n=strscan(++c,cc,',');
 
 					if(!n) {
-						printf("\r>p(ulse)  T,PW          ... %dus,%d",pfm->Burst.Time,pfm->Burst.Pmax*_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI);
+						printf("\r>p(ulse)  T,U           ... %dus,%dV",pfm->Burst.Time,pfm->Burst.Pmax*_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI);
+						if(pfm->qdelay || pfm->qwidth)
+							printf("\r\n>q(swch)  delay,width   ... %dus,%dus",pfm->qdelay,pfm->qwidth);
 						break;
 						}
-					
+
 					if(n>0)
 						pfm->Burst.Time=atoi(cc[0]);
+
 					if(n>1) { 
 						if(atof(cc[1]) >= 1.0)
 							pfm->Burst.Pmax=atof(cc[1])*_PWM_RATE_HI/(float)_AD2HV(pfm->Burst.HVo);
 						else
 							pfm->Burst.Pmax=_PWM_RATE_HI*atof(cc[1]);
 					}
-					
-					if(n>2)
+
+					if(n==3)
 						pfm->Burst.Ereq = atoi(cc[2]);
 					else
-						pfm->Burst.Ereq = 0x03;
+						pfm->Burst.Ereq = 0x01;
 					SetPwmTab(pfm);
+
+					if(n==4) {																		// dodatek za vnos pockelsa 
+						pfm->qdelay=atoi(cc[2]);										// ndc673476iopj
+						pfm->qwidth=atoi(cc[3]);
+						PFM_pockels(pfm);
+					}
+					
 					break;
 //______________________________________________________________________________________
 				case 'd':
@@ -682,7 +761,7 @@ int				n;
 							if(atoi(cc[2])<10 || atoi(cc[2])>100)
 								return _PARSE_ERR_ILLEGAL;
 							_PWM_RATE_LO=atoi(cc[2])*_uS;
-//							SetSimmerPw(pfm);
+//						SetSimmerPw(pfm);
 							SetSimmerRate(pfm,_PWM_RATE_LO);		
 							break;
 						default:
@@ -814,8 +893,8 @@ int			u=0,umax=0,umin=0;
 					if(!umax)
 						umax=u+u/10;
 					if(!umin)
-						umin=u-u/4;
-					if(u>750 || u<0 || umin>=u || umin<0 || umax>800 || umax<=u)										
+						umin=u-2*u/3;
+					if(u>800 || u<0 || umin>=u || umax<=u)										
 						return _PARSE_ERR_ILLEGAL;
 					pfm->Burst.HVo=_HV2AD(u);
 						
@@ -860,6 +939,9 @@ int			u=0,umax=0,umin=0;
 //______________________________________________________________________________________
 				case ':':
 					return DecodeFs(++c);
+//______________________________________________________________________________________
+				case '*':
+//					return DecodeSpi(++c);
 //______________________________________________________________________________________
 				default:
 					return _PARSE_ERR_SYNTAX;

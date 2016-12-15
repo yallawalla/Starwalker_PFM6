@@ -29,17 +29,13 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 EXTI_InitTypeDef   				EXTI_InitStructure;
 // ________________________________________________________________________________
 // GPIO setup
-#ifdef __DISCO__
-// ________________________________________________________________________________
-// USB host power supply
+#ifdef __DISCO__					// USB host power supply
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 		GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
 		GPIO_Init(GPIOC, &GPIO_InitStructure);
 		GPIO_SetBits(GPIOC,GPIO_Pin_0);
 #endif
-// TIM3, pwm out/tacho in PA6,PA7
-
 		GPIO_StructInit(&GPIO_InitStructure);
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
@@ -169,7 +165,6 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
  		TIM_DeInit(TIM3);
 		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 		TIM_TimeBaseInit(TIM3,&TIM_TimeBaseStructure);
-
 // ________________________________________________________________________________
 // Output Compares	TIM1,8
 		TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
@@ -253,7 +248,8 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 // ________________________________________________________________________________
 // ___ 100 khz interrupt __________________________________________________________
 // ________________________________________________________________________________
-
+extern int	_U1off,_U2off,_E1ref,_E2ref,_I1off,_I2off;
+		
 int			Pref1=0,Pref2=0;
 void		TIM1_UP_TIM10_IRQHandler(void) {
 
@@ -263,6 +259,10 @@ int			m=0,																											// timer repetition rate register index ind
 				io=0,
 				xi1=0,
 				xi2=0;
+
+//static
+//int			e1=0,
+//				e2=0;
 
 int 		i,j,k;
 short		z1,z2;
@@ -284,6 +284,23 @@ int			ki=30,kp=0;
 				if(_MODE(pfm,_U_LOOP)) {
 					z1 = (z1 * io + i/2)/i;
 					z2 = (z2 * io + i/2)/i;
+					
+//					if(k > 8 && TIM18_buf[n].T1 > pfm->Burst.Pdelay*2)
+//						for(i=0;i<8;++i)
+//							e1+=(short)(ADC1_buf[k-i].U) * (short)(ADC1_buf[k-i].I-_I1off);
+//					else if (!_E1ref) {
+//						_E1ref=e1;
+//						e1=0;
+//					}
+//
+//					if(k > 8 && TIM18_buf[n].T3 > pfm->Burst.Pdelay*2) {
+//						for(i=0;i<8;++i)
+//							e2+=(short)(ADC2_buf[k-i].U) * (short)(ADC2_buf[k-i].I-_I2off);
+//					} else if (!_E2ref) {
+//						_E2ref=e2;
+//						e2=0;
+//					}
+								
 					if(pfm->Burst.Time>200 && _MODE(pfm,_P_LOOP)) {
 
 						if(k > 5 && Pref1 && TIM18_buf[n].T1 > pfm->Burst.Pdelay*2) {
@@ -346,6 +363,12 @@ int			ki=30,kp=0;
 				}
 				if(TIM1->CCR1==TIM1->ARR || TIM1->CCR3==TIM8->ARR)				// duty cycle 100% = PSRDYN error
  					_SET_ERROR(pfm,PFM_ERR_PSRDYN);
+				
+				if(TIM18_buf[n].T3 > pfm->Burst.Pdelay*2) {								// jhw9847duhd		dodatek za qswitch	
+					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Repetitive);		// triganje na kakrsnokoli stanje nad delay x 2
+					TIM_Cmd(TIM4,ENABLE);																		// trigger !!!
+				} else
+					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);				// suigle pulse, timer se disabla po zteku
 }
 /*******************************************************************************/
 /**
@@ -370,10 +393,8 @@ void		TIM3_IRQHandler(void) {
 void 		EXTI9_5_IRQHandler(void)
 {
 				EXTI_ClearITPendingBit(EXTI_Line8);
-//				if(!_TRIGGER1 && !_TRIGGER2 && _PFM_CWBAR_SENSE)
 				if(_PFM_CWBAR_SENSE)
 					_SET_ERROR(pfm,PFM_ERR_DRVERR);
-//				_YELLOW2(300);
 }
 /*******************************************************************************/
 /**

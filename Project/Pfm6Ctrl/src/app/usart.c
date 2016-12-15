@@ -81,7 +81,7 @@ void DMA_Configuration(_io *io)
 //______________________________________________________________________________________
 volatile int32_t 
 		ITM_RxBuffer=ITM_RXBUFFER_EMPTY; 
-int	getCOM(_buffer *rx) {
+int	__get(_buffer *rx) {
 int	i=0;
 #ifdef __DISCO__
 	if(ITM_CheckChar()) {
@@ -100,14 +100,7 @@ int	i=0;
 		return EOF;
 }
 //______________________________________________________________________________________
-int	putCOMisr(_buffer *tx, int	c) {
-int i;
-	i=_buffer_push(__com0->tx,&c,1);	
-	USART_ITConfig(USART1, USART_IT_TXE, ENABLE);
-	return(i);
-}
-//______________________________________________________________________________________
-int	putCOM(_buffer *tx, int	c) {
+int	__put(_buffer *tx, int	c) {
 #ifdef __DISCO__
 	return	ITM_SendChar(c);
 #else
@@ -130,45 +123,6 @@ static
 	DMA2_Stream7->CR |= 0x00000001;																		// stream 7 on
 	return(c);
 #endif
-}
-//______________________________________________________________________________________
-int	putCOMnew(_buffer *tx, int	c) {
-
-	tx->_pull=&tx->_push[-DMA2_Stream7->NDTR];
-	if(tx->_pull < tx->_buf)
-		tx->_pull=&tx->_pull[tx->len];
-	if(_buffer_push(tx,&c,1)==EOF)
-		return(EOF);
-
-	DMA2_Stream7->CR &= ~0x00000001;																	// stream 7 off
-	while(DMA2_Stream7->CR & 0x00000001);															// wait for HW
-	DMA2_Stream7->NDTR++;																							// increase DMA counter
-	DMA2_Stream7->M0AR=(uint32_t)(&tx->_push[-DMA2_Stream7->NDTR]);		// set DMA pointer to new character
-	DMA2->HIFCR = 0x0F400000;																					// clear all flags
-	DMA2_Stream7->CR |= 0x00000001;																		// stream 7 on
-	return(c);
-}
-/*******************************************************************************
-* Function Name  : USART1_IRQHandler
-* Description    : This function handles USART1  interrupt request.
-* Input          : None
-* Output         : None
-* Return         : None
-*******************************************************************************/
-void USART1_IRQHandler(void) {
-int i=0;
-	if(USART_GetFlagStatus(USART1, USART_FLAG_RXNE) != RESET) {
-		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-		i=USART_ReceiveData(USART1);
-		_buffer_push(__com0->rx,&i,1);
-		}
-	if(USART_GetFlagStatus(USART1, USART_FLAG_TXE) != RESET) {
-		USART_ClearITPendingBit(USART1, USART_IT_TXE);
-		if (_buffer_pull(__com0->tx,&i,1))															// if data available
-			USART_SendData(USART1, i);																		// send!
-		else																														// else
-			USART_ITConfig(USART1, USART_IT_TXE, DISABLE);								// disable interrupt
-	}
 }
 //______________________________________________________________________________________
 _io *Initialize_USART(int speed) {
@@ -207,8 +161,8 @@ _io 										*io;
 	#### error, no HW defined
 #endif
 	io=_io_init(RxBufferSize,TxBufferSize);	// initialize buffer
-	io->put= putCOM;
-	io->get= getCOM;	
+	io->put= __put;
+	io->get= __get;	
 
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
  

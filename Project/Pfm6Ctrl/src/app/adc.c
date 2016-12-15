@@ -17,10 +17,6 @@ _ADCDMA		ADC1_buf[_MAX_BURST/_uS],
 					ADC1_simmer,
 					ADC2_simmer;
 
-#ifdef		__DISCO__
-_ADC3DMA	ADC3_dummy[ADC3_AVG];
-#endif
-
 int		_ADCRates[]={3,15,28,56,84,112,144,480};
 
 void	TriggerADC(PFM *p) {
@@ -30,7 +26,7 @@ void	TriggerADC(PFM *p) {
 
 			while(DMA_GetCmdStatus(DMA2_Stream4) != DISABLE);
 			while(DMA_GetCmdStatus(DMA2_Stream3) != DISABLE);
-	
+
 			if(p) {
 				DMA_MemoryTargetConfig(DMA2_Stream3,(uint32_t)ADC2_buf,DMA_Memory_0);
 				DMA_MemoryTargetConfig(DMA2_Stream4,(uint32_t)ADC1_buf,DMA_Memory_0);
@@ -42,6 +38,7 @@ void	TriggerADC(PFM *p) {
 				DMA_ITConfig(DMA2_Stream4, DMA_IT_TC, ENABLE);
 				ADC_AnalogWatchdogThresholdsConfig(ADC1,p->Burst.Imax,0);
 				ADC_AnalogWatchdogThresholdsConfig(ADC2,p->Burst.Imax,0);	
+//				TIM_Cmd(TIM4, ENABLE);
 			} else {
 				DMA_MemoryTargetConfig(DMA2_Stream3,(uint32_t)&ADC2_simmer,DMA_Memory_0);
 				DMA_MemoryTargetConfig(DMA2_Stream4,(uint32_t)&ADC1_simmer,DMA_Memory_0);
@@ -218,12 +215,8 @@ void 	Initialize_ADC3(void)
 
 /* DMA2 Stream0 channel0 configuration **************************************/
 			DMA_InitStructure.DMA_Channel = DMA_Channel_2;
-			DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(ADC3_BASE+0x4C);
-#ifdef		__DISCO__
-			DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)ADC3_dummy;
-#else			
+			DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(ADC3_BASE+0x4C);			
 			DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)ADC3_buf;
-#endif
 			DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
 			DMA_InitStructure.DMA_BufferSize = sizeof(ADC3_buf)/sizeof(short);
 			DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
@@ -269,12 +262,12 @@ void 	Initialize_ADC3(void)
 #ifndef __DISCO__
 			ADC_AnalogWatchdogSingleChannelConfig(ADC3,ADC_Channel_11);
 			ADC_AnalogWatchdogCmd(ADC3,ADC_AnalogWatchdog_SingleRegEnable);	
-#endif
-/* Enable DMA request after last transfer (Single-ADC mode) */
+
 			ADC_DMARequestAfterLastTransferCmd(ADC3, ENABLE);
 			ADC_DMACmd(ADC3, ENABLE);
 			ADC_Cmd(ADC3, ENABLE);
 			ADC_SoftwareStartConv(ADC3);
+#endif
 }
 /**
   * @brief  ADC	common init
@@ -326,3 +319,4 @@ void ADC_IRQHandler(void)	{
 /**
 * @}
 */ 
+

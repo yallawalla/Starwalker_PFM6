@@ -20,8 +20,22 @@
 #include				"usb_conf.h"
 #include				"usbh_core.h"
 			          
-#define 				SW_version		110										
+#define 				SW_version		111							
 			          
+#ifdef __DISCO__
+#define					_uS						42
+#define					_mS						(1000*_uS)
+#define					_MAX_BURST		(1*_mS)
+#else
+#define					_uS						60
+#define					_mS						(1000*_uS)
+#define					_MAX_BURST		(3*_mS)
+#endif
+
+#define					_PWM_RATE_HI	(10*_uS)
+#define					_MAX_ADC_RATE	(1*_uS)
+#define					_FAN_PWM_RATE	(50*_uS)
+
 #if  						defined (__PFM6__)
 #define					__CAN__				CAN2
 #define					__FILT_BASE__	14
@@ -32,14 +46,8 @@
 #include				<stdint.h>
 #else			
 	#### 					error, no HW defined
-#endif			    
-			          
-#define					_uS						60
-#define					_mS						(1000*_uS)
-#define					_MAX_BURST		(3*_mS)
-#define					_MAX_ADC_RATE	(1*_uS)
-#define					_FAN_PWM_RATE	(50*_uS)
-			          
+#endif			 
+
 #define					_UREF					3.3																				// 2.5 stari HW?
 #define					_Rdiv(a,b)		((a)/(a+b))
 #define					_Rpar(a,b)		((a)*(b)/(a+b))
@@ -96,23 +104,24 @@ typedef					 enum
 } 							_debug;
 
 typedef					enum
-{								_XLAP_SINGLE,				//0
-								_XLAP_DOUBLE,				//1
-								_XLAP_QUAD,					//2
-								_TRIGGER_MODE,			//3
-								_SIMULATOR,					//4
-								_PULSE_INPROC,			//5
-								_LONG_INTERVAL,			//6
-								_TRIGGER_REPEAT,		//7
-								_WIFI_DEBUG,				//8
-								_U_LOOP,						//9
-								_P_LOOP,						//10
-								_CHANNEL1_DISABLE,	//11
-								_CHANNEL2_DISABLE,	//12
+{								_XLAP_SINGLE,							//0
+								_XLAP_DOUBLE,							//1
+								_XLAP_QUAD,								//2
+								__DUMMY1,									//3
+								_SIMULATOR,								//4
+								_PULSE_INPROC,						//5
+								_LONG_INTERVAL,						//6
+								_TRIGGER_PERIODIC,				//7
+								__DUMMY2,									//8
+								_U_LOOP,									//9
+								_P_LOOP,									//10
+								_CHANNEL1_DISABLE,				//11
+								_CHANNEL2_DISABLE,				//12
+								_CHANNEL1_SINGLE_TRIGGER,	//13
+								_CHANNEL2_SINGLE_TRIGGER	//14
 } 							_mode;
 
 
-								
 #define					_EVENT(p,a)					(p->events & (1<<(a)))
 #define					_SET_EVENT(p,a)			 p->events |= (1<<(a))
 #define					_CLEAR_EVENT(p,a)		 p->events &= ~(1<<(a))
@@ -132,11 +141,11 @@ _io 								*io=_stdio(__dbug);																												\
 									if(a & _CRITICAL_ERR_MASK) {																								\
 										TIM_CtrlPWMOutputs(TIM1, DISABLE);																				\
 										TIM_CtrlPWMOutputs(TIM8, DISABLE);																				\
-										_CLEAR_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2);													\
 									}																																						\
 									if(_DBG(p,_DBG_ERR_MSG) && !(p->Error & (a))) {															\
 _io 								*io=_stdio(__dbug);																												\
 										printf(":%04d error %04X,%04X, set\r\n>",__time__ % 10000,p->Error,a);		\
+										printf(":%04d stats %04X\r\n>",__time__ % 10000,p->Status);		\
 										_stdio(io);																																\
 									}																																						\
 									p->Error |= (a);																														\
@@ -228,8 +237,10 @@ int							USBH_Iap(int);
 #define					_PFM_SetPwm				0x11
 #define					_PFM_HV_req				0x12
 #define					_PFM_SetLoop			0x13
-				        
+
 #define 				_PFM_TRIGG				0x71
+#define					_PFM_SetHVmode		0x72
+#define 				_PFM_POCKELS			0x73
 //________________________________________________________________________
 #define					_EC_status_req		0x00
 #define					_EC_command				0x02
@@ -260,7 +271,7 @@ short						Pmax,
 								Erpt,
 								ki,
 								kp;
-} burst;	
+} burst;
 //________________________________________________________________________
 typedef 				struct {
 burst						Burst;
@@ -274,7 +285,8 @@ short						Status,
 								ADCRate;
 _event					events;
 int							mode,
-								debug;		
+								debug;	
+short						qdelay,qwidth;
 } PFM;				  
 //________________________________________________________________________
 extern					PFM							*pfm;
@@ -297,6 +309,7 @@ int							IgbtTemp(void),
 								CanReply(char *, ...),
 								Eack(PFM *),
 								PFM_command(PFM *, int),
+								PFM_pockels(PFM *),
 								PFM_status_send(PFM *, int);
 				        
 void 						USBD_Storage_Init(void);
@@ -396,7 +409,6 @@ float						__lin2f(short);
 short						__f2lin(float, short);
 				        
 extern					uint32_t	__Vectors[];
-extern					int			_PWM_RATE_HI;
 extern					int			_PWM_RATE_LO;
 extern 					int				Pref1,Pref2;
 

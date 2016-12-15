@@ -407,23 +407,39 @@ verzija 110, prva sprememba po uradni ...
 
 >v 1.10 Mar 31 2015, <68E95EC1>
 
-.
-.
-.
-.
-.
-.
-.
+27.8.2015
 
-v108, za testiranje qx, 
-	- odstranjen idle error
-	
-	
- 
+
+>v 1.11 Aug 28 2015, <C7060EC9>
+
+popravki:
+
+- SetPwmTab - pri multiple pulzih, je bil razmak vedno 100 us - popravek spremenljivke too, ce je Ereq 1, se interval zardeli enakomerno
+- v konzolnem ukazu 'p', je default pulz (samo z dvema parametroma...) tipa -01 (no shaping ...)
+- brisanje status bitov za simmer v error macro je brez veze! Funk. se prestav 
+  ProcessingCharger z PfmCommand(pfm,0)
+
+- nastavitev chargerja:
+
+	DecodePlus  - +i,<hex addr>,<i2c rate>
+	DecodeMinus - i2c disable
+
+- v SetPwmTab se dolzina pulza zaokrozi na _PWM_RATE_HI
+- dodana moznost nastavitve HV in konfiguracije po CAN
+
+dodatki za qsw
+
+- v TIM1_UP_TIM10_IRQHandler triganje TIM4 za dopiranje pockelsa			jhw9847duhd
+- v konzoli dodatek za aktiviranje qswitcha									ndc673476iopj
+- enako v can protokolu														ghdg78236u
+- podaljsan DMA buffer MAX_BURST = 10ms !!!!
+- v app.c se interval omeji MAX_BURST, ne na 3000 !!!
+- PFM_ERR_DRVERR je stalno aktiven
+
   TODO:
-  - ugasniti trigger fiber takoj, ko ni vec potrebno, ne cakat 1 sek!
-  - spet aktivirati DRIVER_ERR tudi med triganjem !!!
-  
-TODO stabilizacija moci (Pref ?)
+- ugasniti trigger fiber takoj, ko ni vec potrebno, ne cakat 1 sek!
+- stabilizacija moci (Pref ?)
+- dinamicna analiza stacka !!!
+  pazi na _MAX_BURST (3*_mS)	za qswitch mora biti za testiranje 8ms, ce gres na 10 dobis pogost watchdog error
 
 

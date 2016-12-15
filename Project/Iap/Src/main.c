@@ -35,7 +35,18 @@ CanTxMsg		tx={_ID_IAP_ACK,0,CAN_ID_STD,CAN_RTR_DATA,1,0,0,0,0,0,0,0,0};
 /******************************************************************************/
 int					main(void) {
 int					*p=(int *)*_FW_START;
-
+//
+// trigger fiber off on pfm6
+#ifdef			__PFM6__		
+						GPIO_InitTypeDef GPIO_InitStructure;
+						RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+						GPIO_StructInit(&GPIO_InitStructure);
+						GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+						GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13;
+						GPIO_Init(GPIOD, &GPIO_InitStructure);
+						GPIO_SetBits(GPIOD,GPIO_Pin_12 | GPIO_Pin_13);	  	
+#endif
 						Watchdog_init(4000);
 						if(RCC_GetFlagStatus(RCC_FLAG_IWDGRST) == RESET && RCC_GetFlagStatus(RCC_FLAG_WWDGRST) == RESET && !crcError()) {
 							NVIC_SetVectorTable(NVIC_VectTab_FLASH,(uint32_t)p-_BOOT_TOP);				

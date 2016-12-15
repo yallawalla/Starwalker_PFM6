@@ -81,9 +81,10 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+1;
 					CAN_FilterInit(&CAN_FilterInitStructure);
 					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS_TRIGG<<5;
-					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=0<<5;
+					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_PFM_POCKELS<<5;
 					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+2;
 					CAN_FilterInit(&CAN_FilterInitStructure);
+
 
 // filtri za IAP mode
 //					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_IAP_GO<<5;

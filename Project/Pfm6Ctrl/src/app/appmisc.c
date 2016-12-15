@@ -144,9 +144,9 @@ int		Uo=p->Burst.Pmax;
 				else
 					t->n=n;
 			};
-//-------preludij------------------- 
+//-------preludij-------------------
 			if(p->Burst.Ereq & 0x02) {
-				int	du=0,u=p->Burst.Pdelay;
+				int	du=0,u=0;
 
 				for(i=0; i<sizeof(shape)/sizeof(_QSHAPE); ++i)
 					if(p->Burst.Time==shape[i].qref && shape[i].q0) {
@@ -201,12 +201,13 @@ int		Uo=p->Burst.Pmax;
 						Uo=(int)(pow((pow(p->Burst.Pmax,3)*p->Burst.N*shape[i].qref - pow(shape[i].q1,3)*shape[i].q0)/shape[i].qref/p->Burst.N,1.0/3.0)+0.5);
 						too=_minmax(Uo,260,550,20,100);
 					}						
-				}	
+				}	else
+						too=p->Burst.Length/p->Burst.N - to;							// dodatek ups....
 			if(p->Burst.Ereq & 0x01) {
 //-------PULSE----------------------					
 				for(j=0; j<p->Burst.N; ++j) {
 //-------PULSE----------------------		
-					for(n=2*((to*_uS)/_PWM_RATE_HI)-1; n>0; n -= 255, ++t) {
+					for(n=2*((to*_uS + _PWM_RATE_HI/2)/_PWM_RATE_HI)-1; n>0; n -= 255, ++t) {					
 						t->T1=t->T2=_K1*(Uo+p->Burst.Pdelay);
 						t->T3=t->T4=_K2*(Uo+p->Burst.Pdelay);
 						if(n > 255)
@@ -321,7 +322,7 @@ int		r=0,flag;
 */
 void	SetSimmerRate(PFM *p, int simmrate) {
 
-			_DEBUG_MSG("simmer rate %3d kHz", 60000/simmrate);
+			_DEBUG_MSG("simmer rate %3d kHz", _mS/simmrate);
 
 			while(!(TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
 			while((TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
