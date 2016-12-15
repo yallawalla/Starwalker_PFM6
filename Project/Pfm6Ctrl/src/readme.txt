@@ -442,4 +442,6 @@ dodatki za qsw
 - dinamicna analiza stacka !!!
   pazi na _MAX_BURST (3*_mS)	za qswitch mora biti za testiranje 8ms, ce gres na 10 dobis pogost watchdog error
 
+>v 1.12 Sep 22 2015, <35801001>
 
+nobenih sprememb, samo simmer je dvignjen na 40us !
