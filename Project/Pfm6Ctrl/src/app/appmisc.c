@@ -491,6 +491,7 @@ int		f1=(ft[1]*(t[0]-to)-ft[0]*(t[1]-to)) / (t[0]-t[1]);
 //_______________________________________________________________________________________________________________________________
 //_______________________________________________________________________________________________________________________________
 // SWEEPS ...........................................................
+// adapt coeff.m set new tab, counter increment && timeout setup
 //
 const int	mJ[]=		{10,20,40,70};						// working energies
 const int	Hz[]=		{10,20,30,40};						// working freq.
@@ -500,16 +501,16 @@ const int	n20[]=	{25,15,5,-5};
 const int	n30[]=	{20,10,0,-10};
 const int	n40[]=	{15,5,-5,-15};
 
-void				Sweep(int emj) {
-int					nHz[4];
-int					f=1000/pfm->Burst.Repeat;
+void		Sweep(int emj) {
+int			nHz[4];
+int			f=1000/pfm->Burst.Repeat;
 static	int	emj00=-1,noffs=0;
 
 				if(_MODE(pfm,__SWEEPSet__)) {				// if sweeps setup active
-					if((pfm->Burst.Count-2) % 15 == 0)
-						emj00=emj;	
-					else if(emj00 >= 0) {
-						if(emj/2 - emj00 > 1)
+					if(pfm->Burst.Count > 0 && pfm->Burst.Count % 15 == 0)
+						emj00=emj;											// take reference, omit 1st pulse
+					else if(emj00 >= 0) {							// only after reference set !!!
+						if(emj/2 - emj00 > 1)						// max offset +- 100
 							noffs = __max(-100,--noffs);
 						if(emj/2 - emj00 < -1)
 							noffs = __min(100,++noffs);
@@ -522,22 +523,20 @@ static	int	emj00=-1,noffs=0;
 					_stdio(io);
 				}
 				
-				if((pfm->Burst.Count-2) % 15 == 0)
-					return;
+				if(pfm->Burst.Count % 15 != 0) {
+					emj=__min(mJ[3],__max(mJ[0],emj));// limit input energy anf work. frequency to table border values
+					f=__min(Hz[3],__max(Hz[0],f));
+
+					nHz[0]=__fit(emj,mJ,n10);					// fit offset on energy input for all working frequencies
+					nHz[1]=__fit(emj,mJ,n20);
+					nHz[2]=__fit(emj,mJ,n30);
+					nHz[3]=__fit(emj,mJ,n40);
 				
-				
-				emj	=__min(mJ[3],__max(mJ[0],emj));	// limit input energy anf work. frequency to table border values
-				f		=__min(Hz[3],__max(Hz[0],f));
-
-	
-				nHz[0]=__fit(emj,mJ,n10);						// fit offset on energy input for all working frequencies
-				nHz[1]=__fit(emj,mJ,n20);
-				nHz[2]=__fit(emj,mJ,n30);
-				nHz[3]=__fit(emj,mJ,n40);
-
-				nsweeps=__fit(f,Hz,nHz) + noffs;	// fit k & offset on frequency
-				ksweeps=__fit(f,Hz,kHz);
-
+					nsweeps=__fit(f,Hz,nHz) + noffs;	// fit k & offset on frequency
+					ksweeps=__fit(f,Hz,kHz);
+				}
+				pfm->Burst.Count++;
+				pfm->Burst.Timeout=2*pfm->Burst.Repeat;
 }
 
 /**

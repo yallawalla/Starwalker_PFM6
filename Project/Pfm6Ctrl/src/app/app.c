@@ -52,7 +52,7 @@ RCC_AHB1PeriphClockCmd(
 					pfm->Burst.Psimm[0]=pfm->Burst.Psimm[1]=2;
 					pfm->Burst.Pdelay=_PWM_RATE_HI*0.02;
 					pfm->Burst.Pmax=_PWM_RATE_HI*0.02;
-					pfm->Burst.Count=0;
+					pfm->Burst.Count=pfm->Burst.Timeout=0;
 					pfm->ADCRate=_uS;
 					
 					pfm->qdelay=0;
@@ -177,16 +177,7 @@ short					m=_STATUS_WORD;
 					}
 //______________________________________________________________________________
 					if(_EVENT(p,_PULSE_FINISHED)) {													// end of pulse			
-						static int	count_timeout=0;
 						_CLEAR_EVENT(p,_PULSE_FINISHED);
-
-						if(__time__ > count_timeout)
-							p->Burst.Count=0;
-						if(_MODE(p,__SWEEPS__))																// if sweeps, update pwm table !!!
-							SetPwmTab(p);
-						++p->Burst.Count;
-						count_timeout = __time__ + 2*p->Burst.Repeat;		
-						
 						SetSimmerRate(p,_PWM_RATE_LO);												// reduce simmer
 						if(Eack(p)) {																					// Energ. integrator finished
 							Pref1=Pref2=0;
@@ -195,6 +186,14 @@ short					m=_STATUS_WORD;
 							_CLEAR_EVENT(p,_ADC_FINISHED);
 							ScopeDumpBinary(NULL,0);														// scope printout, for testing(if enabled ?)
 							}
+					}
+//______________________________________________________________________________
+// __SWEEPS__ pulse counter & timeout
+//
+//
+					if(p->Burst.Timeout && __time__ > p->Burst.Timeout) {
+						p->Burst.Count=p->Burst.Timeout=0;										// counter & timeout reset
+						SetPwmTab(p);																					// final tab setup
 					}
 //					if(_E1ref || _E2ref) {
 //						_DEBUG_MSG("%d,%d\r\n",_E1ref,_E2ref);

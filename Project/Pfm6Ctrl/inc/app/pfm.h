@@ -266,7 +266,8 @@ short						Repeat,						//	_PFM_reset command parameters
 								E,							
 								U,								//	_PFM_set command parameters
 								Time,
-								Count;						// pulse counter
+								Count,						// sweeps pulse counter
+								Timeout;					// sweeps pulse counter timeout
 char						Ereq;
 short						Pmax,	
 								Psimm[2],					//	simmer pwm, izracunan iz _PFM_simmer_set
