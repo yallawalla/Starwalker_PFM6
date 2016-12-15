@@ -52,6 +52,7 @@ RCC_AHB1PeriphClockCmd(
 					pfm->Burst.Psimm[0]=pfm->Burst.Psimm[1]=2;
 					pfm->Burst.Pdelay=_PWM_RATE_HI*0.02;
 					pfm->Burst.Pmax=_PWM_RATE_HI*0.02;
+					pfm->Burst.Count=0;
 					pfm->ADCRate=_uS;
 					
 					pfm->qdelay=0;
@@ -178,6 +179,9 @@ short					m=_STATUS_WORD;
 					if(_EVENT(p,_PULSE_FINISHED)) {													// end of pulse
 						_CLEAR_EVENT(p,_PULSE_FINISHED);
 						SetSimmerRate(p,_PWM_RATE_LO);												// reduce simmer
+						p->Burst.Count++;
+						if(_MODE(p,__SWEEPS__))
+							SetPwmTab(p);
 						if(Eack(p)) {																					// Energ. integrator finished
 							Pref1=Pref2=0;
 							while(!_EVENT(p,_ADC_FINISHED))											// wait for end of ADC recording
@@ -611,7 +615,36 @@ int 			inproc=0;
 								}
 								break;
 //______________________________________________________________________________________
-							case _ID_SYS2EC:
+								case _ID_ENRG2SYS: 																						// energometer-2-system message
+								{
+void setkn(int);
+									union {short w[4];} *e = (void *)q;			
+									if((unsigned short)e->w[0]==0xD103) {
+										setkn(__max(0,e->w[2])/10);
+										
+										if(_DBG(p,_DBG_ENRG_SYS)) {
+_io 									*io=_stdio(__dbug);										
+											printf(":%04d e1=%.1lf,e2=%.1lf\r\n>",__time__ % 10000,
+												(double)__max(0,e->w[2])/10,
+													(double)__max(0,e->w[3])/10);
+										_stdio(io);
+										}
+									}
+								}
+								break;
+//______________________________________________________________________________________
+								case _ID_SYS2ENRG: 																						// system-2-energometer message 
+								{
+									union {short w[4];} *e = (void *)q;			
+									if(_DBG(p,_DBG_SYS_ENRG)) {
+_io 								*io=_stdio(__dbug);
+										printf(":%04d %04hX %04hX %04hX %04hX\r\n>",__time__ % 10000,e->w[0],e->w[1],e->w[2],e->w[3]);
+										_stdio(io);
+									}
+								}
+								break;
+//______________________________________________________________________________________
+								case _ID_SYS2EC:
 								switch(*q++) {
 									case _EC_status_req:
 										CanReply("cwwE",_EC_status_req,0,0);
@@ -829,6 +862,7 @@ static		int	count=0,no=0;
 						SetSimmerRate(p,_PWM_RATE_LO);																		// set simmer
 						SetPwmTab(p);
 						count=1000;																												// set trigger countdown
+						p->Burst.Count=0;																									// reset pulse counter
 //________________________________________________________________________________					
 					} else {
 						if(count && !--count) {

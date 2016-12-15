@@ -20,7 +20,7 @@
 #include				"usb_conf.h"
 #include				"usbh_core.h"
 			          
-#define 				SW_version		112							
+#define 				SW_version		314						
 			          
 #ifdef __DISCO__
 #define					_uS						42
@@ -100,7 +100,8 @@ typedef					 enum
 								_DBG_CAN_RX,
 								_DBG_ERR_MSG,
 								_DBG_SYS_MSG,
-								_DBG_MSG_TIM=20
+								_DBG_ENRG_SYS=20,
+								_DBG_SYS_ENRG,
 } 							_debug;
 
 typedef					enum
@@ -118,7 +119,9 @@ typedef					enum
 								_CHANNEL1_DISABLE,				//11
 								_CHANNEL2_DISABLE,				//12
 								_CHANNEL1_SINGLE_TRIGGER,	//13
-								_CHANNEL2_SINGLE_TRIGGER	//14
+								_CHANNEL2_SINGLE_TRIGGER,	//14
+								__SWEEPS__=25,
+								__ASP__=26
 } 							_mode;
 
 
@@ -216,6 +219,9 @@ int							USBH_Iap(int);
 #define					_ID_IAP_SIGN			0xA5
 #define					_ID_IAP_STRING		0xA6
 #define					_ID_IAP_PING			0xA7
+
+#define					_ID_SYS2ENRG			0x1f
+#define					_ID_ENRG2SYS			0x3f
 //________________________________________________________________________
 #define					_PFM_status_req		0x00
 #define					_PFM_command			0x02
@@ -258,7 +264,8 @@ short						Repeat,						//	_PFM_reset command parameters
 								Length,
 								E,							
 								U,								//	_PFM_set command parameters
-								Time;
+								Time,
+								Count;						// pulse counter
 char						Ereq;
 short						Pmax,	
 								Psimm[2],					//	simmer pwm, izracunan iz _PFM_simmer_set

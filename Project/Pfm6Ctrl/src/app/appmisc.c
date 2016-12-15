@@ -105,6 +105,7 @@ short 	user_shape[];
 #define	_K1											(_STATUS(p, PFM_STAT_SIMM1)/1)
 #define	_K2											(_STATUS(p, PFM_STAT_SIMM2)/2)
 #define	_minmax(x,x1,x2,y1,y2) 	__min(__max(((y2-y1)*(x-x1))/(x2-x1)+y1,y1),y2)
+int 		ksweeps=70, nsweeps=0;					// sweeps coeff.
 /*******************************************************************************
 * Function Name : SetPwmTab
 * Description   : set the pwm sequence
@@ -144,6 +145,13 @@ int		Uo=p->Burst.Pmax;
 				else
 					t->n=n;
 			};
+//
+//
+//
+//-------smafu za prestrezanje QSP (ASP, 30.5.2016 --------------
+			if(_MODE(p,__ASP__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5 && p->Burst.Ereq == 0x01) {
+				p->Burst.Ereq |= 0x83;
+			}
 //-------preludij-------------------
 			if(p->Burst.Ereq & 0x02) {
 				int	du=0,u=0;
@@ -199,14 +207,35 @@ int		Uo=p->Burst.Pmax;
 						to=shape[i].q3;
 //					Uo=(int)(pow((pow(p->Burst.Pmax,3)*p->Burst.N*shape[i].qref - pow(shape[i].q1,3)*shape[i].q0)/shape[i].q3  /p->Burst.N,1.0/3.0)+0.5);
 						Uo=(int)(pow((pow(p->Burst.Pmax,3)*p->Burst.N*shape[i].qref - pow(shape[i].q1,3)*shape[i].q0)/shape[i].qref/p->Burst.N,1.0/3.0)+0.5);
-						too=_minmax(Uo,260,550,20,100);
+//
+//
+//	ASP dodatek, 30.5.2016
+						if(p->Burst.Ereq & 0x80) {
+							too=_minmax(Uo,260,550,100,100);
+							shape[i].q0=250;
+							shape[i].q1=250;
+							shape[i].q2=36;
+							shape[i].q3=50;
+							shape[i].qref=50;
+						}
+						else
+							too=_minmax(Uo,260,550,20,100);
 					}						
 				}	else
 						too=p->Burst.Length/p->Burst.N - to;							// dodatek ups....
 			if(p->Burst.Ereq & 0x01) {
 //-------PULSE----------------------					
 				for(j=0; j<p->Burst.N; ++j) {
-//-------PULSE----------------------		
+// SWEEPS ...........................................................
+					if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5 && p->Burst.Ereq == 1) {
+						if(j==0)
+							too=10*abs((p->Burst.Count % 60)-30)+250;					
+						if(j==1)
+							Uo += Uo*(too - 550)*ksweeps/300/1000+Uo*nsweeps/1000;
+						if(j==2)
+							break;
+					}					
+//..end  sweeps........................................
 					for(n=2*((to*_uS + _PWM_RATE_HI/2)/_PWM_RATE_HI)-1; n>0; n -= 255, ++t) {					
 						t->T1=t->T2=_K1*(Uo+p->Burst.Pdelay);
 						t->T3=t->T4=_K2*(Uo+p->Burst.Pdelay);
@@ -370,11 +399,6 @@ void	SetSimmerRate(PFM *p, int simmrate) {
 				TIM_ITConfig(TIM1,TIM_IT_Update,DISABLE);
 			}			
 			
-			if(_DBG(pfm,_DBG_MSG_TIM)) {
-				_DEBUG_MSG("cr1  %04X, cr8  %04X", TIM1->CR1, TIM8->CR1);
-				_DEBUG_MSG("cnt1 %04X, cnt8 %04X", TIM1->CNT, TIM8->CNT);
-			}
-
 			TIM_CtrlPWMOutputs(TIM1, ENABLE);
 			TIM_CtrlPWMOutputs(TIM8, ENABLE);
 			TIM_Cmd(TIM1,ENABLE);
@@ -440,6 +464,36 @@ float	__lin2f(short i) {
 short	__f2lin(float u, short exp) {
 		return ((((int)(u/pow(2,exp>>11)))&0x7ff)  | (exp & 0xf800));
 }
+
+const int	V[]=		{480,490,500,520};
+const int	mJ[]=		{10,20,40,70,100};
+
+const int	Hz[]=		{10,20,30,40};
+const int	kHz[]=	{90,85,80,70};
+
+const int	n10[]=	{45,35,25,15};
+const int	n20[]=	{25,15,5,-5};
+const int	n30[]=	{20,10,0,-10};
+const int	n40[]=	{15,5,-5,-15};
+
+void		setkn(int emj) {
+int			nHz[4];
+int			f=1000/pfm->Burst.Repeat;
+
+				if(emj < mJ[0]) emj = mJ[0];
+				if(emj > mJ[4]) emj = mJ[4];
+				if(f < Hz[0]) f = Hz[0];
+				if(f > Hz[3]) f = Hz[3];
+	
+				nHz[0]=__fit(emj,mJ,n10);
+				nHz[1]=__fit(emj,mJ,n20);
+				nHz[2]=__fit(emj,mJ,n30);
+				nHz[3]=__fit(emj,mJ,n40);
+
+				nsweeps=__fit(f,Hz,nHz);
+				ksweeps=__fit(f,Hz,kHz);
+}
+
 /**
 * @}
 */
