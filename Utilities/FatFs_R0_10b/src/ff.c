@@ -2349,10 +2349,6 @@ FRESULT validate (	/* FR_OK(0): The object is valid, !=0: Invalid */
 
 	return FR_OK;
 }
-
-
-
-
 /*--------------------------------------------------------------------------
 
    Public Functions

@@ -370,9 +370,10 @@ void		TIM3_IRQHandler(void) {
 void 		EXTI9_5_IRQHandler(void)
 {
 				EXTI_ClearITPendingBit(EXTI_Line8);
-				if(!_TRIGGER1 && !_TRIGGER2 && _PFM_CWBAR_SENSE)
+//				if(!_TRIGGER1 && !_TRIGGER2 && _PFM_CWBAR_SENSE)
+				if(_PFM_CWBAR_SENSE)
 					_SET_ERROR(pfm,PFM_ERR_DRVERR);
-				_YELLOW2(300);
+//				_YELLOW2(300);
 }
 /*******************************************************************************/
 /**

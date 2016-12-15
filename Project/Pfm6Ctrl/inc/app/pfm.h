@@ -20,7 +20,7 @@
 #include				"usb_conf.h"
 #include				"usbh_core.h"
 			          
-#define 				SW_version		100																				//ex 106
+#define 				SW_version		110										
 			          
 #if  						defined (__PFM6__)
 #define					__CAN__				CAN2
@@ -129,17 +129,17 @@ _io 								*io=_stdio(__dbug);																												\
 									} while(0)
 
 #define					_SET_ERROR(p,a)	do {																													\
+									if(a & _CRITICAL_ERR_MASK) {																								\
+										TIM_CtrlPWMOutputs(TIM1, DISABLE);																				\
+										TIM_CtrlPWMOutputs(TIM8, DISABLE);																				\
+										_CLEAR_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2);													\
+									}																																						\
 									if(_DBG(p,_DBG_ERR_MSG) && !(p->Error & (a))) {															\
 _io 								*io=_stdio(__dbug);																												\
 										printf(":%04d error %04X,%04X, set\r\n>",__time__ % 10000,p->Error,a);		\
 										_stdio(io);																																\
 									}																																						\
 									p->Error |= (a);																														\
-									if(a & _CRITICAL_ERR_MASK) {																								\
-										_CLEAR_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2);													\
-										TIM_CtrlPWMOutputs(TIM1, DISABLE);																				\
-										TIM_CtrlPWMOutputs(TIM8, DISABLE);																				\
-									}																																						\
 								} while(0)
 
 #define					_STATUS(p,a)				(p->Status & (a))

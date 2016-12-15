@@ -381,7 +381,6 @@ verzija 104
 - console interface za shaped pulse
 >v 1.04 Nov 13 2014, <3F161304>
 
-
 4.12.2014
 verzija 105
 
@@ -394,34 +393,37 @@ verzija 106
 
 - se dvakrat v SetSimmerRate (pred in po TIM disable) 
   SetCounter(TIM1(8),0) ... zaradi resetiranja DIR bita v TIMx_CR1 
+
 >v 1.00 May  7 2014, <137D8D3C>
 
+31.3.2015
+verzija 110, prva sprememba po uradni ...
 
+- ponovno aktiviran driver error tudi med triggerskim pulzom 
+- bug, izpis energije pri dveh flesih hkrati, popravljeno !!!
+- v PFM_command fles nikakor ne sme trigat, ce je idle error! V tem primeru takojsen izhod !
+- _SET_ERROR macro mora imeti debug izpis na koncu sicer zavira zapiranje pwm 
+  driverja. Kriticno v primeru desat. zascite ! 
+
+>v 1.10 Mar 31 2015, <68E95EC1>
+
+.
+.
+.
+.
+.
+.
+.
+
+v108, za testiranje qx, 
+	- odstranjen idle error
+	
+	
+ 
+  TODO:
+  - ugasniti trigger fiber takoj, ko ni vec potrebno, ne cakat 1 sek!
+  - spet aktivirati DRIVER_ERR tudi med triganjem !!!
   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
->L 200000e0,000BEF42
->L 200000e0,000BE998
->L 200000e0,000BBBA5
->L 200000e0,000BD456
-
-U/Uo*4096*I/Io*4096
-
 TODO stabilizacija moci (Pref ?)
 
 

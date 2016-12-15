@@ -680,7 +680,7 @@ int				i,j,k;
 									break;
 								case PFM_STAT_SIMM1 | PFM_STAT_SIMM2:
 									e=(e1+e2)*p->ADCRate/kmJ/_uS;
-									CanReply("cicP",e,0);		
+									CanReply("cicP",_PFM_E_ack,e,0);		
 									_DEBUG_MSG("E1+E2=%d.%dJ",e/1000,(e%1000)/100);
 									break;
 							}
@@ -715,7 +715,6 @@ int				PFM_status_send(PFM *p, int k) {
   * @retval : None
   *
   */
-void 			EXTI15_10_IRQHandler(void);
 int				PFM_command(PFM *p, int n) {
 static
 int				count=0,no=0;
@@ -734,14 +733,18 @@ int				count=0,no=0;
 							if(!_MODE(p,_CHANNEL1_DISABLE)) {																// if not Erbium  single channel
 								_I1off=ADC1_simmer.I;																					// get current sensor offset
 								_U1off=ADC1_simmer.U;																					// check idle voltage
-								if(abs(p->HV/7 - ADC3_AVG*ADC1_simmer.U) > _HV2AD(30))				// HV +/- 30V range ???
+								if(abs(p->HV/7 - ADC3_AVG*ADC1_simmer.U) > _HV2AD(30)) {			// HV +/- 30V range ???
 									_SET_ERROR(p,PFM_STAT_UBHIGH);															// if not, PFM_STAT_UBHIGH error 
+									no=0;
+								}
 							}
 							if(!_MODE(p,_CHANNEL2_DISABLE)) {																// same for NdYAG channel
 								_I2off=ADC2_simmer.I;
 								_U2off=ADC2_simmer.U;
-								if(abs(p->HV/7 - ADC3_AVG*ADC2_simmer.U) > _HV2AD(30))
+								if(abs(p->HV/7 - ADC3_AVG*ADC2_simmer.U) > _HV2AD(30)) {
 									_SET_ERROR(p,PFM_STAT_UBHIGH);
+									no=0;
+								}
 							}
 						}
 //________________________________________________________________________________
@@ -751,14 +754,14 @@ int				count=0,no=0;
 							_SET_STATUS(p, PFM_STAT_SIMM1);
 						else
 							_SET_STATUS(p, no);																							// else set status as requested
-
-						if(!_STATUS(p,_PFM_CWBAR_STAT))
+//________________________________________________________________________________
+						if(!_STATUS(p,_PFM_CWBAR_STAT))																		// crowbar not cleared
 							_SET_ERROR(p,PFM_ERR_PULSEENABLE);
-	
+//________________________________________________________________________________
 						if(no & PFM_STAT_SIMM1)																						// activate triggers
 							_TRIGGER1_ON;
 						if(no & PFM_STAT_SIMM2)
-							_TRIGGER2_ON;						
+							_TRIGGER2_ON;
 						SetSimmerRate(p,_PWM_RATE_LO);																		// set simmer
 						count=1000;																												// set trigger countdown
 //________________________________________________________________________________					
