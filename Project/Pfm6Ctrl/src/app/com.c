@@ -568,6 +568,34 @@ int	DecodeCom(char *c) {
 						sDump((char *)getHEX(cc[0],EOF),n);
 					}
 					break;
+//__________________________________________________submit CAN message(PFM from_)
+				case '<': {
+CanTxMsg	tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
+int				n;
+					tx.StdId=getHEX(++c,2);
+					++c;++c;
+					for(n=0; n<strlen(c);++n,++n)
+						tx.Data[n/2]=getHEX(&c[n],2);
+					tx.DLC=n/2;
+					CAN_ITConfig(__CAN__, CAN_IT_FMP0, DISABLE);
+					_buffer_push(__can->rx,&tx,sizeof(CanTxMsg));
+					CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
+					break;
+				}				
+//__________________________________________________submit CAN message(PFM to __)
+				case '>': {
+CanTxMsg	tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
+int				i;
+					tx.StdId=getHEX(++c,2);
+					++c;++c;
+					for(i=0; i<strlen(c);++i,++i)
+						tx.Data[i/2]=getHEX(&c[i],2);
+					tx.DLC=i/2;
+//					CAN_ITConfig(__CAN__, CAN_IT_TME, DISABLE);	
+					i=_buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
+//					CAN_ITConfig(__CAN__, CAN_IT_TME, ENABLE);							
+					break;
+				}
 //__________________________________________________submit CAN message(SYS to PFM)______
 				case '.': {
 CanTxMsg	tx={_ID_SYS2PFM,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
@@ -579,20 +607,6 @@ int				n;
 					_buffer_push(__can->rx,&tx,sizeof(CanTxMsg));
 					CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
 					CanReply(NULL);	
-					break;
-				}
-//__________________________________________________submit CAN message(SYS to __)______
-				case '_': {
-CanTxMsg	tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
-int				n;
-					tx.StdId=getHEX(++c,2);
-					++c;++c;
-					for(n=0; n<strlen(c);++n,++n)
-						tx.Data[n/2]=getHEX(&c[n],2);
-					tx.DLC=n/2;
-					CAN_ITConfig(__CAN__, CAN_IT_FMP0, DISABLE);
-					_buffer_push(__can->rx,&tx,sizeof(CanTxMsg));
-					CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
 					break;
 				}
 //__________________________________________________i2c read_________________

@@ -490,7 +490,8 @@ int		f1=(ft[1]*(t[0]-to)-ft[0]*(t[1]-to)) / (t[0]-t[1]);
 //_______________________________________________________________________________________________________________________________
 //_______________________________________________________________________________________________________________________________
 //_______________________________________________________________________________________________________________________________
-// SWEEPS ...........................................................
+//
+// SWEEPS
 // adapt coeff.m set new tab, counter increment && timeout setup
 //
 const int	mJ[]=		{10,20,40,70};						// working energies
@@ -506,7 +507,7 @@ int			nHz[4];
 int			f=1000/p->Burst.Repeat;
 static	int	emj00=-1;
 
-				if(_MODE(p,__SWEEPSet__)) {				// if sweeps setup active
+				if(_MODE(p,__SWEEPSet__)) {					// if sweeps setup active
 					if(p->Burst.Count > 0 && p->Burst.Count % 15 == 0)
 						emj00=emj;											// take reference, omit 1st pulse
 					else if(emj00 >= 0) {							// only after reference set !!!
@@ -524,7 +525,8 @@ static	int	emj00=-1;
 				}
 				
 				if(p->Burst.Count % 15 != 0) {
-					emj=__min(mJ[3],__max(mJ[0],emj));// limit input energy anf work. frequency to table border values
+//					emj=__min(mJ[3],__max(mJ[0],emj));// limit input energy anf work. frequency to table border values
+					emj=__min(100,__max(0,emj));// limit input energy anf work. frequency to table border values
 					f=__min(Hz[3],__max(Hz[0],f));
 
 					nHz[0]=__fit(emj,mJ,n10);					// fit offset on energy input for all working frequencies
