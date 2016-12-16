@@ -523,9 +523,9 @@ int	DecodeCom(char *c) {
 					n=strscan(++c,cc,',');
 					if(n) {
 						if(n>1)
-							*(char *)strtol(cc[0],NULL,16)=(char)strtol(cc[1],NULL,16);
+							*(char *)strtol(cc[0],NULL,0)=(char)strtol(cc[1],NULL,0);
 						else
-							printf(",%02X",*(unsigned char *)strtol(cc[0],NULL,16));
+							printf(",%02X",*(unsigned char *)strtol(cc[0],NULL,0));
 						break;
 					}
 					return _PARSE_ERR_SYNTAX;
@@ -534,9 +534,9 @@ int	DecodeCom(char *c) {
 					n=strscan(++c,cc,',');
 					if(n) {
 						if(n>1)
-							*(short *)strtol(cc[0],NULL,16)=(short)strtol(cc[1],NULL,16);
+							*(short *)strtol(cc[0],NULL,0)=(short)strtol(cc[1],NULL,0);
 						else
-							printf(",%04X",*(unsigned short *)strtol(cc[0],NULL,16));
+							printf(",%04X",*(unsigned short *)strtol(cc[0],NULL,0));
 						break;
 					}
 					return _PARSE_ERR_SYNTAX;
@@ -545,9 +545,9 @@ int	DecodeCom(char *c) {
 					n=strscan(++c,cc,',');
 					if(n) {
 						if(n>1)
-							*(int *)strtol(cc[0],NULL,16)=(int)strtol(cc[1],NULL,16);
+							*(int *)strtol(cc[0],NULL,0)=(int)strtol(cc[1],NULL,0);
 						else
-							printf(",%08X",*(unsigned int *)strtol(cc[0],NULL,16));
+							printf(",%08X",*(unsigned int *)strtol(cc[0],NULL,0));
 						break;
 					}
 					return _PARSE_ERR_SYNTAX;

@@ -266,10 +266,7 @@ short						Repeat,						//	_PFM_reset command parameters
 								E,							
 								U,								//	_PFM_set command parameters
 								Time,
-								Count,						// sweeps pulse counter
-								Timeout;					// sweeps pulse counter timeout
-char						Ereq;
-short						Pmax,	
+								Pmax,	
 								Psimm[2],					//	simmer pwm, izracunan iz _PFM_simmer_set
 								Pdelay,						//	burst interval	pwm
 								Delay,						//			-"-					delay
@@ -280,6 +277,9 @@ short						Pmax,
 								Erpt,
 								ki,
 								kp;
+int							Timeout,					// sweeps pulse counter timeout
+								Count;						// sweeps pulse counter
+char						Ereq;
 } burst;
 //________________________________________________________________________
 typedef 				struct {

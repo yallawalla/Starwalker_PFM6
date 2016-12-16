@@ -191,8 +191,9 @@ short					m=_STATUS_WORD;
 // __SWEEPS__ pulse counter & timeout
 //
 //
-					if(p->Burst.Timeout && __time__ > p->Burst.Timeout) {
-						p->Burst.Count=p->Burst.Timeout=0;										// counter & timeout reset
+					if(p->Burst.Timeout > 0 && __time__ > p->Burst.Timeout) {
+						p->Burst.Count=0;																			// counter & timeout reset
+						p->Burst.Timeout=0;
 						SetPwmTab(p);																					// final tab setup
 					}
 //					if(_E1ref || _E2ref) {
@@ -622,7 +623,7 @@ int 			inproc=0;
 //______________________________________________________________________________________
 								case _ID_ENRG2SYS: 																						// energometer-2-system message
 								{
-									void Sweep(int);
+									void Sweep(PFM *,int);
 									union {short w[4];} *e = (void *)q;			
 									if(_DBG(p,_DBG_ENRG_SYS)) {
 _io 								*io=_stdio(__dbug);										
@@ -632,7 +633,7 @@ _io 								*io=_stdio(__dbug);
 									_stdio(io);
 									}
 									if(_MODE(pfm,__SWEEPS__) && (unsigned short)e->w[0]==0xD103) {	
-										Sweep(__max(0,e->w[2])/10);	
+										Sweep(p,__max(0,e->w[2])/10);	
 									}
 								}
 								break;
@@ -866,7 +867,6 @@ static		int	count=0,no=0;
 						SetSimmerRate(p,_PWM_RATE_LO);																		// set simmer
 						SetPwmTab(p);
 						count=1000;																												// set trigger countdown
-						p->Burst.Count=0;																									// reset pulse counter
 //________________________________________________________________________________					
 					} else {
 						if(count && !--count) {

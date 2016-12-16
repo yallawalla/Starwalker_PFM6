@@ -235,7 +235,7 @@ int		Uo=p->Burst.Pmax;
 // SWEEPS ...........................................................
 // mode recognizeb by mode req, pulse time = 50u, burst length = 1ms, no. of pulses = 5, regular call ...
 //
-						if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5 && p->Burst.Ereq == 1) {
+						if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 2 && p->Burst.Ereq == 1) {
 // set distance after 1 pulse
 						if(j==0)
 								too=10*abs((p->Burst.Count % 60)-30)+250;					
@@ -500,14 +500,14 @@ const int	n10[]=	{45,35,25,15};						// ndt(f,)
 const int	n20[]=	{25,15,5,-5};
 const int	n30[]=	{20,10,0,-10};
 const int	n40[]=	{15,5,-5,-15};
-
-void		Sweep(int emj) {
+int			noffs=0;
+void		Sweep(PFM *p,int emj) {
 int			nHz[4];
-int			f=1000/pfm->Burst.Repeat;
-static	int	emj00=-1,noffs=0;
+int			f=1000/p->Burst.Repeat;
+static	int	emj00=-1;
 
-				if(_MODE(pfm,__SWEEPSet__)) {				// if sweeps setup active
-					if(pfm->Burst.Count > 0 && pfm->Burst.Count % 15 == 0)
+				if(_MODE(p,__SWEEPSet__)) {				// if sweeps setup active
+					if(p->Burst.Count > 0 && p->Burst.Count % 15 == 0)
 						emj00=emj;											// take reference, omit 1st pulse
 					else if(emj00 >= 0) {							// only after reference set !!!
 						if(emj/2 - emj00 > 1)						// max offset +- 100
@@ -517,13 +517,13 @@ static	int	emj00=-1,noffs=0;
 					}
 				}
 				
-				if(_DBG(pfm,26)) {
+				if(_DBG(p,26)) {
 					_io *io=_stdio(__dbug);
-					printf(":%04d %d,%d,%d,%d,%d\r\n>",__time__ % 10000,pfm->Burst.Count,emj,noffs,ksweeps,nsweeps);
+					printf(":%04d %d,%d,%d,%d,%d\r\n>",__time__ % 10000,p->Burst.Count,emj,noffs,ksweeps,nsweeps);
 					_stdio(io);
 				}
 				
-				if(pfm->Burst.Count % 15 != 0) {
+				if(p->Burst.Count % 15 != 0) {
 					emj=__min(mJ[3],__max(mJ[0],emj));// limit input energy anf work. frequency to table border values
 					f=__min(Hz[3],__max(Hz[0],f));
 
@@ -535,8 +535,9 @@ static	int	emj00=-1,noffs=0;
 					nsweeps=__fit(f,Hz,nHz) + noffs;	// fit k & offset on frequency
 					ksweeps=__fit(f,Hz,kHz);
 				}
-				pfm->Burst.Count++;
-				pfm->Burst.Timeout=2*pfm->Burst.Repeat;
+				p->Burst.Count++;
+				p->Burst.Timeout = __time__ + 5*p->Burst.Repeat;
+				SetPwmTab(p);
 }
 
 /**
