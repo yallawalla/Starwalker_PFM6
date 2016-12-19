@@ -462,6 +462,11 @@
               <FileType>1</FileType>
               <FilePath>..\src\usb\stm32fxxx_it.c</FilePath>
             </File>
+            <File>
+              <FileName>samples.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\samples\samples.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1457,6 +1462,11 @@
               <FileName>stm32fxxx_it.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\usb\stm32fxxx_it.c</FilePath>
+            </File>
+            <File>
+              <FileName>samples.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\samples\samples.c</FilePath>
             </File>
           </Files>
         </Group>

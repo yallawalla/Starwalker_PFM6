@@ -1,4 +1,5 @@
 #include	"pfm.h"
+#include	"samples.h"
 /**
   ******************************************************************************
   * @file    appmisc.c
@@ -105,7 +106,7 @@ short 	user_shape[];
 #define	_K1											(_STATUS(p, PFM_STAT_SIMM1)/1)
 #define	_K2											(_STATUS(p, PFM_STAT_SIMM2)/2)
 #define	_minmax(x,x1,x2,y1,y2) 	__min(__max(((y2-y1)*(x-x1))/(x2-x1)+y1,y1),y2)
-int 		ksweeps=70, nsweeps=0;					// sweeps coeff.
+int 		ksweeps=90, nsweeps=50;					// sweeps coeff.
 /*******************************************************************************
 * Function Name : SetPwmTab
 * Description   : set the pwm sequence
@@ -241,7 +242,7 @@ int		Uo=p->Burst.Pmax;
 								too=10*abs((p->Burst.Count % 60)-30)+250;					
 // break the seq. if alternate setup mode and odd pulse; else, compute voltage correction on delta t 
 						if(j==1) {
-							if(_MODE(p,__SWEEPSet__) && p->Burst.Count > 0 && p->Burst.Count % 15 == 0)
+							if(_MODE(p,__SWEEPSet__) && p->Burst.Count > 0 && p->Burst.Count % 30 == 0)
 								break;
 							else
 								Uo += Uo*(too - 550)*ksweeps/300/1000+Uo*nsweeps/1000;
@@ -502,11 +503,11 @@ const int	n20[]=	{25,15,5,-5};
 const int	n30[]=	{20,10,0,-10};
 const int	n40[]=	{15,5,-5,-15};
 int			noffs=0;
-void		Sweep(PFM *p,int emj) {
+void		SweepOld(PFM *p,int emj) {
 int			nHz[4];
 int			f=1000/p->Burst.Repeat;
 static	int	emj00=-1;
-
+				emj=(emj+5)/10;
 				if(_MODE(p,__SWEEPSet__)) {					// if sweeps setup active
 					if(p->Burst.Count > 0 && p->Burst.Count % 15 == 0)
 						emj00=emj;											// take reference, omit 1st pulse
@@ -540,6 +541,53 @@ static	int	emj00=-1;
 				p->Burst.Count++;
 				p->Burst.Timeout = __time__ + 5*p->Burst.Repeat;
 				SetPwmTab(p);
+}
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________
+//
+// SWEEPS
+// adapt coeff.m set new tab, counter increment && timeout setup
+//
+__inline int signum(double val) {
+			  return((0 < val) - (val < 0));
+}
+//_______________________________________________________________________________________________________________________________
+void		Sweep(PFM *p,int emj) {
+static	int	emj00=0;
+static	samples *s=NULL;
+int			n=abs(p->Burst.Count % 60 - 30);
+//---------------------------------------------------------------------------			
+// border case, only on setup
+//
+// 
+				if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 2 && p->Burst.Ereq == 1) {
+					if(_MODE(p,__SWEEPSet__)) {
+						if(n % 30 == 0) {
+							emj00=emj;
+							if(p->Burst.Count && solve(s)) {
+								int dE=emj00 - polyp(s,15)/2;
+								nsweeps = __max(__min(nsweeps + signum(dE) + dE/5,100),-100);
+								ksweeps = __max(__min(ksweeps - signum(s->rp[1]),150),50);								
+								if(_DBG(p,26)) {
+									_io *io=_stdio(__dbug);
+//									printf(":%04d %5.1lf,%5.1lf,%5.1lf, %d, %d\r\n>",n,(double)emj00/10.0,s->rp[0]/10.0,s->rp[1],ksweeps,nsweeps);
+									printf(":%04d %5.1lf,%5.1lf,%5.1lf, %d, %d\r\n>",n,(double)emj00/10.0,polyp(s,0)/10,polyp(s,15)/10,ksweeps,nsweeps);
+									_stdio(io);
+								}
+							}	
+							s=init_samples(s,2);
+						} else {													// only after reference set !!!
+								add_sample(s,n,emj);
+						}
+					}
+	//---------------------------------------------------------------------------			
+					p->Burst.Count++;
+					p->Burst.Timeout = __time__ + 5*p->Burst.Repeat;
+					SetPwmTab(p);
+	}
 }
 
 /**

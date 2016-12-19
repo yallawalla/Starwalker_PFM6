@@ -633,7 +633,7 @@ _io 								*io=_stdio(__dbug);
 									_stdio(io);
 									}
 									if(_MODE(pfm,__SWEEPS__) && (unsigned short)e->w[0]==0xD103) {	
-										Sweep(p,__max(0,e->w[2])/10);	
+										Sweep(p,__max(0,e->w[2]));	
 									}
 								}
 								break;
