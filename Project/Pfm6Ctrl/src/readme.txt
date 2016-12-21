@@ -452,4 +452,18 @@ izvedba:	-V SetPwmTab na zacetku identificira qsp z 50us, 1ms, 5 pulzov, Ereq=0x
 			-Forsira shaping mode z dodatnim flagom ( 0x11), ki v nadaljevanju fiksira pulze na 50+100 us
 			-overrides cfg.ini parameter za q 250,230,36,50,50
 
+>21.12.2016
+
+sweeps:
+- v Burst objekt dodan števec strelov (Count)
+- v SetPwmTab identificira parametre za sweeps ( 50us, length 1ms, 2 pulzq, ereq=0x01) ingenerira 
+  variabilen razmik glede na števec pulzov od 300 do 600 us
+- števec inkrementira V funkciji Sweep, na detekcijo CAN mesiga iz energometra
+- v Sweep se amplituda drugega pulza modificira po linearni odvisnosti ksweeps*dt + nsweeps.
+- na robnih vrednostih razmika (00 in 600 us) se ignorira zahteva za dvojni pulz. vrednost iz
+  energ. je izmerjena energija prvega pulza, ki služi za referenco pri ekvalizaciji  ksweeps/nsweps.
+  
+  TODO:
+  ker je pri min. energiji 10mJ drugi pulz najbolj ojacan, ob direktnem prehodu v max. energijo vcasih zadane v napetostno omejitev 650V
+  
 			
