@@ -138,7 +138,7 @@ typedef					enum
 #define					PFM_HV2_ERR								0x4000					// center cap voltaghe out of range
 #define					PFM_I2C_ERR								0x8000					// i2c comm. not responding
 
-#if defined  (__PFM6__) || defined  (__DISC4__)
+#if		defined (__PFM6__) || defined (__PFM8__) || defined  (__DISC4__)
 	#define					_MODE(p,a)			(bool)(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a))
 	#define					_SET_MODE(p,a)				(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 1
 	#define					_CLEAR_MODE(p,a)			(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 0
@@ -211,10 +211,16 @@ typedef					enum
 #define					_MAX_QSHAPE						8
 #define					_MAX_USER_SHAPE				1024
 extern 		                            
-int							_ADCRates[];		      
+int							_ADCRates[];	
+#if	defined (__PFM6__)
+typedef struct	{	unsigned short			IgbtT1,IgbtT2,HV2,HV,Up20,Um5;										} _ADC3DMA;
+#endif
+#if	defined (__PFM8__)
+typedef struct	{	unsigned short			HV2,VCAP1,VCAP2,HV,Up12,Up5V,Up3,Th1,Th2,Tl1,Tl2;	} _ADC3DMA;						
+#endif
+					
+
 typedef struct	{	unsigned short			U,I;									} _ADCDMA;
-typedef struct	{	unsigned short			IgbtT1,IgbtT2,HV2,HV,
-									Up20,Um5;																	} _ADC3DMA;
 typedef struct	{	unsigned short			DAC2,DAC1;						} _DACDMA;
 typedef struct	{	unsigned short			addr,speed,ntx,nrx;
 									unsigned char				txbuf[4],rxbuf[4];		} _i2c;

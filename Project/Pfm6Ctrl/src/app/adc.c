@@ -272,12 +272,20 @@ void 	Initialize_ADC3(void)
 			GPIO_StructInit(&GPIO_InitStructure);
 			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
 			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
-
-			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2;											// temp 1, temp 2, HV/2														
-			GPIO_Init(GPIOA, &GPIO_InitStructure);
-			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3;											// HV,20V,-5V
-			GPIO_Init(GPIOC, &GPIO_InitStructure);
-
+#if	defined (__PFM6__)
+			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2;																							
+			GPIO_Init(GPIOA, &GPIO_InitStructure);																			// temp 1, temp 2, HV/2		
+			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3;										
+			GPIO_Init(GPIOC, &GPIO_InitStructure);																			// HV,20V,-5V
+#endif
+#if	defined (__PFM8__)
+			GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_2 | GPIO_Pin_3;																													
+			GPIO_Init(GPIOA, &GPIO_InitStructure);																			// HV/2, VCAP1sense		
+			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1; 																											
+			GPIO_Init(GPIOC, &GPIO_InitStructure);																			// VCAP2sense, HV		
+			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4  | GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8 	| GPIO_Pin_9 ;										
+			GPIO_Init(GPIOF, &GPIO_InitStructure);																			// 12V, 5V, 3.3V, TH1,TH2,TL1,TL2
+#endif
 /* ADC3 Init ****************************************************************/
 			ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;
 			ADC_InitStructure.ADC_ScanConvMode = ENABLE;
@@ -288,13 +296,29 @@ void 	Initialize_ADC3(void)
 			ADC_Init(ADC3, &ADC_InitStructure);
 
 /* ADC3 regular channel12 configuration *************************************/
+#if	defined (__PFM6__)
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_0,  1, ADC_SampleTime_3Cycles);							// temp 1
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_1,  2, ADC_SampleTime_3Cycles);							// temp 2
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_2,  3, ADC_SampleTime_3Cycles);							// HV/2
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_11, 4, ADC_SampleTime_3Cycles);							// HV
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_12, 5, ADC_SampleTime_3Cycles);							// +20V
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_13, 6, ADC_SampleTime_3Cycles);							// -5V
-#ifdef __PFM6__
+#endif
+#if	defined (__PFM8__)
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_2,  1, ADC_SampleTime_3Cycles);							// HV/2
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_3,  2, ADC_SampleTime_3Cycles);							// VCAP1sense	
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_10, 3, ADC_SampleTime_3Cycles);							// VCAP2sense
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_11, 4, ADC_SampleTime_3Cycles);							// HV
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_9,  5, ADC_SampleTime_3Cycles);							// 12V
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_14, 6, ADC_SampleTime_3Cycles);							// 5V
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_15, 7, ADC_SampleTime_3Cycles);							// 3.3V
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_4,	 8, ADC_SampleTime_3Cycles);							// TH1
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_5,	 9, ADC_SampleTime_3Cycles);							// TH2
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_6,  10,ADC_SampleTime_3Cycles);							// TL1
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_7,  11,ADC_SampleTime_3Cycles);							// TL2
+#endif
+
+#if		defined (__PFM6__) || defined (__PFM8__)
 			ADC_AnalogWatchdogSingleChannelConfig(ADC3,ADC_Channel_11);
 			ADC_AnalogWatchdogCmd(ADC3,ADC_AnalogWatchdog_SingleRegEnable);	
 

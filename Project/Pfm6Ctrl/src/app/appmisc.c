@@ -421,7 +421,8 @@ int		fanTL=3000;
 int		fanTH=4000;
 /*******************************************************************************/
 float	IgbtTemp1(void) {
-			return (float)__fit(ADC3_buf[0].IgbtT1,Rtab,Ttab)/100.0;
+
+	return (float)__fit(ADC3_buf[0].IgbtT1,Rtab,Ttab)/100.0;
 }
 float	IgbtTemp2(void) {
 			return (float)__fit(ADC3_buf[0].IgbtT2,Rtab,Ttab)/100.0;

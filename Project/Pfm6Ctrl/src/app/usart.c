@@ -34,7 +34,7 @@ _io	*__com0, *__com1, *__dbug;
 #define TxBufferSize		256
 /* Private variables ---------------------------------------------------------*/
 USART_InitTypeDef USART_InitStructure;
-#if  defined (__PFM6__)
+#if		defined (__PFM6__) || defined (__PFM8__)
 void DMA_Configuration(_io *io)
 {	
 	DMA_InitTypeDef DMA_InitStructure;
@@ -193,7 +193,7 @@ USART_InitTypeDef 			USART_InitStructure;
 USART_ClockInitTypeDef  USART_ClockInitStructure;
 GPIO_InitTypeDef				GPIO_InitStructure;
 _io 										*io;
-#if  defined (__PFM6__)
+#if		defined (__PFM6__) || defined (__PFM8__)
 // serial to usart1
 	GPIO_StructInit(&GPIO_InitStructure);
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;

@@ -12,7 +12,7 @@ extern "C" {
 #include "integer.h"
 #include "stdint.h"
 
-#if defined  (__PFM6__) || defined  (__DISC4__)
+#if		defined (__PFM6__) || defined (__PFM8__) || defined  (__DISC4__)
 	#define FATFS_SECTOR			FLASH_Sector_6
 	#define	PAGE_SIZE					0x20000
 	#define	PAGE_COUNT				5

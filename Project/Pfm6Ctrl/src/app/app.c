@@ -90,7 +90,7 @@ int				i;
 					_proc_add((func *)ProcessingEvents,pfm,					"events",0);
 					_proc_add((func *)ProcessingStatus,pfm,					"status",1);
 					_proc_add((func *)ProcessingCharger,pfm,				"charger6",1);
-#ifdef __PFM6__
+#if		defined (__PFM6__) || defined (__PFM8__)
 					_proc_add((func *)Watchdog,NULL,								"watchdog",0);
 					_proc_add((func *)Lightshow,(void *)&__time__,	"leds",0);
 #endif
@@ -130,7 +130,7 @@ static int
 					trigger_count=0;
 //_______Fan tacho processing context___________________________________________
 {
-#ifdef __PFM6__
+#if		defined (__PFM6__) || defined (__PFM8__)
 static 
 	int			LastTachoEvent=0;
 
@@ -855,7 +855,7 @@ static		int	timeout=0,no=0;
 						else
 							_SET_STATUS(p, no);																							// else set status as requested
 //________________________________________________________________________________
-#ifdef __PFM6__
+#if		defined (__PFM6__) || defined (__PFM8__)
 						if(!_STATUS(p,_PFM_CWBAR_STAT))																		// crowbar not cleared
 							_SET_ERROR(p,PFM_ERR_PULSEENABLE);
 #endif
