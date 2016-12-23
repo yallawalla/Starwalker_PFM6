@@ -212,11 +212,11 @@ typedef					enum
 #define					_MAX_USER_SHAPE				1024
 extern 		                            
 int							_ADCRates[];	
-#if	defined (__PFM6__)
-typedef struct	{	unsigned short			IgbtT1,IgbtT2,HV2,HV,Up20,Um5;										} _ADC3DMA;
+#if	defined (__PFM6__) || defined (__DISC4__)
+typedef struct	{	unsigned short			IgbtT[2],HV2,HV,Up20,Um5;													} _ADC3DMA;
 #endif
 #if	defined (__PFM8__)
-typedef struct	{	unsigned short			HV2,VCAP1,VCAP2,HV,Up12,Up5V,Up3,Th1,Th2,Tl1,Tl2;	} _ADC3DMA;						
+typedef struct	{	unsigned short			IgbtT[4],HV2,HV,VCAP1,VCAP2,Up12,Up5,Up3;					} _ADC3DMA;						
 #endif
 					
 
@@ -358,9 +358,15 @@ short						Error,
 								HV,										// Cap1+Cap2	ADC value x ADC3_AVG
 								HV2,									// Cap1			ADC value x ADC3_AVG								
 								Temp,									// Igbt temp,	degrees
+#if	defined (__PFM6__)	||	defined (__DISC4__)					
 								Up20,				
 								Um5,				
-								ADCRate,	
+#elif	defined (__PFM8__)					
+								Up12,				
+								Up5,				
+								Up3,				
+#endif
+ADCRate,	
 								Errmask;
 volatile int		events,
 								debug,
@@ -390,13 +396,14 @@ void						App_Init(void),
 								TriggerADC(PFM *),
 								CanReply(char *, ...);
 				        
-int							IgbtTemp(void),
-								Eack(PFM *),
+typedef	enum 		{T_MIN=0,TH1,TH2,TL1,TL2} temp_ch;
+int							IgbtTemp(temp_ch);
+
+
+int							Eack(PFM *),
 								PFM_command(PFM *, int),
 								PFM_pockels(PFM *),
 								PFM_status_send(PFM *, int);
-float						IgbtTemp1(void),
-								IgbtTemp2(void);
 								
 void 						USBD_Storage_Init(void);
 				        

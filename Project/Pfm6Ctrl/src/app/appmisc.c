@@ -70,25 +70,6 @@ char	q[16];
 			*p += n;
 			return(strtoul(q,NULL,16));
 			}
-/*******************************************************************************/
-/**
-  * @brief  temperature interpolation from 	ADC data
-  * @param t: ADC readout
-  * @retval : temperature (10x deg.C)
-  */
-const int Ttab[]={											// tabela kontrolnih toèk
-			2500,								  						// za interpolacijo tempreature
-			5000,								  						// zaradi prec izracuna x 100
-			8000,
-			12500
-			};
-
-const	int Rtab[]={
-			(4096.0*_Rdiv(47000.0,22000.0)),	// tabela vhodnih toèk za
-			(4096.0*_Rdiv(18045.0,22000.0)),	// interpolacijo (readout iz ADC !!!)
-			(4096.0*_Rdiv(6685.6,22000.0)),
-			(4096.0*_Rdiv(1936.6,22000.0))
-			};
 
 _QSHAPE			qshape[_MAX_QSHAPE];
 _USER_SHAPE	ushape[_MAX_USER_SHAPE];
@@ -420,17 +401,51 @@ int		fanPmax=95;
 int		fanTL=3000;
 int		fanTH=4000;
 /*******************************************************************************/
-float	IgbtTemp1(void) {
-
-	return (float)__fit(ADC3_buf[0].IgbtT1,Rtab,Ttab)/100.0;
-}
-float	IgbtTemp2(void) {
-			return (float)__fit(ADC3_buf[0].IgbtT2,Rtab,Ttab)/100.0;
-}
 /*******************************************************************************/
-int		IgbtTemp(void) {
-int		cc,t=__max( __fit(ADC3_buf[0].IgbtT1,Rtab,Ttab),
-									__fit(ADC3_buf[0].IgbtT2,Rtab,Ttab));
+/**
+  * @brief  temperature interpolation from 	ADC data
+  * @param t: ADC readout
+  * @retval : temperature (10x deg.C)
+  */
+int		IgbtTemp(temp_ch n) {
+#if		defined (__PFM6__) || defined (__DISC4__)
+const int Ttab[]={											// tabela kontrolnih toèk
+			2500,								  						// za interpolacijo tempreature
+			5000,								  						// zaradi prec izracuna x 100
+			8000,
+			12500
+			};
+
+const	int Rtab[]={
+			(4096.0*_Rdiv(47000.0,22000.0)),	// tabela vhodnih toèk za
+			(4096.0*_Rdiv(18045.0,22000.0)),	// interpolacijo (readout iz ADC !!!)
+			(4096.0*_Rdiv(6685.6,22000.0)),
+			(4096.0*_Rdiv(1936.6,22000.0))
+			};
+	
+int		cc,t=__max( __fit(ADC3_buf[0].IgbtT[0],Rtab,Ttab),
+									__fit(ADC3_buf[0].IgbtT[1],Rtab,Ttab));
+
+#elif	defined (__PFM8__)
+const int Ttab[]={											// tabela kontrolnih toèk
+			2500,								  						// za interpolacijo tempreature
+			5000,								  						// zaradi prec izracuna x 100
+			8000,
+			12500
+			};
+
+const	int Rtab[]={
+			(4096.0*_Rdiv(22000.0,47000.0)),	// tabela vhodnih toèk za
+			(4096.0*_Rdiv(22000.0,18045.0)),	// interpolacijo (readout iz ADC !!!)
+			(4096.0*_Rdiv(22000.0,6685.6)),
+			(4096.0*_Rdiv(22000.0,1936.6))
+			};
+
+int		cc,t=__max( __max(__fit(ADC3_buf[0].IgbtT[0],Rtab,Ttab),
+												__fit(ADC3_buf[0].IgbtT[1],Rtab,Ttab)),
+									__max(__fit(ADC3_buf[0].IgbtT[2],Rtab,Ttab),
+												__fit(ADC3_buf[0].IgbtT[3],Rtab,Ttab)));
+#endif
 
 			if(t<fanTL)
 				cc=(_FAN_PWM_RATE*fanPmin)/200;
@@ -445,7 +460,10 @@ int		cc,t=__max( __fit(ADC3_buf[0].IgbtT1,Rtab,Ttab),
 				TIM_SetCompare1(TIM3,TIM_GetCapture1(TIM3)+1);
 			else
 				TIM_SetCompare1(TIM3,TIM_GetCapture1(TIM3)-1);
-			return(t/100);
+			if(n==T_MIN)
+				return(t/100);
+			else
+				return __fit(ADC3_buf[0].IgbtT[n-1],Rtab,Ttab);
 }
 /*******************************************************************************/
 /**

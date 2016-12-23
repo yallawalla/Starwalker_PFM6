@@ -1095,11 +1095,11 @@ int				i;
 					n=numscan(++c,cc,',');
 					if(!n) {
 						if(_MODE(pfm,_CHANNEL1_DISABLE))		
-							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c, -- ,%3.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',IgbtTemp2());
+							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c, -- ,%3.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH2)/100.0);
 						else if(_MODE(pfm,_CHANNEL2_DISABLE))		
-							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%3.1f, -- ",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',IgbtTemp1());
+							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%3.1f, -- ",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH1)/100.0);
 						else	
-							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%3.1f,%3.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',IgbtTemp1(),IgbtTemp2());
+							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%3.1f,%3.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH1)/100.0,(float)IgbtTemp(TH2)/100.0);
 						break;
 					} else {
 						if(n==4) {
@@ -1117,7 +1117,12 @@ int				i;
 int			u=0,umax=0,umin=0;
 					switch(numscan(++c,cc,',')) {
 						case 0:
+#if	defined (__PFM6__) || defined (__DISC4__)
 							__print("\r>u(bank)  Uc,Uc/2,20,-5 ... %dV,%dV,%.1fV,%.1fV",_AD2HV(pfm->HV),_AD2HV(pfm->HV2)/2,_AD2p20V(pfm->Up20),_AD2m5V(pfm->Um5));
+#endif
+#if	defined (__PFM8__)
+							__print("\r>u(bank)  Uc,Uc/2,20,-5 ... %dV,%dV,%.1fV,%.1fV",_AD2HV(pfm->HV),_AD2HV(pfm->HV2)/2,_AD2p20V(pfm->Up12),_AD2m5V(pfm->Up5));
+#endif
 							return _PARSE_OK;
 						case 3:
 							umax=atoi(cc[2]);
