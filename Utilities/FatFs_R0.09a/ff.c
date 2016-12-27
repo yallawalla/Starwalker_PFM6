@@ -3814,13 +3814,13 @@ FRESULT f_mkfs (
 				__print(" error!");
 				return FR_DISK_ERR;
 			}
-#if defined(__PFM6__) || defined (__DISC4__)	|| defined (__DISC7__)
+#if defined(__PFM6__) || defined (__DISCO__) 
 {
 extern 
-void	(*_proc_loop)(void);
-void	_wait(int,void (*)(void));
+void	(*App_Loop)(void);
+void	Wait(int,void (*)(void));
 
-			_wait(5,_proc_loop);
+			Wait(5,App_Loop);
 }
 #endif
 			if((n*100+n_fat/2)/n_fat % 10 == 0)
