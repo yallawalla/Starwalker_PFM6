@@ -110,75 +110,23 @@ int	i=0;
 }
 #elif defined (__DISC4__)	|| defined (__DISC7__)
 //______________________________________________________________________________________
+volatile int32_t  ITM_RxBuffer=ITM_RXBUFFER_EMPTY; 
 void DMA_Configuration(_io *io)
 {	
-	DMA_InitTypeDef DMA_InitStructure;
-	DMA_StructInit(&DMA_InitStructure);
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
 
-/*DMA1 channel4, stream3 USART1 TX*/
-	DMA_DeInit(DMA1_Stream3);
-	DMA_InitStructure.DMA_Channel = DMA_Channel_4;
-	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)USART3_BASE+4;
-	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)(io->tx->_buf);
-	DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
-	DMA_InitStructure.DMA_BufferSize = 0;
-	DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
-
-	DMA_InitStructure.DMA_Priority = DMA_Priority_High;
-	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-	DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
-	DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
-
-	DMA_Init(DMA1_Stream3, &DMA_InitStructure);
-	DMA_Cmd(DMA1_Stream3, ENABLE);
-
-/*DMA1 channel4, stream1 USART1 RX*/
-	DMA_DeInit(DMA1_Stream1);
-	DMA_InitStructure.DMA_Channel = DMA_Channel_4;
-	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)USART3_BASE+4;
-	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)(io->rx->_buf);
-	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
-	DMA_InitStructure.DMA_BufferSize = RxBufferSize;
-	DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
-
-	DMA_Init(DMA1_Stream1, &DMA_InitStructure);
-	DMA_Cmd(DMA1_Stream1, ENABLE);
-
-	USART_DMACmd(USART3, USART_DMAReq_Rx | USART_DMAReq_Tx, ENABLE);
 }
 //______________________________________________________________________________________
 int	__putDMA(_buffer *tx, int	c) {
-static
-	int n=0;
-	if(DMA1_Stream3->NDTR==0)																					// end of buffer reached
-		n=0;																														// reset static index
-	if(n == TxBufferSize-1)																						// buffer full ?
-		return(EOF);	
-	
-	DMA1_Stream3->CR &= ~0x00000001;																	// stream 3 off
-	while(DMA1_Stream3->CR & 0x00000001);															// wait for HW
-
-	DMA1_Stream3->M0AR=(uint32_t)(&tx->_buf[n-DMA1_Stream3->NDTR]);		// set DMA pointer to new character
-	DMA1_Stream3->NDTR++;																							// increase DMA counter
-	tx->_buf[n++]=c;																									// enter new character
-	
-	DMA1->LIFCR = 0x0F400000;																					// clear all flags
-	DMA1_Stream3->CR |= 0x00000001;																		// stream 3 on
-	return(c);
+	ITM_SendChar(c);
+	return  c;
 }
 //______________________________________________________________________________________
 int	__getDMA(_buffer *rx) {
 int	i=0;
-	if(DMA1_Stream1->NDTR)
-		rx->_push=&(rx->_buf[rx->size - DMA1_Stream1->NDTR]);
-	else
-		rx->_push=rx->_buf;
 	if(_buffer_pull(rx,&i,1))
 		return i;
+	else if(ITM_CheckChar())
+		return ITM_ReceiveChar();
 	else
 		return EOF;
 }
