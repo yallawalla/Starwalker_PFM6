@@ -572,3 +572,8 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 			v App_Init ni vec posebej kodiranja za can in i2c inicializacijo na _DISC4/7. Konfiguracijo se nastavi 
 			iz konzole (-i in -can loop, zaradi unit testa)
 
+//----------------------------
+PFM8 rekonfiguracija
+
+3.1.2017	ADC, skupni handler za EXTI interrupt
+

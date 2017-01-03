@@ -174,4 +174,22 @@ void OTG_FS_IRQHandler(void)
   }
 #endif
 }
+/**
+  * @brief  Calling common handler for EXTI interrupts
+  * @param  None
+  * @retval None
+  */
+void 		_EXTI_IRQHandler(void);
+
+void	EXTI9_5_IRQHandler(void)
+{
+	_EXTI_IRQHandler();
+}
+
+void	EXTI15_10_IRQHandler(void)
+{
+	_EXTI_IRQHandler();
+}
+
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

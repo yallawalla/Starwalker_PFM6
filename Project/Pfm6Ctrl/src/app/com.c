@@ -59,8 +59,7 @@ int			DecodeMinus(char *c) {
 				case 'r':
 					_SET_STATUS(pfm,_PFM_CWBAR_STAT);
 					_CLEAR_ERROR(pfm, _CRITICAL_ERR_MASK);
-					TIM_CtrlPWMOutputs(TIM1, ENABLE);
-					TIM_CtrlPWMOutputs(TIM8, ENABLE);		
+					EnableIgbtOut();
 				break;
 //__________________________________________________defragment ______________
 				case 'P':

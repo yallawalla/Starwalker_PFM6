@@ -36,7 +36,6 @@ void 		Initialize_TIM() {
 TIM_TimeBaseInitTypeDef		TIM_TimeBaseStructure;
 TIM_OCInitTypeDef					TIM_OCInitStructure;
 TIM_ICInitTypeDef					TIM_ICInitStructure;
-DMA_InitTypeDef						DMA_InitStructure;
 GPIO_InitTypeDef					GPIO_InitStructure;
 EXTI_InitTypeDef   				EXTI_InitStructure;
 // ________________________________________________________________________________
@@ -45,7 +44,10 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 		GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
 // Usb Host VBUS pin
-#ifndef __DISC7__
+		GPIO_InitStructure.GPIO_Pin = _VBUS_BIT;
+		GPIO_Init(_VBUS_PORT, &GPIO_InitStructure);
+		GPIO_SetBits(_VBUS_PORT,_VBUS_BIT);
+
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
 		GPIO_Init(GPIOC, &GPIO_InitStructure);
 		GPIO_SetBits(GPIOC,GPIO_Pin_0);
@@ -57,46 +59,61 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
 		GPIO_Init(GPIOA, &GPIO_InitStructure);
 		GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_TIM3);
-		GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_TIM3);
-#else
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
-		GPIO_Init(GPIOD, &GPIO_InitStructure);
-		GPIO_SetBits(GPIOD,GPIO_Pin_5);
-#endif
+		GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_TIM3);	
 // ________________________________________________________________________________
-// TRIGGER 1, TRIGGER 2
+// TRIGGER 1, TRIGGER 2, 
+// TRIGGER 3, IGBT Reset, PFM8 only
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13;
-		GPIO_Init(GPIOD, &GPIO_InitStructure);
+		GPIO_InitStructure.GPIO_Pin = _TRIGGER1_BIT;
+		GPIO_Init(_TRIGGER1_PORT, &GPIO_InitStructure);
 		_TRIGGER1_OFF;
+		GPIO_InitStructure.GPIO_Pin = _TRIGGER2_BIT;
+		GPIO_Init(_TRIGGER2_PORT, &GPIO_InitStructure);
 		_TRIGGER2_OFF;
-
-//  CROWBAR _______________________________________________________________________
-		RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-
+		GPIO_InitStructure.GPIO_Pin = _TRIGGER3_BIT;
+		GPIO_Init(_TRIGGER3_PORT, &GPIO_InitStructure);
+		_TRIGGER3_OFF;
+		GPIO_InitStructure.GPIO_Pin = _IGBT_RESET_BIT;
+		GPIO_Init(_IGBT_RESET_PORT, &GPIO_InitStructure);
+		_IGBT_RESET;
+// ________________________________________________________________________________
+// USB isolator PIN, PDEN signals, PFM8 only
+		GPIO_InitStructure.GPIO_Pin = _USB_PIN_BIT;
+		GPIO_Init(_USB_PIN_PORT, &GPIO_InitStructure);
+		GPIO_SetBits(_USB_PIN_PORT,_USB_PIN_BIT);
+		
+		GPIO_InitStructure.GPIO_Pin = _USB_PDEN_BIT;
+		GPIO_Init(_USB_PDEN_PORT, &GPIO_InitStructure);
+		GPIO_SetBits(_USB_PDEN_PORT,_USB_PDEN_BIT);
+		
+//  CROWBAR port && interrupt _____________________________________________________
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;					
-		GPIO_Init(GPIOD, &GPIO_InitStructure);
-		
-		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOD, EXTI_PinSource14);
-		EXTI_ClearITPendingBit(EXTI_Line14);
-		EXTI_InitStructure.EXTI_Line = EXTI_Line14;
+		GPIO_InitStructure.GPIO_Pin = _CWBAR_BIT;					
+		GPIO_Init(_CWBAR_PORT, &GPIO_InitStructure);
+
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+		SYSCFG_EXTILineConfig(_CWBAR_INT_port, _CWBAR_INT_pin);
+		EXTI_ClearITPendingBit(_CWBAR_INT_line);
+		EXTI_InitStructure.EXTI_Line = _CWBAR_INT_line;
 		EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
 		EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising_Falling;  
 		EXTI_InitStructure.EXTI_LineCmd = ENABLE;
 		EXTI_Init(&EXTI_InitStructure);
 		
-// 	PFM_FAULT_SENSE_______________________________________________________________
+// 	FAULT port && interrupt, IGBT Ready (PFM8 only) ________________________________
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;						
-		GPIO_Init(GPIOE, &GPIO_InitStructure);
+		GPIO_InitStructure.GPIO_Pin = _FAULT_BIT;		
 		
-		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE, EXTI_PinSource8);
-		EXTI_ClearITPendingBit(EXTI_Line8);
-		EXTI_InitStructure.EXTI_Line = EXTI_Line8;
+		GPIO_Init(_FAULT_PORT, &GPIO_InitStructure);
+		GPIO_InitStructure.GPIO_Pin = _IGBT_READY_BIT;						
+		GPIO_Init(_IGBT_READY_PORT, &GPIO_InitStructure);
+		
+		SYSCFG_EXTILineConfig(_FAULT_INT_port, _FAULT_INT_pin);
+		EXTI_ClearITPendingBit(_FAULT_INT_line);
+		EXTI_InitStructure.EXTI_Line = _FAULT_INT_line;
 		EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
 		EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;  
 		EXTI_InitStructure.EXTI_LineCmd = ENABLE;
@@ -123,35 +140,24 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		GPIO_PinAFConfig(GPIOC, GPIO_PinSource9, GPIO_AF_TIM8);
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9 ;
 		GPIO_Init(GPIOC, &GPIO_InitStructure);
+		
+#if defined __PFM8__
+		GPIO_PinAFConfig(GPIOA, GPIO_PinSource0, GPIO_AF_TIM2);
+		GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_TIM2);
+		GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_TIM2);
+		GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_TIM2);
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
+		GPIO_Init(GPIOA, &GPIO_InitStructure);
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
+		GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-// DMA setup _____________________________________________________________________
-		DMA_StructInit(&DMA_InitStructure);
-		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
-		DMA_DeInit(DMA2_Stream5);
-		DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)_TIM.pwch1;
-		DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
-		DMA_InitStructure.DMA_BufferSize =_MAX_BURST/_PWM_RATE_HI*5;	// 5 transferji v burstu (sic!)
-		DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
-		DMA_InitStructure.DMA_Priority = DMA_Priority_High;
-		DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-		DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-		DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
-		DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
-		DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Enable;
-		DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_HalfFull;
-		DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
-		DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
-
-// TIM1 ___________________________________________________________________________
-		DMA_InitStructure.DMA_Channel = DMA_Channel_6;
-		DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)TIM1_BASE + 0x4C;	//~~~
-		DMA_Init(DMA2_Stream5, &DMA_InitStructure);
-
-// TIM8 ___________________________________________________________________________
-		DMA_InitStructure.DMA_Channel = DMA_Channel_7;
-		DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)TIM8_BASE + 0x4C;
-		DMA_Init(DMA2_Stream1, &DMA_InitStructure);
-
+		GPIO_PinAFConfig(GPIOD, GPIO_PinSource12, GPIO_AF_TIM4);
+		GPIO_PinAFConfig(GPIOD, GPIO_PinSource13, GPIO_AF_TIM4);
+		GPIO_PinAFConfig(GPIOD, GPIO_PinSource14, GPIO_AF_TIM4);
+		GPIO_PinAFConfig(GPIOD, GPIO_PinSource15, GPIO_AF_TIM4);
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15 ;
+		GPIO_Init(GPIOD, &GPIO_InitStructure);
+#endif
 // ________________________________________________________________________________
 // TIMebase setup
 		TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
@@ -162,7 +168,6 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_TimeBaseStructure.TIM_RepetitionCounter=1;
 
 // TIM 1,8
-
 		TIM_TimeBaseStructure.TIM_Period = _PWM_RATE_HI;
 		TIM_DeInit(TIM1);
 		RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
@@ -171,12 +176,23 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
 		TIM_TimeBaseInit(TIM8,&TIM_TimeBaseStructure);
 
+#if defined __PFM8__
+		TIM_TimeBaseStructure.TIM_Period = _PWM_RATE_HI/2;
+		TIM_DeInit(TIM2);
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+		TIM_TimeBaseInit(TIM2,&TIM_TimeBaseStructure);
+		TIM_DeInit(TIM4);
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+		TIM_TimeBaseInit(TIM4,&TIM_TimeBaseStructure);
+#endif
 // 90 deg. shift
 		TIM_SetCounter(TIM1,0);
 		TIM_SetCounter(TIM8,_PWM_RATE_HI/2);
-
+#if defined __PFM8__
+		TIM_SetCounter(TIM2,0+_PWM_RATE_HI/8);
+		TIM_SetCounter(TIM4,_PWM_RATE_HI/4+_PWM_RATE_HI/8);
+#endif	
 // TIM3
-
 		TIM_TimeBaseStructure.TIM_Period = _FAN_PWM_RATE/2;
  		TIM_DeInit(TIM3);
 		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
@@ -192,7 +208,12 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_OC1Init(TIM8, &TIM_OCInitStructure);
 		TIM_OC3Init(TIM1, &TIM_OCInitStructure);
 		TIM_OC3Init(TIM8, &TIM_OCInitStructure);
-
+#if defined __PFM8__
+		TIM_OC1Init(TIM2, &TIM_OCInitStructure);
+		TIM_OC1Init(TIM4, &TIM_OCInitStructure);
+		TIM_OC3Init(TIM2, &TIM_OCInitStructure);
+		TIM_OC3Init(TIM4, &TIM_OCInitStructure);
+#endif
 		TIM_OCInitStructure.TIM_Pulse=_PWM_RATE_HI;
 		TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_Low;
 
@@ -200,6 +221,12 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_OC2Init(TIM8, &TIM_OCInitStructure);
 		TIM_OC4Init(TIM1, &TIM_OCInitStructure);
 		TIM_OC4Init(TIM8, &TIM_OCInitStructure);
+#if defined __PFM8__
+		TIM_OC2Init(TIM2, &TIM_OCInitStructure);
+		TIM_OC2Init(TIM4, &TIM_OCInitStructure);
+		TIM_OC4Init(TIM2, &TIM_OCInitStructure);
+		TIM_OC4Init(TIM4, &TIM_OCInitStructure);
+#endif
 
 // Output Compares, CH1	TIM3
 
@@ -209,8 +236,8 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 
 // Input Captures CH2 TIM3
 
-		TIM_ICStructInit(&TIM_ICInitStructure);														// Input Capture channels
-		TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Falling;			// Falling edge capture
+		TIM_ICStructInit(&TIM_ICInitStructure);												// Input Capture channels
+		TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Falling;	// Falling edge capture
 		TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;
 		TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV8;
 		TIM_ICInitStructure.TIM_ICFilter = 15;
@@ -220,12 +247,6 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_ICInit(TIM3, &TIM_ICInitStructure);
 		TIM_ITConfig(TIM3, TIM_IT_CC2,ENABLE);
 
-// ________________________________________________________________________________
-// Startup
-
-		TIM_DMAConfig(TIM1, TIM_DMABase_RCR, TIM_DMABurstLength_5Transfers);
-		TIM_DMAConfig(TIM8, TIM_DMABase_RCR, TIM_DMABurstLength_5Transfers);
-
     TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Disable);
     TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Disable);
     TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Disable);
@@ -234,11 +255,17 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
     TIM_OC2PreloadConfig(TIM8, TIM_OCPreload_Disable);
     TIM_OC3PreloadConfig(TIM8, TIM_OCPreload_Disable);
     TIM_OC4PreloadConfig(TIM8, TIM_OCPreload_Disable);
-
+#if defined __PFM8__
+    TIM_OC1PreloadConfig(TIM2, TIM_OCPreload_Disable);
+    TIM_OC2PreloadConfig(TIM2, TIM_OCPreload_Disable);
+    TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Disable);
+    TIM_OC4PreloadConfig(TIM2, TIM_OCPreload_Disable);
+    TIM_OC1PreloadConfig(TIM4, TIM_OCPreload_Disable);
+    TIM_OC2PreloadConfig(TIM4, TIM_OCPreload_Disable);
+    TIM_OC3PreloadConfig(TIM4, TIM_OCPreload_Disable);
+    TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Disable);
+#endif
 		TIM_CtrlPWMOutputs(TIM3, ENABLE);
-
-		TIM_DMACmd(TIM1, TIM_DMA_Update, ENABLE);
-		TIM_DMACmd(TIM8, TIM_DMA_Update, ENABLE);
 
 // enable outputs, brez pulzov!!!
 		TIM_SelectMasterSlaveMode(TIM1, TIM_MasterSlaveMode_Enable);	// T1 -> master mode
@@ -246,8 +273,15 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 
 // trigger T8 za T1,DAC in ADC !!!
 		TIM_SelectSlaveMode(TIM8, TIM_SlaveMode_Trigger); 						// T8 -> slave mode
-		TIM_SelectInputTrigger(TIM8, TIM_TS_ITR0); 										// started from T1
+		TIM_SelectInputTrigger(TIM8, TIM_TS_ITR0); 										// T8 started from T1
 		TIM_SelectOutputTrigger(TIM8, TIM_TRGOSource_Update);					// triggers ADC, DAC on update
+
+#if defined __PFM8__
+		TIM_SelectSlaveMode(TIM2, TIM_SlaveMode_Trigger); 						// T2 -> slave mode
+		TIM_SelectSlaveMode(TIM4, TIM_SlaveMode_Trigger); 						// T4 -> slave mode
+		TIM_SelectInputTrigger(TIM2, TIM_TS_ITR0); 										// T2 started from T1
+		TIM_SelectInputTrigger(TIM4, TIM_TS_ITR0); 										// T4 started from T1
+#endif
 
 		TIM_Cmd(TIM1,ENABLE);
 		TIM_Cmd(TIM3,ENABLE);
@@ -447,35 +481,29 @@ void		TIM3_IRQHandler(void) {
 }
 /*******************************************************************************/
 /**
-  * @brief  Igbt driver error ISR
-	* sets _IGBT_FAULT error, not active during triggering interval
-  * @param  None
-  * @retval None
-  */
-void 		EXTI9_5_IRQHandler(void)
-{
-				EXTI_ClearITPendingBit(EXTI_Line8);
-				if(_PFM_CWBAR_SENSE)
-					_SET_ERROR(pfm,PFM_ERR_DRVERR);
-}
-/*******************************************************************************/
-/**
   * @brief  Crowbar error interrupt
 	* sets PFM_ERR_PULSEENABLE error event
   * @param  None
   * @retval None
   */
-void 		EXTI15_10_IRQHandler(void)
+void 		_EXTI_IRQHandler(void)
 {
-				EXTI_ClearITPendingBit(EXTI_Line14);
-				if(_PFM_CWBAR_SENSE) {
-					_SET_STATUS(pfm,_PFM_CWBAR_STAT);
-					_CLEAR_ERROR(pfm, _CRITICAL_ERR_MASK);
-					TIM_CtrlPWMOutputs(TIM1, ENABLE);
-					TIM_CtrlPWMOutputs(TIM8, ENABLE);		
-				}	else {
-					_CLEAR_STATUS(pfm,_PFM_CWBAR_STAT);
-					_SET_ERROR(pfm,PFM_ERR_PULSEENABLE);
+				if(EXTI_GetITStatus(_CWBAR_INT_line) == SET) {
+					EXTI_ClearITPendingBit(_CWBAR_INT_line);
+					if(_PFM_CWBAR) {
+						_SET_STATUS(pfm,_PFM_CWBAR_STAT);
+						_CLEAR_ERROR(pfm, _CRITICAL_ERR_MASK);
+						EnableIgbtOut();
+					}	else {
+						_CLEAR_STATUS(pfm,_PFM_CWBAR_STAT);
+						_SET_ERROR(pfm,PFM_ERR_PULSEENABLE);
+					}
+				}
+
+				if(EXTI_GetITStatus(_FAULT_INT_line) == SET) {
+					EXTI_ClearITPendingBit(_FAULT_INT_line);
+					if(_PFM_CWBAR)
+						_SET_ERROR(pfm,PFM_ERR_DRVERR);
 				}
 }
 /*******************************************************************************/

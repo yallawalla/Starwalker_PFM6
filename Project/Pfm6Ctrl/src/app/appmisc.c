@@ -273,33 +273,60 @@ int 	psimm1=p->Simmer[1].pw;
 					TIM8->CCR3=TIM1->CCR3=0;
 					TIM8->CCR4=TIM1->CCR4=TIM1->ARR;
 				}
-	}
-}
-/*______________________________________________________________________________
-*/
-void	IncrementSimmerRate(int rate) {
-static
-int		r=0,flag;
-			if(flag == (TIM1->CR1 & TIM_CR1_DIR))
-				return;
-			flag = (TIM1->CR1 & TIM_CR1_DIR);
-			if(!r && !rate)
-				return;
-			if(rate)
-				r=rate;
-			else {
-				if(TIM1->ARR < r) {
-					++TIM1->ARR;
-					++TIM8->ARR;
-					if(!_MODE(pfm,_XLAP_SINGLE)) {
-						++TIM1->CCR2;
-						++TIM1->CCR4;
-						++TIM8->CCR2;
-						++TIM8->CCR4;
-					}
+			}
+#if defined __PFM8__
+			if(_MODE(p,_XLAP_SINGLE)) {
+				if(_STATUS(p, PFM_STAT_SIMM1))
+					TIM2->CCR2=TIM2->CCR1=TIM4->CCR2=TIM4->CCR1=psimm0/2;
+				else
+					TIM2->CCR2=TIM2->CCR1=TIM4->CCR2=TIM4->CCR1=0;
+				if(_STATUS(p, PFM_STAT_SIMM2))
+					TIM2->CCR4=TIM2->CCR3=TIM4->CCR4=TIM4->CCR3=psimm1/2;
+				else
+					TIM2->CCR4=TIM2->CCR3=TIM4->CCR4=TIM4->CCR3=0;
+			} else {
+				if(_STATUS(p, PFM_STAT_SIMM1))  {
+					TIM2->CCR1=TIM4->CCR1=psimm0;
+					TIM2->CCR2=TIM4->CCR2=TIM4->ARR-psimm0/2;
+				} else {
+					TIM2->CCR1=TIM4->CCR1=0;
+					TIM2->CCR2=TIM4->CCR2=TIM4->ARR;
+				}
+				if(_STATUS(p, PFM_STAT_SIMM2))  {
+					TIM2->CCR3=TIM4->CCR3=psimm1;
+					TIM2->CCR4=TIM4->CCR4=TIM4->ARR-psimm1/2;
+				} else {
+					TIM2->CCR3=TIM4->CCR3=0;
+					TIM8->CCR4=TIM4->CCR4=TIM4->ARR;
 				}
 			}
+#endif
 }
+///*______________________________________________________________________________
+//*/
+//void	IncrementSimmerRate(int rate) {
+//static
+//int		r=0,flag;
+//			if(flag == (TIM1->CR1 & TIM_CR1_DIR))
+//				return;
+//			flag = (TIM1->CR1 & TIM_CR1_DIR);
+//			if(!r && !rate)
+//				return;
+//			if(rate)
+//				r=rate;
+//			else {
+//				if(TIM1->ARR < r) {
+//					++TIM1->ARR;
+//					++TIM8->ARR;
+//					if(!_MODE(pfm,_XLAP_SINGLE)) {
+//						++TIM1->CCR2;
+//						++TIM1->CCR4;
+//						++TIM8->CCR2;
+//						++TIM8->CCR4;
+//					}
+//				}
+//			}
+//}
 /*______________________________________________________________________________
 * Function Name : SetSimmerRate
 * Description   : simmer pulse width
@@ -330,8 +357,7 @@ int		simmrate;
 			while(!(TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
 			while((TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
 
-			TIM_CtrlPWMOutputs(TIM1, DISABLE);
-			TIM_CtrlPWMOutputs(TIM8, DISABLE);
+			DisableIgbtOut();
 
 			TIM_SetCounter(TIM1,0);
 			TIM_SetCounter(TIM8,0);
@@ -363,7 +389,39 @@ int		simmrate;
 				TIM_OC2PolarityConfig(TIM8, TIM_OCPolarity_Low);
 				TIM_OC4PolarityConfig(TIM8, TIM_OCPolarity_Low);
 			}
+			
+#if defined __PFM8__
+			TIM_SetCounter(TIM4,0);
+			TIM_SetCounter(TIM2,0);
 
+			TIM_Cmd(TIM4,DISABLE);
+			TIM_Cmd(TIM2,DISABLE);			
+			
+			TIM_SetCounter(TIM4,0);
+			TIM_SetCounter(TIM2,0);
+
+			TIM_SetCounter(TIM4,simmrate/8 + simmrate/4);
+			if(_MODE(p,_XLAP_QUAD))
+				TIM_SetCounter(TIM2,simmrate/8 + 3*simmrate/4);
+			else
+				TIM_SetCounter(TIM2,simmrate/8 + simmrate/4);
+
+			TIM_SetAutoreload(TIM4,simmrate/2);
+			TIM_SetAutoreload(TIM2,simmrate/2);
+			SetSimmerPw(p);
+
+			if(_MODE(p,_XLAP_SINGLE)) {
+				TIM_OC2PolarityConfig(TIM4, TIM_OCPolarity_High);
+				TIM_OC4PolarityConfig(TIM4, TIM_OCPolarity_High);
+				TIM_OC2PolarityConfig(TIM2, TIM_OCPolarity_High);
+				TIM_OC4PolarityConfig(TIM2, TIM_OCPolarity_High);
+			} else {
+				TIM_OC2PolarityConfig(TIM4, TIM_OCPolarity_Low);
+				TIM_OC4PolarityConfig(TIM4, TIM_OCPolarity_Low);
+				TIM_OC2PolarityConfig(TIM2, TIM_OCPolarity_Low);
+				TIM_OC4PolarityConfig(TIM2, TIM_OCPolarity_Low);
+			}
+#endif
 			if(_MODE(p,_PULSE_INPROC)) {
 				TriggerADC(p);
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
@@ -372,9 +430,8 @@ int		simmrate;
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
 				TIM_ITConfig(TIM1,TIM_IT_Update,DISABLE);
 			}
+			EnableIgbtOut();
 
-			TIM_CtrlPWMOutputs(TIM1, ENABLE);
-			TIM_CtrlPWMOutputs(TIM8, ENABLE);
 			TIM_Cmd(TIM1,ENABLE);
 
 			if(_MODE(p,_PULSE_INPROC)) {
@@ -386,21 +443,28 @@ int		simmrate;
 			}
 }
 /*******************************************************************************/
-void	EnableIgbt(void) {
+void	EnableIgbtOut(void) {
 			TIM_CtrlPWMOutputs(TIM1, ENABLE);
 			TIM_CtrlPWMOutputs(TIM8, ENABLE);		
+#if defined __PFM8__
+			TIM_CtrlPWMOutputs(TIM2, ENABLE);
+			TIM_CtrlPWMOutputs(TIM4, ENABLE);		
+#endif
 }
 /*******************************************************************************/
-void	DisableIgbt(void) {
+void	DisableIgbtOut(void) {
 			TIM_CtrlPWMOutputs(TIM1, DISABLE);
-			TIM_CtrlPWMOutputs(TIM8, DISABLE);		
+			TIM_CtrlPWMOutputs(TIM8, DISABLE);	
+#if defined __PFM8__
+			TIM_CtrlPWMOutputs(TIM2, DISABLE);
+			TIM_CtrlPWMOutputs(TIM4, DISABLE);		
+#endif	
 }
 /*******************************************************************************/
 int		fanPmin=20;
 int		fanPmax=95;
 int		fanTL=3000;
 int		fanTH=4000;
-/*******************************************************************************/
 /*******************************************************************************/
 /**
   * @brief  temperature interpolation from 	ADC data

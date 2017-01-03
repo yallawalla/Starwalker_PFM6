@@ -15,7 +15,7 @@
         <TargetCommonOption>
           <Device>STM32F205VGTx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.2.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.2.6.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IRAM(0x20000000,0x20000) IROM(0x08000000,0x100000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -1016,7 +1016,7 @@
         <TargetCommonOption>
           <Device>STM32F205VGTx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.2.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.2.6.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IRAM(0x20000000,0x20000) IROM(0x08000000,0x100000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -1134,11 +1134,11 @@
             <RunIndependent>1</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4104</DriverSelection>
+            <DriverSelection>4100</DriverSelection>
           </Flash1>
-          <bUseTDR>1</bUseTDR>
-          <Flash2>BIN\UL2CM3.DLL</Flash2>
-          <Flash3></Flash3>
+          <bUseTDR>0</bUseTDR>
+          <Flash2>STLink\ST-LINKIII-KEIL_SWO.dll</Flash2>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -1273,7 +1273,7 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8008000</StartAddress>
+                <StartAddress>0x8000000</StartAddress>
                 <Size>0x100000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
@@ -1333,7 +1333,7 @@
             <v6WtE>0</v6WtE>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__PFM8__,HSE_VALUE=25000000</Define>
+              <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__PFM8__,HSE_VALUE=8000000</Define>
               <Undefine></Undefine>
               <IncludePath>..\inc;..\inc\app;..\inc\usbd_msc;..\inc\usbd_cdc;..\inc\usbh_msc;..\src\wifi;..\..\..\Libraries\CMSIS\Include;..\..\..\Libraries\CMSIS\Device\ST\STM32F2xx\Include;..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\inc;..\..\..\Libraries\STM32_USB_OTG_Driver\inc;..\..\..\Libraries\STM32_USB_Device_Library\Core\inc;..\..\..\Libraries\STM32_USB_HOST_Library\Core\inc;..\..\..\Libraries\STM32_USB_Host_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\cdc\inc;..\..\..\Utilities\FatFs_R0.12b\src</IncludePath>
             </VariousControls>
@@ -2017,7 +2017,7 @@
         <TargetCommonOption>
           <Device>STM32F205VGTx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F2xx_DFP.2.2.0</PackID>
+          <PackID>Keil.STM32F2xx_DFP.2.6.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IRAM(0x20000000,0x20000) IROM(0x08000000,0x100000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>

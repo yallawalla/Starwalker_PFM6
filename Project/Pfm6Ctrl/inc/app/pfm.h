@@ -198,8 +198,7 @@ typedef					enum
 #define					_SET_ERROR(p,a)	do {																																					\
 									if(!(p->Errmask & (a)) && !(p->Error & (a))) {																							\
 										if(a & _CRITICAL_ERR_MASK) {																															\
-											TIM_CtrlPWMOutputs(TIM1, DISABLE);																											\
-											TIM_CtrlPWMOutputs(TIM8, DISABLE);																											\
+											DisableIgbtOut();																																				\
 										}																																													\
 										_DEBUG_(_DBG_ERR_MSG,"error %04X,  set from %04X, status=%04X",a,p->Error,p->Status);			\
 										p->Error |= a;																																						\
@@ -390,8 +389,8 @@ void						App_Init(void),
 								SetSimmerRate(PFM *, SimmerType),
 								SetPwmTab(PFM *),
 								SetSimmerPw(PFM *),
-								EnableIgbt(void),
-								DisableIgbt(void),
+								EnableIgbtOut(void),
+								DisableIgbtOut(void),
 								Trigger(PFM *),
 								TriggerADC(PFM *),
 								CanReply(char *, ...);
@@ -488,51 +487,111 @@ int							asc2hex(int);
 #define __min(a,b)  (((a) < (b)) ? (a) : (b))	
 #endif
 
-int							__fit(int,const int[],const int[]);
-float						__lin2f(short);
-short						__f2lin(float, short);
+int			__fit(int,const int[],const int[]);
+float		__lin2f(short);
+short		__f2lin(float, short);
 
-int							batch(char *);	        
-void						CAN_console(void);
+int			batch(char *);	        
+void		CAN_console(void);
 
-extern					uint32_t	__Vectors[],__heap_base[],__heap_limit[],__initial_sp[];
-;
-extern					int				_PWM_RATE_LO;
+extern	uint32_t	__Vectors[],__heap_base[],__heap_limit[],__initial_sp[];
+extern	int				_PWM_RATE_LO;
 
-void						SectorQuery(void);
-int 						Defragment(int);
-int							SetChargerVoltage(int);
+void		SectorQuery(void);
+int 		Defragment(int);
+int			SetChargerVoltage(int);
 
-#define 				_TRIGGER1			(!GPIO_ReadOutputDataBit(GPIOD,GPIO_Pin_12))				        
-#define 				_TRIGGER2			(!GPIO_ReadOutputDataBit(GPIOD,GPIO_Pin_13))			        
+#define _FAULT_BIT GPIO_Pin_8
+#define _FAULT_PORT GPIOE
+#define _FAULT_INT_port 	EXTI_PortSourceGPIOE
+#define _FAULT_INT_pin		EXTI_PinSource8
+#define _FAULT_INT_line		EXTI_Line8
+
+#define _TRIGGER3_BIT 		GPIO_Pin_6
+#define _TRIGGER3_PORT 		GPIOE
+#define _IGBT_READY_BIT 	GPIO_Pin_2
+#define _IGBT_READY_PORT 	GPIOE
+#define _IGBT_RESET_BIT 	GPIO_Pin_3
+#define _IGBT_RESET_PORT 	GPIOE
+#define _USB_PIN_BIT 			GPIO_Pin_8
+#define _USB_PIN_PORT 		GPIOD
+#define _USB_PDEN_BIT 		GPIO_Pin_9
+#define _USB_PDEN_PORT	 	GPIOD
+
+#if defined (__PFM6__)
+#define _VBUS_BIT GPIO_Pin_0
+#define _VBUS_PORT GPIOC
+#define _TRIGGER1_BIT GPIO_Pin_12
+#define _TRIGGER1_PORT GPIOD
+#define _TRIGGER2_BIT GPIO_Pin_13
+#define _TRIGGER2_PORT GPIOD
+
+#define _CWBAR_BIT GPIO_Pin_14
+#define _CWBAR_PORT GPIOD
+#define _CWBAR_INT_port EXTI_PortSourceGPIOD
+#define _CWBAR_INT_pin	EXTI_PinSource14
+#define _CWBAR_INT_line	EXTI_Line14
+
+#elif defined (__PFM8__)
+#define _VBUS_BIT GPIO_Pin_5
+#define _VBUS_PORT GPIOD
+#define _TRIGGER1_BIT GPIO_Pin_4
+#define _TRIGGER1_PORT GPIOE
+#define _TRIGGER2_BIT GPIO_Pin_5
+#define _TRIGGER2_PORT GPIOE
+
+#define _CWBAR_BIT GPIO_Pin_7
+#define _CWBAR_PORT GPIOE
+#define _CWBAR_INT_port EXTI_PortSourceGPIOE
+#define _CWBAR_INT_pin	EXTI_PinSource7
+#define _CWBAR_INT_line	EXTI_Line7
+#define _CWBAR_HANDLER EXTI9_5_IRQHandler
+
+
+#else
+*** error, define platform
+#endif
+
+#define 				_TRIGGER1			(!GPIO_ReadOutputDataBit(_TRIGGER1_PORT,_TRIGGER1_BIT))				        
+#define 				_TRIGGER2			(!GPIO_ReadOutputDataBit(_TRIGGER2_PORT,_TRIGGER2_BIT))			        
+#define 				_TRIGGER3			(!GPIO_ReadOutputDataBit(_TRIGGER3_PORT,_TRIGGER3_BIT))				        		        
+#define 				_IGBT_READY		(!GPIO_ReadOutputDataBit(_IGBT_READY_PORT,_IGBT_READY_BIT))				        		        
+#define					_PFM_CWBAR		(GPIO_ReadInputDataBit(_CWBAR_PORT, _CWBAR_BIT)== Bit_RESET)
+#define					_IGBT_RESET		GPIO_ResetBits(_IGBT_RESET_PORT,_IGBT_RESET_BIT)
+#define					_IGBT_SET			GPIO_SetBits(_IGBT_RESET_PORT,_IGBT_RESET_BIT)
+
 #define 				_TRIGGER1_ON	do {															\
 											if(!_TRIGGER1)														\
 												_DEBUG_(_DBG_SYS_MSG,"trigger 1 enabled");				\
-												GPIO_ResetBits(GPIOD,GPIO_Pin_12);			\
+												GPIO_ResetBits(_TRIGGER1_PORT,_TRIGGER1_BIT);			\
 											} while(0)
 #define 				_TRIGGER1_OFF	do {															\
 											if(_TRIGGER1)															\
 												_DEBUG_(_DBG_SYS_MSG,"trigger 1 disabled");				\
-												GPIO_SetBits(GPIOD,GPIO_Pin_12);	  		\
+												GPIO_SetBits(_TRIGGER1_PORT,_TRIGGER1_BIT);	  		\
 											} while(0)
 #define 				_TRIGGER2_ON	do {															\
 											if(!_TRIGGER2)														\
 												_DEBUG_(_DBG_SYS_MSG,"trigger 2 enabled");				\
-												GPIO_ResetBits(GPIOD,GPIO_Pin_13);			\
+												GPIO_ResetBits(_TRIGGER2_PORT,_TRIGGER2_BIT);			\
 											} while(0)
 #define 				_TRIGGER2_OFF	do {															\
 											if(_TRIGGER2)															\
 												_DEBUG_(_DBG_SYS_MSG,"trigger 2 disabled");				\
-												GPIO_SetBits(GPIOD,GPIO_Pin_13);		  	\
+												GPIO_SetBits(_TRIGGER2_PORT,_TRIGGER2_BIT);		  	\
 											} while(0)
-				        
-#define					_PFM_CWBAR_SENSE	(GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_14)== Bit_RESET)
-#define					_PFM_CWBAR_SET		GPIO_ResetBits(GPIOD,GPIO_Pin_14);	
-#define					_PFM_CWBAR_RESET	GPIO_SetBits(GPIOD,GPIO_Pin_14)
+#define 				_TRIGGER3_ON	do {															\
+											if(!_TRIGGER3)														\
+												_DEBUG_(_DBG_SYS_MSG,"trigger 2 enabled");				\
+												GPIO_ResetBits(_TRIGGER3_PORT,_TRIGGER3_BIT);			\
+											} while(0)
+#define 				_TRIGGER3_OFF	do {															\
+											if(_TRIGGER3)															\
+												_DEBUG_(_DBG_SYS_MSG,"trigger 2 disabled");				\
+												GPIO_SetBits(_TRIGGER3_PORT,_TRIGGER3_BIT);		  	\
+											} while(0)
 											
-#define					_PFM_FAULT_SENSE	(GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_8) == Bit_SET)
-
-				        
+			        
 #define					_CRITICAL_ERR_MASK		(PFM_ERR_DRVERR | PFM_ERR_PULSEENABLE | PFM_ADCWDG_ERR | PFM_ERR_PSRDYN | PFM_ERR_LNG | PFM_HV2_ERR)
 #define					_PFM_CWBAR_STAT				PFM_ERR_PULSEENABLE
 				        

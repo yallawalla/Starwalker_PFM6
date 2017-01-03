@@ -78,7 +78,7 @@ void 	Initialize_NVIC() {
 }
 /******************************************************************************/
 void	Watchdog_init(int t) {
-#if		defined (__PFM6__) || defined (__PFM8__)
+#if		defined (__PFM6__)
 			IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
 			IWDG_SetPrescaler(IWDG_Prescaler_32);
 			IWDG_SetReload(t);
