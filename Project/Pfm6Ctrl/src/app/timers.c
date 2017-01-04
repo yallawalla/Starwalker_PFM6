@@ -142,12 +142,15 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		GPIO_Init(GPIOC, &GPIO_InitStructure);
 		
 #if defined __PFM8__
+
 		GPIO_PinAFConfig(GPIOA, GPIO_PinSource0, GPIO_AF_TIM2);
 		GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_TIM2);
 		GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_TIM2);
 		GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_TIM2);
+		
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
 		GPIO_Init(GPIOA, &GPIO_InitStructure);
+		
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
 		GPIO_Init(GPIOB, &GPIO_InitStructure);
 
@@ -155,6 +158,7 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		GPIO_PinAFConfig(GPIOD, GPIO_PinSource13, GPIO_AF_TIM4);
 		GPIO_PinAFConfig(GPIOD, GPIO_PinSource14, GPIO_AF_TIM4);
 		GPIO_PinAFConfig(GPIOD, GPIO_PinSource15, GPIO_AF_TIM4);
+		
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15 ;
 		GPIO_Init(GPIOD, &GPIO_InitStructure);
 #endif
@@ -370,12 +374,18 @@ int 		hv,j,k,x,
 //----- vpis v OC registre ---------------------------------------------------------------
 					if(_TIM.p1->n) {																				// set simmer pw on last sample !
 						TIM8->CCR1 = TIM1->CCR1 = __max(pfm->Burst.Pdelay,__min(_MAX_PWM_RATE, x));			
+#if defined __PFM8__
+						TIM4->CCR1 = TIM2->CCR1 = TIM1->CCR1/2;			
+#endif
 						if(_TIM.m1++ == _TIM.p1->n/2) {												//----- pwch tabs increment ---
 							_TIM.m1=0;
 							++_TIM.p1;
 						}
 					} else {
 						TIM8->CCR1 = TIM1->CCR1 = pfm->Simmer[0].pw;
+#if defined __PFM8__
+						TIM4->CCR1 = TIM2->CCR1 = TIM1->CCR1/2;	
+#endif
 						_TIM.p1=NULL;
 					}
 				}
@@ -427,34 +437,51 @@ int 		hv,j,k,x,
 //----- vpis v OC registre ---------------------------------------------------------------
 					if(_TIM.p2->n)	{																				// set simmer pw on last sample !
 						TIM8->CCR3 = TIM1->CCR3 = __max(pfm->Burst.Pdelay,__min(_MAX_PWM_RATE, x));
+#if defined __PFM8__
+						TIM4->CCR3 = TIM2->CCR3 = TIM1->CCR3/2;
+#endif
 						if(_TIM.m2++ == _TIM.p2->n/2) {												//----- pwch tabs increment ---	
 							_TIM.m2=0;
 							++_TIM.p2;
 						}
 					} else {
 						TIM8->CCR3 = TIM1->CCR3 = pfm->Simmer[1].pw;
+#if defined __PFM8__
+						TIM4->CCR3 = TIM2->CCR3 = TIM1->CCR3/2;
+#endif
 						_TIM.p2=NULL;
 					}
 				}
 				if(_MODE(pfm,_XLAP_SINGLE)) {															//----- x1, x2, x4 ------------
 					TIM8->CCR2 = TIM1->CCR2 = TIM1->CCR1;
 					TIM8->CCR4 = TIM1->CCR4 = TIM1->CCR3;
+#if defined __PFM8__
+					TIM4->CCR2 = TIM2->CCR2 = TIM2->CCR1;
+					TIM4->CCR4 = TIM2->CCR4 = TIM2->CCR3;
+#endif
 				} else {
 					TIM8->CCR2 = TIM1->CCR2 = TIM1->ARR - TIM1->CCR1;
 					TIM8->CCR4 = TIM1->CCR4 = TIM1->ARR - TIM1->CCR3;
+#if defined __PFM8__
+					TIM4->CCR2 = TIM2->CCR2 = TIM2->ARR - TIM2->CCR1;
+					TIM4->CCR4 = TIM2->CCR4 = TIM2->ARR - TIM2->CCR3;
+#endif
 				}
 				if(!_TIM.p1 && !_TIM.p2) {																//----- end of burst, stop IT, notify main loop ---------------------------				
 					TIM_ITConfig(TIM1,TIM_IT_Update,DISABLE);
 					_SET_EVENT(pfm,_PULSE_FINISHED);
 					_CLEAR_MODE(pfm,_PULSE_INPROC);
-					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);
+#if !defined __PFM8__
+					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);				//----- Qswitch pasus
+#endif					
 					return;
 				}
-				if(_MODE(pfm,__TEST__)) {																	//----- mode 30=true simulacija klasicnega odziva, =C cap (mF), =P current(A)
+				if(_MODE(pfm,__TEST__)) {																	//----- mode  29, simulacija klasicnega odziva, =C cap (mF), =P current(A)
 					_SET_MODE(pfm,_U_LOOP);																	// obveze U stab. ker modificiramo HV referenco
 						if(k>5)																								// scale fakt. za C v uF pri 880V/1100A full scale, 100kHz sample rate pride ~80... ni placa za izpeljavo		
 							_TIM.Hvref -= (ADC1_buf[k-5].I+ADC2_buf[k-5].I)/80*1000/_TIM.Caps;	
 				}
+#if !defined __PFM8__
 				if(_TIM.p1 && _TIM.p1->T > pfm->Burst.Pdelay && 					//----- Qswitch pasus, dela samo na ch 1 -------------------------------------------------
 					(_TIM.p1->n == pfm->Pockels.trigger || 
 						_TIM.p1->n == 255)) {																	// #jhw9847duhd		dodatek za qswitch	
@@ -462,7 +489,7 @@ int 		hv,j,k,x,
 					TIM_Cmd(TIM4,ENABLE);																		// trigger !!!
 				} else
 					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);				// single pulse, timer se disabla po izteku				
-				
+#endif									
 				if(TIM1->CCR1==_MAX_PWM_RATE || TIM1->CCR3==_MAX_PWM_RATE)// duty cycle 100% = PSRDYN error
  					_SET_ERROR(pfm,PFM_ERR_PSRDYN);
 }

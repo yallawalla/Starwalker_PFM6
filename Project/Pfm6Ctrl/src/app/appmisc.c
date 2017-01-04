@@ -286,14 +286,14 @@ int 	psimm1=p->Simmer[1].pw;
 					TIM2->CCR4=TIM2->CCR3=TIM4->CCR4=TIM4->CCR3=0;
 			} else {
 				if(_STATUS(p, PFM_STAT_SIMM1))  {
-					TIM2->CCR1=TIM4->CCR1=psimm0;
+					TIM2->CCR1=TIM4->CCR1=psimm0/2;
 					TIM2->CCR2=TIM4->CCR2=TIM4->ARR-psimm0/2;
 				} else {
 					TIM2->CCR1=TIM4->CCR1=0;
 					TIM2->CCR2=TIM4->CCR2=TIM4->ARR;
 				}
 				if(_STATUS(p, PFM_STAT_SIMM2))  {
-					TIM2->CCR3=TIM4->CCR3=psimm1;
+					TIM2->CCR3=TIM4->CCR3=psimm1/2;
 					TIM2->CCR4=TIM4->CCR4=TIM4->ARR-psimm1/2;
 				} else {
 					TIM2->CCR3=TIM4->CCR3=0;
@@ -376,8 +376,28 @@ int		simmrate;
 
 			TIM_SetAutoreload(TIM1,simmrate);
 			TIM_SetAutoreload(TIM8,simmrate);
-			SetSimmerPw(p);
+			
+#if defined __PFM8__
+			TIM_SetCounter(TIM2,0);
+			TIM_SetCounter(TIM4,0);
 
+			TIM_Cmd(TIM2,DISABLE);
+			TIM_Cmd(TIM4,DISABLE);			
+			
+			TIM_SetCounter(TIM2,0);
+			TIM_SetCounter(TIM4,0);
+
+			TIM_SetCounter(TIM2,simmrate/4/2 + simmrate/8);
+			if(_MODE(p,_XLAP_QUAD))
+				TIM_SetCounter(TIM4,3*simmrate/4/2 + simmrate/8);
+			else
+				TIM_SetCounter(TIM4,simmrate/4/2 + simmrate/8);
+
+			TIM_SetAutoreload(TIM2,simmrate/2);
+			TIM_SetAutoreload(TIM4,simmrate/2);
+#endif
+			
+			SetSimmerPw(p);
 			if(_MODE(p,_XLAP_SINGLE)) {
 				TIM_OC2PolarityConfig(TIM1, TIM_OCPolarity_High);
 				TIM_OC4PolarityConfig(TIM1, TIM_OCPolarity_High);
@@ -391,25 +411,6 @@ int		simmrate;
 			}
 			
 #if defined __PFM8__
-			TIM_SetCounter(TIM4,0);
-			TIM_SetCounter(TIM2,0);
-
-			TIM_Cmd(TIM4,DISABLE);
-			TIM_Cmd(TIM2,DISABLE);			
-			
-			TIM_SetCounter(TIM4,0);
-			TIM_SetCounter(TIM2,0);
-
-			TIM_SetCounter(TIM4,simmrate/8 + simmrate/4);
-			if(_MODE(p,_XLAP_QUAD))
-				TIM_SetCounter(TIM2,simmrate/8 + 3*simmrate/4);
-			else
-				TIM_SetCounter(TIM2,simmrate/8 + simmrate/4);
-
-			TIM_SetAutoreload(TIM4,simmrate/2);
-			TIM_SetAutoreload(TIM2,simmrate/2);
-			SetSimmerPw(p);
-
 			if(_MODE(p,_XLAP_SINGLE)) {
 				TIM_OC2PolarityConfig(TIM4, TIM_OCPolarity_High);
 				TIM_OC4PolarityConfig(TIM4, TIM_OCPolarity_High);
@@ -422,6 +423,7 @@ int		simmrate;
 				TIM_OC4PolarityConfig(TIM2, TIM_OCPolarity_Low);
 			}
 #endif
+			
 			if(_MODE(p,_PULSE_INPROC)) {
 				TriggerADC(p);
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);

@@ -113,6 +113,7 @@ typedef					enum
 								_CHANNEL2_SINGLE_TRIGGER,	//14
 								_ALTERNATE_TRIGGER,				//15
 								_CAN_2_COM,
+								__SWEEPS__=25,
 								__TEST__=29
 } 							mode;
 
