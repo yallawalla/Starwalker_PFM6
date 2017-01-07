@@ -332,7 +332,7 @@ int 		hv,j,k,x,
 					if(_MODE(pfm,_U_LOOP)) {
 						x = (x * _TIM.Hvref + hv/2)/hv;
 					
-//					if(m && z1 > pfm->Burst.Pdelay*2) {
+//					if(m && z1 > pfm->Burst->Pdelay*2) {
 //						for(i=4;i<8;++i)
 //							e1+=(short)(ADC1_buf[k-i].U) * (short)(ADC1_buf[k-i].I-_TIM.I1off);
 //					}
@@ -341,7 +341,7 @@ int 		hv,j,k,x,
 //						e1=0;
 //					}
 
-//					if(m && z2 > pfm->Burst.Pdelay*2) {
+//					if(m && z2 > pfm->Burst->Pdelay*2) {
 //						for(i=4;i<8;++i)
 //							e2+=(short)(ADC2_buf[k-i].U) * (short)(ADC2_buf[k-i].I-_TIM.I2off);
 //					} else if (!_E2ref) {
@@ -350,16 +350,16 @@ int 		hv,j,k,x,
 //					}
 //----- mode 10, current stab. ---------------------------------------------------									
 //
-						if(pfm->Burst.Time>200 && _MODE(pfm,_P_LOOP)) {	
+						if(pfm->Burst->Time > 200 && _MODE(pfm,_P_LOOP)) {	
 //----- current loop for ch1, if cref1 present !----------------------------------									
-							if(_TIM.cref1 && _TIM.p1->T > pfm->Burst.Pdelay*2) {
+							if(_TIM.cref1 && _TIM.p1->T > pfm->Burst->Pdelay*2) {
 								int dx=(_TIM.cref1 - ADC1_buf[k-5].U * ADC1_buf[k-5].I)/4096;
 								_TIM.ci1 += dx*ki;
 								x += _TIM.ci1/4096 + dx*kp/4096;
 							}
 //----- calc. cref1 after 200 us for ch1 -----------------------------------------									
-							if(k > 200 + pfm->Burst.Delay) {
-								if(!_TIM.cref1 && _TIM.p1->T > 2*pfm->Burst.Pdelay) {
+							if(k > 200 + pfm->Burst->Delay) {
+								if(!_TIM.cref1 && _TIM.p1->T > 2*pfm->Burst->Pdelay) {
 									int n,jU=0,jI=0;
 									for(n=5;n<13;++n)	{
 										jU+=ADC1_buf[k-n].U;
@@ -373,7 +373,7 @@ int 		hv,j,k,x,
 					}					
 //----- vpis v OC registre ---------------------------------------------------------------
 					if(_TIM.p1->n) {																				// set simmer pw on last sample !
-						TIM8->CCR1 = TIM1->CCR1 = __max(pfm->Burst.Pdelay,__min(_MAX_PWM_RATE, x));			
+						TIM8->CCR1 = TIM1->CCR1 = __max(pfm->Burst->Pdelay,__min(_MAX_PWM_RATE, x));			
 #if defined __PFM8__
 						TIM4->CCR1 = TIM2->CCR1 = TIM1->CCR1/2;			
 #endif
@@ -395,7 +395,7 @@ int 		hv,j,k,x,
 					if(_MODE(pfm,_U_LOOP)) {
 						x = (x * _TIM.Hvref + hv/2)/hv;
 				
-//					if(m && z1 > pfm->Burst.Pdelay*2) {
+//					if(m && z1 > pfm->Burst->Pdelay*2) {
 //						for(i=4;i<8;++i)
 //							e1+=(short)(ADC1_buf[k-i].U) * (short)(ADC1_buf[k-i].I-_TIM.I1off);
 //					}
@@ -404,7 +404,7 @@ int 		hv,j,k,x,
 //						e1=0;
 //					}
 
-//					if(m && z2 > pfm->Burst.Pdelay*2) {
+//					if(m && z2 > pfm->Burst->Pdelay*2) {
 //						for(i=4;i<8;++i)
 //							e2+=(short)(ADC2_buf[k-i].U) * (short)(ADC2_buf[k-i].I-_TIM.I2off);
 //					} else if (!_E2ref) {
@@ -413,16 +413,16 @@ int 		hv,j,k,x,
 //					}
 //----- mode 10, current stab. ---------------------------------------------------									
 //
-						if(pfm->Burst.Time>200 && _MODE(pfm,_P_LOOP)) {	
+						if(pfm->Burst->Time>200 && _MODE(pfm,_P_LOOP)) {	
 //----- current loop for ch2, if cref2 present !----------------------------------									
-							if(_TIM.cref2 && _TIM.p2->T > pfm->Burst.Pdelay*2) {
+							if(_TIM.cref2 && _TIM.p2->T > pfm->Burst->Pdelay*2) {
 								int dx=(_TIM.cref2 - ADC2_buf[k-5].U * ADC2_buf[k-5].I)/4096;
 								_TIM.ci2 += dx*ki;
 								x += _TIM.ci2/4096 + dx*kp/4096;
 							}
 //----- calc. cref2 after 200 us for ch2 -----------------------------------------									
-							if(k > 200 + pfm->Burst.Delay) {
-								if(!_TIM.cref2 && _TIM.p2->T > 2*pfm->Burst.Pdelay) {
+							if(k > 200 + pfm->Burst->Delay) {
+								if(!_TIM.cref2 && _TIM.p2->T > 2*pfm->Burst->Pdelay) {
 									int n,jU=0,jI=0;
 									for(n=5;n<13;++n)	{
 										jU+=ADC2_buf[k-n].U;
@@ -436,7 +436,7 @@ int 		hv,j,k,x,
 					}					
 //----- vpis v OC registre ---------------------------------------------------------------
 					if(_TIM.p2->n)	{																				// set simmer pw on last sample !
-						TIM8->CCR3 = TIM1->CCR3 = __max(pfm->Burst.Pdelay,__min(_MAX_PWM_RATE, x));
+						TIM8->CCR3 = TIM1->CCR3 = __max(pfm->Burst->Pdelay,__min(_MAX_PWM_RATE, x));
 #if defined __PFM8__
 						TIM4->CCR3 = TIM2->CCR3 = TIM1->CCR3/2;
 #endif
@@ -482,7 +482,7 @@ int 		hv,j,k,x,
 							_TIM.Hvref -= (ADC1_buf[k-5].I+ADC2_buf[k-5].I)/80*1000/_TIM.Caps;	
 				}
 #if !defined __PFM8__
-				if(_TIM.p1 && _TIM.p1->T > pfm->Burst.Pdelay && 					//----- Qswitch pasus, dela samo na ch 1 -------------------------------------------------
+				if(_TIM.p1 && _TIM.p1->T > pfm->Burst->Pdelay && 					//----- Qswitch pasus, dela samo na ch 1 -------------------------------------------------
 					(_TIM.p1->n == pfm->Pockels.trigger || 
 						_TIM.p1->n == 255)) {																	// #jhw9847duhd		dodatek za qswitch	
 					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Repetitive);		// triganje na kakrsnokoli stanje nad delay x 2

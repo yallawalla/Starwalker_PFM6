@@ -36,17 +36,21 @@ void 			App_Init(void) {
 
 					pfm=calloc(1,sizeof(PFM));		
 	
-					pfm->Burst.U=0;
-					pfm->HVref=0;
-					pfm->Burst.Time=100;
-					pfm->Burst.Delay=100;
-					pfm->Burst.N=1;
-					pfm->Burst.Mode=_XLAP_QUAD;
-					pfm->Burst.Pdelay=pfm->Burst.Pmax=_PWM_RATE_HI*0.02;
-					pfm->Burst.max[0]=pfm->Burst.max[1]=_I2AD(1000);
-					
-					pfm->Trigger.Period=1000;
+					pfm->Burst=&pfm->burst[0];
+					pfm->Burst->U=0;
+					pfm->Burst->Time=100;
+					pfm->Burst->Delay=100;
+					pfm->Burst->N=1;
+					pfm->Burst->Mode=_XLAP_QUAD;
+					pfm->Burst->Pdelay=pfm->Burst->Pmax=_PWM_RATE_HI*0.02;
+					pfm->Burst->max[0]=pfm->Burst->max[1]=_I2AD(1000);
+					pfm->Burst->Period=1000;
+					memcpy(&pfm->Burst[1],&pfm->Burst[0],sizeof(burst));
+	
 					pfm->Trigger.Count=1;	
+					
+					
+					pfm->HVref=0;
 {
 	simmer	p;	
 					p.mode=_XLAP_QUAD;
@@ -80,6 +84,24 @@ int				i;
 						ADC3_buf[i].IgbtT[0]=ADC3_buf[i].IgbtT[1]=0x7ff;
 						ADC3_buf[i].Um5=_m5V2AD(-4)/8;
 						ADC3_buf[i].Up20=_p20V2AD(20)/8;
+					}
+}
+#endif
+#if defined (__PFM8__)
+{
+#define noise (rand()%100 - 50)
+int				i,j;
+					srand(__time__);
+					for(i=0; i<ADC3_AVG; ++i) {
+						ADC3_buf[i].HV=_V2AD(700,2000,6.2) + noise;
+						ADC3_buf[i].HV2=_V2AD(350,2000,6.2) + noise;
+						for(j=0; j<sizeof(ADC3_buf[i].IgbtT)/sizeof(short); ++j)
+							ADC3_buf[i].IgbtT[j]=2000 + noise;
+						ADC3_buf[i].VCAP1=_V2AD(350,2000,6.2) + noise;
+						ADC3_buf[i].VCAP2=_V2AD(350,2000,6.2) + noise;
+						ADC3_buf[i].Up12=_V2AD(12,62,10) + noise;
+						ADC3_buf[i].Up5=_V2AD(5,10,10) + noise;
+						ADC3_buf[i].Up3=_V2AD(3.3,10,10) + noise;
 					}
 }
 #endif
@@ -126,32 +148,26 @@ int				i;
 void			ProcessingEvents(PFM *p) {
 //______________________________________________________________________________
 static int
+					tacho_time=0,
 					trigger_time=0,
 					trigger_count=0;
 //_______Fan tacho processing context___________________________________________
-{
-#if		defined (__PFM6__) || defined (__PFM8__)
-static 
-	int			LastTachoEvent=0;
-
 					if(_EVENT(p,_FAN_TACHO)) {															// fan timeout counter reset
 						_CLEAR_EVENT(p,_FAN_TACHO);
-						LastTachoEvent = __time__;
+						tacho_time = __time__;
 						_BLUE2(20);
 					}
-					if((__time__ - LastTachoEvent > 500) && (__time__ > 10000))
+					if((__time__ - tacho_time > 500) && (__time__ > 10000))
 						_SET_ERROR(p,PFM_FAN_ERR);		
 					else
 						_CLEAR_ERROR(p,PFM_FAN_ERR);
-#endif
-}
 //
-//________processing timed trigger______________________________________________
+//________Processing timed trigger______________________________________________
 //
 					if(_EVENT(p,_TRIGGER)) {																// trigger request
 						_CLEAR_EVENT(p,_TRIGGER);
-						if((p->Error & _CRITICAL_ERR_MASK) || trigger_count)	// if error, trigger not allowed
-							trigger_count=0;																		// if trigger_time set (multiple triggers), switch it off
+						if((p->Error & _CRITICAL_ERR_MASK) || trigger_count)	// if periodic active or error, disarm count...
+							trigger_count=0;																		// if trigger time set (multiple triggers), switch it off
 						else {
 							trigger_count =  p->Trigger.Count;
 							trigger_time = __time__;
@@ -164,7 +180,7 @@ static
 						Trigger(p);
 						if(!_MODE(p,_TRIGGER_PERIODIC))
 							--trigger_count;
-						trigger_time = __time__ + p->Trigger.Period;					// rearm counters		
+							trigger_time = __time__ + p->Burst->Period;					// rearm counters		
 					}
 //______________________________________________________________________________
 					if(_EVENT(p,_PULSE_FINISHED)) {	
@@ -216,21 +232,19 @@ static
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------								
-#if	defined (__PFM6__) || defined (__DISC4__)
-					p->Up20 += (8*(ADC3_buf[0].Up20) - p->Up20)/8;
+#if	defined (__PFM6__)
+					p->Up20 += (8*(ADC3_buf[0].Up20) - p->Up20)/8;				
 					p->Um5  += (8*(ADC3_buf[0].Um5)  - p->Um5)/8;
-//-------------------------------------------------------------------------------
-					if(p->Up20 < _p20V2AD(18) || p->Up20 > _p20V2AD(22))                      
+//-------------------------------------------------------------------------------								
+					if(p->Up20 < 8*_V2AD(18,68,12) || p->Up20 > 8*_V2AD(22,68,12))                      
 						_SET_ERROR(p,PFM_ERR_48V);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_48V);
-//-------------------------------------------------------------------------------
-					if(p->Um5 > _m5V2AD(-4) || p->Um5 < _m5V2AD(-6))       
+					
+					if(p->Um5 > 8*_Vn2AD(-4,24,12) || p->Um5 < 8*_Vn2AD(-6,24,12))       
 						_SET_ERROR(p,PFM_ERR_15V);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_15V);
-//-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
@@ -243,27 +257,30 @@ static
 					p->Up5  += (8*(ADC3_buf[0].Up5)  - p->Up5)/8;
 					p->Up3  += (8*(ADC3_buf[0].Up3)  - p->Up3)/8;
 //-------------------------------------------------------------------------------
-#define		_UDIV(u,r1,r2) (int)(u*r2*4096.0/3.3/(r1+r2))
-	
-					if(abs(p->Up12 - _UDIV(12,30,10)) >  _UDIV(2,30,10))                       
+					if(abs(p->Up12 - 8*_V2AD(12,30,10)) >  8*_V2AD(2,30,10))                       
 						_SET_ERROR(p,PFM_ERR_48V);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_48V);
 					
-					if(abs(p->Up5 - _UDIV(5,10,10)) >  _UDIV(1,10,10))                       
+					if(abs(p->Up5 - 8*_V2AD(5,10,10)) >  8*_V2AD(1,10,10))                       
 						_SET_ERROR(p,PFM_ERR_15V);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_15V);
-#endif				
+#endif	
 //-------------------------------------------------------------------------------
 // - polovicna napetost na banki +/- 20%
 // - meris sele od 100V naprej
-// - vhod v AD za HV/2 je ze HW mnozen z 2 !!!!
+// - vhod v AD za HV/2 je ze HW mnozen z 2 (pfm6 only)
 //
+#if	defined (__PFM6__)
 					if(ADC3_buf[0].HV > 100 && abs(ADC3_buf[0].HV-ADC3_buf[0].HV2) > ADC3_buf[0].HV/5)
+#elif defined (__PFM8__)
+					if(ADC3_buf[0].HV > 100 && abs(ADC3_buf[0].HV-2*ADC3_buf[0].HV2) > ADC3_buf[0].HV/5)
+#endif	
 						_SET_ERROR(p,PFM_HV2_ERR);
 					else
 						_CLEAR_ERROR(p,PFM_HV2_ERR);
+			
 //-------------------------------------------------------------------------------
 //				get current active channel....
 //				razlika med HV in napetostjo na flesu mora  biti najmanj 12%, sicer simmer error
@@ -520,21 +537,21 @@ char			*q=(char *)rx.Data;
 										CanReply("ccP",_PFM_IgbtTemp_ack,p->Temp);
 										break;
 									case _PFM_U_req:
-										CanReply("cwP",_PFM_U_req,p->Burst.U);
+										CanReply("cwP",_PFM_U_req,p->Burst->U);
 										break;
 									case _PFM_command:
 										PFM_command(p,rx.Data[1]);
 										Eack(NULL);
 										break;
 									case _PFM_set:
-										p->Burst.U = *(short *)q++;q++;
-										p->Burst.Time=*(short *)q++;q++;
-										p->Burst.Ereq=*q++;
+										p->Burst->U = *(short *)q++;q++;
+										p->Burst->Time=*(short *)q++;q++;
+										p->Burst->Ereq=*q++;
 // __________________________________________________________________________________________________________
-										p->Burst.Pmax = __max(0,__min(_PWM_RATE_HI, (p->Burst.U *_PWM_RATE_HI)/_AD2HV(10*p->HVref)));
+										p->Burst->Pmax = __max(0,__min(_PWM_RATE_HI, (p->Burst->U *_PWM_RATE_HI)/_AD2HV(10*p->HVref)));
 // __________________________________________________________________________________________________________
-										if(p->Burst.Pmax > 0 && p->Burst.Pmax < _PWM_RATE_HI) {
-//											p->Burst.Imax=__min(4095,_I2AD(p->Burst.U/10 + p->Burst.U/2));
+										if(p->Burst->Pmax > 0 && p->Burst->Pmax < _PWM_RATE_HI) {
+//											p->Burst->Imax=__min(4095,_I2AD(p->Burst->U/10 + p->Burst->U/2));
 											SetPwmTab(p);														
 											Eack(NULL);
 										} else {
@@ -543,20 +560,20 @@ char			*q=(char *)rx.Data;
 										break;
 // __________________________________________________________________________________________________________
 									case _PFM_reset:
-										p->Trigger.Period=*(short *)q++;q++;
-										p->Burst.N=*q++;
-										p->Burst.Length=*q++*1000;
+										p->Burst->Period=*(short *)q++;q++;
+										p->Burst->N=*q++;
+										p->Burst->Length=*q++*1000;
 										p->Trigger.Count=1;
 // ________________________________________________________________smafu za preverjanje LW protokola ________
-										if(p->Burst.N==0)
-											p->Burst.N=1;
-										if(p->Burst.Length==0)
-											p->Burst.Length=3000;	
+										if(p->Burst->N==0)
+											p->Burst->N=1;
+										if(p->Burst->Length==0)
+											p->Burst->Length=3000;	
 										p->Trigger.Erpt = 0;
 // __________________________________________________________________________________________________________
 										if(_MODE(p,_LONG_INTERVAL)) {
 											for(n=0; n<8; ++n)
-												if((_ADCRates[n]+12)*(_MAX_BURST/_uS)/15 >  p->Burst.Length)
+												if((_ADCRates[n]+12)*(_MAX_BURST/_uS)/15 >  p->Burst->Length)
 													break;
 													
 											ADC_RegularChannelConfig(ADC1, ADC_Channel_8,		1, n);
@@ -565,12 +582,12 @@ char			*q=(char *)rx.Data;
 											ADC_RegularChannelConfig(ADC2, ADC_Channel_12,	2, n);
 											p->ADCRate=((_ADCRates[n]+12)*_uS)/15;											
 //___________________________________________________________________________________________________________								
-										} else {																															// NdYag long pulse burst, LW 4x2ms, 15/25 ms burst 
-											if(p->Burst.Length > _MAX_BURST/_uS) {
-												p->Trigger.Erpt = p->Burst.N-1;																		// energy report after N pulses
-												p->Trigger.Period = (p->Burst.Length / p->Burst.N + 500)/1000;			// repetition rate = burst repetition, rounded to 1ms
-												p->Burst.Length=(p->Trigger.Period-1)*1000;													// burst length = repetition(us) - 1ms
-												p->Burst.N=1;																											// treated as single pulse
+										} else {																																// NdYag long pulse burst, LW 4x2ms, 15/25 ms burst 
+											if(p->Burst->Length > _MAX_BURST/_uS) {
+												p->Trigger.Erpt = p->Burst->N-1;																		// energy report after N pulses
+												p->Burst->Period = (p->Burst->Length / p->Burst->N + 500)/1000;			// repetition rate = burst repetition, rounded to 1ms
+												p->Burst->Length=(p->Burst->Period-1)*1000;													// burst length = repetition(us) - 1ms
+												p->Burst->N=1;																											// treated as single pulse
 											}
 										}
 //___________________________________________________________________________________________________________								
@@ -624,8 +641,8 @@ char			*q=(char *)rx.Data;
 									case _PFM_POCKELS: 																					// 0x72, _PFM_POCKELS
 										p->Pockels.delay=	*(short *)q++;q++;											// 0.1uS delay , 0.1uS width	(short)
 										p->Pockels.width=	*(short *)q++;q++;
-										p->Burst.Length=	*(short *)q++;q++;											// interval energije v uS			(short)
-										p->Burst.N=*q;																						// stevilo pulzov v intervalu	(byte)
+										p->Burst->Length=	*(short *)q++;q++;											// interval energije v uS			(short)
+										p->Burst->N=*q;																						// stevilo pulzov v intervalu	(byte)
 										PFM_pockels(p);																						// pockels timer setup
 										SetPwmTab(p);																							// pulse buildup...
 										Eack(NULL);																								// reset integratorja energije
@@ -854,18 +871,17 @@ static		int	timeout=0,no=0;
 							_CLEAR_STATUS(p,PFM_STAT_SIMM2);
 							SetSimmerPw(p);																									// kill both simmers
 							no=n & (PFM_STAT_SIMM1 | PFM_STAT_SIMM2);												// mask filter command
-							_wait(100,_proc_loop);																							// wait 100 msecs
+							_wait(100,_proc_loop);																					// wait 100 msecs
 							
 							if(!_MODE(p,_CHANNEL1_DISABLE)) {																// if not Erbium  single channel
 								if(_MODE(p,_CHANNEL1_SINGLE_TRIGGER))													// single trigger config.. as from V1.11
 									Uidle=2*p->HV/7;
 								else
 									Uidle=p->HV/7;
-								_TIM.I1off=ADC1_simmer.I;																					// get current sensor offset
-								_TIM.U1off=ADC1_simmer.U;																					// check idle voltage
+								_TIM.I1off=ADC1_simmer.I;																			// get current sensor offset
+								_TIM.U1off=ADC1_simmer.U;																			// check idle voltage
 								if(abs(Uidle - ADC3_AVG*ADC1_simmer.U) > _HV2AD(50)) {				// HV +/- 30V range ???
 									_SET_ERROR(p,PFM_ERR_LNG);																	// if not, PFM_STAT_UBHIGH error 
-//									no=0;
 								}
 							}
 							if(!_MODE(p,_CHANNEL2_DISABLE)) {																// same for NdYAG channel
@@ -877,33 +893,36 @@ static		int	timeout=0,no=0;
 								_TIM.U2off=ADC2_simmer.U;
 								if(abs(Uidle - ADC3_AVG*ADC2_simmer.U) > _HV2AD(50)) {
 									_SET_ERROR(p,PFM_ERR_LNG);
-//									no=0;
 								}
 							}
 						}
-//________________________________________________________________________________
+//__________________________________________________________________________________________________________
 						if(no && _MODE(p,_CHANNEL1_DISABLE))															// if single channel request
 							_SET_STATUS(p, PFM_STAT_SIMM2);																	// modify status
 						else if(no && _MODE(p,_CHANNEL2_DISABLE))													// same for other channel
 							_SET_STATUS(p, PFM_STAT_SIMM1);
 						else
 							_SET_STATUS(p, no);																							// else set status as requested
-//________________________________________________________________________________
+//__________________________________________________________________________________________________________
 #if		defined (__PFM6__) || defined (__PFM8__)
 						if(!_STATUS(p,_PFM_CWBAR_STAT))																		// crowbar not cleared
 							_SET_ERROR(p,PFM_ERR_PULSEENABLE);
 #endif
-//________________________________________________________________________________
+//__________________________________________________________________________________________________________
 						if(no & PFM_STAT_SIMM1)																						// activate triggers
 							_TRIGGER1_ON;
 						if(no & PFM_STAT_SIMM2)
 							_TRIGGER2_ON;
 						
 						SetSimmerRate(p,_SIMMER_LOW);																			// set simmer
-//						SetPwmTab(p);
 						timeout=1000;																											// set trigger countdown
 						p->count=0;																												// reset burst count
-//________________________________________________________________________________					
+						
+						if(_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2) == PFM_STAT_SIMM2)	// aktivni objekt za vnos 
+							p->Burst = &p->burst[1];																				// ce je simm. 0 oz. 3 se uporabi burst 1
+						else																															// vsebina se v tem primeru prekopira v oba kanala 
+							p->Burst = &p->burst[0];																				// na SetPwmTab00
+//__________________________________________________________________________________________________________
 					} else {
 						if(timeout && !(timeout -= n)) {																	// #93wefjlnw83
 							_TRIGGER1_OFF;																									// kill triggers after count interval

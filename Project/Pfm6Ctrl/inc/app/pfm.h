@@ -44,14 +44,13 @@
 			          
 #define					_AD2HV(a)			((int)(((a)*_UREF)/4096.0/ADC3_AVG/_Rdiv(7.5e3,2e6)+0.5))
 #define					_HV2AD(a)			((int)(((a)*4096.0*ADC3_AVG*_Rdiv(7.5e3,2e6))/_UREF+0.5))
+
+#define					_AD2V(val,rh,rl)	((float)((val)*(rl+rh)/rl*3.3/4096.0))	
+#define					_AD2Vn(val,rh,rl)	((float)(((val)-4096)*(rl+rh)/rl*3.3/4096.0 + 3.3))
+#define					_V2AD(val,rh,rl)	((int)((val)*4096.0/3.3*rl/(rh+rl)+0.5))
+#define					_Vn2AD(val,rh,rl)	((int)(4096+((val)-3.3)*4096.0/3.3*rl/(rh+rl)+0.5))
 #define					_I2AD(a)			((int)(((a)*4096)/(int)(3.3/2.9999/0.001+0.5)))
 #define					_AD2I(a)			((int)(((a)*(int)(3.3/2.9999/0.001+0.5))/4096))
-
-#define					_m5V2AD(a)		((int)(4096+((a)-_UREF)*(_Rdiv(12.0,24.0)*4096.0/_UREF))*8)
-#define					_p20V2AD(a)		((int)((a)*8*(_Rdiv(12.0,68.0)*4096.0/_UREF)))
-
-#define					_AD2p20V(a)		((float)(((a/8)*_UREF)/4096.0/_Rdiv(12.0,68.0)))
-#define					_AD2m5V(a)		((float)(((a/8-4096)*_UREF)/4096.0/_Rdiv(12.0,24.0)+_UREF))
 																
 #define					__charger6		__i2c1
 
@@ -182,7 +181,8 @@ typedef					enum
 #else
 	*** error, undefined HW
 #endif					
-									#define					_STATUS(p,a)					(p->Status & (a))
+
+#define					_STATUS(p,a)					(p->Status & (a))
 #define					_SET_STATUS(p,a)			(p->Status |= (a))
 #define					_CLEAR_STATUS(p,a)		(p->Status &= ~(a))
 
@@ -210,8 +210,8 @@ typedef					enum
 #define 				ADC3_AVG							4
 #define					_MAX_QSHAPE						8
 #define					_MAX_USER_SHAPE				1024
-extern 		                            
-int							_ADCRates[];	
+extern int			_ADCRates[];	
+								
 #if	defined (__PFM6__) || defined (__DISC4__)
 typedef struct	{	unsigned short			IgbtT[2],HV2,HV,Up20,Um5;													} _ADC3DMA;
 #endif
@@ -227,12 +227,12 @@ typedef struct	{	unsigned short			addr,speed,ntx,nrx;
 typedef struct	{					 short			q0,q1,q2,q3,qref;			}	_QSHAPE;
 typedef struct	{					 short			T,U;									}	_USER_SHAPE;
 extern					_QSHAPE 		qshape[_MAX_QSHAPE];			
-extern					_USER_SHAPE ushape[_MAX_USER_SHAPE];			
+extern					_USER_SHAPE ushape[_MAX_USER_SHAPE];
 //________________________________________________________________________
 extern  struct _TIM {																			// realtime structure, used with timer stack
-	struct _TIM_DMA {	
+	struct _TIM_DMA {
 		unsigned short			n,T;
-	} pwch1[_MAX_BURST/_PWM_RATE_HI],												
+	} pwch1[_MAX_BURST/_PWM_RATE_HI],
 		pwch2[_MAX_BURST/_PWM_RATE_HI],												// output tables
 		*p1,*p2;																							// pointers to output tables
 	int		
@@ -326,7 +326,8 @@ typedef 				struct {
 short						N,										// burst pulse count 
 								Length,					      // burst length, us
 								U,										// pulse voltage
-								Time;
+								Time,
+								Period;								// _PFM_reset command parameters, ms
 char						Ereq;		              
 short						Pmax,			            
 								Pdelay,								// burst interval	pwm
@@ -343,13 +344,12 @@ mode						mode;									// simmer time mode
 } simmer;
 //________________________________________________________________________
 typedef 				struct {
-short						Period,								// _PFM_reset command parameters, ms
-								Erpt,
+short						Erpt,									// send energy on every ....
 								Count;								// count for multiple  triggers sequence	
 } trigger;
 //________________________________________________________________________
 typedef 				struct {
-burst						Burst;
+burst						*Burst,burst[2];
 simmer					Simmer[2];
 trigger					Trigger;
 short						Error,	
@@ -662,8 +662,8 @@ __inline void dbg_6(int n,char *s, int arg1, int arg2, int arg3, int arg4) {
 #define	_k_Er	(20.0*20.0)
 #define	_k_Nd	(28.5 * 28.5)
 // __________________________________________________________________________________________________________
-//											cref1=_I2AD(p->Burst.U * p->Burst.U) * _HV2AD(p->Burst.U) / (ADC3_AVG *_k_Er * 1000 * 4096);
-//											cref2=_I2AD(p->Burst.U * p->Burst.U) * _HV2AD(p->Burst.U) / (ADC3_AVG *_k_Nd * 1000 * 4096);
+//											cref1=_I2AD(p->Burst->U * p->Burst->U) * _HV2AD(p->Burst->U) / (ADC3_AVG *_k_Er * 1000 * 4096);
+//											cref2=_I2AD(p->Burst->U * p->Burst->U) * _HV2AD(p->Burst->U) / (ADC3_AVG *_k_Nd * 1000 * 4096);
 #define	kVf	(3.3/4096.0*2000.0/7.5)					// 		flash voltage			
 #define	kIf	(3.3/4096.0/2.9999/0.001)				// 		flash curr.
 #define Ts	 1e-6														// 		ADC sample rate

@@ -540,7 +540,7 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 
 12.10.2016
   - Pri aktiviranju analog watchdog za current limit je potrebno paziti na trenutno konfiguracijo TriggerADC() v adc.c !!! 
-  __SWEEPS__ mode, pfm->Burst.Count, premetat parametre po strukturah v pfm.h
+  __SWEEPS__ mode, pfm->Burst->Count, premetat parametre po strukturah v pfm.h
   
 14.10.2016
 - __SWEEPS__

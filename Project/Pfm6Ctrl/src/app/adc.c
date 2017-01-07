@@ -17,7 +17,7 @@ _ADCDMA		ADC1_buf[_MAX_BURST/_uS],
 					ADC1_simmer,
 					ADC2_simmer;
 
-int		_ADCRates[]={3,15,28,56,84,112,144,480};
+int				_ADCRates[]={3,15,28,56,84,112,144,480};
 
 void	TriggerADC(PFM *p) {
 //
@@ -30,14 +30,14 @@ void	TriggerADC(PFM *p) {
 
 			if(!_MODE(pfm,_CHANNEL1_DISABLE)) {
 				if(p)
-					ADC_AnalogWatchdogThresholdsConfig(ADC1,pfm->Burst.max[0],0);
+					ADC_AnalogWatchdogThresholdsConfig(ADC1,pfm->Burst->max[0],0);
 				else
 					ADC_AnalogWatchdogThresholdsConfig(ADC1,pfm->Simmer[0].max,0);
 				ADC_ITConfig(ADC1,ADC_IT_AWD,ENABLE);
 			}
 			if(!_MODE(pfm,_CHANNEL2_DISABLE)) {
 				if(p)
-					ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Burst.max[1],0);
+					ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Burst->max[1],0);
 				else
 					ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Simmer[1].max,0);
 				ADC_ITConfig(ADC2,ADC_IT_AWD,ENABLE);
@@ -318,7 +318,7 @@ void 	Initialize_ADC3(void)
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_14, 10,ADC_SampleTime_3Cycles);				// 5V
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_15, 11,ADC_SampleTime_3Cycles);				// 3.3V
 #endif
-#if		defined (__PFM6__) || defined (__PFM8__)
+#if		defined (__PFM6__)
 			ADC_AnalogWatchdogSingleChannelConfig(ADC3,ADC_Channel_11);
 			ADC_AnalogWatchdogCmd(ADC3,ADC_AnalogWatchdog_SingleRegEnable);	
 

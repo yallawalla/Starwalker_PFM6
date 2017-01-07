@@ -158,11 +158,11 @@ FATFS						fs_cpu;
 					n=strscan(++c,cc,',');
 
 					if(n==1 && *cc[0]=='1') {
-					ScopeDumpBinary(ADC1_buf,pfm->Burst.Length*_uS / _MAX_ADC_RATE);
+					ScopeDumpBinary(ADC1_buf,pfm->Burst->Length*_uS / _MAX_ADC_RATE);
 						break;
 					}
 					if(n==1 && *cc[0]=='2') {
-					ScopeDumpBinary(ADC2_buf,pfm->Burst.Length*_uS / _MAX_ADC_RATE);
+					ScopeDumpBinary(ADC2_buf,pfm->Burst->Length*_uS / _MAX_ADC_RATE);
 						break;
 					}
 					if(n==2) {
@@ -252,7 +252,7 @@ int			DecodePlus(char *c) {
 				}
 				return _PARSE_OK;
 }
-//______________________________________________________________________________________
+//___________________________________________________________________________
 int			DecodeEq(char *c) {
 				char		*cc[8];
 				int			n;
@@ -278,11 +278,7 @@ int			DecodeEq(char *c) {
 				}
 				return _PARSE_OK;
 }
-//________------_____--____------_______________________________________________________
-//__________--___---------____----______________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//
+//___________________________________________________________________________
 int			DecodeWhat(char *c) {
 				int			k,m,n;
 				void 		*v;
@@ -365,14 +361,14 @@ int			DecodeWhat(char *c) {
 					break;
 //______________________________________________________________________________________
 //				case 'e':
-//					for(pfm->Burst.Pmax=0; pfm->Burst.Pmax<600; ++pfm->Burst.Pmax) {
+//					for(pfm->Burst->Pmax=0; pfm->Burst->Pmax<600; ++pfm->Burst->Pmax) {
 //						SetPwmTab(pfm);
 //						for(k=m=n=0; TIM18_buf[k].n; ++k) {
 //							m+= pow((float)TIM18_buf[k].T1*7.0/6.0,3)/400.0*10.0*(float)(1+TIM18_buf[k].n)/2+0.5;
 //							n+= pow((float)TIM18_buf[k].T3*7.0/6.0,3)/400.0*10.0*(float)(1+TIM18_buf[k].n)/2+0.5;
 //						}
 //						Watchdog();
-//						__print("\r\n%d,%d,%d",pfm->Burst.Pmax*7/6,m/1000,n/1000);
+//						__print("\r\n%d,%d,%d",pfm->Burst->Pmax*7/6,m/1000,n/1000);
 //					}
 //					__print("\r\n>");
 //					break;
@@ -880,27 +876,27 @@ int				i;
 				case 'p':
 					n=numscan(++c,cc,',');
 					if(n==0) {
-						__print("\r>p(ulse)  T,U           ... %dus,%dV",pfm->Burst.Time,pfm->Burst.Pmax*_AD2HV(pfm->HVref)/_PWM_RATE_HI);
+						__print("\r>p(ulse)  T,U           ... %dus,%dV",pfm->Burst->Time,pfm->Burst->Pmax*_AD2HV(pfm->HVref)/_PWM_RATE_HI);
 						if(pfm->Pockels.delay || pfm->Pockels.width)
 							__print("\r\n>q(swch)  delay,width   ... %.1fus,%.1fus",(float)pfm->Pockels.delay/10,(float)pfm->Pockels.width/10);
 					}
 //__________________________________
 					if(n>0)
-						pfm->Burst.Time=atoi(cc[0]);
+						pfm->Burst->Time=atoi(cc[0]);
 //__________________________________
 					if(n>1) { 
 						if(atof(cc[1]) >= 1.0)
-							pfm->Burst.Pmax=atof(cc[1])*_PWM_RATE_HI/(float)_AD2HV(pfm->HVref);
+							pfm->Burst->Pmax=atof(cc[1])*_PWM_RATE_HI/(float)_AD2HV(pfm->HVref);
 						else
-							pfm->Burst.Pmax=_PWM_RATE_HI*atof(cc[1]);
+							pfm->Burst->Pmax=_PWM_RATE_HI*atof(cc[1]);
 					}
 //__________________________________
 					if(n==3)
-						pfm->Burst.Ereq = atoi(cc[2]);
+						pfm->Burst->Ereq = atoi(cc[2]);
 					else if(*--c == 'P')
-						pfm->Burst.Ereq=7;
+						pfm->Burst->Ereq=7;
 					else
-						pfm->Burst.Ereq=1;
+						pfm->Burst->Ereq=1;
 //__________________________________
 					if(n==4) {																		// dodatek za vnos pockelsa 
 						pfm->Pockels.delay=10*atof(cc[2]);					// ndc673476iopj
@@ -915,30 +911,31 @@ int				i;
 					n=numscan(++c,cc,',');
 
 					if(!n) {
-						__print("\r>d(elay)  T,PW          ... %dus,%.2f",pfm->Burst.Delay,(float)pfm->Burst.Pdelay/_PWM_RATE_HI);
+						__print("\r>d(elay)  T,PW          ... %dus,%.2f",pfm->Burst->Delay,(float)pfm->Burst->Pdelay/_PWM_RATE_HI);
 						break;
 						}
 					if(n>0)
-						pfm->Burst.Delay=atoi(cc[0]);
+						pfm->Burst->Delay=atoi(cc[0]);
 					if(n>1)
-						pfm->Burst.Pdelay=_PWM_RATE_HI*atof(cc[1]);
+						pfm->Burst->Pdelay=_PWM_RATE_HI*atof(cc[1]);
 					SetPwmTab(pfm);
 					break;
 //______________________________________________________________________________________
 				case 'b':
 					n=numscan(++c,cc,',');
 					if(n==0) {
-						__print("\r>b(urst)  N,len,per     ... %d,%dus,%dms",pfm->Burst.N, pfm->Burst.Length,pfm->Trigger.Period);
+						__print("\r>b(urst)  N,len,per     ... %d,%dus,%dms",pfm->Burst->N, pfm->Burst->Length,pfm->Burst->Period);
 						break;
 						}
 					if(n>0 && atoi(cc[0]) > 0)
-						pfm->Burst.N=atoi(cc[0]);
+						pfm->Burst->N=atoi(cc[0]);
 					else
 						return _PARSE_ERR_ILLEGAL;
 					if(n>1)
-						pfm->Burst.Length=atoi(cc[1]);
-					if(n>2)
-						pfm->Trigger.Period=atoi(cc[2]);
+						pfm->Burst->Length=atoi(cc[1]);
+					if(n>2) {
+						pfm->Burst->Period=atoi(cc[2]);
+					}
 					if(n>3) {
 						pfm->Trigger.Count=atoi(cc[3]);
 						_CLEAR_MODE(pfm,_TRIGGER_PERIODIC);
@@ -1020,7 +1017,7 @@ int				i;
 						case 0:
 							__print("\r\n");
 							__print("DAC limiter(ch 1/2)         ... %d%c,%d%c\r\n",(DAC_GetDataOutputValue(DAC_Channel_1)*100+0x7ff)/0xfff,'%',(DAC_GetDataOutputValue(DAC_Channel_2)*100+0x7ff)/0xfff,'%');
-							__print("current limits(l/h)         ... %dA,%dA,%dA,%dA\r\n",_AD2I(pfm->Simmer[0].max),_AD2I(pfm->Simmer[1].max),_AD2I(pfm->Burst.max[0]),_AD2I(pfm->Burst.max[1]));
+							__print("current limits(l/h)         ... %dA,%dA,%dA,%dA\r\n",_AD2I(pfm->Simmer[0].max),_AD2I(pfm->Simmer[1].max),_AD2I(pfm->Burst->max[0]),_AD2I(pfm->Burst->max[1]));
 							__print("voltage limits(l/h)         ... %dV,%dV\r\n",ADC3_AVG*_AD2HV(ADC3->LTR),ADC3_AVG*_AD2HV(ADC3->HTR));
 
 						break;
@@ -1031,8 +1028,8 @@ int				i;
 						case 4:	
 							pfm->Simmer[0].max=_I2AD(atoi(cc[0]));
 							pfm->Simmer[1].max=_I2AD(atoi(cc[1]));
-							pfm->Burst.max[0]=_I2AD(atoi(cc[2]));
-							pfm->Burst.max[1]=_I2AD(atoi(cc[3]));
+							pfm->Burst->max[0]=_I2AD(atoi(cc[2]));
+							pfm->Burst->max[1]=_I2AD(atoi(cc[3]));
 							break;
 						default:
 							return _PARSE_ERR_SYNTAX;
@@ -1077,13 +1074,13 @@ int				i;
 				case 'X':
 					switch(atoi(++c)) {
 					case 1:
-						pfm->Burst.Mode=_XLAP_SINGLE;
+						pfm->Burst->Mode=_XLAP_SINGLE;
 						break;
 					case 2:
-						pfm->Burst.Mode=_XLAP_DOUBLE;
+						pfm->Burst->Mode=_XLAP_DOUBLE;
 						break;
 					case 4:
-						pfm->Burst.Mode=_XLAP_QUAD;
+						pfm->Burst->Mode=_XLAP_QUAD;
 						break;
 					default:
 						return _PARSE_ERR_SYNTAX;
@@ -1116,11 +1113,19 @@ int				i;
 int			u=0,umax=0,umin=0;
 					switch(numscan(++c,cc,',')) {
 						case 0:
-#if	defined (__PFM6__) || defined (__DISC4__)
-							__print("\r>u(bank)  Uc,Uc/2,20,-5 ... %dV,%dV,%.1fV,%.1fV",_AD2HV(pfm->HV),_AD2HV(pfm->HV2)/2,_AD2p20V(pfm->Up20),_AD2m5V(pfm->Um5));
-#endif
 #if	defined (__PFM8__)
-							__print("\r>u(bank)  Uc,Uc/2,20,-5 ... %dV,%dV,%.1fV,%.1fV",_AD2HV(pfm->HV),_AD2HV(pfm->HV2)/2,_AD2p20V(pfm->Up12),_AD2m5V(pfm->Up5));
+							__print("\r>u(bank)  U,U/2,Vc1,Vc2 ... %.0fV,%.0fV,%.0fV,%.0fV\n",_AD2V(ADC3_buf[0].HV,2000,6.2),
+																																								_AD2V(ADC3_buf[0].HV2,2000,6.2),
+																																								_AD2V(ADC3_buf[0].VCAP1,2000,6.2),
+																																								_AD2V(ADC3_buf[0].VCAP2,2000,6.2));
+							__print("\r>u(bank)  V12,V5,V3     ... %.1fV,%.1fV,%.1fV",				_AD2V(ADC3_buf[0].Up12,62,10),
+																																								_AD2V(ADC3_buf[0].Up5,10,10),
+																																								_AD2V(ADC3_buf[0].Up3,10,10));
+#else
+							__print("\r>u(bank)  Uc,Uc/2,20,-5 ... %.0fV,%.0fV,%.1fV,%.1fV",	_AD2V(ADC3_buf[0].HV,2000,7.5),
+																																								_AD2V(ADC3_buf[0].HV2,1000,7.5),
+																																								_AD2V(ADC3_buf[0].Up20,68,12),
+																																								_AD2Vn(ADC3_buf[0].Um5,24,12));
 #endif
 							return _PARSE_OK;
 						case 3:
@@ -1163,7 +1168,7 @@ int			u=0,umax=0,umin=0;
 					return _PARSE_ERR_NORESP;
 //______________________________________________________________________________________
 				case '!':
-					CanReply("wwwwX",0xC101,PFM_command(NULL,0),40000,pfm->Burst.Time,_ID_SYS2ENRG);
+					CanReply("wwwwX",0xC101,PFM_command(NULL,0),40000,pfm->Burst->Time,_ID_SYS2ENRG);
 					_wait(100,_proc_loop);
 					CanReply("X",0x1A,_ID_SYS2ENRG);
 					_SET_EVENT(pfm,_TRIGGER);
