@@ -41,16 +41,15 @@ void 			App_Init(void) {
 					pfm->Burst->Time=100;
 					pfm->Burst->Delay=100;
 					pfm->Burst->N=1;
+					pfm->Burst->Length=1000;
+					pfm->Burst->Period=1000;
 					pfm->Burst->Mode=_XLAP_QUAD;
 					pfm->Burst->Pdelay=pfm->Burst->Pmax=_PWM_RATE_HI*0.02;
 					pfm->Burst->max[0]=pfm->Burst->max[1]=_I2AD(1000);
-					pfm->Burst->Period=1000;
 					memcpy(&pfm->Burst[1],&pfm->Burst[0],sizeof(burst));
 	
-					pfm->Trigger.Count=1;	
+					pfm->Trigger.count=1;
 					
-					
-					pfm->HVref=0;
 {
 	simmer	p;	
 					p.mode=_XLAP_QUAD;
@@ -60,8 +59,7 @@ void 			App_Init(void) {
 					memcpy(&pfm->Simmer[0],&p,sizeof(simmer));
 					memcpy(&pfm->Simmer[1],&p,sizeof(simmer));
 }
-					
-					pfm->count=0;
+					pfm->HVref=0;
 					pfm->ADCRate=_uS;
 
 					pfm->Pockels.delay=0;
@@ -146,18 +144,13 @@ int				i,j;
   * @retval	: None
   */
 void			ProcessingEvents(PFM *p) {
-//______________________________________________________________________________
-static int
-					tacho_time=0,
-					trigger_time=0,
-					trigger_count=0;
 //_______Fan tacho processing context___________________________________________
 					if(_EVENT(p,_FAN_TACHO)) {															// fan timeout counter reset
 						_CLEAR_EVENT(p,_FAN_TACHO);
-						tacho_time = __time__;
+						p->fan_rate = __time__;
 						_BLUE2(20);
 					}
-					if((__time__ - tacho_time > 500) && (__time__ > 10000))
+					if((__time__ - p->fan_rate > 500) && (__time__ > 10000))
 						_SET_ERROR(p,PFM_FAN_ERR);		
 					else
 						_CLEAR_ERROR(p,PFM_FAN_ERR);
@@ -166,27 +159,34 @@ static int
 //
 					if(_EVENT(p,_TRIGGER)) {																// trigger request
 						_CLEAR_EVENT(p,_TRIGGER);
-						if((p->Error & _CRITICAL_ERR_MASK) || trigger_count)	// if periodic active or error, disarm count...
-							trigger_count=0;																		// if trigger time set (multiple triggers), switch it off
+						if((p->Error & _CRITICAL_ERR_MASK) || p->Trigger.time)// if periodic active or error, disarm count...
+							p->Trigger.time=p->Trigger.counter=0;								// if trigger time set (multiple triggers), switch it off
 						else {
-							trigger_count =  p->Trigger.Count;
-							trigger_time = __time__;
-							if(trigger_count > 1)
-								++trigger_time;																		// rearm counters, rounded to next milliseconds to avoid 1ms jitter !!!
+							if(_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2) == PFM_STAT_SIMM2)
+								p->Trigger.counter=1;															// ce je eksplicit zahteva za trigger 2, zacnemo z neparnim 
+							else
+								p->Trigger.counter=0;
+							p->Trigger.time = __time__;
+							if(p->Trigger.count > 1)
+								++p->Trigger.time;																// rearm counters, rounded to next milliseconds to avoid 1ms jitter !!!
 						}
 					}
 //______________________________________________________________________________
-					if(trigger_count && __time__ >= trigger_time) {
+					if(p->Trigger.time  && __time__ >= p->Trigger.time ) {
 						Trigger(p);
+						if(_MODE(p,_ALTERNATE_TRIGGER))
+							p->Trigger.time = __time__ + p->burst[p->Trigger.counter % 2].Period;
+						else
+							p->Trigger.time = __time__ + p->Burst->Period;	
+						++(p->Trigger.counter);
 						if(!_MODE(p,_TRIGGER_PERIODIC))
-							--trigger_count;
-							trigger_time = __time__ + p->Burst->Period;					// rearm counters		
+							if(p->Trigger.counter >= p->Trigger.count)
+								p->Trigger.time=p->Trigger.counter=0;
 					}
 //______________________________________________________________________________
 					if(_EVENT(p,_PULSE_FINISHED)) {	
 						_CLEAR_EVENT(p,_PULSE_FINISHED);											// end of pulse
 						SetSimmerRate(p,_SIMMER_LOW);													// reduce simmer
-						p->count++;
 						if(Eack(p)) {																					// Energ. integrator finished
 							_TIM.cref1=_TIM.cref2=0;
 							ScopeDumpBinary(NULL,0);														// scope printout, for testing(if enabled ?)
@@ -206,11 +206,9 @@ static int
 ______________________________________________________________________________*/
 void			ProcessingStatus(PFM *p) {
 int 			i,j,k;
-static
-	short		status_image=0; 
-static
-	int			error_image=0,
-					bounce=0;
+static		short	status_image=0; 
+static		int		error_image=0;
+static		int		bounce=0;
 					
 					for(i=j=k=0; i<ADC3_AVG; ++i) {
 						j+=ADC3_buf[i].HV;
@@ -563,7 +561,6 @@ char			*q=(char *)rx.Data;
 										p->Burst->Period=*(short *)q++;q++;
 										p->Burst->N=*q++;
 										p->Burst->Length=*q++*1000;
-										p->Trigger.Count=1;
 // ________________________________________________________________smafu za preverjanje LW protokola ________
 										if(p->Burst->N==0)
 											p->Burst->N=1;
@@ -914,14 +911,14 @@ static		int	timeout=0,no=0;
 						if(no & PFM_STAT_SIMM2)
 							_TRIGGER2_ON;
 						
-						SetSimmerRate(p,_SIMMER_LOW);																			// set simmer
-						timeout=1000;																											// set trigger countdown
-						p->count=0;																												// reset burst count
+						SetSimmerRate(p,_SIMMER_LOW);																			// set low simmer
+						timeout=1000;																											// set trigger burst timeout
 						
-						if(_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2) == PFM_STAT_SIMM2)	// aktivni objekt za vnos 
-							p->Burst = &p->burst[1];																				// ce je simm. 0 oz. 3 se uporabi burst 1
-						else																															// vsebina se v tem primeru prekopira v oba kanala 
-							p->Burst = &p->burst[0];																				// na SetPwmTab00
+						if(_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2) == PFM_STAT_SIMM1)	// preklopi na aktivni objekt samo, ce je eksplicitno dolocen
+							p->Burst = &p->burst[0];																				// ce je simm. 0 oz. 3 se uporabi burst 1 na SetPwmTab00
+						if(_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2) == PFM_STAT_SIMM2)
+							p->Burst = &p->burst[1];
+						p->Trigger.time=0;															// reset trigger process		
 //__________________________________________________________________________________________________________
 					} else {
 						if(timeout && !(timeout -= n)) {																	// #93wefjlnw83

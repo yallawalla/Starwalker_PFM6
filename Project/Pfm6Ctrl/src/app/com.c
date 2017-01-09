@@ -937,11 +937,11 @@ int				i;
 						pfm->Burst->Period=atoi(cc[2]);
 					}
 					if(n>3) {
-						pfm->Trigger.Count=atoi(cc[3]);
+						pfm->Trigger.count=atoi(cc[3]);
 						_CLEAR_MODE(pfm,_TRIGGER_PERIODIC);
 					}
 					else
-						pfm->Trigger.Count=1;
+						pfm->Trigger.count=1;
 					SetPwmTab(pfm);
 					break;
 //______________________________________________________________________________________

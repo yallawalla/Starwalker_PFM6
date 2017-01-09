@@ -548,7 +548,7 @@ void			Trigger(PFM *p) {
 						_TIM.active=PFM_command(NULL,0);												// find active channel
 						if(_MODE(pfm,_CHANNEL1_DISABLE)) {											// single channel 2 mode
 							if(_MODE(pfm,_ALTERNATE_TRIGGER)) {										// altenate trigger
-								if(pfm->count % 2) {
+								if(p->Trigger.counter % 2) {
 									_TIM.eint=_TIM.eint2;
 									if(_TIM.active & PFM_STAT_SIMM2)
 										_TIM.p2 = _TIM.pwch2;
@@ -566,7 +566,7 @@ void			Trigger(PFM *p) {
 							}
 						} else if(_MODE(pfm,_CHANNEL2_DISABLE)) {								// single channel 1 mode
 								if(_MODE(pfm,_ALTERNATE_TRIGGER)) {									// altenate trigger
-									if(pfm->count % 2) {
+									if(p->Trigger.counter % 2) {
 										_TIM.eint=_TIM.eint2;
 										if(_TIM.active & PFM_STAT_SIMM2)
 											_TIM.p1 = _TIM.pwch2;
@@ -584,7 +584,7 @@ void			Trigger(PFM *p) {
 							}
 						} else {																								// dual channel mode
 							if(_MODE(pfm,_ALTERNATE_TRIGGER)) {										// altenate trigger
-								if(pfm->count % 2) {
+								if(p->Trigger.counter % 2) {
 									_TIM.eint=_TIM.eint2;
 									if(_TIM.active & PFM_STAT_SIMM2)
 										_TIM.p2 = _TIM.pwch2;

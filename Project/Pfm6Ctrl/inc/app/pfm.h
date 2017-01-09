@@ -344,8 +344,10 @@ mode						mode;									// simmer time mode
 } simmer;
 //________________________________________________________________________
 typedef 				struct {
-short						Erpt,									// send energy on every ....
-								Count;								// count for multiple  triggers sequence	
+unsigned int		Erpt,									// send energy on every ....
+								counter,							// counter for multiple  triggers sequence	
+								count,
+								time;
 } trigger;
 //________________________________________________________________________
 typedef 				struct {
@@ -366,13 +368,13 @@ short						Error,
 								Up5,				
 								Up3,				
 #endif
-ADCRate,	
+								ADCRate,	
 								Errmask;
-volatile int		events,
+volatile unsigned int		
+								events,
 								debug,
 								mode,
-								count;								// burst count
-
+								fan_rate;
 struct {
 	short					delay,
 								width,
