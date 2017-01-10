@@ -575,5 +575,16 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 //----------------------------
 PFM8 rekonfiguracija
 
-3.1.2017	ADC, skupni handler za EXTI interrupt
+3.1.2017	- spremenjena konfiguracija folderja stm, FatFs v Utilities, na Projects ostanejo samo osnovni projekti
+			- rekonf. za PFM8 koncana, target define __PFM8__
+			- dodan skupni handler za EXTI interrupt, timerji preizkušeni ..
+			
 
+9.1.2017    - modif. za tandem
+			- dva locena burst objekta za vnos parametrov
+			- stari Burst se spr. v pointer, ki se aktivira s 
+				>s 0-3
+			- v alter mode brez upoštevanja števila pulzov...
+			- alter starta z zadnjim izbranim kanalom 
+				>s 1 ali 2
+			
