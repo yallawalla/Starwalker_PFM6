@@ -588,3 +588,4 @@ PFM8 rekonfiguracija
 			- alter starta z zadnjim izbranim kanalom 
 				>s 1 ali 2
 			
+
