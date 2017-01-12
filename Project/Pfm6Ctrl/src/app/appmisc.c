@@ -211,7 +211,7 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 * Return        :
 *******************************************************************************/
 			void	SetPwmTab(PFM *p) {
-			int n,ch=PFM_command(NULL,0);												// active channel
+			int n,ch=p->Simmer.active;												// active channel
 			while(_MODE(p,_PULSE_INPROC))												// wait the prev setup to finish !!!
 				_wait(2,_proc_loop);
 			if(ch == PFM_STAT_SIMM1) {				
@@ -240,11 +240,11 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 */
 void	SetSimmerPw(PFM *p) {
 
-int 	psimm0=p->Simmer[0].pw;																//		#kwwe723lwhd
-int 	psimm1=p->Simmer[1].pw;
+int 	psimm0=p->Simmer.pw[0];																//		#kwwe723lwhd
+int 	psimm1=p->Simmer.pw[1];
 	
-			if(PFM_command(NULL,0) != _STATUS(p, PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) {			
-				if(PFM_command(NULL,0) & PFM_STAT_SIMM1)
+			if(p->Simmer.active != _STATUS(p, PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) {			
+				if(p->Simmer.active & PFM_STAT_SIMM1)
 						psimm1=psimm0;
 				else
 						psimm0=psimm1;
@@ -345,12 +345,12 @@ int		simmrate;
 				simmrate = _PWM_RATE_HI;
 				_SET_MODE(pfm,pfm->Burst->Mode);
 			} else {
-				if(PFM_command(NULL,0) &  PFM_STAT_SIMM1) {
-					simmrate=p->Simmer[0].rate;
-					_SET_MODE(pfm,p->Simmer[0].mode);
+				if(p->Simmer.active &  PFM_STAT_SIMM1) {
+					simmrate=p->Simmer.rate[0];
+					_SET_MODE(pfm,p->Simmer.mode);
 				}	else {
-					simmrate=p->Simmer[1].rate;
-					_SET_MODE(pfm,p->Simmer[1].mode);
+					simmrate=p->Simmer.rate[1];
+					_SET_MODE(pfm,p->Simmer.mode);
 				}
 			}
 			

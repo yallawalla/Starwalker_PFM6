@@ -382,7 +382,7 @@ int 		hv,j,k,x,
 							++_TIM.p1;
 						}
 					} else {
-						TIM8->CCR1 = TIM1->CCR1 = pfm->Simmer[0].pw;
+						TIM8->CCR1 = TIM1->CCR1 = pfm->Simmer.pw[0];
 #if defined __PFM8__
 						TIM4->CCR1 = TIM2->CCR1 = TIM1->CCR1/2;	
 #endif
@@ -445,7 +445,7 @@ int 		hv,j,k,x,
 							++_TIM.p2;
 						}
 					} else {
-						TIM8->CCR3 = TIM1->CCR3 = pfm->Simmer[1].pw;
+						TIM8->CCR3 = TIM1->CCR3 = pfm->Simmer.pw[1];
 #if defined __PFM8__
 						TIM4->CCR3 = TIM2->CCR3 = TIM1->CCR3/2;
 #endif
@@ -545,7 +545,7 @@ void			Trigger(PFM *p) {
 						_DEBUG_(_DBG_SYS_MSG,"trigger aborted...");
 					}
 					else {						
-						_TIM.active=PFM_command(NULL,0);												// find active channel
+						_TIM.active=p->Simmer.active;												// find active channel
 						if(_MODE(pfm,_CHANNEL1_DISABLE)) {											// single channel 2 mode
 							if(_MODE(pfm,_ALTERNATE_TRIGGER)) {										// altenate trigger
 								if(p->Trigger.counter % 2) {

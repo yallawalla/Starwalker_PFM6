@@ -138,7 +138,7 @@ typedef					enum
 #define					PFM_HV2_ERR								0x4000					// center cap voltaghe out of range
 #define					PFM_I2C_ERR								0x8000					// i2c comm. not responding
 
-#if		defined (__PFM6__) || defined (__PFM8__) || defined  (__DISC4__)
+#if		defined		(__PFM6__) || defined (__PFM8__) || defined  (__DISC4__)
 	#define					_MODE(p,a)			(bool)(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a))
 	#define					_SET_MODE(p,a)				(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 1
 	#define					_CLEAR_MODE(p,a)			(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 0
@@ -146,7 +146,7 @@ typedef					enum
 	#define					_EVENT(p,a)			(bool)(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a))
 	#define					_SET_EVENT(p,a)				(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a)) = 1
 	#define					_CLEAR_EVENT(p,a)			(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a)) = 0
-#elif defined  (__DISC7__)
+#elif defined		(__DISC7__)
 	#define					_EVENT(p,a)					(p->events & (1<<(a)))
 	
 	#define					_SET_EVENT(p,a)			do {				\
@@ -337,14 +337,16 @@ mode						Mode;									// burst time mode
 } burst;
 //________________________________________________________________________
 typedef 				struct {
-short						pw,										// simmer pwm, izracunan iz _PFM_simmer_set
-								rate,									// simmer pwm rate
-								max;									// simmer current limits
+short						pw[2],								// simmer pwm, izracunan iz _PFM_simmer_set
+								rate[2],							// simmer pwm rate
+								max,									// simmer current limits
+								active;
 mode						mode;									// simmer time mode
+unsigned int		timeout;
 } simmer;
 //________________________________________________________________________
 typedef 				struct {
-unsigned int		Erpt,									// send energy on every ....
+unsigned int		erpt,									// send energy on every ....
 								counter,							// counter for multiple  triggers sequence	
 								count,
 								time;
@@ -352,7 +354,7 @@ unsigned int		Erpt,									// send energy on every ....
 //________________________________________________________________________
 typedef 				struct {
 burst						*Burst,burst[2];
-simmer					Simmer[2];
+simmer					Simmer;
 trigger					Trigger;
 short						Error,	
 								Status,	
@@ -403,11 +405,11 @@ int							IgbtTemp(temp_ch);
 
 
 int							Eack(PFM *),
-								PFM_command(PFM *, int),
 								PFM_pockels(PFM *),
-								PFM_status_send(PFM *, int);
+								PFM_status_send(PFM *);
 								
-void 						USBD_Storage_Init(void);
+void 						USBD_Storage_Init(void),
+								PFM_command(PFM *, int);
 				        
 #define					_VOUT_MODE						0x20
 #define					_VOUT									0x21

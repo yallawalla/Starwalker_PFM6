@@ -555,7 +555,7 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 26.10.2016	PULSE_FINISHED se prestavi iz TIM Isr na konec ADC DMA interrupt, da se zakjuci odziv na ADC preden se gre racunat energija. 
 			za  nazaj naj bi blo OK, ker je bil dozdaj itak samo en interval za vse kanale ???
 
-9.11.2016 smafu v razporeditvi SetPwmTab ...
+9.11.2016 	smafu v razporeditvi SetPwmTab ...
 
 23.11.2016 bug v TriggerADC... argument p je lahko NULL in ga ne smes uporabljat v proceduri kot pointer na pfm objekt :):):)
 			>v 2.13 Nov 23 2016, <31584BBF>
@@ -587,5 +587,11 @@ PFM8 rekonfiguracija
 			- v alter mode brez upoštevanja števila pulzov...
 			- alter starta z zadnjim izbranim kanalom 
 				>s 1 ali 2
-			
+				
+12.1.2017	Dnevni backup
+			- rekonf. simmer objekta
+			- rekonf. PFM_command.... brez staticnih spremenljivk, 
+			  prestavljene so v simmer objekt
+			- modif. PFM_command....  zaenkrat. je predvideno, da v pfm8 vedno delata oba simmerja/fleša hkrati (>s 3). 
+			  Laser oz. trigger je možnno tako izbrati sam z _CHANNEL1_SINGLE_TRIGGER, ki se doslej uporablja v ST konfiguraciji
 

@@ -975,25 +975,25 @@ int				i;
 					switch(numscan(++c,cc,',')) {
 						case 0:
 							__print("\r>s(immer) n // t1,t2,f1,f2..%dns,%dns,%dus,%dus",
-									(int)(1000*pfm->Simmer[0].pw)/_uS,
-										(int)(1000*pfm->Simmer[1].pw)/_uS,
-											pfm->Simmer[0].rate/_uS,
-												pfm->Simmer[1].rate/_uS);
+									(int)(1000*pfm->Simmer.pw[0])/_uS,
+										(int)(1000*pfm->Simmer.pw[1])/_uS,
+											pfm->Simmer.rate[0]/_uS,
+												pfm->Simmer.rate[1]/_uS);
 							break;
 						case 1:
 							PFM_command(pfm,atoi(cc[0]) & 0x3);
 							break;
 						case 2:
-							pfm->Simmer[0].pw=atoi(cc[0])*_uS/1000;
-							pfm->Simmer[1].pw=atoi(cc[1])*_uS/1000;
+							pfm->Simmer.pw[0]=atoi(cc[0])*_uS/1000;
+							pfm->Simmer.pw[1]=atoi(cc[1])*_uS/1000;
 							SetSimmerPw(pfm);
 							break;
 						case 3:
-							pfm->Simmer[0].pw=atoi(cc[0])*_uS/1000;
-							pfm->Simmer[1].pw=atoi(cc[1])*_uS/1000;
+							pfm->Simmer.pw[0]=atoi(cc[0])*_uS/1000;
+							pfm->Simmer.pw[1]=atoi(cc[1])*_uS/1000;
 							if(atoi(cc[2])<10 || atoi(cc[2])>100)
 								return _PARSE_ERR_ILLEGAL;
-							pfm->Simmer[0].rate=pfm->Simmer[1].rate=atoi(cc[2])*_uS;
+							pfm->Simmer.rate[0]=pfm->Simmer.rate[1]=atoi(cc[2])*_uS;
 							SetSimmerRate(pfm,_SIMMER_LOW);		
 							break;
 						case 4:																																					// #kerer734hf
@@ -1001,10 +1001,10 @@ int				i;
 									return _PARSE_ERR_SYNTAX;
 							if(atoi(cc[0])> 500 || atoi(cc[1])> 500 || atoi(cc[2])<10 || atoi(cc[2])>100 || atoi(cc[3])<10 || atoi(cc[3])>100)
 								return _PARSE_ERR_ILLEGAL;
-							pfm->Simmer[0].pw=atoi(cc[0])*_uS/1000;
-							pfm->Simmer[1].pw=atoi(cc[1])*_uS/1000;
-							pfm->Simmer[0].rate=atoi(cc[2])*_uS;
-							pfm->Simmer[1].rate=atoi(cc[3])*_uS;
+							pfm->Simmer.pw[0]=atoi(cc[0])*_uS/1000;
+							pfm->Simmer.pw[1]=atoi(cc[1])*_uS/1000;
+							pfm->Simmer.rate[0]=atoi(cc[2])*_uS;
+							pfm->Simmer.rate[1]=atoi(cc[3])*_uS;
 							SetSimmerRate(pfm,_SIMMER_LOW);		
 							break;
 						default:
@@ -1017,7 +1017,7 @@ int				i;
 						case 0:
 							__print("\r\n");
 							__print("DAC limiter(ch 1/2)         ... %d%c,%d%c\r\n",(DAC_GetDataOutputValue(DAC_Channel_1)*100+0x7ff)/0xfff,'%',(DAC_GetDataOutputValue(DAC_Channel_2)*100+0x7ff)/0xfff,'%');
-							__print("current limits(l/h)         ... %dA,%dA,%dA,%dA\r\n",_AD2I(pfm->Simmer[0].max),_AD2I(pfm->Simmer[1].max),_AD2I(pfm->Burst->max[0]),_AD2I(pfm->Burst->max[1]));
+							__print("current limits(l/h)         ... %dA,%dA,%dA,%dA\r\n",_AD2I(pfm->Simmer.max),_AD2I(pfm->Simmer.max),_AD2I(pfm->Burst->max[0]),_AD2I(pfm->Burst->max[1]));
 							__print("voltage limits(l/h)         ... %dV,%dV\r\n",ADC3_AVG*_AD2HV(ADC3->LTR),ADC3_AVG*_AD2HV(ADC3->HTR));
 
 						break;
@@ -1025,11 +1025,10 @@ int				i;
 							DAC_SetDualChannelData(DAC_Align_12b_R,(atoi(cc[1])*0xfff+50)/100,(atoi(cc[0])*0xfff+50)/100);
 							DAC_DualSoftwareTriggerCmd(ENABLE);		
 							break;
-						case 4:	
-							pfm->Simmer[0].max=_I2AD(atoi(cc[0]));
-							pfm->Simmer[1].max=_I2AD(atoi(cc[1]));
-							pfm->Burst->max[0]=_I2AD(atoi(cc[2]));
-							pfm->Burst->max[1]=_I2AD(atoi(cc[3]));
+						case 3:	
+							pfm->Simmer.max=_I2AD(atoi(cc[0]));
+							pfm->Burst->max[0]=_I2AD(atoi(cc[1]));
+							pfm->Burst->max[1]=_I2AD(atoi(cc[2]));
 							break;
 						default:
 							return _PARSE_ERR_SYNTAX;
@@ -1057,13 +1056,13 @@ int				i;
 				case 'x':
 					switch(atoi(++c)) {
 					case 1:
-						pfm->Simmer[0].mode=pfm->Simmer[1].mode=_XLAP_SINGLE;
+						pfm->Simmer.mode=_XLAP_SINGLE;
 						break;
 					case 2:
-						pfm->Simmer[0].mode=pfm->Simmer[1].mode=_XLAP_DOUBLE;
+						pfm->Simmer.mode=_XLAP_DOUBLE;
 						break;
 					case 4:
-						pfm->Simmer[0].mode=pfm->Simmer[1].mode=_XLAP_QUAD;
+						pfm->Simmer.mode=_XLAP_QUAD;
 						break;
 					default:
 						return _PARSE_ERR_SYNTAX;
@@ -1168,7 +1167,7 @@ int			u=0,umax=0,umin=0;
 					return _PARSE_ERR_NORESP;
 //______________________________________________________________________________________
 				case '!':
-					CanReply("wwwwX",0xC101,PFM_command(NULL,0),40000,pfm->Burst->Time,_ID_SYS2ENRG);
+					CanReply("wwwwX",0xC101,pfm->Simmer.active,40000,pfm->Burst->Time,_ID_SYS2ENRG);
 					_wait(100,_proc_loop);
 					CanReply("X",0x1A,_ID_SYS2ENRG);
 					_SET_EVENT(pfm,_TRIGGER);

@@ -49,16 +49,12 @@ void 			App_Init(void) {
 					memcpy(&pfm->Burst[1],&pfm->Burst[0],sizeof(burst));
 	
 					pfm->Trigger.count=1;
-					
-{
-	simmer	p;	
-					p.mode=_XLAP_QUAD;
-					p.max=_I2AD(1000);
-					p.pw=200*_uS/1000;
-					p.rate=50*_uS;
-					memcpy(&pfm->Simmer[0],&p,sizeof(simmer));
-					memcpy(&pfm->Simmer[1],&p,sizeof(simmer));
-}
+						
+					pfm->Simmer.mode=_XLAP_QUAD;
+					pfm->Simmer.max=_I2AD(1000);
+					pfm->Simmer.pw[0]=pfm->Simmer.pw[1]=200*_uS/1000;
+					pfm->Simmer.rate[0]=pfm->Simmer.rate[1]=50*_uS;
+
 					pfm->HVref=0;
 					pfm->ADCRate=_uS;
 
@@ -154,7 +150,12 @@ void			ProcessingEvents(PFM *p) {
 						_SET_ERROR(p,PFM_FAN_ERR);		
 					else
 						_CLEAR_ERROR(p,PFM_FAN_ERR);
-//
+//______________________________________________________________________________
+//______________________________________________________________________________
+//______________________________________________________________________________
+//______________________________________________________________________________
+//______________________________________________________________________________
+//______________________________________________________________________________
 //________Processing timed trigger______________________________________________
 //
 					if(_EVENT(p,_TRIGGER)) {																// trigger request
@@ -171,6 +172,10 @@ void			ProcessingEvents(PFM *p) {
 								++p->Trigger.time;																// rearm counters, rounded to next milliseconds to avoid 1ms jitter !!!
 						}
 					}
+//______________________________________________________________________________
+//______________________________________________________________________________
+//______________________________________________________________________________
+//______________________________________________________________________________
 //______________________________________________________________________________
 					if(p->Trigger.time  && __time__ >= p->Trigger.time ) {
 						Trigger(p);
@@ -296,13 +301,17 @@ static		int		bounce=0;
 							_CLEAR_ERROR(p,PFM_ERR_SIMM2);
 					}
 //-------------------------------------------------------------------------------
-					k=PFM_command(NULL,1);
+					if(p->Simmer.timeout && __time__ >= p->Simmer.timeout) {	
+							_TRIGGER1_OFF;	
+							_TRIGGER2_OFF;
+					}
+//-------------------------------------------------------------------------------
 					if((status_image != p->Status) || (error_image != p->Error)) {
 						error_image = p->Error;	
 						status_image = p->Status;
 						bounce=25;
 					} else if(bounce && !--bounce)
-						PFM_status_send(p,k);
+						PFM_status_send(p);
 //-------------------------------------------------------------------------------
 					if(_MODE(p,__TEST__) && !_MODE(p,_PULSE_INPROC) && !(__time__ % 100))
 						if(_TIM.Hvref < p->HVref - p->HVref/15) {
@@ -348,7 +357,7 @@ int						i=_STATUS_WORD;
 							terr=500;																			// nest handler delay
 							ton=300;																			// recovery delay
 							_RED2(100);																		// indicator !!!
-							if(PFM_command(NULL,0))												// on error = simmer off
+							if(p->Simmer.active)												// on error = simmer off
 								PFM_command(p,0);
 						}
 						return;
@@ -529,7 +538,7 @@ char			*q=(char *)rx.Data;
 							case _ID_SYS2PFM:
 								switch(*(uint8_t *)q++) {
 									case _PFM_status_req:
-										PFM_status_send(p,PFM_command(NULL,0));
+										PFM_status_send(p);
 										break;
 									case _PFM_IgbtTemp_req:
 										CanReply("ccP",_PFM_IgbtTemp_ack,p->Temp);
@@ -566,7 +575,7 @@ char			*q=(char *)rx.Data;
 											p->Burst->N=1;
 										if(p->Burst->Length==0)
 											p->Burst->Length=3000;	
-										p->Trigger.Erpt = 0;
+										p->Trigger.erpt = 0;
 // __________________________________________________________________________________________________________
 										if(_MODE(p,_LONG_INTERVAL)) {
 											for(n=0; n<8; ++n)
@@ -581,7 +590,7 @@ char			*q=(char *)rx.Data;
 //___________________________________________________________________________________________________________								
 										} else {																																// NdYag long pulse burst, LW 4x2ms, 15/25 ms burst 
 											if(p->Burst->Length > _MAX_BURST/_uS) {
-												p->Trigger.Erpt = p->Burst->N-1;																		// energy report after N pulses
+												p->Trigger.erpt = p->Burst->N-1;																		// energy report after N pulses
 												p->Burst->Period = (p->Burst->Length / p->Burst->N + 500)/1000;			// repetition rate = burst repetition, rounded to 1ms
 												p->Burst->Length=(p->Burst->Period-1)*1000;													// burst length = repetition(us) - 1ms
 												p->Burst->N=1;																											// treated as single pulse
@@ -593,9 +602,9 @@ char			*q=(char *)rx.Data;
 										break;
 									case _PFM_simmer_set:
 										if(rx.DLC==5) {
-											p->Simmer[0].pw=*(short *)q/50 + 7;
+											p->Simmer.pw[0]=*(short *)q/50 + 7;
 											++q;++q;
-											p->Simmer[1].pw=*(short *)q/50 + 7;
+											p->Simmer.pw[1]=*(short *)q/50 + 7;
 											SetSimmerRate(p,_SIMMER_LOW);	
 											break;
 										}		
@@ -611,10 +620,10 @@ char			*q=(char *)rx.Data;
 													pw2 >= 120 && pw2 <= 500 && 
 														r1 >= 10 && r1 <= 100 &&
 															r2 >= 10 && r2 <= 100) {
-																p->Simmer[0].pw=pw1*_uS/1000;
-																p->Simmer[1].pw=pw2*_uS/1000;
-																p->Simmer[0].rate=r1*_uS;
-																p->Simmer[1].rate=r2*_uS;
+																p->Simmer.pw[0]=pw1*_uS/1000;
+																p->Simmer.pw[1]=pw2*_uS/1000;
+																p->Simmer.rate[0]=r1*_uS;
+																p->Simmer.rate[1]=r2*_uS;
 																SetSimmerRate(pfm,_SIMMER_LOW);	
 																break;
 															}
@@ -654,7 +663,7 @@ char			*q=(char *)rx.Data;
 											if(rx.DLC > 4) {																				// only if config. parameters are there...
 												++q;++q;
 												if(*q & 1)
-													_CLEAR_MODE(p,_CHANNEL1_DISABLE);
+													_CLEAR_MODE(p,_CHANNEL1_DISABLE);										// single2-disable2-single1-disable1
 												else
 													_SET_MODE(p,_CHANNEL1_DISABLE);
 												if(*q & 2)
@@ -804,7 +813,7 @@ int				i;
 								e2+=(short)(ADC2_buf[i].U) * (short)(ADC2_buf[i].I-_TIM.I2off);							
 						}
 
-						if(n++ == p->Trigger.Erpt) {
+						if(n++ == p->Trigger.erpt) {
 							e1/=(kmJ*_uS/p->ADCRate);
 							e2/=(kmJ*_uS/p->ADCRate);
 							if(_STATUS(p,PFM_STAT_SIMM1) && !_STATUS(p,PFM_STAT_SIMM2)) {
@@ -835,98 +844,85 @@ int				i;
   * @retval : None
   *
   */
-int				PFM_status_send(PFM *p, int k) {
-						if(p->Error & (PFM_ERR_SIMM1 | PFM_ERR_SIMM2))
-							CanReply("cwiP",_PFM_status_req,
-								(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | k,
-								(p->Error & ~(PFM_ERR_SIMM1 | PFM_ERR_SIMM2)) | k
-								);
-						else
-							CanReply("cwiP",_PFM_status_req,
-								(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | k,
-								p->Error);		
-					return k;
-					}
+int				PFM_status_send(PFM *p) {
+int				k=p->Simmer.active;
+					if(p->Error & (PFM_ERR_SIMM1 | PFM_ERR_SIMM2))
+						CanReply("cwiP",_PFM_status_req,
+							(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | k,
+							(p->Error & ~(PFM_ERR_SIMM1 | PFM_ERR_SIMM2)) | k
+							);
+					else
+						CanReply("cwiP",_PFM_status_req,
+							(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | k,
+							p->Error);		
+				return k;
+}
 /*______________________________________________________________________________
   * @brief  Interprets the PFM command message
   * @param 	pfmcmd: PFM command word as defined in CAN protocol  ICD 
   * @retval : None
   *
   */					
-int				PFM_command(PFM *p, int n) {
-static		int	timeout=0,no=0;
-					int	Uidle;
+void			PFM_command(PFM *p, int n) {
 //________________________________________________________________________________
-					if(p) {
-						while(_MODE(p,_PULSE_INPROC))																			// no change during pulse
-							_wait(2,_proc_loop);
+					while(_MODE(p,_PULSE_INPROC))																			// no change during pulse
+						_wait(2,_proc_loop);
 //________________________________________________________________________________
-						if(no != n) {																											// simmer status changed ???
-							_TRIGGER1_OFF;																									// kill both triggers
-							_TRIGGER2_OFF;
-							_CLEAR_STATUS(p,PFM_STAT_SIMM1);																// clear status
-							_CLEAR_STATUS(p,PFM_STAT_SIMM2);
-							SetSimmerPw(p);																									// kill both simmers
-							no=n & (PFM_STAT_SIMM1 | PFM_STAT_SIMM2);												// mask filter command
-							_wait(100,_proc_loop);																					// wait 100 msecs
-							
-							if(!_MODE(p,_CHANNEL1_DISABLE)) {																// if not Erbium  single channel
-								if(_MODE(p,_CHANNEL1_SINGLE_TRIGGER))													// single trigger config.. as from V1.11
-									Uidle=2*p->HV/7;
-								else
-									Uidle=p->HV/7;
-								_TIM.I1off=ADC1_simmer.I;																			// get current sensor offset
-								_TIM.U1off=ADC1_simmer.U;																			// check idle voltage
-								if(abs(Uidle - ADC3_AVG*ADC1_simmer.U) > _HV2AD(50)) {				// HV +/- 30V range ???
-									_SET_ERROR(p,PFM_ERR_LNG);																	// if not, PFM_STAT_UBHIGH error 
-								}
-							}
-							if(!_MODE(p,_CHANNEL2_DISABLE)) {																// same for NdYAG channel
-								if(_MODE(p,_CHANNEL2_SINGLE_TRIGGER))													// single trigger config.. as from V1.11
-									Uidle=2*p->HV/7;
-								else
-									Uidle=p->HV/7;
-								_TIM.I2off=ADC2_simmer.I;
-								_TIM.U2off=ADC2_simmer.U;
-								if(abs(Uidle - ADC3_AVG*ADC2_simmer.U) > _HV2AD(50)) {
-									_SET_ERROR(p,PFM_ERR_LNG);
-								}
+					if(p->Simmer.active != n) {																				// simmer status changed ???
+						_TRIGGER1_OFF;																									// kill both triggers
+						_TRIGGER2_OFF;
+						_CLEAR_STATUS(p,PFM_STAT_SIMM1);																// clear status
+						_CLEAR_STATUS(p,PFM_STAT_SIMM2);
+						SetSimmerPw(p);																									// kill both simmers
+						p->Simmer.active=n & (PFM_STAT_SIMM1 | PFM_STAT_SIMM2);					// mask filter command
+						_wait(100,_proc_loop);																					// wait 100 msecs	
+						if(!_MODE(p,_CHANNEL1_DISABLE)) {																// if not Erbium  single channel
+int						u=p->HV/7;;
+							if(_MODE(p,_CHANNEL1_SINGLE_TRIGGER))													// single trigger config.. as from V1.11
+								u=2*p->HV/7;
+							_TIM.I1off=ADC1_simmer.I;																			// get current sensor offset
+							_TIM.U1off=ADC1_simmer.U;																			// check idle voltage
+							if(abs(u - ADC3_AVG*ADC1_simmer.U) > _HV2AD(50)) {						// HV +/- 30V range ???
+								_SET_ERROR(p,PFM_ERR_LNG);																	// if not, PFM_STAT_UBHIGH error 
 							}
 						}
+						if(!_MODE(p,_CHANNEL2_DISABLE)) {																// same for NdYAG channel
+int						u=p->HV/7;
+							if(_MODE(p,_CHANNEL2_SINGLE_TRIGGER))													// single trigger config.. as from V1.11
+								u=2*p->HV/7;
+							_TIM.I2off=ADC2_simmer.I;
+							_TIM.U2off=ADC2_simmer.U;
+							if(abs(u - ADC3_AVG*ADC2_simmer.U) > _HV2AD(50)) {
+								_SET_ERROR(p,PFM_ERR_LNG);
+							}
+						}
+					}
 //__________________________________________________________________________________________________________
-						if(no && _MODE(p,_CHANNEL1_DISABLE))															// if single channel request
-							_SET_STATUS(p, PFM_STAT_SIMM2);																	// modify status
-						else if(no && _MODE(p,_CHANNEL2_DISABLE))													// same for other channel
-							_SET_STATUS(p, PFM_STAT_SIMM1);
-						else
-							_SET_STATUS(p, no);																							// else set status as requested
+					if(p->Simmer.active && _MODE(p,_CHANNEL1_DISABLE))								// if single channel request
+						_SET_STATUS(p, PFM_STAT_SIMM2);																	// modify status
+					else if(p->Simmer.active && _MODE(p,_CHANNEL2_DISABLE))						// same for other channel
+						_SET_STATUS(p, PFM_STAT_SIMM1);
+					else
+						_SET_STATUS(p, p->Simmer.active);																// else set status as requested
 //__________________________________________________________________________________________________________
-#if		defined (__PFM6__) || defined (__PFM8__)
-						if(!_STATUS(p,_PFM_CWBAR_STAT))																		// crowbar not cleared
-							_SET_ERROR(p,PFM_ERR_PULSEENABLE);
+#if	defined (__PFM6__) || defined (__PFM8__)
+					if(!_STATUS(p,_PFM_CWBAR_STAT))																		// crowbar not cleared
+						_SET_ERROR(p,PFM_ERR_PULSEENABLE);
 #endif
 //__________________________________________________________________________________________________________
-						if(no & PFM_STAT_SIMM1)																						// activate triggers
-							_TRIGGER1_ON;
-						if(no & PFM_STAT_SIMM2)
-							_TRIGGER2_ON;
-						
-						SetSimmerRate(p,_SIMMER_LOW);																			// set low simmer
-						timeout=1000;																											// set trigger burst timeout
-						
-						if(_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2) == PFM_STAT_SIMM1)	// preklopi na aktivni objekt samo, ce je eksplicitno dolocen
-							p->Burst = &p->burst[0];																				// ce je simm. 0 oz. 3 se uporabi burst 1 na SetPwmTab00
-						if(_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2) == PFM_STAT_SIMM2)
-							p->Burst = &p->burst[1];
-						p->Trigger.time=0;															// reset trigger process		
-//__________________________________________________________________________________________________________
-					} else {
-						if(timeout && !(timeout -= n)) {																	// #93wefjlnw83
-							_TRIGGER1_OFF;																									// kill triggers after count interval
-							_TRIGGER2_OFF;
-						}
-					}						
-					return	no;
+					if((p->Simmer.active & PFM_STAT_SIMM1) && !_MODE(p,_CHANNEL2_SINGLE_TRIGGER))
+						_TRIGGER1_ON;
+					if((p->Simmer.active & PFM_STAT_SIMM2) && !_MODE(p,_CHANNEL1_SINGLE_TRIGGER))
+						_TRIGGER2_ON;
+					
+					SetSimmerRate(p,_SIMMER_LOW);																			// set low simmer
+					p->Simmer.timeout=__time__+1000;																	// set trigger burst timeout
+					
+					if(_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2) == PFM_STAT_SIMM1)	// preklopi na aktivni objekt samo, ce je eksplicitno dolocen
+						p->Burst = &p->burst[0];																				// ce je simm. 0 oz. 3 se uporabi burst 1 na SetPwmTab00
+					if(_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2) == PFM_STAT_SIMM2)
+						p->Burst = &p->burst[1];
+					p->Trigger.time=0;																								// reset trigger process		
 }
 /*______________________________________________________________________________
   * @brief  Pockels cell driver setup
