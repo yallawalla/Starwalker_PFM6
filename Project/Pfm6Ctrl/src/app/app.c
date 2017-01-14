@@ -70,20 +70,23 @@ void 			App_Init(void) {
 					__can=Initialize_CAN(0);
 					__com0=Initialize_USART(921600);		
 
-#if defined (__DISC4__)	|| defined (__DISC7__)
+#define noise (rand()%100 - 50)
+#if defined (__DISC4__)
 {
-int				i;
+int				i,j;
+					srand(__time__);
 					for(i=0; i<ADC3_AVG; ++i) {
-						ADC3_buf[i].HV=ADC3_buf[i].HV2=_HV2AD(700)/ADC3_AVG;
-						ADC3_buf[i].IgbtT[0]=ADC3_buf[i].IgbtT[1]=0x7ff;
-						ADC3_buf[i].Um5=_m5V2AD(-4)/8;
-						ADC3_buf[i].Up20=_p20V2AD(20)/8;
+						ADC3_buf[i].HV=_V2AD(700,2000,6.2) + noise;
+						ADC3_buf[i].HV2=_V2AD(350,2000,6.2) + noise;
+						for(j=0; j<sizeof(ADC3_buf[i].IgbtT)/sizeof(short); ++j)
+							ADC3_buf[i].IgbtT[j]=2000 + noise;
+						ADC3_buf[i].Um5=_Vn2AD(-6,24,12) + noise;
+						ADC3_buf[i].Up20=_V2AD(18,68,12) + noise;
 					}
 }
 #endif
-#if defined (__PFM8__)
+#if defined (__DISC7__)
 {
-#define noise (rand()%100 - 50)
 int				i,j;
 					srand(__time__);
 					for(i=0; i<ADC3_AVG; ++i) {
@@ -269,16 +272,17 @@ static		int		bounce=0;
 						_SET_ERROR(p,PFM_ERR_15V);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_15V);
+#else
 #endif	
 //-------------------------------------------------------------------------------
 // - polovicna napetost na banki +/- 20%
 // - meris sele od 100V naprej
 // - vhod v AD za HV/2 je ze HW mnozen z 2 (pfm6 only)
 //
-#if	defined (__PFM6__)
-					if(ADC3_buf[0].HV > 100 && abs(ADC3_buf[0].HV-ADC3_buf[0].HV2) > ADC3_buf[0].HV/5)
-#elif defined (__PFM8__)
+#if defined (__PFM8__)
 					if(ADC3_buf[0].HV > 100 && abs(ADC3_buf[0].HV-2*ADC3_buf[0].HV2) > ADC3_buf[0].HV/5)
+#else
+					if(ADC3_buf[0].HV > 100 && abs(ADC3_buf[0].HV-ADC3_buf[0].HV2) > ADC3_buf[0].HV/5)
 #endif	
 						_SET_ERROR(p,PFM_HV2_ERR);
 					else

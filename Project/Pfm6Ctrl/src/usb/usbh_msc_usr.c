@@ -67,11 +67,7 @@ void		USBHost (USBH_HOST *h) {
 }
 
 void		Initialize_host_msc(void) {
-#if defined (__DISC4__)
-				GPIO_ResetBits(GPIOC,GPIO_Pin_0);
-#elif defined (__DISC7__)
-				GPIO_ResetBits(GPIOD,GPIO_Pin_5);
-#endif
+				GPIO_ResetBits(_VBUS_PORT,_VBUS_BIT);
 				USBH_App=USBH_Iap;
 				USBH_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USB_Host, &USBH_MSC_cb, &USR_USBH_MSC_cb);
 				if(!_proc_find((func *)USBHost,&USB_Host))

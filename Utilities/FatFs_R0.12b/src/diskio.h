@@ -11,21 +11,19 @@ extern "C" {
 
 #include "integer.h"
 #include "stdint.h"
-
-#if		defined (__PFM6__) || defined (__PFM8__) || defined  (__DISC4__)
-	#define FATFS_SECTOR			FLASH_Sector_6
-	#define	PAGE_SIZE					0x20000
-	#define	PAGE_COUNT				5
-	#define FS_CPU						"0:"
-	#define FS_USB						"1:"
-#elif defined  (__DISC7__)
+	
+#if defined  (__F7__)
 	#define FATFS_SECTOR			FLASH_Sector_5
 	#define	PAGE_SIZE					0x40000
 	#define	PAGE_COUNT				3
 	#define FS_CPU						"1:"
 	#define FS_USB						"0:"
 #else
-	*** error, undefined HW
+	#define FATFS_SECTOR			FLASH_Sector_6
+	#define	PAGE_SIZE					0x20000
+	#define	PAGE_COUNT				5
+	#define FS_CPU						"0:"
+	#define FS_USB						"1:"
 #endif
 	
 #define	SECTOR_SIZE				512

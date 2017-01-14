@@ -146,7 +146,7 @@ typedef					enum
 	#define					_EVENT(p,a)			(bool)(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a))
 	#define					_SET_EVENT(p,a)				(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a)) = 1
 	#define					_CLEAR_EVENT(p,a)			(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a)) = 0
-#elif defined		(__DISC7__)
+#elif defined		(__F7__)
 	#define					_EVENT(p,a)					(p->events & (1<<(a)))
 	
 	#define					_SET_EVENT(p,a)			do {				\
@@ -215,7 +215,7 @@ extern int			_ADCRates[];
 #if	defined (__PFM6__) || defined (__DISC4__)
 typedef struct	{	unsigned short			IgbtT[2],HV2,HV,Up20,Um5;													} _ADC3DMA;
 #endif
-#if	defined (__PFM8__)
+#if	defined (__PFM8__) || defined (__DISC7__)
 typedef struct	{	unsigned short			IgbtT[4],HV2,HV,VCAP1,VCAP2,Up12,Up5,Up3;					} _ADC3DMA;						
 #endif
 					
@@ -523,7 +523,7 @@ int			SetChargerVoltage(int);
 #define _USB_PDEN_BIT 		GPIO_Pin_9
 #define _USB_PDEN_PORT	 	GPIOD
 
-#if defined (__PFM6__)
+#if defined (__PFM6__) || defined (__DISC4__)
 #define _VBUS_BIT GPIO_Pin_0
 #define _VBUS_PORT GPIOC
 #define _TRIGGER1_BIT GPIO_Pin_12
@@ -537,7 +537,7 @@ int			SetChargerVoltage(int);
 #define _CWBAR_INT_pin	EXTI_PinSource14
 #define _CWBAR_INT_line	EXTI_Line14
 
-#elif defined (__PFM8__)
+#elif defined (__PFM8__) || defined (__DISC7__)
 #define _VBUS_BIT GPIO_Pin_5
 #define _VBUS_PORT GPIOD
 #define _TRIGGER1_BIT GPIO_Pin_4

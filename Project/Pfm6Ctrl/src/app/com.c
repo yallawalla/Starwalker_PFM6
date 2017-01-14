@@ -1112,7 +1112,7 @@ int				i;
 int			u=0,umax=0,umin=0;
 					switch(numscan(++c,cc,',')) {
 						case 0:
-#if	defined (__PFM8__)
+#if	defined (__PFM8__) || defined (__DISC7__)
 							__print("\r>u(bank)  U,U/2,Vc1,Vc2 ... %.0fV,%.0fV,%.0fV,%.0fV\n",_AD2V(ADC3_buf[0].HV,2000,6.2),
 																																								_AD2V(ADC3_buf[0].HV2,2000,6.2),
 																																								_AD2V(ADC3_buf[0].VCAP1,2000,6.2),

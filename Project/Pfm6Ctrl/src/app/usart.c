@@ -34,7 +34,7 @@ _io	*__com0, *__com1, *__dbug;
 #define TxBufferSize		256
 /* Private variables ---------------------------------------------------------*/
 USART_InitTypeDef USART_InitStructure;
-#if		defined (__PFM6__) 
+#if		defined (__PFM6__) || defined (__PFM8__) 
 void DMA_Configuration(_io *io)
 {	
 	DMA_InitTypeDef DMA_InitStructure;
@@ -108,7 +108,7 @@ int	i=0;
 	else
 		return EOF;
 }
-#elif defined (__DISC4__)	|| defined (__DISC7__) || defined (__PFM8__)
+#elif defined (__DISC4__)	|| defined (__DISC7__)
 //______________________________________________________________________________________
 volatile int32_t  ITM_RxBuffer=ITM_RXBUFFER_EMPTY; 
 void DMA_Configuration(_io *io)

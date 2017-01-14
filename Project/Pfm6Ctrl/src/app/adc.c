@@ -137,7 +137,7 @@ void 	Initialize_ADC1(void)
 			ADC_InitStructure.ADC_ScanConvMode = ENABLE;
 			ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;
 			ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising;	
-#ifdef	__DISC7__
+#ifdef	__F7__
 			ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T3_CC1;
 #else
 			ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T8_TRGO;
@@ -211,7 +211,7 @@ void 	Initialize_ADC2(void)
 			ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;
 			ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising;
 
-#ifdef	__DISC7__
+#ifdef	__F7__
 			ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T3_CC1;
 #else
 			ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T8_TRGO;
