@@ -55,9 +55,9 @@ void 	Initialize_NVIC() {
 			NVIC_InitStructure.NVIC_IRQChannel = CAN2_TX_IRQn;
 			NVIC_Init(&NVIC_InitStructure);
 
-			NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;							// fan sensor
+			NVIC_InitStructure.NVIC_IRQChannel = TIM8_TRG_COM_TIM14_IRQn;	// fan sensor
 			NVIC_Init(&NVIC_InitStructure);
-			
+
 			NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;				// HW errors
 			NVIC_Init(&NVIC_InitStructure);
 			

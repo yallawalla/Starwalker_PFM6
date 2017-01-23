@@ -524,10 +524,10 @@ int		cc,t=(_FAN_PWM_RATE*fanPmin)/200;
 					cc=(_FAN_PWM_RATE*(((t-fanTL)*(fanPmax-fanPmin))/(fanTH-fanTL)+fanPmin	))/200;
 			}
 			cc=__min(_FAN_PWM_RATE/2-5,__max(5,cc));
-			if(TIM_GetCapture1(TIM3) < cc)
-				TIM_SetCompare1(TIM3,TIM_GetCapture1(TIM3)+1);
+			if(TIM_GetCapture1(TIM13) < cc)
+				TIM_SetCompare1(TIM13,TIM_GetCapture1(TIM13)+1);
 			else
-				TIM_SetCompare1(TIM3,TIM_GetCapture1(TIM3)-1);
+				TIM_SetCompare1(TIM13,TIM_GetCapture1(TIM13)-1);
 			if(n==T_MIN)
 				return(t/100);
 			else
@@ -693,7 +693,18 @@ int		i,j,*p,*q;
 				p=&p[SECTOR_SIZE/4+1];
 			}
 }
-/*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/																		
+int		FLASH_Erase(uint32_t FLASH_Sector) {
+int		m;
+			FLASH_Unlock();
+			FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR|FLASH_FLAG_PGSERR);	
+			do {
+				Watchdog();	
+				m=FLASH_EraseSector(FLASH_Sector,VoltageRange_3);
+			} while (m==FLASH_BUSY);
+			return(m);
+}
+/*-----------------------------------------------------------------------*/																		
 int		Defragment(int mode) {
 int 	i,f,e,*p,*q,buf[SECTOR_SIZE/4];
 int		c0=0,c1=0;

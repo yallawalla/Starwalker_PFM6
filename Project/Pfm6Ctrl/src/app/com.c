@@ -34,12 +34,15 @@ int			DecodeMinus(char *c) {
 					_wait(200,_proc_loop);
 					switch(*cc[1]) {
 						case 'h':
+							GPIO_ResetBits(_VBUS_PORT,_VBUS_BIT);
 							Initialize_host_msc();
 							break;
 						case 'f':
+							GPIO_SetBits(_VBUS_PORT,_VBUS_BIT);
 							Initialize_device_msc();
 							break;
 						case 's':
+							GPIO_SetBits(_VBUS_PORT,_VBUS_BIT);
 							Initialize_device_vcp();
 							break;
 					}
@@ -1051,6 +1054,9 @@ int				i;
 					n=numscan(++c,cc,',');
 					while(n--)
 						_SET_EVENT(pfm,atoi(cc[n]));
+					break;
+//______________________________________________________________________________________
+				case ':':
 					break;
 //______________________________________________________________________________________
 				case 'x':

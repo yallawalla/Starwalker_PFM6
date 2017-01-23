@@ -58,8 +58,8 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
 		GPIO_Init(GPIOA, &GPIO_InitStructure);
-		GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_TIM3);
-		GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_TIM3);	
+		GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_TIM13);
+		GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_TIM14);	
 // ________________________________________________________________________________
 // TRIGGER 1, TRIGGER 2, 
 // TRIGGER 3, IGBT Reset, PFM8 only
@@ -86,7 +86,7 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		GPIO_InitStructure.GPIO_Pin = _USB_PDEN_BIT;
 		GPIO_Init(_USB_PDEN_PORT, &GPIO_InitStructure);
 		GPIO_SetBits(_USB_PDEN_PORT,_USB_PDEN_BIT);
-		
+// ________________________________________________________________________________	
 //  CROWBAR port && interrupt _____________________________________________________
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
@@ -101,8 +101,8 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising_Falling;  
 		EXTI_InitStructure.EXTI_LineCmd = ENABLE;
 		EXTI_Init(&EXTI_InitStructure);
-		
-// 	FAULT port && interrupt, IGBT Ready (PFM8 only) ________________________________
+// ________________________________________________________________________________		
+// 	FAULT port && interrupt, IGBT Ready (PFM8 only)
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
 		GPIO_InitStructure.GPIO_Pin = _FAULT_BIT;		
@@ -120,7 +120,6 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		EXTI_Init(&EXTI_InitStructure);
 // ________________________________________________________________________________
 // TIM1, TIM8 IGBT pwm outputs
-
 		GPIO_StructInit(&GPIO_InitStructure);
 		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
@@ -170,7 +169,7 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_TimeBaseStructure.TIM_Prescaler = 0;
 		TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_CenterAligned1;
 		TIM_TimeBaseStructure.TIM_RepetitionCounter=1;
-
+// ________________________________________________________________________________
 // TIM 1,8
 		TIM_TimeBaseStructure.TIM_Period = _PWM_RATE_HI;
 		TIM_DeInit(TIM1);
@@ -196,11 +195,15 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_SetCounter(TIM2,0+_PWM_RATE_HI/8);
 		TIM_SetCounter(TIM4,_PWM_RATE_HI/4+_PWM_RATE_HI/8);
 #endif	
-// TIM3
+// ________________________________________________________________________________
+// TIM13,14, fan pwm, tacho
 		TIM_TimeBaseStructure.TIM_Period = _FAN_PWM_RATE/2;
- 		TIM_DeInit(TIM3);
-		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
-		TIM_TimeBaseInit(TIM3,&TIM_TimeBaseStructure);
+ 		TIM_DeInit(TIM13);
+ 		TIM_DeInit(TIM14);
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM13, ENABLE);
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM14, ENABLE);
+		TIM_TimeBaseInit(TIM13,&TIM_TimeBaseStructure);
+		TIM_TimeBaseInit(TIM14,&TIM_TimeBaseStructure);
 // ________________________________________________________________________________
 // Output Compares	TIM1,8
 		TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
@@ -231,14 +234,13 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_OC4Init(TIM2, &TIM_OCInitStructure);
 		TIM_OC4Init(TIM4, &TIM_OCInitStructure);
 #endif
-
-// Output Compares, CH1	TIM3
-
+// ________________________________________________________________________________
+// Output Compares, CH1	TIM13
 		TIM_OCInitStructure.TIM_Pulse=1;
 		TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
-		TIM_OC1Init(TIM3, &TIM_OCInitStructure);
+		TIM_OC1Init(TIM13, &TIM_OCInitStructure);
 
-// Input Captures CH2 TIM3
+// Input Captures CH1 TIM14
 
 		TIM_ICStructInit(&TIM_ICInitStructure);												// Input Capture channels
 		TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Falling;	// Falling edge capture
@@ -246,11 +248,12 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV8;
 		TIM_ICInitStructure.TIM_ICFilter = 15;
 
-		TIM_ICInitStructure.TIM_Channel = TIM_Channel_2;
+		TIM_ICInitStructure.TIM_Channel = TIM_Channel_1;
 		
-		TIM_ICInit(TIM3, &TIM_ICInitStructure);
-		TIM_ITConfig(TIM3, TIM_IT_CC2,ENABLE);
+		TIM_ICInit(TIM14, &TIM_ICInitStructure);
+		TIM_ITConfig(TIM14, TIM_IT_CC1,ENABLE);
 
+// Output Compares, TIM1/8
     TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Disable);
     TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Disable);
     TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Disable);
@@ -269,7 +272,6 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
     TIM_OC3PreloadConfig(TIM4, TIM_OCPreload_Disable);
     TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Disable);
 #endif
-		TIM_CtrlPWMOutputs(TIM3, ENABLE);
 
 // enable outputs, brez pulzov!!!
 		TIM_SelectMasterSlaveMode(TIM1, TIM_MasterSlaveMode_Enable);	// T1 -> master mode
@@ -286,9 +288,10 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_SelectInputTrigger(TIM2, TIM_TS_ITR0); 										// T2 started from T1
 		TIM_SelectInputTrigger(TIM4, TIM_TS_ITR0); 										// T4 started from T1
 #endif
-
+		TIM_CtrlPWMOutputs(TIM13, ENABLE);
 		TIM_Cmd(TIM1,ENABLE);
-		TIM_Cmd(TIM3,ENABLE);
+		TIM_Cmd(TIM13,ENABLE);
+		TIM_Cmd(TIM14,ENABLE);
 		
 		_TIM.Hvref=0;
 		_TIM.Caps=5000;
@@ -495,14 +498,14 @@ int 		hv,j,k,x,
 }
 /*******************************************************************************/
 /**
-	* @brief	TIM3 IC2 ISR
+	* @brief	TIM13,14 IC2 ISR
 	* @param	: None
 	* @retval : None
 	*/
 /*******************************************************************************/
-void		TIM3_IRQHandler(void) {
-				if(TIM_GetITStatus(TIM3,TIM_IT_CC2)==SET) {
-					TIM_ClearITPendingBit(TIM3, TIM_IT_CC2);
+void		TIM8_TRG_COM_TIM14_IRQHandler(void) {
+				if(TIM_GetITStatus(TIM14,TIM_IT_CC1)==SET) {
+					TIM_ClearITPendingBit(TIM14, TIM_IT_CC1);
 					_SET_EVENT(pfm,_FAN_TACHO);
 				}
 }

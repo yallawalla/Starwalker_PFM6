@@ -34,6 +34,8 @@ void 			App_Init(void) {
 						RCC_AHB1Periph_GPIOF |
 						RCC_AHB1Periph_GPIOG, ENABLE);
 
+					SystemCoreClockUpdate();
+
 					pfm=calloc(1,sizeof(PFM));		
 	
 					pfm->Burst=&pfm->burst[0];
@@ -63,12 +65,11 @@ void 			App_Init(void) {
 					pfm->Pockels.trigger=0;
 
 					Initialize_NVIC();
+					__com0=Initialize_USART(921600);		
+					__can=Initialize_CAN(0);
 					Initialize_ADC();
 					Initialize_TIM();
-
 					__charger6=Initialize_I2C(0x58,50000);
-					__can=Initialize_CAN(0);
-					__com0=Initialize_USART(921600);		
 
 #define noise (rand()%100 - 50)
 #if defined (__DISC4__)
@@ -121,7 +122,6 @@ int				i,j;
 					Initialize_DAC();
 
 					_stdio(__com0);
-					SystemCoreClockUpdate();
 					if(RCC_GetFlagStatus(RCC_FLAG_SFTRST) == SET)
 						__print("\r ... SWR reset, %dMHz\r\n>",SystemCoreClock/1000000);
 					else if(RCC_GetFlagStatus(RCC_FLAG_IWDGRST) == SET)

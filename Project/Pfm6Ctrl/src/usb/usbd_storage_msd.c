@@ -142,18 +142,6 @@ int						m;
 							} while (m==FLASH_BUSY);
 							return(m);
 }
-/*-----------------------------------------------------------------------*/
-																		
-int						FLASH_Erase(uint32_t FLASH_Sector) {
-int						m;
-							FLASH_Unlock();
-							FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR|FLASH_FLAG_PGSERR);	
-							do {
-								Watchdog();	
-								m=FLASH_EraseSector(FLASH_Sector,VoltageRange_3);
-							} while (m==FLASH_BUSY);
-							return(m);
-}
 /**
   * @brief  Initialize the storage medium
   * @param  lun : logical unit number

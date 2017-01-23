@@ -297,7 +297,7 @@ void 	Initialize_ADC3(void)
 
 /* ADC3 regular channel12 configuration ************************************
 */
-#if	defined (__PFM6__) || defined (__DISC4__)
+#if	defined (__PFM6__)
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_0,  1, ADC_SampleTime_3Cycles);				// temp 1
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_1,  2, ADC_SampleTime_3Cycles);				// temp 2
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_2,  3, ADC_SampleTime_3Cycles);				// HV/2
@@ -318,7 +318,7 @@ void 	Initialize_ADC3(void)
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_14, 10,ADC_SampleTime_3Cycles);				// 5V
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_15, 11,ADC_SampleTime_3Cycles);				// 3.3V
 #endif
-#if		defined (__PFM6__)
+#if		defined (__PFM6__) || defined (__PFM8__)
 			ADC_AnalogWatchdogSingleChannelConfig(ADC3,ADC_Channel_11);
 			ADC_AnalogWatchdogCmd(ADC3,ADC_AnalogWatchdog_SingleRegEnable);	
 

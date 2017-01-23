@@ -49,6 +49,7 @@
 #define					_AD2Vn(val,rh,rl)	((float)(((val)-4096)*(rl+rh)/rl*3.3/4096.0 + 3.3))
 #define					_V2AD(val,rh,rl)	((int)((val)*4096.0/3.3*rl/(rh+rl)+0.5))
 #define					_Vn2AD(val,rh,rl)	((int)(4096+((val)-3.3)*4096.0/3.3*rl/(rh+rl)+0.5))
+	
 #define					_I2AD(a)			((int)(((a)*4096)/(int)(3.3/2.9999/0.001+0.5)))
 #define					_AD2I(a)			((int)(((a)*(int)(3.3/2.9999/0.001+0.5))/4096))
 																
@@ -138,7 +139,7 @@ typedef					enum
 #define					PFM_HV2_ERR								0x4000					// center cap voltaghe out of range
 #define					PFM_I2C_ERR								0x8000					// i2c comm. not responding
 
-#if		defined		(__PFM6__) || defined (__PFM8__) || defined  (__DISC4__)
+#if		defined		(__F4__)
 	#define					_MODE(p,a)			(bool)(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a))
 	#define					_SET_MODE(p,a)				(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 1
 	#define					_CLEAR_MODE(p,a)			(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 0
