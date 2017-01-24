@@ -144,8 +144,7 @@ void PendSV_Handler(void)
 volatile int	__time__;
 void SysTick_Handler(void) {
 #if defined (__F7__)
-extern 
-	void HAL_IncTick(void);
+extern void HAL_IncTick(void);
 	HAL_IncTick();
 #endif
 	++__time__;
@@ -190,6 +189,5 @@ void	EXTI15_10_IRQHandler(void)
 {
 	_EXTI_IRQHandler();
 }
-
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

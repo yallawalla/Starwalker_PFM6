@@ -452,7 +452,6 @@ _i2c*						Initialize_I2C(int, int);
 extern int			fanPmin,fanPmax,fanTL,fanTH;
 
 extern _io			*__com0,
-								*__com1,
 								*__dbug,
 								*__can;
 								

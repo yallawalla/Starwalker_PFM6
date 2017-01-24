@@ -17,6 +17,7 @@
 #include 	<stdio.h>
 
 PFM				*pfm;
+_io				*__com0;
 /*______________________________________________________________________________
 * Function Name : App_Init
 * Description   : Initialize PFM object
