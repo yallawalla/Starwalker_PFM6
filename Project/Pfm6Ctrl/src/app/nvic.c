@@ -71,10 +71,10 @@ void 	Initialize_NVIC() {
 			NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;	
 			NVIC_Init(&NVIC_InitStructure);
 
-			NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;						// USART1
-			NVIC_Init(&NVIC_InitStructure);
-			NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;						// USART1
-			NVIC_Init(&NVIC_InitStructure);
+//			NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;						// USART1
+//			NVIC_Init(&NVIC_InitStructure);
+//			NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;						// USART1
+//			NVIC_Init(&NVIC_InitStructure);
 }
 /******************************************************************************/
 void	Watchdog_init(int t) {

@@ -1292,17 +1292,9 @@ TCHAR				*t;
 static
 int					state=0;
 
-//#if _USE_LFN
-//static char lfn[_MAX_LFN + 1];   /* Buffer to store the LFN */
-//fno.lfname = lfn;
-//fno.lfsize = sizeof lfn;
-//#endif
-
 						if(state==0 && call==0) {
 							++state;
 							Watchdog_init(4000);
-//							fno.lfname = lfn;																							//	set long filename buffer 
-//							fno.lfsize = sizeof lfn;
 							_RED2(0);_GREEN2(0);_BLUE2(0);_YELLOW2(0);
 							if(f_mount(&fs0,FS_USB,1)==FR_OK)																// mount usb 
 								if(f_mount(&fs1,FS_CPU,1)==FR_OK)															// mount flash

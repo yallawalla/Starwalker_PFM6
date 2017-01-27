@@ -845,23 +845,28 @@ int				i;
 }
 /*______________________________________________________________________________
   * @brief  Composes & sends the PFM status message
-  * @param  : PFM object p, simmer status k
+  * @param  : active flash=k, active channel=_STATUS()
   * @retval : None
   *
   */
 int				PFM_status_send(PFM *p) {
-int				k=p->Simmer.active;
-					if(p->Error & (PFM_ERR_SIMM1 | PFM_ERR_SIMM2))
-						CanReply("cwiP",_PFM_status_req,
-							(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | k,
-							(p->Error & ~(PFM_ERR_SIMM1 | PFM_ERR_SIMM2)) | k
-							);
+					if(p->Error & (PFM_ERR_SIMM1 | PFM_ERR_SIMM2)) {
+						if(_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2) == p->Simmer.active)	
+							CanReply("cwiP",_PFM_status_req,
+								(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | p->Simmer.active,
+								(p->Error & ~(PFM_ERR_SIMM1 | PFM_ERR_SIMM2)) | (p->Simmer.active & p->Error));
+						else
+							CanReply("cwiP",_PFM_status_req,
+								(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | p->Simmer.active,
+								(p->Error & ~(PFM_ERR_SIMM1 | PFM_ERR_SIMM2)) | p->Simmer.active);
+					}
 					else
 						CanReply("cwiP",_PFM_status_req,
-							(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | k,
+							(p->Status & ~(PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) | p->Simmer.active,
 							p->Error);		
-				return k;
+				return p->Simmer.active;
 }
+
 /*______________________________________________________________________________
   * @brief  Interprets the PFM command message
   * @param 	pfmcmd: PFM command word as defined in CAN protocol  ICD 

@@ -594,4 +594,7 @@ PFM8 rekonfiguracija
 			  prestavljene so v simmer objekt
 			- modif. PFM_command....  zaenkrat. je predvideno, da v pfm8 vedno delata oba simmerja/fleša hkrati (>s 3). 
 			  Laser oz. trigger je možnno tako izbrati sam z _CHANNEL1_SINGLE_TRIGGER, ki se doslej uporablja v ST konfiguraciji
+//----------------------------
+27.1.2017	- sprememba PFM_status_send, pri wklopljenih obeh fleših (s 3), je v primeru napake enega fleša javljal oba
+>v 2.15 Jan 27 2017, <4865DE99>
 

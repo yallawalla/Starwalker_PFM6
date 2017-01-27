@@ -24,7 +24,7 @@
 
 //________SW version string_____________________________	
 
-#define 				SW_version		666		
+#define 				SW_version		215		
 
 //________global HW dependent defines___________________			
 #define					_uS						60
@@ -38,7 +38,7 @@
 #define					_MAX_ADC_RATE	(1*_uS)
 #define					_FAN_PWM_RATE	(50*_uS)	 
 
-#define					_UREF					3.3																				// 2.5 stari HW?
+#define					_UREF					3.3
 #define					_Rdiv(a,b)		((a)/(a+b))
 #define					_Rpar(a,b)		((a)*(b)/(a+b))
 			          
@@ -112,9 +112,8 @@ typedef					enum
 								_CHANNEL1_SINGLE_TRIGGER,	//13
 								_CHANNEL2_SINGLE_TRIGGER,	//14
 								_ALTERNATE_TRIGGER,				//15
-								_CAN_2_COM,
-								__SWEEPS__=25,
-								__TEST__=29
+								__TEST__						=29,
+								_CAN_2_COM								//30
 } 							mode;
 
 #define 				PFM_STAT_SIMM1						0x0001
