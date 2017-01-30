@@ -516,7 +516,7 @@ void		TIM8_TRG_COM_TIM14_IRQHandler(void) {
   * @param  None
   * @retval None
   */
-void 		_EXTI_IRQHandler(void)
+void 		__EXTI_IRQHandler(void)
 {
 				if(EXTI_GetITStatus(_CWBAR_INT_line) == SET) {
 					EXTI_ClearITPendingBit(_CWBAR_INT_line);

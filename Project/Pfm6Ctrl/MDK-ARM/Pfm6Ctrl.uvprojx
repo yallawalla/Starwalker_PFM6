@@ -5633,7 +5633,7 @@
             <v6WtE>0</v6WtE>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__DISC4__,__F4__,HSE_VALUE=8000000</Define>
+              <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__DISC4__,__PFM8__,__F4__,HSE_VALUE=8000000</Define>
               <Undefine></Undefine>
               <IncludePath>..\inc;..\inc\app;..\inc\usbd_msc;..\inc\usbd_cdc;..\inc\usbh_msc;..\src\wifi;..\..\..\Libraries\CMSIS\Include;..\..\..\Libraries\CMSIS\Device\ST\STM32F2xx\Include;..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\inc;..\..\..\Libraries\STM32_USB_OTG_Driver\inc;..\..\..\Libraries\STM32_USB_Device_Library\Core\inc;..\..\..\Libraries\STM32_USB_HOST_Library\Core\inc;..\..\..\Libraries\STM32_USB_Host_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\cdc\inc;..\..\..\Utilities\FatFs_R0.12b\src;..\..\..\Utilities\STM32F4-Discovery</IncludePath>
             </VariousControls>
@@ -6634,7 +6634,7 @@
             <v6WtE>0</v6WtE>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__DISC7__,__F7__,HSE_VALUE=25000000</Define>
+              <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__DISC7__,__PFM8__,__F7__,HSE_VALUE=25000000</Define>
               <Undefine></Undefine>
               <IncludePath>..\inc;..\inc\app;..\inc\usbd_msc;..\inc\usbd_cdc;..\inc\usbh_msc;..\src\wifi;..\..\..\Libraries\CMSIS\Include;..\..\..\Libraries\CMSIS\Device\ST\STM32F2xx\Include;..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\inc;..\..\..\Libraries\STM32_USB_OTG_Driver\inc;..\..\..\Libraries\STM32_USB_Device_Library\Core\inc;..\..\..\Libraries\STM32_USB_HOST_Library\Core\inc;..\..\..\Libraries\STM32_USB_Host_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\cdc\inc;..\..\..\Utilities\STM32F4-Discovery;..\..\..\Utilities\FatFs_R0.12b\src</IncludePath>
             </VariousControls>
@@ -6782,6 +6782,55 @@
               <FileName>usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\app\usart.c</FilePath>
+              <FileOption>
+                <CommonProperty>
+                  <UseCPPCompiler>2</UseCPPCompiler>
+                  <RVCTCodeConst>0</RVCTCodeConst>
+                  <RVCTZI>0</RVCTZI>
+                  <RVCTOtherData>0</RVCTOtherData>
+                  <ModuleSelection>0</ModuleSelection>
+                  <IncludeInBuild>0</IncludeInBuild>
+                  <AlwaysBuild>2</AlwaysBuild>
+                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
+                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
+                  <PublicsOnly>2</PublicsOnly>
+                  <StopOnExitCode>11</StopOnExitCode>
+                  <CustomArgument></CustomArgument>
+                  <IncludeLibraryModules></IncludeLibraryModules>
+                  <ComprImg>1</ComprImg>
+                </CommonProperty>
+                <FileArmAds>
+                  <Cads>
+                    <interw>2</interw>
+                    <Optim>0</Optim>
+                    <oTime>2</oTime>
+                    <SplitLS>2</SplitLS>
+                    <OneElfS>2</OneElfS>
+                    <Strict>2</Strict>
+                    <EnumInt>2</EnumInt>
+                    <PlainCh>2</PlainCh>
+                    <Ropi>2</Ropi>
+                    <Rwpi>2</Rwpi>
+                    <wLevel>2</wLevel>
+                    <uThumb>2</uThumb>
+                    <uSurpInc>2</uSurpInc>
+                    <uC99>2</uC99>
+                    <useXO>2</useXO>
+                    <v6Lang>0</v6Lang>
+                    <v6LangP>0</v6LangP>
+                    <vShortEn>2</vShortEn>
+                    <vShortWch>2</vShortWch>
+                    <v6Lto>0</v6Lto>
+                    <v6WtE>0</v6WtE>
+                    <VariousControls>
+                      <MiscControls></MiscControls>
+                      <Define></Define>
+                      <Undefine></Undefine>
+                      <IncludePath></IncludePath>
+                    </VariousControls>
+                  </Cads>
+                </FileArmAds>
+              </FileOption>
             </File>
             <File>
               <FileName>dac.c</FileName>

@@ -272,7 +272,7 @@ void 	Initialize_ADC3(void)
 			GPIO_StructInit(&GPIO_InitStructure);
 			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
 			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
-#if	defined (__PFM6__) || defined (__DISC4__)
+#if	defined (__PFM6__)
 			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2;																							
 			GPIO_Init(GPIOA, &GPIO_InitStructure);																			// temp 1, temp 2, HV/2		
 			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3;										
@@ -318,7 +318,7 @@ void 	Initialize_ADC3(void)
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_14, 10,ADC_SampleTime_3Cycles);				// 5V
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_15, 11,ADC_SampleTime_3Cycles);				// 3.3V
 #endif
-#if		defined (__PFM6__) || defined (__PFM8__)
+#if		!defined (__DISC4__) && !defined (__DISC7__)
 			ADC_AnalogWatchdogSingleChannelConfig(ADC3,ADC_Channel_11);
 			ADC_AnalogWatchdogCmd(ADC3,ADC_AnalogWatchdog_SingleRegEnable);	
 

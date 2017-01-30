@@ -91,7 +91,7 @@ _USER_SHAPE	ushape[_MAX_USER_SHAPE];
 _TIM_DMA *SetPwmTab00(PFM *p, _TIM_DMA *t) {
 int		i,j,n;
 int		to			=p->Burst->Time;
-int		tpause	=p->Burst->Length/p->Burst->N - p->Burst->Time;								// dodatek ups....
+int		tpause	=p->Burst->Length/p->Burst->N - p->Burst->Time;							// dodatek ups....
 int		Uo=p->Burst->Pmax;
 int		dUo=0;																															// modif. 2,3,4... pulza, v %
 float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
@@ -113,7 +113,7 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 				t->T=p->Burst->Pdelay;
 				(n > 255) ? (t->n=255) : (t->n=n);
 			};
-//-------preludij-------------------
+//-------Preludij-------------------
 			if(p->Burst->Ereq & (_SHPMOD_CAL | _SHPMOD_QSWCH)) {
 				int	du=0,u=0;
 				for(i=0; i<_MAX_QSHAPE; ++i)
@@ -160,7 +160,7 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 						if(p->Burst->Ereq & _SHPMOD_QSWCH) {
 							to=qshape[i].qref;
 							Uo=p->Burst->Pmax;
-							dUo=pow(p->Burst->Pmax*P2V,3) - 400000000 / qshape[i].qref * qshape[i].q3;				// varianta z zmanjsevanjem za fiksno E(J);
+							dUo=pow(p->Burst->Pmax*P2V,3) - 400000000 / qshape[i].qref * qshape[i].q3;			// varianta z zmanjsevanjem za fiksno E(J);
 							if(dUo > 0)
 								dUo=pow(dUo,1.0/3.0)/P2V - Uo;
 							else

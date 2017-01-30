@@ -40,7 +40,9 @@
 extern USB_OTG_CORE_HANDLE  USB_OTG_Core;
 extern uint32_t USBD_OTG_ISR_Handler (USB_OTG_CORE_HANDLE *);
 extern uint32_t USBH_OTG_ISR_Handler (USB_OTG_CORE_HANDLE *);
-extern void __OTG_FS_IRQHandler(void);
+extern void __OTG_FS_IRQHandler(void),
+						__EXTI_IRQHandler(void);
+
 
 /* Private function prototypes -----------------------------------------------*/
 
@@ -158,11 +160,9 @@ extern void HAL_IncTick(void);
   * @retval None
   */
 
+#if defined (__F4__)
 void OTG_FS_IRQHandler(void)
 {
-#if defined (__F7__)
-	__OTG_FS_IRQHandler();
-#else	
   if (USB_OTG_IsHostMode(&USB_OTG_Core)) /* ensure that we are in device mode */
   {
     USBH_OTG_ISR_Handler(&USB_OTG_Core);
@@ -171,23 +171,21 @@ void OTG_FS_IRQHandler(void)
   {
     USBD_OTG_ISR_Handler(&USB_OTG_Core);
   }
+} 
 #endif
-}
 /**
   * @brief  Calling common handler for EXTI interrupts
   * @param  None
   * @retval None
   */
-void 		_EXTI_IRQHandler(void);
-
 void	EXTI9_5_IRQHandler(void)
 {
-	_EXTI_IRQHandler();
+	__EXTI_IRQHandler();
 }
 
 void	EXTI15_10_IRQHandler(void)
 {
-	_EXTI_IRQHandler();
+	__EXTI_IRQHandler();
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

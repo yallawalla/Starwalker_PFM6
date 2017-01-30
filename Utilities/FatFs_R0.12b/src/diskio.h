@@ -11,7 +11,7 @@ extern "C" {
 
 #include "integer.h"
 #include "stdint.h"
-	
+
 #if defined  (__F7__)
 	#define FATFS_SECTOR			FLASH_Sector_5
 	#define	PAGE_SIZE					0x40000

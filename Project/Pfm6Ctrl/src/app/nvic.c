@@ -71,14 +71,10 @@ void 	Initialize_NVIC() {
 			NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;	
 			NVIC_Init(&NVIC_InitStructure);
 
-//			NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;						// USART1
-//			NVIC_Init(&NVIC_InitStructure);
-//			NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;						// USART1
-//			NVIC_Init(&NVIC_InitStructure);
 }
 /******************************************************************************/
 void	Watchdog_init(int t) {
-#if		defined (__PFM6__) || defined (__PFM8__)
+#if		!defined (__DISC4__) && !defined (__DISC7__)
 			IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
 			IWDG_SetPrescaler(IWDG_Prescaler_32);
 			IWDG_SetReload(t);

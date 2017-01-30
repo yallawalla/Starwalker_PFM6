@@ -73,7 +73,7 @@ void 			App_Init(void) {
 					__charger6=Initialize_I2C(0x58,50000);
 
 #define noise (rand()%100 - 50)
-#if defined (__DISC4__)
+#if defined (__PFM6__) && ( defined  (__DISC4__) || defined  (__DISC7__) )
 {
 int				i,j;
 					srand(__time__);
@@ -87,7 +87,7 @@ int				i,j;
 					}
 }
 #endif
-#if defined (__DISC7__)
+#if defined (__PFM8__) && ( defined  (__DISC4__) || defined  (__DISC7__) )
 {
 int				i,j;
 					srand(__time__);
@@ -887,7 +887,7 @@ void			PFM_command(PFM *p, int n) {
 						p->Simmer.active=n & (PFM_STAT_SIMM1 | PFM_STAT_SIMM2);					// mask filter command
 						_wait(100,_proc_loop);																					// wait 100 msecs	
 						if(!_MODE(p,_CHANNEL1_DISABLE)) {																// if not Erbium  single channel
-int						u=p->HV/7;;
+int						u=p->HV/7;
 							if(_MODE(p,_CHANNEL1_SINGLE_TRIGGER))													// single trigger config.. as from V1.11
 								u=2*p->HV/7;
 							_TIM.I1off=ADC1_simmer.I;																			// get current sensor offset

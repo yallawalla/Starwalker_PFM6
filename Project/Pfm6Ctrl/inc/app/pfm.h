@@ -27,7 +27,13 @@
 #define 				SW_version		215		
 
 //________global HW dependent defines___________________			
+#ifdef __F4__
 #define					_uS						60
+#endif
+#ifdef __F7__
+#define					_uS						108
+#endif
+
 #define					_MAX_BURST		(10*_mS)
 #define					__CAN__				CAN2
 #define					__FILT_BASE__	14
@@ -212,10 +218,10 @@ typedef					enum
 #define					_MAX_USER_SHAPE				1024
 extern int			_ADCRates[];	
 								
-#if	defined (__PFM6__) || defined (__DISC4__)
+#if	defined (__PFM6__)
 typedef struct	{	unsigned short			IgbtT[2],HV2,HV,Up20,Um5;													} _ADC3DMA;
 #endif
-#if	defined (__PFM8__) || defined (__DISC7__)
+#if	defined (__PFM8__)
 typedef struct	{	unsigned short			IgbtT[4],HV2,HV,VCAP1,VCAP2,Up12,Up5,Up3;					} _ADC3DMA;						
 #endif
 					
@@ -362,7 +368,7 @@ short						Error,
 								HV,										// Cap1+Cap2	ADC value x ADC3_AVG
 								HV2,									// Cap1			ADC value x ADC3_AVG								
 								Temp,									// Igbt temp,	degrees
-#if	defined (__PFM6__)	||	defined (__DISC4__)					
+#if	defined (__PFM6__)
 								Up20,				
 								Um5,				
 #elif	defined (__PFM8__)					
@@ -522,7 +528,7 @@ int			SetChargerVoltage(int);
 #define _USB_PDEN_BIT 		GPIO_Pin_9
 #define _USB_PDEN_PORT	 	GPIOD
 
-#if defined (__PFM6__) || defined (__DISC4__)
+#if defined (__PFM6__)
 #define _VBUS_BIT GPIO_Pin_0
 #define _VBUS_PORT GPIOC
 #define _TRIGGER1_BIT GPIO_Pin_12
@@ -594,8 +600,7 @@ int			SetChargerVoltage(int);
 												_DEBUG_(_DBG_SYS_MSG,"trigger 2 disabled");				\
 												GPIO_SetBits(_TRIGGER3_PORT,_TRIGGER3_BIT);		  	\
 											} while(0)
-											
-			        
+											      
 #define					_CRITICAL_ERR_MASK		(PFM_ERR_DRVERR | PFM_ERR_PULSEENABLE | PFM_ADCWDG_ERR | PFM_ERR_PSRDYN | PFM_ERR_LNG | PFM_HV2_ERR)
 #define					_PFM_CWBAR_STAT				PFM_ERR_PULSEENABLE
 				        
@@ -657,10 +662,8 @@ __inline void dbg_6(int n,char *s, int arg1, int arg2, int arg3, int arg4) {
 			}
 }
 
-
 #define	GET_MAC(_1,_2,_3,_4,_5,_6,NAME,...) NAME
 #define	_DEBUG_(...) GET_MAC(__VA_ARGS__,dbg_6,dbg_5,dbg_4,dbg_3,dbg_2)(__VA_ARGS__)
-
 
 #define	_k_Er	(20.0*20.0)
 #define	_k_Nd	(28.5 * 28.5)

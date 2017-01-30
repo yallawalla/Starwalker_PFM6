@@ -32,7 +32,7 @@
 #define TxBufferSize		256
 /* Private variables ---------------------------------------------------------*/
 USART_InitTypeDef USART_InitStructure;
-#if		defined (__PFM6__) || defined (__PFM8__)
+#if	!defined (__DISC4__)	&& !defined (__DISC7__)
 void DMA_Configuration(_io *io)
 {	
 	DMA_InitTypeDef DMA_InitStructure;
@@ -106,7 +106,7 @@ int	i=0;
 	else
 		return EOF;
 }
-#elif defined (__DISC4__)	|| defined (__DISC7__)
+#else
 //______________________________________________________________________________________
 volatile int32_t  ITM_RxBuffer=ITM_RXBUFFER_EMPTY; 
 void DMA_Configuration(_io *io)
@@ -128,8 +128,6 @@ int	i=0;
 	else
 		return EOF;
 }
-#else
-	#### error, no HW defined
 #endif
 
 //______________________________________________________________________________________
@@ -139,8 +137,7 @@ USART_InitTypeDef 			USART_InitStructure;
 USART_ClockInitTypeDef  USART_ClockInitStructure;
 GPIO_InitTypeDef				GPIO_InitStructure;
 _io 										*io;
-#if		defined (__PFM6__) || defined (__PFM8__)
-// serial to usart1
+
 	GPIO_StructInit(&GPIO_InitStructure);
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
  	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -170,44 +167,8 @@ _io 										*io;
 	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 	USART_Init(USART1, &USART_InitStructure);
 	USART_Cmd(USART1, ENABLE);
-
-#elif defined (__DISC4__)	|| defined (__DISC7__)
-//serial to usart3
-GPIO_StructInit(&GPIO_InitStructure);
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
- 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
-	GPIO_Init(GPIOC, &GPIO_InitStructure);
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
- 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
-	GPIO_Init(GPIOC, &GPIO_InitStructure);
-
- 	GPIO_PinAFConfig(GPIOC, GPIO_PinSource10, GPIO_AF_USART3);		
- 	GPIO_PinAFConfig(GPIOC, GPIO_PinSource11, GPIO_AF_USART3);		
 	
-	RCC_APB2PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
- 
-	USART_ClockInitStructure.USART_Clock = USART_Clock_Disable;
-	USART_ClockInitStructure.USART_CPOL = USART_CPOL_Low;
-	USART_ClockInitStructure.USART_CPHA = USART_CPHA_2Edge;
-	USART_ClockInitStructure.USART_LastBit = USART_LastBit_Disable;
-	USART_ClockInit(USART3, &USART_ClockInitStructure);
- 
-	USART_InitStructure.USART_BaudRate = speed;
-	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-	USART_InitStructure.USART_StopBits = USART_StopBits_1;
-	USART_InitStructure.USART_Parity = USART_Parity_No;
-	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-	USART_Init(USART3, &USART_InitStructure);
-	USART_Cmd(USART3, ENABLE);
-
-#else
-	#### error, no HW defined
-#endif
-
-//	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);		
-	io=_io_init(RxBufferSize,TxBufferSize);	// initialize buffer
+	io=_io_init(RxBufferSize,TxBufferSize);
 	io->get= __getDMA;	
 	io->put= __putDMA;
 	DMA_Configuration(io);

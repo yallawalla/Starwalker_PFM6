@@ -123,7 +123,7 @@ void 				App_Init(void) {
 						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_2 | GPIO_Pin_3;
 						GPIO_Init(GPIOD, &GPIO_InitStructure);
 
-	GPIO_SetBits(GPIOD,GPIO_Pin_0 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_12 | GPIO_Pin_13);
+						GPIO_SetBits(GPIOD,GPIO_Pin_0 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_12 | GPIO_Pin_13);
 }			
 #endif
 						_Words32Received=0;

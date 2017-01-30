@@ -598,3 +598,9 @@ PFM8 rekonfiguracija
 27.1.2017	- sprememba PFM_status_send, pri wklopljenih obeh fleših (s 3), je v primeru napake enega fleša javljal oba
 >v 2.15 Jan 27 2017, <4865DE99>
 
+//----------------------------
+30.1.2017
+
+jeba v usb host in usb device driverjih - usb ID pin pade pa PA10 (USART1 RX) 
+v usbd_conf.c in usbh_conf.c zakomentirat inic. PA10 in PD5 (power pin :))
+
