@@ -111,6 +111,7 @@ int				i,j;
 					_proc_add((func *)ProcessingEvents,pfm,					"events",0);
 					_proc_add((func *)ProcessingStatus,pfm,					"status",1);
 					_proc_add((func *)ProcessingCharger,pfm,				"charger6",1);
+
 #if		defined (__PFM6__) || defined (__PFM8__)
 					_proc_add((func *)Watchdog,NULL,								"watchdog",0);
 					_proc_add((func *)Lightshow,(void *)&__time__,	"leds",0);
@@ -263,8 +264,8 @@ static		int		bounce=0;
 					p->Up12 += (8*(ADC3_buf[0].Up12) - p->Up12)/8;
 					p->Up5  += (8*(ADC3_buf[0].Up5)  - p->Up5)/8;
 					p->Up3  += (8*(ADC3_buf[0].Up3)  - p->Up3)/8;
-//-------------------------------------------------------------------------------
-					if(abs(p->Up12 - 8*_V2AD(12,30,10)) >  8*_V2AD(2,30,10))                       
+
+					if(abs(p->Up12 - 8*_V2AD(12,62,10)) >  8*_V2AD(2,62,10))                       
 						_SET_ERROR(p,PFM_ERR_48V);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_48V);
@@ -273,6 +274,11 @@ static		int		bounce=0;
 						_SET_ERROR(p,PFM_ERR_15V);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_15V);
+					
+					if(p->Error & _CRITICAL_ERR_MASK)
+						GPIO_SetBits(_ERROR_OW_PORT,_ERROR_OW_BIT);
+					else
+						GPIO_ResetBits(_ERROR_OW_PORT,_ERROR_OW_BIT);
 #else
 #endif	
 //-------------------------------------------------------------------------------
@@ -309,6 +315,7 @@ static		int		bounce=0;
 					if(p->Simmer.timeout && __time__ >= p->Simmer.timeout) {	
 							_TRIGGER1_OFF;	
 							_TRIGGER2_OFF;
+							p->Simmer.timeout=0;
 					}
 //-------------------------------------------------------------------------------
 					if((status_image != p->Status) || (error_image != p->Error)) {
@@ -362,8 +369,9 @@ int						i=_STATUS_WORD;
 							terr=500;																			// nest handler delay
 							ton=300;																			// recovery delay
 							_RED2(100);																		// indicator !!!
-							if(p->Simmer.active)												// on error = simmer off
+							if(p->Simmer.active)													// on error = simmer off
 								PFM_command(p,0);
+							
 						}
 						return;
 					}

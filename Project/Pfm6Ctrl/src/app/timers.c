@@ -297,6 +297,64 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		_TIM.Caps=5000;
 		_TIM.Icaps=1000;
 		}
+
+/*******************************************************************************
+* Function Name  : Initialize_F2V()
+* Description    : reconfigures the CAN rx tx to pfm8 functionality
+* Input          : None
+* Output         : None
+* Return         : 
+*******************************************************************************/
+void *Initialize_F2V(PFM *p) {
+TIM_TimeBaseInitTypeDef	TIM_TimeBaseStructure;
+GPIO_InitTypeDef				GPIO_InitStructure;
+TIM_ICInitTypeDef				TIM_ICInitStructure;
+
+//PB5 = TIM3 ch2
+	if(p) {
+		GPIO_StructInit(&GPIO_InitStructure);
+		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+		GPIO_Init(GPIOB, &GPIO_InitStructure);
+		GPIO_ResetBits(GPIOB,GPIO_Pin_13);
+
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+		GPIO_Init(GPIOB, &GPIO_InitStructure);
+		GPIO_PinAFConfig(GPIOB, GPIO_PinSource5, GPIO_AF_TIM3);
+
+		TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+		TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+		TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+		TIM_TimeBaseStructure.TIM_Prescaler = 0;
+		TIM_TimeBaseStructure.TIM_Period = 0xFFFF;
+		TIM_DeInit(TIM3);
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+		TIM_TimeBaseInit(TIM3,&TIM_TimeBaseStructure);	
+		
+		TIM_ICStructInit(&TIM_ICInitStructure);	
+		TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Falling;
+		TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;
+		TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;
+		TIM_ICInitStructure.TIM_ICFilter = 0;
+		TIM_ICInitStructure.TIM_Channel = TIM_Channel_2;
+		TIM_PWMIConfig(TIM3, &TIM_ICInitStructure);
+		
+		TIM_SelectInputTrigger(TIM3, TIM_TS_TI2FP2);
+		TIM_SelectSlaveMode(TIM3, TIM_SlaveMode_Reset);
+		TIM_SelectMasterSlaveMode(TIM3,TIM_MasterSlaveMode_Enable);
+
+		TIM_Cmd(TIM3,ENABLE);
+		_proc_add((func *)Initialize_F2V,NULL,"F2V",1);
+	} else {
+		if(pfm->Burst && TIM_GetCapture2(TIM3)) {
+			pfm->Burst->Pmax=600000*_PWM_RATE_HI/(TIM_GetCapture1(TIM3) + TIM_GetCapture2(TIM3)/2)/_AD2HV(pfm->HVref);
+		}
+	}
+	return Initialize_F2V;
+}
 /**
   ******************************************************************************
   * @file			timers.c

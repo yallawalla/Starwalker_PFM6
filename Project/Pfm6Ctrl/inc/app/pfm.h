@@ -452,6 +452,7 @@ void						SysTick_init(void),
 										
 _io 						*Initialize_USART(int),
 								*Initialize_CAN(int);
+void	 					*Initialize_F2V(PFM *);
 _i2c*						Initialize_I2C(int, int);
 				
 extern int			fanPmin,fanPmax,fanTL,fanTH;
@@ -542,6 +543,7 @@ int			SetChargerVoltage(int);
 #define _CWBAR_INT_pin	EXTI_PinSource14
 #define _CWBAR_INT_line	EXTI_Line14
 
+
 #elif defined (__PFM8__) || defined (__DISC7__)
 #define _VBUS_BIT GPIO_Pin_5
 #define _VBUS_PORT GPIOD
@@ -557,6 +559,8 @@ int			SetChargerVoltage(int);
 #define _CWBAR_INT_line	EXTI_Line7
 #define _CWBAR_HANDLER EXTI9_5_IRQHandler
 
+#define	_ERROR_OW_BIT		GPIO_Pin_13
+#define	_ERROR_OW_PORT	GPIOB
 
 #else
 *** error, define platform

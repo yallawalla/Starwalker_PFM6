@@ -20,6 +20,7 @@ _io				*__can;
 * Return         : PASSED if the reception is well done, FAILED in other case
 *******************************************************************************/
 _io			 	*Initialize_CAN(int loop) {
+	
 CAN_InitTypeDef					CAN_InitStructure;
 CAN_FilterInitTypeDef		CAN_FilterInitStructure;
 GPIO_InitTypeDef				GPIO_InitStructure;
@@ -37,7 +38,7 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 					GPIO_PinAFConfig(GPIOB, GPIO_PinSource5, GPIO_AF_CAN2);
 					GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_CAN2);
 
-					RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);							// glej opis driverja, šmafu, treba inicializirat c
+					RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);							// glej opis driverja, šmafu, oba je treba inicializirat
 					RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN2, ENABLE);
 					CAN_StructInit(&CAN_InitStructure);
 					CAN_DeInit(__CAN__);
@@ -57,12 +58,23 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 					else
 						CAN_InitStructure.CAN_Mode=CAN_Mode_Normal;
 
+#if defined (__F4__)
 					CAN_InitStructure.CAN_SJW=CAN_SJW_4tq;
 					CAN_InitStructure.CAN_BS1=CAN_BS1_10tq;
 					CAN_InitStructure.CAN_BS2=CAN_BS2_4tq;
 					CAN_InitStructure.CAN_Prescaler=4;
 					CAN_Init(__CAN__,&CAN_InitStructure);
 
+#elif defined (__F7__)
+					CAN_InitStructure.CAN_SJW=CAN_SJW_1tq;
+					CAN_InitStructure.CAN_BS1=CAN_BS1_8tq;
+					CAN_InitStructure.CAN_BS2=CAN_BS2_3tq;
+					CAN_InitStructure.CAN_Prescaler=9;
+					CAN_Init(__CAN__,&CAN_InitStructure);
+#else
+*** define CPU
+#endif
+					
 					CAN_FilterInitStructure.CAN_FilterMode=CAN_FilterMode_IdList;
 					CAN_FilterInitStructure.CAN_FilterScale=CAN_FilterScale_32bit;
 					CAN_FilterInitStructure.CAN_FilterMaskIdLow=0;
@@ -88,6 +100,7 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_ENRG2SYS<<5;
 					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+3;
 					CAN_FilterInit(&CAN_FilterInitStructure);
+					
 //					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_PFM2SYS<<5;
 //					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=0<<5;
 //					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+4;

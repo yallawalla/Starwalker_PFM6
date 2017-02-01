@@ -604,3 +604,8 @@ PFM8 rekonfiguracija
 jeba v usb host in usb device driverjih - usb ID pin pade pa PA10 (USART1 RX) 
 v usbd_conf.c in usbh_conf.c zakomentirat inic. PA10 in PD5 (power pin :))
 
+1.2.2017
+
+PFM8, dodan task F2V, na CAN rx pretvarja freq, v napetost za pfm->burst in tx signal. stanje CRITICAL error
+
+
