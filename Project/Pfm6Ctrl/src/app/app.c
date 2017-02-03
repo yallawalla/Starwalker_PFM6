@@ -18,6 +18,25 @@
 
 PFM				*pfm;
 _io				*__com0;
+const char *_errStr[]={
+	"simmer 1 failed",
+	"simmer 2 failed",
+	"illegal CAN message",
+	"illegal flash idle voltage",
+	"IGBT overheat",
+	"IGBT fault",
+	"IGBT not ready",
+	"crowbar fired",
+	"PWM overrange",
+	"12V supply failure",
+	"5V supply failure",
+	"HV limits exceeded",
+	"IGBT fan error",
+	"HV half voltage error",
+	"charger comm. error"
+	"VCAP1 error"
+	"VCAP2 error"
+};
 /*______________________________________________________________________________
 * Function Name : App_Init
 * Description   : Initialize PFM object
@@ -122,7 +141,7 @@ int				i,j;
 					SetPwmTab(pfm);
 					Watchdog_init(300);	
 					Initialize_DAC();
-
+//---------------------------------------------------------------------------------
 					_stdio(__com0);
 					if(RCC_GetFlagStatus(RCC_FLAG_SFTRST) == SET)
 						__print("\r ... SWR reset, %dMHz\r\n>",SystemCoreClock/1000000);
@@ -217,7 +236,7 @@ ______________________________________________________________________________*/
 void			ProcessingStatus(PFM *p) {
 int 			i,j,k;
 static		short	status_image=0; 
-static		int		error_image=0;
+static		int		error_image=0,error_debug=0;
 static		int		bounce=0;
 					
 					for(i=j=k=0; i<ADC3_AVG; ++i) {
@@ -253,6 +272,11 @@ static		int		bounce=0;
 						_SET_ERROR(p,PFM_ERR_15V);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_15V);
+
+					if(ADC3_buf[0].HV > 100 && abs(ADC3_buf[0].HV-ADC3_buf[0].HV2) > ADC3_buf[0].HV/5)
+						_SET_ERROR(p,PFM_HV2_ERR);
+					else
+						_CLEAR_ERROR(p,PFM_HV2_ERR);
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
@@ -274,27 +298,35 @@ static		int		bounce=0;
 						_SET_ERROR(p,PFM_ERR_15V);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_15V);
-					
-					if(p->Error & _CRITICAL_ERR_MASK)
-						GPIO_SetBits(_ERROR_OW_PORT,_ERROR_OW_BIT);
+						
+					if(_IGBT_READY)
+						_CLEAR_ERROR(p,PFM_SCRFIRED);
 					else
-						GPIO_ResetBits(_ERROR_OW_PORT,_ERROR_OW_BIT);
+						_SET_ERROR(p,PFM_SCRFIRED);		
+					
+					if(ADC3_buf[0].HV > 100) {
+						if(abs(ADC3_buf[0].HV/2-ADC3_buf[0].HV2) > ADC3_buf[0].HV/10)
+							_SET_ERROR(p,PFM_HV2_ERR);
+						else
+							_CLEAR_ERROR(p,PFM_HV2_ERR);
+						
+						if(abs(ADC3_buf[0].HV/2-ADC3_buf[0].VCAP1) > ADC3_buf[0].HV/10)
+							_SET_ERROR(p,PFM_ERR_VCAP1);
+						else
+							_CLEAR_ERROR(p,PFM_ERR_VCAP1);
+
+						if(abs(ADC3_buf[0].HV/2-ADC3_buf[0].VCAP2) > ADC3_buf[0].HV/10)
+							_SET_ERROR(p,PFM_ERR_VCAP2);
+						else
+							_CLEAR_ERROR(p,PFM_ERR_VCAP2);
+					}
 #else
 #endif	
 //-------------------------------------------------------------------------------
 // - polovicna napetost na banki +/- 20%
 // - meris sele od 100V naprej
 // - vhod v AD za HV/2 je ze HW mnozen z 2 (pfm6 only)
-//
-#if defined (__PFM8__)
-					if(ADC3_buf[0].HV > 100 && abs(ADC3_buf[0].HV-2*ADC3_buf[0].HV2) > ADC3_buf[0].HV/5)
-#else
-					if(ADC3_buf[0].HV > 100 && abs(ADC3_buf[0].HV-ADC3_buf[0].HV2) > ADC3_buf[0].HV/5)
-#endif	
-						_SET_ERROR(p,PFM_HV2_ERR);
-					else
-						_CLEAR_ERROR(p,PFM_HV2_ERR);
-			
+//			
 //-------------------------------------------------------------------------------
 //				get current active channel....
 //				razlika med HV in napetostjo na flesu mora  biti najmanj 12%, sicer simmer error
@@ -319,6 +351,7 @@ static		int		bounce=0;
 					}
 //-------------------------------------------------------------------------------
 					if((status_image != p->Status) || (error_image != p->Error)) {
+						error_debug |= (error_image ^ p->Error) & p->Error;
 						error_image = p->Error;	
 						status_image = p->Status;
 						bounce=25;
@@ -329,6 +362,13 @@ static		int		bounce=0;
 						if(_TIM.Hvref < p->HVref - p->HVref/15) {
 							_TIM.Hvref += _TIM.Icaps*400*4096/880/_TIM.Caps;
 							_YELLOW2(20);
+						}
+//-------------------------------------------------------------------------------
+					for(i=0; i<sizeof(int); ++i)
+						if(error_debug & (1<<i)) {
+							_DEBUG_(_DBG_ERR_MSG,"error: %s",(int)_errStr[i]);	
+							error_debug ^= (1<<i);
+							break;
 						}
 }
 /*______________________________________________________________________________
@@ -355,7 +395,7 @@ static
 						else {																					// 100 ms charger6 scan, stop when i2c comms error !
 int						i=_STATUS_WORD;
 							if(readI2C(__charger6,(char *)&i,2))					// add status word >> error status. byte 3
-								p->Error = (p->Error & 0xffff) | ((i & 0xff)<<16);
+								p->Error = (p->Error & 0xffff) | ((i & 0xff)<<24);
 						}
 					}
 //-------------------------------------------------------------------------------						

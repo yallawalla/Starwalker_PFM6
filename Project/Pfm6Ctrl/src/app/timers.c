@@ -43,10 +43,13 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		GPIO_StructInit(&GPIO_InitStructure);
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 		GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+
+#ifdef _VBUS_BIT
 // Usb Host VBUS pin
 		GPIO_InitStructure.GPIO_Pin = _VBUS_BIT;
 		GPIO_Init(_VBUS_PORT, &GPIO_InitStructure);
 		GPIO_SetBits(_VBUS_PORT,_VBUS_BIT);
+#endif
 
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
 		GPIO_Init(GPIOC, &GPIO_InitStructure);
@@ -105,8 +108,8 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 // 	FAULT port && interrupt, IGBT Ready (PFM8 only)
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
+
 		GPIO_InitStructure.GPIO_Pin = _FAULT_BIT;		
-		
 		GPIO_Init(_FAULT_PORT, &GPIO_InitStructure);
 		GPIO_InitStructure.GPIO_Pin = _IGBT_READY_BIT;						
 		GPIO_Init(_IGBT_READY_PORT, &GPIO_InitStructure);
@@ -309,8 +312,7 @@ void *Initialize_F2V(PFM *p) {
 TIM_TimeBaseInitTypeDef	TIM_TimeBaseStructure;
 GPIO_InitTypeDef				GPIO_InitStructure;
 TIM_ICInitTypeDef				TIM_ICInitStructure;
-
-//PB5 = TIM3 ch2
+	
 	if(p) {
 		GPIO_StructInit(&GPIO_InitStructure);
 		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
@@ -333,7 +335,7 @@ TIM_ICInitTypeDef				TIM_ICInitStructure;
 		TIM_DeInit(TIM3);
 		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 		TIM_TimeBaseInit(TIM3,&TIM_TimeBaseStructure);	
-		
+
 		TIM_ICStructInit(&TIM_ICInitStructure);	
 		TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Falling;
 		TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;
@@ -341,7 +343,7 @@ TIM_ICInitTypeDef				TIM_ICInitStructure;
 		TIM_ICInitStructure.TIM_ICFilter = 0;
 		TIM_ICInitStructure.TIM_Channel = TIM_Channel_2;
 		TIM_PWMIConfig(TIM3, &TIM_ICInitStructure);
-		
+
 		TIM_SelectInputTrigger(TIM3, TIM_TS_TI2FP2);
 		TIM_SelectSlaveMode(TIM3, TIM_SlaveMode_Reset);
 		TIM_SelectMasterSlaveMode(TIM3,TIM_MasterSlaveMode_Enable);

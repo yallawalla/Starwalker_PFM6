@@ -34,15 +34,21 @@ int			DecodeMinus(char *c) {
 					_wait(200,_proc_loop);
 					switch(*cc[1]) {
 						case 'h':
+#ifdef _VBUS_BIT
 							GPIO_ResetBits(_VBUS_PORT,_VBUS_BIT);
+#endif
 							Initialize_host_msc();
 							break;
 						case 'f':
+#ifdef _VBUS_BIT
 							GPIO_SetBits(_VBUS_PORT,_VBUS_BIT);
+#endif
 							Initialize_device_msc();
 							break;
 						case 's':
+#ifdef _VBUS_BIT
 							GPIO_SetBits(_VBUS_PORT,_VBUS_BIT);
+#endif
 							Initialize_device_vcp();
 							break;
 					}
@@ -360,7 +366,7 @@ int			DecodeWhat(char *c) {
 					break;
 //______________________________________________________________________________________
 				case 'E':
-					__print(" error=%04X,mask=%04X",pfm->Error,pfm->Errmask);
+					__print(" error=%08X,mask=%08X",pfm->Error,pfm->Errmask);
 					break;
 //______________________________________________________________________________________
 				case 's':
@@ -1104,7 +1110,14 @@ int				i;
 						else if(_MODE(pfm,_CHANNEL2_DISABLE))		
 							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%3.1f, -- ",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH1)/100.0);
 						else	
+#ifdef __PFM6__
 							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%3.1f,%3.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH1)/100.0,(float)IgbtTemp(TH2)/100.0);
+#elif __PFM8__
+							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%3.1f,%3.1f,%3.1f,%3.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',
+								(float)IgbtTemp(TH1)/100.0,(float)IgbtTemp(TL1)/100.0,(float)IgbtTemp(TH2)/100.0,(float)IgbtTemp(TL2)/100.0);
+#else
+*** error, define platform
+#endif
 						break;
 					} else {
 						if(n==4) {

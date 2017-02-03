@@ -134,7 +134,7 @@ typedef					enum
 #define 				PFM_ERR_LNG 							0x0008					// flash tube idle voltage error
 #define 				PFM_ERR_TEMP							0x0010					// IGBT overheat
 #define 				PFM_ERR_DRVERR						0x0020					// dasaturation protection active
-#define 				PFM_SCRFIRED  						0x0040					//
+#define 				PFM_SCRFIRED  						0x0040					// IGBT not ready, pfm8
 #define 				PFM_ERR_PULSEENABLE				0x0080					// crowbar
 #define 				PFM_ERR_PSRDYN						0x0100					// pwm threshold error
 #define 				PFM_ERR_48V  							0x0200					// 20V igbt supply error
@@ -143,6 +143,10 @@ typedef					enum
 #define					PFM_FAN_ERR								0x2000					// igbt fan error 
 #define					PFM_HV2_ERR								0x4000					// center cap voltaghe out of range
 #define					PFM_I2C_ERR								0x8000					// i2c comm. not responding
+#define					PFM_ERR_VCAP1							0x10000					// 
+#define					PFM_ERR_VCAP2							0x20000					// 
+
+extern const char *_errStr[];
 
 #if		defined		(__F4__)
 	#define					_MODE(p,a)			(bool)(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a))
@@ -197,7 +201,7 @@ typedef					enum
 
 #define					_CLEAR_ERROR(p,a)	do {																																				\
 									if(p->Error & (a)) {																																				\
-										_DEBUG_(_DBG_ERR_MSG,"error %04X,clear from %04X, status=%04X",a,p->Error,p->Status);			\
+/*										_DEBUG_(_DBG_ERR_MSG,"error %04X,clear from %04X, status=%04X",a,p->Error,p->Status);	*/		\
 										p->Error &= ~(a);																																					\
 									} 																																													\
 								} while(0)
@@ -207,7 +211,7 @@ typedef					enum
 										if(a & _CRITICAL_ERR_MASK) {																															\
 											DisableIgbtOut();																																				\
 										}																																													\
-										_DEBUG_(_DBG_ERR_MSG,"error %04X,  set from %04X, status=%04X",a,p->Error,p->Status);			\
+/*										_DEBUG_(_DBG_ERR_MSG,"error %04X,  set from %04X, status=%04X",a,p->Error,p->Status);	*/		\
 										p->Error |= a;																																						\
 									}																																														\
 								} while(0)
@@ -362,8 +366,9 @@ typedef 				struct {
 burst						*Burst,burst[2];
 simmer					Simmer;
 trigger					Trigger;
-short						Error,	
-								Status,	
+int							Error,	
+								Errmask;
+short						Status,	
 								HVref,								// req. reference HV
 								HV,										// Cap1+Cap2	ADC value x ADC3_AVG
 								HV2,									// Cap1			ADC value x ADC3_AVG								
@@ -376,8 +381,7 @@ short						Error,
 								Up5,				
 								Up3,				
 #endif
-								ADCRate,	
-								Errmask;
+								ADCRate;
 volatile unsigned int		
 								events,
 								debug,
@@ -530,8 +534,8 @@ int			SetChargerVoltage(int);
 #define _USB_PDEN_PORT	 	GPIOD
 
 #if defined (__PFM6__)
-#define _VBUS_BIT GPIO_Pin_0
-#define _VBUS_PORT GPIOC
+//#define _VBUS_BIT GPIO_Pin_0
+//#define _VBUS_PORT GPIOC
 #define _TRIGGER1_BIT GPIO_Pin_12
 #define _TRIGGER1_PORT GPIOD
 #define _TRIGGER2_BIT GPIO_Pin_13
@@ -543,10 +547,9 @@ int			SetChargerVoltage(int);
 #define _CWBAR_INT_pin	EXTI_PinSource14
 #define _CWBAR_INT_line	EXTI_Line14
 
-
 #elif defined (__PFM8__) || defined (__DISC7__)
-#define _VBUS_BIT GPIO_Pin_5
-#define _VBUS_PORT GPIOD
+//#define _VBUS_BIT GPIO_Pin_5
+//#define _VBUS_PORT GPIOD
 #define _TRIGGER1_BIT GPIO_Pin_4
 #define _TRIGGER1_PORT GPIOE
 #define _TRIGGER2_BIT GPIO_Pin_5
@@ -569,10 +572,14 @@ int			SetChargerVoltage(int);
 #define 				_TRIGGER1			(!GPIO_ReadOutputDataBit(_TRIGGER1_PORT,_TRIGGER1_BIT))				        
 #define 				_TRIGGER2			(!GPIO_ReadOutputDataBit(_TRIGGER2_PORT,_TRIGGER2_BIT))			        
 #define 				_TRIGGER3			(!GPIO_ReadOutputDataBit(_TRIGGER3_PORT,_TRIGGER3_BIT))				        		        
-#define 				_IGBT_READY		(!GPIO_ReadOutputDataBit(_IGBT_READY_PORT,_IGBT_READY_BIT))				        		        
+#define 				_IGBT_READY		(GPIO_ReadInputDataBit(_IGBT_READY_PORT,_IGBT_READY_BIT)== Bit_SET)				        		        
 #define					_PFM_CWBAR		(GPIO_ReadInputDataBit(_CWBAR_PORT, _CWBAR_BIT)== Bit_RESET)
-#define					_IGBT_RESET		GPIO_ResetBits(_IGBT_RESET_PORT,_IGBT_RESET_BIT)
-#define					_IGBT_SET			GPIO_SetBits(_IGBT_RESET_PORT,_IGBT_RESET_BIT)
+
+#define					_IGBT_RESET		{ int i; 																							\
+																for(i=0; i<10; ++i)		 															\
+																	GPIO_ResetBits(_IGBT_RESET_PORT,_IGBT_RESET_BIT); \
+															}																											\
+															GPIO_SetBits(_IGBT_RESET_PORT,_IGBT_RESET_BIT);				
 
 #define 				_TRIGGER1_ON	do {															\
 											if(!_TRIGGER1)														\

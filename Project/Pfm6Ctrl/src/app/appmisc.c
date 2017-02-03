@@ -434,9 +434,9 @@ int		simmrate;
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
 				TIM_ITConfig(TIM1,TIM_IT_Update,DISABLE);
 			}
-			EnableIgbtOut();
 
 			TIM_Cmd(TIM1,ENABLE);
+			EnableIgbtOut();
 
 			if(_MODE(p,_PULSE_INPROC)) {
 				_DEBUG_(_DBG_SYS_MSG,"trigger at... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I-_TIM.I1off),
@@ -453,6 +453,7 @@ void	EnableIgbtOut(void) {
 #if defined __PFM8__
 			TIM_CtrlPWMOutputs(TIM2, ENABLE);
 			TIM_CtrlPWMOutputs(TIM4, ENABLE);		
+			_IGBT_RESET;
 #endif
 }
 /*******************************************************************************/
