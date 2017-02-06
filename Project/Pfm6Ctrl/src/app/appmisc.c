@@ -321,6 +321,27 @@ int		simmrate;
 			if(type == _SIMMER_HIGH) {
 				simmrate = _PWM_RATE_HI;
 				_SET_MODE(pfm,pfm->Burst->Mode);
+				
+// Output Compares, TIM1/8
+    TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Enable);
+    TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Enable);
+    TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Enable);
+    TIM_OC4PreloadConfig(TIM1, TIM_OCPreload_Enable);
+    TIM_OC1PreloadConfig(TIM8, TIM_OCPreload_Enable);
+    TIM_OC2PreloadConfig(TIM8, TIM_OCPreload_Enable);
+    TIM_OC3PreloadConfig(TIM8, TIM_OCPreload_Enable);
+    TIM_OC4PreloadConfig(TIM8, TIM_OCPreload_Enable);
+#if defined __PFM8__
+    TIM_OC1PreloadConfig(TIM2, TIM_OCPreload_Enable);
+    TIM_OC2PreloadConfig(TIM2, TIM_OCPreload_Enable);
+    TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Enable);
+    TIM_OC4PreloadConfig(TIM2, TIM_OCPreload_Enable);
+    TIM_OC1PreloadConfig(TIM4, TIM_OCPreload_Enable);
+    TIM_OC2PreloadConfig(TIM4, TIM_OCPreload_Enable);
+    TIM_OC3PreloadConfig(TIM4, TIM_OCPreload_Enable);
+    TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Enable);
+#endif				
+
 			} else {
 				if(p->Simmer.active &  PFM_STAT_SIMM1) {
 					simmrate=p->Simmer.rate[0];
@@ -329,6 +350,26 @@ int		simmrate;
 					simmrate=p->Simmer.rate[1];
 					_SET_MODE(pfm,p->Simmer.mode);
 				}
+// Output Compares, TIM1/8
+    TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Disable);
+    TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Disable);
+    TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Disable);
+    TIM_OC4PreloadConfig(TIM1, TIM_OCPreload_Disable);
+    TIM_OC1PreloadConfig(TIM8, TIM_OCPreload_Disable);
+    TIM_OC2PreloadConfig(TIM8, TIM_OCPreload_Disable);
+    TIM_OC3PreloadConfig(TIM8, TIM_OCPreload_Disable);
+    TIM_OC4PreloadConfig(TIM8, TIM_OCPreload_Disable);
+#if defined __PFM8__
+    TIM_OC1PreloadConfig(TIM2, TIM_OCPreload_Disable);
+    TIM_OC2PreloadConfig(TIM2, TIM_OCPreload_Disable);
+    TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Disable);
+    TIM_OC4PreloadConfig(TIM2, TIM_OCPreload_Disable);
+    TIM_OC1PreloadConfig(TIM4, TIM_OCPreload_Disable);
+    TIM_OC2PreloadConfig(TIM4, TIM_OCPreload_Disable);
+    TIM_OC3PreloadConfig(TIM4, TIM_OCPreload_Disable);
+    TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Disable);
+#endif				
+
 			}
 			__disable_irq();			
 			while(!(TIM1->CR1 & TIM_CR1_DIR));

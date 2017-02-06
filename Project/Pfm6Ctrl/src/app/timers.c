@@ -253,26 +253,6 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_ICInit(TIM14, &TIM_ICInitStructure);
 		TIM_ITConfig(TIM14, TIM_IT_CC1,ENABLE);
 
-// Output Compares, TIM1/8
-    TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Disable);
-    TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Disable);
-    TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Disable);
-    TIM_OC4PreloadConfig(TIM1, TIM_OCPreload_Disable);
-    TIM_OC1PreloadConfig(TIM8, TIM_OCPreload_Disable);
-    TIM_OC2PreloadConfig(TIM8, TIM_OCPreload_Disable);
-    TIM_OC3PreloadConfig(TIM8, TIM_OCPreload_Disable);
-    TIM_OC4PreloadConfig(TIM8, TIM_OCPreload_Disable);
-#if defined __PFM8__
-    TIM_OC1PreloadConfig(TIM2, TIM_OCPreload_Disable);
-    TIM_OC2PreloadConfig(TIM2, TIM_OCPreload_Disable);
-    TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Disable);
-    TIM_OC4PreloadConfig(TIM2, TIM_OCPreload_Disable);
-    TIM_OC1PreloadConfig(TIM4, TIM_OCPreload_Disable);
-    TIM_OC2PreloadConfig(TIM4, TIM_OCPreload_Disable);
-    TIM_OC3PreloadConfig(TIM4, TIM_OCPreload_Disable);
-    TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Disable);
-#endif
-
 // enable outputs, brez pulzov!!!
 		TIM_SelectMasterSlaveMode(TIM1, TIM_MasterSlaveMode_Enable);	// T1 -> master mode
 		TIM_SelectOutputTrigger(TIM1, TIM_TRGOSource_Enable); 				// trigger enable event
