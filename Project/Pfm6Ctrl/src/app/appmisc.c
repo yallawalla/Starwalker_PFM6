@@ -304,32 +304,7 @@ int 	psimm1=p->Simmer.pw[1];
 			}
 #endif
 }
-///*______________________________________________________________________________
-//*/
-//void	IncrementSimmerRate(int rate) {
-//static
-//int		r=0,flag;
-//			if(flag == (TIM1->CR1 & TIM_CR1_DIR))
-//				return;
-//			flag = (TIM1->CR1 & TIM_CR1_DIR);
-//			if(!r && !rate)
-//				return;
-//			if(rate)
-//				r=rate;
-//			else {
-//				if(TIM1->ARR < r) {
-//					++TIM1->ARR;
-//					++TIM8->ARR;
-//					if(!_MODE(pfm,_XLAP_SINGLE)) {
-//						++TIM1->CCR2;
-//						++TIM1->CCR4;
-//						++TIM8->CCR2;
-//						++TIM8->CCR4;
-//					}
-//				}
-//			}
-//}
-/*______________________________________________________________________________
+/*__________________________________________________________________________
 * Function Name : SetSimmerRate
 * Description   : simmer pulse width
 * Input         : None
@@ -355,50 +330,36 @@ int		simmrate;
 					_SET_MODE(pfm,p->Simmer.mode);
 				}
 			}
-			
-			while(!(TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
-			while((TIM1->CR1 & TIM_CR1_DIR)) Watchdog();
-
-			DisableIgbtOut();
-
-			TIM_SetCounter(TIM1,0);
-			TIM_SetCounter(TIM8,0);
-
+			__disable_irq();			
+			while(!(TIM1->CR1 & TIM_CR1_DIR));
+			while((TIM1->CR1 & TIM_CR1_DIR));
+#if defined __PFM8__
+			TIM_Cmd(TIM4,DISABLE);			
+			TIM_Cmd(TIM2,DISABLE);
+#endif
+			TIM_Cmd(TIM8,DISABLE);	
 			TIM_Cmd(TIM1,DISABLE);
-			TIM_Cmd(TIM8,DISABLE);			
-			
+			DisableIgbtOut();
+			__enable_irq();
+			_DEBUG_(22,"%04X,%04X,%04X,%04X",TIM1->CR1,TIM8->CR1,TIM2->CR1,TIM4->CR1);
+			_DEBUG_(22,"%4d,%4d,%4d,%4d",TIM1->CNT,TIM8->CNT,TIM2->CNT,TIM4->CNT);
+			_DEBUG_(22,"%4d,%4d,%4d,%4d",TIM1->ARR,TIM8->ARR,TIM2->ARR,TIM4->ARR);
 			TIM_SetCounter(TIM1,0);
-			TIM_SetCounter(TIM8,0);
-
-			TIM_SetCounter(TIM1,simmrate/4);
 			if(_MODE(p,_XLAP_QUAD))
-				TIM_SetCounter(TIM8,3*simmrate/4);
+				TIM_SetCounter(TIM8,simmrate/2);
 			else
-				TIM_SetCounter(TIM8,simmrate/4);
-
+				TIM_SetCounter(TIM8,0);
 			TIM_SetAutoreload(TIM1,simmrate);
 			TIM_SetAutoreload(TIM8,simmrate);
-			
 #if defined __PFM8__
-			TIM_SetCounter(TIM2,0);
-			TIM_SetCounter(TIM4,0);
-
-			TIM_Cmd(TIM2,DISABLE);
-			TIM_Cmd(TIM4,DISABLE);			
-			
-			TIM_SetCounter(TIM2,0);
-			TIM_SetCounter(TIM4,0);
-
-			TIM_SetCounter(TIM2,simmrate/4/2 + simmrate/8);
+			TIM_SetCounter(TIM2,simmrate/8);
 			if(_MODE(p,_XLAP_QUAD))
-				TIM_SetCounter(TIM4,3*simmrate/4/2 + simmrate/8);
+				TIM_SetCounter(TIM4,3*simmrate/8);
 			else
-				TIM_SetCounter(TIM4,simmrate/4/2 + simmrate/8);
-
+				TIM_SetCounter(TIM4,simmrate/8);
 			TIM_SetAutoreload(TIM2,simmrate/2);
 			TIM_SetAutoreload(TIM4,simmrate/2);
 #endif
-			
 			SetSimmerPw(p);
 			if(_MODE(p,_XLAP_SINGLE)) {
 				TIM_OC2PolarityConfig(TIM1, TIM_OCPolarity_High);
@@ -598,7 +559,7 @@ int		i=_VOUT_MODE;
 * Output        :
 * Return        :
 *******************************************************************************/
-int	batch(char *filename) {
+int		batch(char *filename) {
 FIL		f;
 FATFS	fs;
 
@@ -751,7 +712,7 @@ int		c0=0,c1=0;
 //							<backspace> ali <del> izpiše <backspace><space><backspace>	
 //
 //______________________________________________________________________________________
-char		*cgets(int c, int mode)
+char	*cgets(int c, int mode)
 {
 _buffer		*p=__stdin.io->gets;
 			
@@ -792,7 +753,7 @@ _buffer		*p=__stdin.io->gets;
 			return(NULL);
 }
 //______________________________________________________________________________________
-int			strscan(char *s,char *ss[],int c) {
+int		strscan(char *s,char *ss[],int c) {
 			int		i=0;
 			while(1)
 			{
@@ -819,7 +780,7 @@ int		numscan(char *s,char *ss[],int c) {
 			return(strscan(s,ss,c));
 }
 //______________________________________________________________________________________
-int			hex2asc(int i)
+int		hex2asc(int i)
 {
 			if(i<10)
 				return(i+'0');
@@ -827,7 +788,7 @@ int			hex2asc(int i)
 				return(i-10+'A');
 }
 //_____________________________________________________________________________________
-int			asc2hex(int i)
+int		asc2hex(int i)
 {
 			if(isxdigit(i))
 			{
@@ -840,7 +801,7 @@ int			asc2hex(int i)
 				return(0);
 }
 //______________________________________________________________________________________
-int			getHEX(char *p, int n)
+int		getHEX(char *p, int n)
 {
 			int	i=0;
 			while(n-- && isxdigit(*p))
@@ -848,14 +809,14 @@ int			getHEX(char *p, int n)
 			return(i);
 }
 //______________________________________________________________________________________
-void		putHEX(unsigned int i,int n)
+void	putHEX(unsigned int i,int n)
 {
 			if(n>1)
 				putHEX(i>>4,n-1);
 			fputc(hex2asc(i & 0x0f),&__stdout);
 }
 //_____________________________________________________________________________________
-char		*endstr(char *p)
+char	*endstr(char *p)
 {
 			while(*p)
 				++p;
@@ -864,7 +825,7 @@ char		*endstr(char *p)
 //_____________________________________________________________________________________
 #define		HEXREC3
 //_____________________________________________________________________________________
-int			sDump(char *p,int n)
+int		sDump(char *p,int n)
 {
 			int	i,j;
 
@@ -912,7 +873,7 @@ int			sDump(char *p,int n)
 			return(-1);
 }
 //_____________________________________________________________________________________
-int			iDump(int *p,int n)
+int		iDump(int *p,int n)
 {
 			int		i,j,k;
 			union 	{int i; char c[sizeof(int)];} u;
@@ -965,7 +926,7 @@ int			iDump(int *p,int n)
 			return(-1);
 }
 //_____________________________________________________________________________________
-int			sLoad(char *p)
+int		sLoad(char *p)
 {
 			int	 err,k,n;
 			char *q,*a=NULL;

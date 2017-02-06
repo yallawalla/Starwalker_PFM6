@@ -45,6 +45,7 @@ const char *_errStr[]={
 * Return        : None
 */	
 void 			App_Init(void) {
+	
 					RCC_AHB1PeriphClockCmd(
 						RCC_AHB1Periph_GPIOA |
 						RCC_AHB1Periph_GPIOB |
@@ -364,7 +365,7 @@ static		int		bounce=0;
 							_YELLOW2(20);
 						}
 //-------------------------------------------------------------------------------
-					for(i=0; i<sizeof(int); ++i)
+					for(i=0; i<32; ++i)
 						if(error_debug & (1<<i)) {
 							_DEBUG_(_DBG_ERR_MSG,"error: %s",(int)_errStr[i]);	
 							error_debug ^= (1<<i);

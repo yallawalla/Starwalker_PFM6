@@ -24,7 +24,6 @@ struct _TIM _TIM;
 // ________________________________________________________________________________
 // ________________________________________________________________________________
 // ________________________________________________________________________________
-// ___ 100 khz interrupt __________________________________________________________
 // ________________________________________________________________________________
 /*******************************************************************************
 * Function Name	: Timer_Init
@@ -181,7 +180,6 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_DeInit(TIM8);
 		RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
 		TIM_TimeBaseInit(TIM8,&TIM_TimeBaseStructure);
-
 #if defined __PFM8__
 		TIM_TimeBaseStructure.TIM_Period = _PWM_RATE_HI/2;
 		TIM_DeInit(TIM2);
@@ -191,13 +189,12 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
 		TIM_TimeBaseInit(TIM4,&TIM_TimeBaseStructure);
 #endif
-// 90 deg. shift
 		TIM_SetCounter(TIM1,0);
-		TIM_SetCounter(TIM8,_PWM_RATE_HI/2);
-#if defined __PFM8__
-		TIM_SetCounter(TIM2,0+_PWM_RATE_HI/8);
-		TIM_SetCounter(TIM4,_PWM_RATE_HI/4+_PWM_RATE_HI/8);
-#endif	
+		TIM_SetCounter(TIM8,_SIMMER_HIGH/2);
+#if defined __PFM8__		
+		TIM_SetCounter(TIM2,_SIMMER_HIGH/8);
+		TIM_SetCounter(TIM4,3*_SIMMER_HIGH/8);
+#endif
 // ________________________________________________________________________________
 // TIM13,14, fan pwm, tacho
 		TIM_TimeBaseStructure.TIM_Period = _FAN_PWM_RATE/2;
@@ -278,18 +275,18 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 
 // enable outputs, brez pulzov!!!
 		TIM_SelectMasterSlaveMode(TIM1, TIM_MasterSlaveMode_Enable);	// T1 -> master mode
-		TIM_SelectOutputTrigger(TIM1, TIM_TRGOSource_Enable); 				// triggers T8 from enable event
+		TIM_SelectOutputTrigger(TIM1, TIM_TRGOSource_Enable); 				// trigger enable event
 
 // trigger T8 za T1,DAC in ADC !!!
 		TIM_SelectSlaveMode(TIM8, TIM_SlaveMode_Trigger); 						// T8 -> slave mode
-		TIM_SelectInputTrigger(TIM8, TIM_TS_ITR0); 										// T8 started from T1
+		TIM_SelectInputTrigger(TIM8, TIM_TS_ITR0); 										// T8 started from T1 trigger enable event
 		TIM_SelectOutputTrigger(TIM8, TIM_TRGOSource_Update);					// triggers ADC, DAC on update
 
 #if defined __PFM8__
 		TIM_SelectSlaveMode(TIM2, TIM_SlaveMode_Trigger); 						// T2 -> slave mode
 		TIM_SelectSlaveMode(TIM4, TIM_SlaveMode_Trigger); 						// T4 -> slave mode
-		TIM_SelectInputTrigger(TIM2, TIM_TS_ITR0); 										// T2 started from T1
-		TIM_SelectInputTrigger(TIM4, TIM_TS_ITR0); 										// T4 started from T1
+		TIM_SelectInputTrigger(TIM2, TIM_TS_ITR0); 										// T2 started from T1 trigger enable event
+		TIM_SelectInputTrigger(TIM4, TIM_TS_ITR0); 										// T4 started from T1 trigger enable event
 #endif
 		TIM_CtrlPWMOutputs(TIM13, ENABLE);
 		TIM_Cmd(TIM1,ENABLE);
@@ -308,7 +305,7 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 * Output         : None
 * Return         : 
 *******************************************************************************/
-void *Initialize_F2V(PFM *p) {
+void 		*Initialize_F2V(PFM *p) {
 TIM_TimeBaseInitTypeDef	TIM_TimeBaseStructure;
 GPIO_InitTypeDef				GPIO_InitStructure;
 TIM_ICInitTypeDef				TIM_ICInitStructure;
@@ -603,7 +600,7 @@ void 		__EXTI_IRQHandler(void)
 	* @retval : None
 	*/
 /*******************************************************************************/
-void			Trigger(PFM *p) {
+void		Trigger(PFM *p) {
 					if(_MODE(p,_PULSE_INPROC)) {
 						_DEBUG_(_DBG_SYS_MSG,"trigger aborted...");
 					}
