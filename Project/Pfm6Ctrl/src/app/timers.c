@@ -170,7 +170,7 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 
 		TIM_TimeBaseStructure.TIM_Prescaler = 0;
 		TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_CenterAligned1;
-		TIM_TimeBaseStructure.TIM_RepetitionCounter=1;
+//		TIM_TimeBaseStructure.TIM_RepetitionCounter=1;
 // ________________________________________________________________________________
 // TIM 1,8
 		TIM_TimeBaseStructure.TIM_Period = _PWM_RATE_HI;
@@ -272,6 +272,8 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_Cmd(TIM1,ENABLE);
 		TIM_Cmd(TIM13,ENABLE);
 		TIM_Cmd(TIM14,ENABLE);
+		TIM_CtrlPWMOutputs(TIM1, ENABLE);
+		TIM_CtrlPWMOutputs(TIM8, ENABLE);			
 		
 		_TIM.Hvref=0;
 		_TIM.Caps=5000;
@@ -352,7 +354,8 @@ int 		hv,j,k,x,
 				ki=30,kp=0;
 
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);								// brisi ISR flage
-
+				if(TIM1->CR1 & TIM_CR1_DIR)
+					return;
 //----- HV voltage averaging, calc. active ADC DMA index----------------------------------
 
 				for(hv=j=0;j<ADC3_AVG;++j)																// 
