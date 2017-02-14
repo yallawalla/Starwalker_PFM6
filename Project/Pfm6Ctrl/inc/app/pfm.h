@@ -209,7 +209,7 @@ extern const char *_errStr[];
 #define					_SET_ERROR(p,a)	do {																																					\
 									if(!(p->Errmask & (a)) && !(p->Error & (a))) {																							\
 										if(a & _CRITICAL_ERR_MASK) {																															\
-											DisableIgbtOut();																																				\
+											_DISABLE_PWM_OUT();																																				\
 										}																																													\
 /*										_DEBUG_(_DBG_ERR_MSG,"error %04X,  set from %04X, status=%04X",a,p->Error,p->Status);	*/		\
 										p->Error |= a;																																						\
@@ -230,12 +230,12 @@ typedef struct	{	unsigned short			IgbtT[4],HV2,HV,VCAP1,VCAP2,Up12,Up5,Up3;					
 #endif
 					
 
-typedef struct	{	unsigned short			U,I;									} _ADCDMA;
-typedef struct	{	unsigned short			DAC2,DAC1;						} _DACDMA;
+typedef struct	{	unsigned short			U,I;								} _ADCDMA;
+typedef struct	{	unsigned short			DAC2,DAC1;					} _DACDMA;
 typedef struct	{	unsigned short			addr,speed,ntx,nrx;
-									unsigned char				txbuf[4],rxbuf[4];		} _i2c;
-typedef struct	{					 short			q0,q1,q2,q3,qref;			}	_QSHAPE;
-typedef struct	{					 short			T,U;									}	_USER_SHAPE;
+									unsigned char				txbuf[4],rxbuf[4];	} _i2c;
+typedef struct	{					 short			q0,q1,q2,q3,qref;		}	_QSHAPE;
+typedef struct	{					 short			T,U;								}	_USER_SHAPE;
 extern					_QSHAPE 		qshape[_MAX_QSHAPE];			
 extern					_USER_SHAPE ushape[_MAX_USER_SHAPE];
 //________________________________________________________________________
@@ -403,9 +403,8 @@ void						App_Init(void),
 				        
 								SetSimmerRate(PFM *, SimmerType),
 								SetPwmTab(PFM *),
-								SetSimmerPw(PFM *),
 								EnableIgbtOut(void),
-								DisableIgbtOut(void),
+								_DISABLE_PWM_OUT(void),
 								Trigger(PFM *),
 								TriggerADC(PFM *),
 								CanReply(char *, ...);
@@ -685,3 +684,80 @@ __inline void dbg_6(int n,char *s, int arg1, int arg2, int arg3, int arg4) {
 #define	kIf	(3.3/4096.0/2.9999/0.001)				// 		flash curr.
 #define Ts	 1e-6														// 		ADC sample rate
 #define kmJ	(int)(0.001/kVf/kIf/Ts+0.5) 		//		mJ, fakt. delitve kum. energije < 1 !!!  0.4865351
+	
+
+__inline void _TIMERS_HALT(void) {
+#if defined __PFM8__
+			TIM_Cmd(TIM4,DISABLE);			
+			TIM_Cmd(TIM2,DISABLE);
+#endif
+			TIM_Cmd(TIM8,DISABLE);	
+			TIM_Cmd(TIM1,DISABLE);
+}
+
+__inline void _TIMERS_PRELOAD_ON(void) {
+			TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Enable);
+			TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Enable);
+			TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Enable);
+			TIM_OC4PreloadConfig(TIM1, TIM_OCPreload_Enable);
+			TIM_OC1PreloadConfig(TIM8, TIM_OCPreload_Enable);
+			TIM_OC2PreloadConfig(TIM8, TIM_OCPreload_Enable);
+			TIM_OC3PreloadConfig(TIM8, TIM_OCPreload_Enable);
+			TIM_OC4PreloadConfig(TIM8, TIM_OCPreload_Enable);
+	#if defined __PFM8__
+			TIM_OC1PreloadConfig(TIM2, TIM_OCPreload_Enable);
+			TIM_OC2PreloadConfig(TIM2, TIM_OCPreload_Enable);
+			TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Enable);
+			TIM_OC4PreloadConfig(TIM2, TIM_OCPreload_Enable);
+			TIM_OC1PreloadConfig(TIM4, TIM_OCPreload_Enable);
+			TIM_OC2PreloadConfig(TIM4, TIM_OCPreload_Enable);
+			TIM_OC3PreloadConfig(TIM4, TIM_OCPreload_Enable);
+			TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Enable);
+#endif				
+}
+
+__inline void _TIMERS_PRELOAD_OFF(void) {
+			TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Disable);
+			TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Disable);
+			TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Disable);
+			TIM_OC4PreloadConfig(TIM1, TIM_OCPreload_Disable);
+			TIM_OC1PreloadConfig(TIM8, TIM_OCPreload_Disable);
+			TIM_OC2PreloadConfig(TIM8, TIM_OCPreload_Disable);
+			TIM_OC3PreloadConfig(TIM8, TIM_OCPreload_Disable);
+			TIM_OC4PreloadConfig(TIM8, TIM_OCPreload_Disable);
+	#if defined __PFM8__
+			TIM_OC1PreloadConfig(TIM2, TIM_OCPreload_Disable);
+			TIM_OC2PreloadConfig(TIM2, TIM_OCPreload_Disable);
+			TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Disable);
+			TIM_OC4PreloadConfig(TIM2, TIM_OCPreload_Disable);
+			TIM_OC1PreloadConfig(TIM4, TIM_OCPreload_Disable);
+			TIM_OC2PreloadConfig(TIM4, TIM_OCPreload_Disable);
+			TIM_OC3PreloadConfig(TIM4, TIM_OCPreload_Disable);
+			TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Disable);
+#endif				
+}
+
+__inline void _TIMERS_RESYNC(PFM *p, int simmrate) {
+			TIM_SetCounter(TIM1,0);
+			if(_MODE(p,_XLAP_QUAD))
+				TIM_SetCounter(TIM8,simmrate/2);
+			else
+				TIM_SetCounter(TIM8,0);
+#if defined __PFM8__
+			TIM_SetCounter(TIM2,simmrate/8);
+			if(_MODE(p,_XLAP_QUAD))
+				TIM_SetCounter(TIM4,3*simmrate/8);
+			else
+				TIM_SetCounter(TIM4,simmrate/8);
+#endif
+}
+
+__inline void _TIMERS_ARR_SET(int simmrate) {
+			TIM_SetAutoreload(TIM1,simmrate);
+			TIM_SetAutoreload(TIM8,simmrate);
+#if defined __PFM8__
+			TIM_SetAutoreload(TIM2,simmrate/2);
+			TIM_SetAutoreload(TIM4,simmrate/2);
+#endif
+}
+

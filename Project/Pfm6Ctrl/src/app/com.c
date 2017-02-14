@@ -999,7 +999,7 @@ int				i;
 						case 2:
 							pfm->Simmer.pw[0]=atoi(cc[0])*_uS/1000;
 							pfm->Simmer.pw[1]=atoi(cc[1])*_uS/1000;
-							SetSimmerPw(pfm);
+							SetSimmerRate(pfm, _SIMMER_LOW);
 							break;
 						case 3:
 							pfm->Simmer.pw[0]=atoi(cc[0])*_uS/1000;

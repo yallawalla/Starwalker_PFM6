@@ -49,7 +49,7 @@ union	{
 							_ADC.adc.I /=4;
 							io=_stdio(io);
 							for(j=0; j<sizeof(_ADCDMA); ++j)
-								while(__stdout.io->put(__stdout.io->tx,_ADC.c[j])==EOF)
+								while(__stdout.io->put(__stdout.io->tx,_ADC.c[j])==EOF);
 									_proc_loop();
 							io=_stdio(io);
 							_ADC.adc.U =0;
@@ -240,87 +240,7 @@ void	SetPwmTab(PFM *p) {
 * Output        : None
 * Return        : None
 */
-void	SetSimmerPw(PFM *p) {
-
-int 	psimm0=p->Simmer.pw[0];																//		#kwwe723lwhd
-int 	psimm1=p->Simmer.pw[1];
-
-			if(p->Simmer.active != _STATUS(p, PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) {			
-				if(p->Simmer.active & PFM_STAT_SIMM1)
-						psimm1=psimm0;
-				else
-						psimm0=psimm1;
-			}
-			if(_MODE(p,_XLAP_SINGLE)) {
-				if(_STATUS(p, PFM_STAT_SIMM1))
-					TIM8->CCR2=TIM8->CCR1=TIM1->CCR2=TIM1->CCR1=psimm0;
-				else
-					TIM8->CCR2=TIM8->CCR1=TIM1->CCR2=TIM1->CCR1=0;
-				if(_STATUS(p, PFM_STAT_SIMM2))
-					TIM8->CCR4=TIM8->CCR3=TIM1->CCR4=TIM1->CCR3=psimm1;
-				else
-					TIM8->CCR4=TIM8->CCR3=TIM1->CCR4=TIM1->CCR3=0;
-				TIM_OC2PolarityConfig(TIM1, TIM_OCPolarity_High);
-				TIM_OC4PolarityConfig(TIM1, TIM_OCPolarity_High);
-				TIM_OC2PolarityConfig(TIM8, TIM_OCPolarity_High);
-				TIM_OC4PolarityConfig(TIM8, TIM_OCPolarity_High);
-			} else {
-				if(_STATUS(p, PFM_STAT_SIMM1))  {
-					TIM8->CCR1=TIM1->CCR1=psimm0;
-					TIM8->CCR2=TIM1->CCR2=TIM1->ARR-psimm0;
-				} else {
-					TIM8->CCR1=TIM1->CCR1=0;
-					TIM8->CCR2=TIM1->CCR2=TIM1->ARR;
-				}
-				if(_STATUS(p, PFM_STAT_SIMM2))  {
-					TIM8->CCR3=TIM1->CCR3=psimm1;
-					TIM8->CCR4=TIM1->CCR4=TIM1->ARR-psimm1;
-				} else {
-					TIM8->CCR3=TIM1->CCR3=0;
-					TIM8->CCR4=TIM1->CCR4=TIM1->ARR;
-				}
-				TIM_OC2PolarityConfig(TIM1, TIM_OCPolarity_Low);
-				TIM_OC4PolarityConfig(TIM1, TIM_OCPolarity_Low);
-				TIM_OC2PolarityConfig(TIM8, TIM_OCPolarity_Low);
-				TIM_OC4PolarityConfig(TIM8, TIM_OCPolarity_Low);
-			}
-#if defined __PFM8__
-			if(_MODE(p,_XLAP_SINGLE)) {
-				if(_STATUS(p, PFM_STAT_SIMM1))
-					TIM2->CCR2=TIM2->CCR1=TIM4->CCR2=TIM4->CCR1=psimm0/2;
-				else
-					TIM2->CCR2=TIM2->CCR1=TIM4->CCR2=TIM4->CCR1=0;
-				if(_STATUS(p, PFM_STAT_SIMM2))
-					TIM2->CCR4=TIM2->CCR3=TIM4->CCR4=TIM4->CCR3=psimm1/2;
-				else
-					TIM2->CCR4=TIM2->CCR3=TIM4->CCR4=TIM4->CCR3=0;
-				TIM_OC2PolarityConfig(TIM4, TIM_OCPolarity_High);
-				TIM_OC4PolarityConfig(TIM4, TIM_OCPolarity_High);
-				TIM_OC2PolarityConfig(TIM2, TIM_OCPolarity_High);
-				TIM_OC4PolarityConfig(TIM2, TIM_OCPolarity_High);
-			} else {
-				if(_STATUS(p, PFM_STAT_SIMM1))  {
-					TIM2->CCR1=TIM4->CCR1=psimm0/2;
-					TIM2->CCR2=TIM4->CCR2=TIM4->ARR-psimm0/2;
-				} else {
-					TIM2->CCR1=TIM4->CCR1=0;
-					TIM2->CCR2=TIM4->CCR2=TIM4->ARR;
-				}
-				if(_STATUS(p, PFM_STAT_SIMM2))  {
-					TIM2->CCR3=TIM4->CCR3=psimm1/2;
-					TIM2->CCR4=TIM4->CCR4=TIM4->ARR-psimm1/2;
-				} else {
-					TIM2->CCR3=TIM4->CCR3=0;
-					TIM8->CCR4=TIM4->CCR4=TIM4->ARR;
-				}
-				TIM_OC2PolarityConfig(TIM4, TIM_OCPolarity_Low);
-				TIM_OC4PolarityConfig(TIM4, TIM_OCPolarity_Low);
-				TIM_OC2PolarityConfig(TIM2, TIM_OCPolarity_Low);
-				TIM_OC4PolarityConfig(TIM2, TIM_OCPolarity_Low);
-			}
-#endif
-}
-void	SetSimmer(PFM *p, int rate) {
+static void	_TIMERS_PWM_SET(PFM *p, int rate) {
 
 int 	psimm0=p->Simmer.pw[0];																//		#kwwe723lwhd
 int 	psimm1=p->Simmer.pw[1];
@@ -409,7 +329,6 @@ int 	psimm1=p->Simmer.pw[1];
 */
 void	SetSimmerRate(PFM *p, SimmerType type) {										// #kd890304ri
 int		simmrate;
-	
 			_CLEAR_MODE(pfm,_XLAP_SINGLE);
 			_CLEAR_MODE(pfm,_XLAP_DOUBLE);
 			_CLEAR_MODE(pfm,_XLAP_QUAD);
@@ -417,59 +336,6 @@ int		simmrate;
 			if(type == _SIMMER_HIGH) {
 				simmrate = _PWM_RATE_HI;
 				_SET_MODE(pfm,pfm->Burst->Mode);
-				
-			__disable_irq();			
-			while(!(TIM1->CR1 & TIM_CR1_DIR));
-			while((TIM1->CR1 & TIM_CR1_DIR));
-#if defined __PFM8__
-			TIM_Cmd(TIM4,DISABLE);			
-			TIM_Cmd(TIM2,DISABLE);
-#endif
-			TIM_Cmd(TIM8,DISABLE);	
-			TIM_Cmd(TIM1,DISABLE);
-			DisableIgbtOut();
-			__enable_irq();
-
-			TIM_SetCounter(TIM1,0);
-			if(_MODE(p,_XLAP_QUAD))
-				TIM_SetCounter(TIM8,simmrate/2);
-			else
-				TIM_SetCounter(TIM8,0);
-			
-#if defined __PFM8__
-			TIM_SetCounter(TIM2,simmrate/8);
-			if(_MODE(p,_XLAP_QUAD))
-				TIM_SetCounter(TIM4,3*simmrate/8);
-			else
-				TIM_SetCounter(TIM4,simmrate/8);
-			
-#endif
-			SetSimmer(p,simmrate);		
-			TIM_SetAutoreload(TIM1,simmrate);
-			TIM_SetAutoreload(TIM8,simmrate);
-#if defined __PFM8__
-			TIM_SetAutoreload(TIM2,simmrate/2);
-			TIM_SetAutoreload(TIM4,simmrate/2);
-#endif
-// Output Compares, TIM1/8
-			TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Enable);
-			TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Enable);
-			TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Enable);
-			TIM_OC4PreloadConfig(TIM1, TIM_OCPreload_Enable);
-			TIM_OC1PreloadConfig(TIM8, TIM_OCPreload_Enable);
-			TIM_OC2PreloadConfig(TIM8, TIM_OCPreload_Enable);
-			TIM_OC3PreloadConfig(TIM8, TIM_OCPreload_Enable);
-			TIM_OC4PreloadConfig(TIM8, TIM_OCPreload_Enable);
-	#if defined __PFM8__
-			TIM_OC1PreloadConfig(TIM2, TIM_OCPreload_Enable);
-			TIM_OC2PreloadConfig(TIM2, TIM_OCPreload_Enable);
-			TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Enable);
-			TIM_OC4PreloadConfig(TIM2, TIM_OCPreload_Enable);
-			TIM_OC1PreloadConfig(TIM4, TIM_OCPreload_Enable);
-			TIM_OC2PreloadConfig(TIM4, TIM_OCPreload_Enable);
-			TIM_OC3PreloadConfig(TIM4, TIM_OCPreload_Enable);
-			TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Enable);
-#endif				
 			} else {
 				if(p->Simmer.active &  PFM_STAT_SIMM1) {
 					simmrate=p->Simmer.rate[0];
@@ -478,59 +344,23 @@ int		simmrate;
 					simmrate=p->Simmer.rate[1];
 					_SET_MODE(pfm,p->Simmer.mode);
 				}
-
+			}
 			__disable_irq();			
 			while(!(TIM1->CR1 & TIM_CR1_DIR));
 			while((TIM1->CR1 & TIM_CR1_DIR));
-#if defined __PFM8__
-			TIM_Cmd(TIM4,DISABLE);			
-			TIM_Cmd(TIM2,DISABLE);
-#endif
-			TIM_Cmd(TIM8,DISABLE);	
-			TIM_Cmd(TIM1,DISABLE);
-			DisableIgbtOut();
+			_TIMERS_HALT();
+			_DISABLE_PWM_OUT();
 			__enable_irq();
-			
-			
-// Output Compares, TIM1/8
-			TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Disable);
-			TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Disable);
-			TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Disable);
-			TIM_OC4PreloadConfig(TIM1, TIM_OCPreload_Disable);
-			TIM_OC1PreloadConfig(TIM8, TIM_OCPreload_Disable);
-			TIM_OC2PreloadConfig(TIM8, TIM_OCPreload_Disable);
-			TIM_OC3PreloadConfig(TIM8, TIM_OCPreload_Disable);
-			TIM_OC4PreloadConfig(TIM8, TIM_OCPreload_Disable);
-	#if defined __PFM8__
-			TIM_OC1PreloadConfig(TIM2, TIM_OCPreload_Disable);
-			TIM_OC2PreloadConfig(TIM2, TIM_OCPreload_Disable);
-			TIM_OC3PreloadConfig(TIM2, TIM_OCPreload_Disable);
-			TIM_OC4PreloadConfig(TIM2, TIM_OCPreload_Disable);
-			TIM_OC1PreloadConfig(TIM4, TIM_OCPreload_Disable);
-			TIM_OC2PreloadConfig(TIM4, TIM_OCPreload_Disable);
-			TIM_OC3PreloadConfig(TIM4, TIM_OCPreload_Disable);
-			TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Disable);
-#endif				
-			TIM_SetAutoreload(TIM1,simmrate);
-			TIM_SetAutoreload(TIM8,simmrate);
-#if defined __PFM8__
-			TIM_SetAutoreload(TIM2,simmrate/2);
-			TIM_SetAutoreload(TIM4,simmrate/2);
-#endif
-			SetSimmer(p,simmrate);			
-			
-			TIM_SetCounter(TIM1,0);
-			if(_MODE(p,_XLAP_QUAD))
-				TIM_SetCounter(TIM8,simmrate/2);
-			else
-				TIM_SetCounter(TIM8,0);
-#if defined __PFM8__
-			TIM_SetCounter(TIM2,simmrate/8);
-			if(_MODE(p,_XLAP_QUAD))
-				TIM_SetCounter(TIM4,3*simmrate/8);
-			else
-				TIM_SetCounter(TIM4,simmrate/8);
-#endif
+			if(type == _SIMMER_HIGH) {
+				_TIMERS_RESYNC(p, simmrate);
+				_TIMERS_PWM_SET(p,simmrate);		
+				_TIMERS_ARR_SET(simmrate);
+				_TIMERS_PRELOAD_ON();
+			} else {
+				_TIMERS_PRELOAD_OFF();
+				_TIMERS_ARR_SET(simmrate);
+				_TIMERS_PWM_SET(p,simmrate);			
+				_TIMERS_RESYNC(p, simmrate);
 			}
 			if(_MODE(p,_PULSE_INPROC)) {
 				TriggerADC(p);
@@ -540,30 +370,27 @@ int		simmrate;
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
 				TIM_ITConfig(TIM1,TIM_IT_Update,DISABLE);
 			}
-
 			TIM_Cmd(TIM1,ENABLE);
 			EnableIgbtOut();
 }
 /*******************************************************************************/
 void	EnableIgbtOut(void) {
-			GPIOE->MODER |= ((2<<(2*9)) | (2<<(2*11)) | (2<<(2*13)) | (2<<(2*14)));  	//tim1, PE 9,11,13,14
-			GPIOC->MODER |= ((2<<(2*6)) | (2<<(2*7))  | (2<<(2*8)) | (2<<(2*9)));			//tim8, PC 6,7,8,9
+			GPIOE->MODER |= ((2<<(2*9))  | (2<<(2*11)) | (2<<(2*13)) | (2<<(2*14)));  //tim1, PE 9,11,13,14
+			GPIOC->MODER |= ((2<<(2*6))  | (2<<(2*7))  | (2<<(2*8))  | (2<<(2*9)));	  //tim8, PC 6,7,8,9
 #if defined __PFM8__
-			GPIOA->MODER |= ((2<<(2*0)) | (2<<(2*1)));																//tim2,	PA 0,1
-			GPIOB->MODER |= ((2<<(2*10)) | (2<<(2*11)));																//PB 8,9
-			GPIOD->MODER |= ((2<<(2*12))| (2<<(2*13)) | (2<<(2*14)) | (2<<(2*15)));		//tim4	PD 12,13,14,15
-#endif	
-#if defined __PFM8__
+			GPIOA->MODER |= ((2<<(2*0))  | (2<<(2*1)));																//tim2,	PA 0,1
+			GPIOB->MODER |= ((2<<(2*10)) | (2<<(2*11)));															//PB 8,9
+			GPIOD->MODER |= ((2<<(2*12)) | (2<<(2*13)) | (2<<(2*14)) | (2<<(2*15)));	//tim4	PD 12,13,14,15
 			_IGBT_RESET;
 #endif
 }
 /*******************************************************************************/
-void	DisableIgbtOut(void) {
+void	_DISABLE_PWM_OUT(void) {
 			GPIOE->MODER &= ~((3<<(2*9)) | (3<<(2*11)) | (3<<(2*13)) | (3<<(2*14)));  //tim1, PE 9,11,13,14
-			GPIOC->MODER &= ~((3<<(2*6)) | (3<<(2*7))  | (3<<(2*8)) | (3<<(2*9)));		//tim8, PC 6,7,8,9
+			GPIOC->MODER &= ~((3<<(2*6)) | (3<<(2*7))  | (3<<(2*8))  | (3<<(2*9)));		//tim8, PC 6,7,8,9
 #if defined __PFM8__
 			GPIOA->MODER &= ~((3<<(2*0)) | (3<<(2*1)));																//tim2,	PA 0,1
-			GPIOB->MODER &= ~((3<<(2*10)) | (3<<(2*11)));																//PB 8,9
+			GPIOB->MODER &= ~((3<<(2*10))| (3<<(2*11)));															//PB 8,9
 			GPIOD->MODER &= ~((3<<(2*12))| (3<<(2*13)) | (3<<(2*14)) | (3<<(2*15)));	//tim4	PD 12,13,14,15
 #endif	
 }

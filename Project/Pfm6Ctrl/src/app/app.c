@@ -21,21 +21,31 @@ _io				*__com0;
 const char *_errStr[]={
 	"simmer 1 failed",
 	"simmer 2 failed",
-	"illegal CAN message",
+	"illegal CAN parameters",
 	"illegal flash idle voltage",
 	"IGBT overheat",
 	"IGBT fault",
 	"IGBT not ready",
-	"crowbar fired",
+	"Crowbar fired",
 	"PWM overrange",
+#if	defined (__PFM6__)
+	"20V supply failure",
+	"-5V supply failure",
+#elif	defined (__PFM8__)
 	"12V supply failure",
 	"5V supply failure",
-	"HV limits exceeded",
+#else
+	"unspecified....",
+	"unspecified....",
+#endif
+	"unspecified....",
+	"HV out of range",
 	"IGBT fan error",
-	"HV half voltage error",
-	"charger comm. error"
-	"VCAP1 error"
-	"VCAP2 error"
+	"HV mid voltage out of range",
+	"I2C comm. error",
+	"VCAP1 error",
+	"VCAP2 error",
+	NULL
 };
 /*______________________________________________________________________________
 * Function Name : App_Init
@@ -264,17 +274,17 @@ static		int		bounce=0;
 					p->Up20 += (8*(ADC3_buf[0].Up20) - p->Up20)/8;				
 					p->Um5  += (8*(ADC3_buf[0].Um5)  - p->Um5)/8;
 //-------------------------------------------------------------------------------								
-					if(p->Up20 < 8*_V2AD(18,68,12) || p->Up20 > 8*_V2AD(22,68,12))                      
+					if(abs(p->Up20 - 8*_V2AD(20,68,12)) >  8*_V2AD(2,68,12) && __time__ > 3000)                                      
 						_SET_ERROR(p,PFM_ERR_48V);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_48V);
 					
-					if(p->Um5 > 8*_Vn2AD(-4,24,12) || p->Um5 < 8*_Vn2AD(-6,24,12))       
+					if(abs(p->Um5 - 8*_Vn2AD(-5,24,12)) > 8*_V2AD(1,24,12) && __time__ > 3000)       
 						_SET_ERROR(p,PFM_ERR_15V);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_15V);
 
-					if(ADC3_buf[0].HV > 100 && abs(ADC3_buf[0].HV-ADC3_buf[0].HV2) > ADC3_buf[0].HV/5)
+					if(ADC3_buf[0].HV > 100 && abs(ADC3_buf[0].HV-ADC3_buf[0].HV2) > ADC3_buf[0].HV/5 && __time__ > 3000)
 						_SET_ERROR(p,PFM_HV2_ERR);
 					else
 						_CLEAR_ERROR(p,PFM_HV2_ERR);
@@ -290,12 +300,12 @@ static		int		bounce=0;
 					p->Up5  += (8*(ADC3_buf[0].Up5)  - p->Up5)/8;
 					p->Up3  += (8*(ADC3_buf[0].Up3)  - p->Up3)/8;
 
-					if(abs(p->Up12 - 8*_V2AD(12,62,10)) >  8*_V2AD(2,62,10))                       
+					if(abs(p->Up12 - 8*_V2AD(12,62,10)) >  8*_V2AD(2,62,10) && __time__ > 3000)                       
 						_SET_ERROR(p,PFM_ERR_48V);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_48V);
 					
-					if(abs(p->Up5 - 8*_V2AD(5,10,10)) >  8*_V2AD(1,10,10))                       
+					if(abs(p->Up5 - 8*_V2AD(5,10,10)) >  8*_V2AD(1,10,10) && __time__ > 3000)                       
 						_SET_ERROR(p,PFM_ERR_15V);
 					else
 						_CLEAR_ERROR(p,PFM_ERR_15V);
@@ -365,12 +375,17 @@ static		int		bounce=0;
 							_YELLOW2(20);
 						}
 //-------------------------------------------------------------------------------
-					for(i=0; i<32; ++i)
-						if(error_debug & (1<<i)) {
-							_DEBUG_(_DBG_ERR_MSG,"error: %s",(int)_errStr[i]);	
-							error_debug ^= (1<<i);
-							break;
+					if(pfm->debug & (1<<_DBG_ERR_MSG)) {
+						_io *io=_stdio(__dbug);
+						for(i=0; i<32 && _errStr[i]; ++i) {
+							if(error_debug & (1<<i)) {
+								__print(":%06X error: %s\r\n>",(1<<i),(int)_errStr[i]);
+								error_debug ^= (1<<i);
+								break;
+							}
 						}
+						_stdio(io);
+					}
 }
 /*______________________________________________________________________________
   * @brief	Charger6 control procedure; Disables Charger6 if PFM_ERR_DRVERR,PFM_ERR_PULSEENABLE or 
@@ -932,7 +947,7 @@ void			PFM_command(PFM *p, int n) {
 						_TRIGGER2_OFF;
 						_CLEAR_STATUS(p,PFM_STAT_SIMM1);																// clear status
 						_CLEAR_STATUS(p,PFM_STAT_SIMM2);
-						SetSimmerPw(p);																									// kill both simmers
+						SetSimmerRate(p, _SIMMER_LOW); 																	// kill both simmers
 						p->Simmer.active=n & (PFM_STAT_SIMM1 | PFM_STAT_SIMM2);					// mask filter command
 						_wait(100,_proc_loop);																					// wait 100 msecs	
 						if(!_MODE(p,_CHANNEL1_DISABLE)) {																// if not Erbium  single channel
