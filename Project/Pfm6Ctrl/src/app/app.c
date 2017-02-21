@@ -483,6 +483,7 @@ int 			inproc=0;
 //______________________________________________________________________________________
 							case _ID_SYS2PFM:
 								switch(*(uint8_t *)q++) {
+static burst bmirror;
 									case _PFM_status_req:
 										PFM_status_send(p,PFM_command(NULL,0));
 										break;
@@ -496,56 +497,33 @@ int 			inproc=0;
 										PFM_command(p,Can.rx.Data[1]);
 										Eack(NULL);
 										break;
+//________________PFM SET ___________________________________________________________________________________
 									case _PFM_set:
-										p->Burst.U = *(short *)q++;q++;
-										p->Burst.Time=*(short *)q++;q++;
-										p->Burst.Ereq=*q++;
-// __________________________________________________________________________________________________________
-										p->Burst.Pmax = __max(0,__min(_PWM_RATE_HI, (p->Burst.U *_PWM_RATE_HI)/_AD2HV(10*p->Burst.HVo)));
-// __________________________________________________________________________________________________________									
-										if(p->Burst.Pmax > 0 && p->Burst.Pmax < _PWM_RATE_HI) {
-											p->Burst.Imax=__min(4095,_I2AD(p->Burst.U/10 + p->Burst.U/2));
-											SetPwmTab(p);														
-											Eack(NULL);
-										} else {
-											_SET_ERROR(p,PFM_ERR_PSRDYN);
+										p->Burst.U = bmirror.U = *(short *)q++;q++;
+										p->Burst.Time = bmirror.Time = *(short *)q++;q++;
+										p->Burst.Ptype = bmirror.Ptype = (ptype)(*q++);
+										if(LW_SpecOps(p,&bmirror)) {
+											p->Burst.Pmax = __max(0,__min(_PWM_RATE_HI, (p->Burst.U *_PWM_RATE_HI)/_AD2HV(10*p->Burst.HVo)));
+											if(p->Burst.Pmax > 0 && p->Burst.Pmax < _PWM_RATE_HI) {
+												p->Burst.Imax=__min(4095,_I2AD(p->Burst.U/10 + p->Burst.U/2));
+												SetPwmTab(p);														
+												Eack(NULL);
+												break;
+											} 
 										}
+										_SET_ERROR(p,PFM_ERR_PSRDYN);
 										break;
+//________________PFM RESET _______________________________________smafu za preverjanje LW protokola ________
 									case _PFM_reset:
-										p->Burst.Repeat=*(short *)q++;q++;
-										p->Burst.N=*q++;
-										p->Burst.Length=*q++*1000;
-										p->Burst.E=*(short *)q;
-// ________________________________________________________________smafu za preverjanje LW protokola ________
-										if(p->Burst.N==0)
-											p->Burst.N=1;
-										if(p->Burst.Length==0)
-											p->Burst.Length=3000;	
-										p->Burst.Erpt = 0;
-// ___________________________
-										if(_MODE(p,_LONG_INTERVAL)) {
-											for(n=0; n<8; ++n)
-												if((_ADCRates[n]+12)*(_MAX_BURST/_uS)/15 >  p->Burst.Length)
-													break;
-													
-											ADC_RegularChannelConfig(ADC1, ADC_Channel_8,		1, n);
-											ADC_RegularChannelConfig(ADC1, ADC_Channel_2,		2, n);
-											ADC_RegularChannelConfig(ADC2, ADC_Channel_11,	1, n);
-											ADC_RegularChannelConfig(ADC2, ADC_Channel_12,	2, n);
-											p->ADCRate=((_ADCRates[n]+12)*_uS)/15;											
-// ___________________________											
-										} else {
-											n=0;
-											if(p->Burst.Length > _MAX_BURST/_uS) {
-												p->Burst.Repeat = ((p->Burst.Length/1000) + p->Burst.N/2) / p->Burst.N;
-												p->Burst.Erpt = p->Burst.N-1;
-												p->Burst.Length=_MAX_BURST/_uS;
-												p->Burst.N=1;
-											}
-										}
-//____________________________________________________________________________________________________________								
-										SetPwmTab(p);
-										Eack(NULL);
+										p->Burst.Repeat = bmirror.Repeat = *(short *)q++;q++;
+										p->Burst.N=bmirror.N = *q++;
+										p->Burst.Length = bmirror.Length = *q++;
+										p->Burst.E = bmirror.E = *(short *)q;
+										if(LW_SpecOps(p,&bmirror)) {
+											SetPwmTab(p);
+											Eack(NULL);
+										} else
+											_SET_ERROR(p,PFM_ERR_PSRDYN);
 										break;
 									case _PFM_simmer_set:
 										p->Burst.Psimm[0]=*(short *)q/50 + 7;
@@ -632,9 +610,8 @@ _io 								*io=_stdio(__dbug);
 												(double)__max(0,e->w[3])/10);
 									_stdio(io);
 									}
-									if(_MODE(pfm,__SWEEPS__) && (unsigned short)e->w[0]==0xD103) {	
+									if((p->Burst.Ptype & _SHPMOD_SWEEPS) && (unsigned short)e->w[0]==0xD103)
 										Sweep(p,__max(0,e->w[2]));	
-									}
 								}
 								break;
 //______________________________________________________________________________________

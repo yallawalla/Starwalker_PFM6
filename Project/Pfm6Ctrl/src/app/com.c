@@ -686,9 +686,9 @@ int				n;
 					}
 
 					if(n==3)
-						pfm->Burst.Ereq = atoi(cc[2]);
+						pfm->Burst.Ptype = (ptype)atoi(cc[2]);
 					else
-						pfm->Burst.Ereq = 0x01;
+						pfm->Burst.Ptype = _SHPMOD_MAIN;
 					SetPwmTab(pfm);
 
 					if(n==4) {																		// dodatek za vnos pockelsa 
@@ -1068,7 +1068,7 @@ fno.lfsize = sizeof lfn;
 							Watchdog_init(4000);
 							fno.lfname = lfn;																								//	set long filename buffer 
 							fno.lfsize = sizeof lfn;
-							_RED2(0);_GREEN2(0);_BLUE2(0);_YELLOW2(0);
+							_RED1(0);_GREEN1(0);_BLUE1(0);_YELLOW1(0);
 							if(f_mount(FSDRIVE_USB,&fs0)==FR_OK)														// mount usb 
 								if(f_mount(FSDRIVE_CPU,&fs1)==FR_OK)													// mount flash
 									if(f_chdrive(FSDRIVE_USB)== FR_OK)													// go to usb drive
@@ -1083,6 +1083,10 @@ fno.lfsize = sizeof lfn;
 													if(f_chdrive(FSDRIVE_CPU)== FR_OK && f_open(&f1,t,FA_CREATE_ALWAYS | FA_WRITE)!=FR_OK) continue;
 
 													for (;;) {
+														if((__time__ / 100) % 2)
+															_YELLOW1(1000);
+														else
+															_YELLOW1(0);															
 														fr = f_read(&f0, buffer, sizeof buffer, &br);			/* Read a chunk of source file */
 														if (fr || br == 0) break; 												/* error or eof */
 														fr = f_write(&f1, buffer, br, &bw);								/* Write it to the destination file */
@@ -1097,9 +1101,9 @@ fno.lfsize = sizeof lfn;
 											f_mount(FSDRIVE_CPU,&fs1);
 											}
 											if(state>1)
-												_YELLOW2(1000);
+												_GREEN1(3000);
 											else
-												_RED2(1000);
+												_RED1(3000);
 						}
 						
 						if(call==EOF) {

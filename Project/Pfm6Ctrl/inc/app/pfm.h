@@ -257,6 +257,16 @@ int							USBH_Iap(int);
 #define					_CtrlZ						0x1A
 #define					_Esc							0x1B
 #define					_Eof							-1
+
+typedef	enum {
+								_SHPMOD_OFF=			0x00,
+								_SHPMOD_MAIN=			0x01,
+								_SHPMOD_CAL=			0x02,
+								_SHPMOD_QSWCH=		0x04,
+	
+								_SHPMOD_SWEEPS=		0x40,
+								_SHPMOD_ASP=			0x80
+} ptype;
 //________________________________________________________________________
 typedef 				struct {
 short						Repeat,						//	_PFM_reset command parameters
@@ -268,17 +278,15 @@ short						Repeat,						//	_PFM_reset command parameters
 								Pmax,	
 								Psimm[2],					//	simmer pwm, izracunan iz _PFM_simmer_set
 								Pdelay,						//	burst interval	pwm
-								Delay,						//			-"-					delay
+								Delay,						//	-"-	delay
 								Imax,							// not used 
 								Isimm,						// not used 
 								Idelay,						// not used 
 								HVo,							// op. voltage, ADC value x ADC3_AVG	
-								Erpt,
-								ki,
-								kp;
+								Erpt;
 int							Timeout,					// sweeps pulse counter timeout
 								Count;						// sweeps pulse counter
-char						Ereq;
+ptype						Ptype;
 } burst;
 //________________________________________________________________________
 typedef 				struct {
@@ -318,7 +326,8 @@ int							IgbtTemp(void),
 								Eack(PFM *),
 								PFM_command(PFM *, int),
 								PFM_pockels(PFM *),
-								PFM_status_send(PFM *, int);
+								PFM_status_send(PFM *, int),
+								LW_SpecOps(PFM *,burst *);
 				        
 void 						USBD_Storage_Init(void);
 				        

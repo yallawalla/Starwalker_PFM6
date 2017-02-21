@@ -98,10 +98,53 @@ const	int Rtab[]={
 			(4096.0*_Rdiv(6685.6,22000.0)),
 			(4096.0*_Rdiv(1936.6,22000.0))
 			};
-
+/*******************************************************************************
+* Function Name : LW_SpecOps
+* Description   : checks compatibility and overrides the inconsistent
+*								: input parameters; also recognizes parameter set for
+* Input         : special waveform modes (ASP, SWEEPS, SHAPING)
+* Output        : 
+* Return        :
+*******************************************************************************/
+int 	LW_SpecOps(PFM *p, burst *mirr) {
+	
+			p->Burst.Erpt = 0;
+// _________________________________________________________________________________________________________
+			if(_MODE(p,__ASP__) && mirr->Time == 50 && mirr->Length==1 && mirr->N == 5 && mirr->Ptype == _SHPMOD_MAIN) {
+				p->Burst.Ptype |= (_SHPMOD_ASP | _SHPMOD_CAL);	
+				p->Burst.Length=mirr->Length*1000;
+				p->Burst.Time=mirr->Time;
+				p->Burst.N=mirr->N;
+				p->Burst.Repeat=mirr->Repeat;
+				return -1;
+			}
+// _________________________________________________________________________________________________________
+			if(_MODE(p,__SWEEPS__) && mirr->Time == 50 && mirr->N == 2 && mirr->Ptype == _SHPMOD_MAIN) {
+				p->Burst.Ptype |= _SHPMOD_SWEEPS;
+				p->Burst.Length=mirr->Length*10;
+				p->Burst.Time=mirr->Time;
+				p->Burst.N=mirr->N;
+				p->Burst.Repeat=mirr->Repeat;
+				return -1;
+			}	
+// _________________________________________________________________________________________________________
+			if(mirr->N==0)
+				p->Burst.N=1;
+			if(mirr->Length==0)
+				p->Burst.Length=_MAX_BURST/_uS;
+			else if(mirr->Length > _MAX_BURST/_mS) {
+				p->Burst.Repeat = (mirr->Length + (mirr->N)/2) / mirr->N;
+				p->Burst.Erpt = mirr->N-1;
+				p->Burst.Length=_MAX_BURST/_uS;
+				p->Burst.N=1;
+			}	else	
+				p->Burst.Length=mirr->Length*1000;
+// _________________________________________________________________________________________________________
+			return -1;
+}
+// _________________________________________________________________________________________________________
 _QSHAPE	shape[8];
-extern
-short 	user_shape[];			
+extern short user_shape[];			
 #define	_K1											(_STATUS(p, PFM_STAT_SIMM1)/1)
 #define	_K2											(_STATUS(p, PFM_STAT_SIMM2)/2)
 #define	_minmax(x,x1,x2,y1,y2) 	__min(__max(((y2-y1)*(x-x1))/(x2-x1)+y1,y1),y2)
@@ -129,7 +172,7 @@ int		Uo=p->Burst.Pmax;
 					t->T1=t->T2=_K1*(user_shape[i+1]*k + p->Burst.Pdelay);
 					t->T3=t->T4=_K2*(user_shape[i+1]*k + p->Burst.Pdelay);
 				}
-				p->Burst.Ereq=0;																// da prepreci default pulze
+				p->Burst.Ptype=_SHPMOD_OFF;																// da prepreci default pulze
 				p->Burst.Delay=0;																// brez delaya
 				p->Burst.Time=100;															// da prepreci regulacijo 
 				p->Burst.Length=100;
@@ -148,19 +191,15 @@ int		Uo=p->Burst.Pmax;
 //
 //
 //
-//-------smafu za prestrezanje QSP (ASP, 30.5.2016 --------------
-			if(_MODE(p,__ASP__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 5 && p->Burst.Ereq == 0x01) {
-				p->Burst.Ereq |= 0x83;
-			}
 //-------preludij-------------------
-			if(p->Burst.Ereq & 0x02) {
+			if(p->Burst.Ptype & 0x02) {
 				int	du=0,u=0;
 
 				for(i=0; i<sizeof(shape)/sizeof(_QSHAPE); ++i)
 					if(p->Burst.Time==shape[i].qref && shape[i].q0) {
 						to=shape[i].q0;
 						Uo=(int)(pow((pow(p->Burst.Pmax,3)*p->Burst.N*shape[i].qref/to),1.0/3.0)+0.5);
-						if(p->Burst.Ereq & 0x01) {
+						if(p->Burst.Ptype & _SHPMOD_MAIN) {
 							if(Uo > shape[i].q1)
 								Uo = shape[i].q1;
 						} else
@@ -174,7 +213,7 @@ int		Uo=p->Burst.Pmax;
 							t->n=1;
 						}
 // if Uo < q1 or calibrating prePULSE finish prePULSE & return
-						if(Uo < shape[i].q1 || !(p->Burst.Ereq & 0x01)) {
+						if(Uo < shape[i].q1 || !(p->Burst.Ptype & _SHPMOD_MAIN)) {
 							while(du > p->Burst.Pdelay) 	{
 								du+=(0-u-2*du)*70/shape[i].q0; 
 								u+=du*70/shape[i].q0;
@@ -210,7 +249,7 @@ int		Uo=p->Burst.Pmax;
 //
 //
 //	ASP dodatek, 30.5.2016
-						if(p->Burst.Ereq & 0x80) {
+						if(p->Burst.Ptype & _SHPMOD_ASP) {
 							too=_minmax(Uo,260,550,100,100);
 							shape[i].q0=250;
 							shape[i].q1=250;
@@ -223,7 +262,7 @@ int		Uo=p->Burst.Pmax;
 					}						
 				}	else
 						too=p->Burst.Length/p->Burst.N - to;							// dodatek ups....
-			if(p->Burst.Ereq & 0x01) {
+			if(p->Burst.Ptype & _SHPMOD_MAIN) {
 //-------PULSE----------------------					
 				for(j=0; j<p->Burst.N; ++j) {
 
@@ -233,12 +272,17 @@ int		Uo=p->Burst.Pmax;
 //_______________________________________________________________________________________________________________________________
 //_______________________________________________________________________________________________________________________________
 // SWEEPS ...........................................................
-// mode recognizeb by mode req, pulse time = 50u, burst length = 1ms, no. of pulses = 5, regular call ...
+// mode recognized by mode req, pulse time = 50u, burst length = 1ms, no. of pulses = 5, regular call ...
 //
-						if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 2 && p->Burst.Ereq == 1) {
+
+					if(p->Burst.Ptype & _SHPMOD_SWEEPS) {
 // set distance after 1 pulse
-							if(j==0)
-								too=10*abs((p->Burst.Count % 60)-30)+250;					
+							if(j==0) {
+								if(p->Burst.Length < 300 || p->Burst.Length > 600)
+									too=10*abs((p->Burst.Count % 60)-30)+250;					
+								else
+									too=p->Burst.Length - p->Burst.Time;	
+							}								
 // break the seq. if alternate setup mode and odd pulse; else, compute voltage correction on delta t 
 							if(j==1) {
 								if(p->Burst.Count > 0 && p->Burst.Count % 30 == 0)
@@ -488,45 +532,43 @@ int		f1=(ft[1]*(t[0]-to)-ft[0]*(t[1]-to)) / (t[0]-t[1]);
 //_______________________________________________________________________________________________________________________________
 //_______________________________________________________________________________________________________________________________
 //_______________________________________________________________________________________________________________________________
-//_______________________________________________________________________________________________________________________________
-//_______________________________________________________________________________________________________________________________
-//
-// SWEEPS
-// adapt coeff.m set new tab, counter increment && timeout setup
-//
 __inline int signum(double val) {
 			  return((0 < val) - (val < 0));
 }
-//_______________________________________________________________________________________________________________________________
-//_______________________________________________________________________________________________________________________________
-//_______________________________________________________________________________________________________________________________
-//_______________________________________________________________________________________________________________________________
-//_______________________________________________________________________________________________________________________________
-//_______________________________________________________________________________________________________________________________
+//_____________________________________________________________________________________________
+/**
+  * @brief  - SWEEPS, adapt coeff.m set new pwm tab, counter increment && timeout setup
+	*					- triggered on ENM message if _SHPMOD_SWEEPS flag set and __SWEEPS__ active in cfg.ini
+	*					- modifies 1st-2nd pulse ratio, according to distance, energy and burst rate 
+  * @param  main PFM object *p, int emj=ENM message energy, 10*mJ
+  * @retval NONE
+  */
 void		Sweep(PFM *p,int emj) {
-static	int	nsw=0,ksw=0;
+static	int	offref=0,kref=0;
 int			n=abs(p->Burst.Count % 60 - 30);
-				if(_MODE(p,__SWEEPS__) && p->Burst.Time == 50 && p->Burst.Length==1000 && p->Burst.N == 2 && p->Burst.Ereq == 1) {
-					if(p->Burst.Count >= 30) {
-						if(n % 30 == 0) {
-							if(n==0)
-								ksweeps = __max(__min(ksweeps + signum(ksw-emj),110),70);	
-							else
-								ksweeps = __max(__min(ksweeps - signum(ksw-emj),110),70);	
-							nsw=emj;						
-							if(_DBG(p,26)) {
+				if(p->Burst.Ptype & _SHPMOD_SWEEPS) {																		// check mode
+					if(p->Burst.Count >= 30) {																						// ignore the first sweep
+						if(n % 30 == 0) {																										// on the extremes, do the following...
+							if(p->Burst.Length < 300 || p->Burst.Length > 600) {							// skip the distance compensation if fix mode
+								if(n==0)																												// otherwise, on the left 
+									ksweeps = __max(__min(ksweeps + signum(kref-emj),110),70);		// 		increment K
+								else																														// on the right
+									ksweeps = __max(__min(ksweeps - signum(kref-emj),110),70);		//		decrement K
+							}
+							offref=emj;																												// take the offset reference					
+							if(_DBG(p,25)) {																									// just debug stuff...
 								_io *io=_stdio(__dbug);
-								printf(":%04d, %dV,%3.1f, %d, %d\r\n>",n,pfm->Burst.Pmax*_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI, ((float)nsw)/10.0,ksweeps,nsweeps);
+								printf(":%04d, %dV,%3.1f, %d, %d\r\n>",n,pfm->Burst.Pmax*_AD2HV(pfm->Burst.HVo)/_PWM_RATE_HI, ((float)offref)/10.0,ksweeps,nsweeps);
 								_stdio(io);
 							}
-						} else {
-							nsweeps = __max(__min(nsweeps + signum(nsw-emj/2),100),-100);							
+						} else {																														// in between
+							nsweeps = __max(__min(nsweeps + signum(offref-emj/2),100),-100);			// 		adjust 2nd's offset
 						}
 					}
-					ksw=emj/2;
-					p->Burst.Count++;
-					p->Burst.Timeout = __time__ + 5*p->Burst.Repeat;
-					SetPwmTab(p);
+					kref=emj/2;																														// take the K reference
+					p->Burst.Count++;																											// increment pulse counter
+					p->Burst.Timeout = __time__ + 5*p->Burst.Repeat;											// set next burst timeout
+					SetPwmTab(p);																													// update pwm table...
 				}
 }
 /**

@@ -463,7 +463,19 @@ sweeps:
 - na robnih vrednostih razmika (00 in 600 us) se ignorira zahteva za dvojni pulz. vrednost iz
   energ. je izmerjena energija prvega pulza, ki služi za referenco pri ekvalizaciji  ksweeps/nsweps.
   
-  TODO:
-  ker je pri min. energiji 10mJ drugi pulz najbolj ojacan, ob direktnem prehodu v max. energijo vcasih zadane v napetostno omejitev 650V
+>21.2.2017
+
+sweeps:
+- nova verzija, z možnostjo fiksnega razmaka
+- fix mode, ce je burst->length med 300 in 500, zaradi obejitve 8 bitov
+  CAN prenaša parameter kot 30-50
+- V sweep klicu iz ENM fix mode preskoci adaptacijo K, SetPwmTab pa spremembo razmaka glede na števec 
+  pulzov; sicer je algoritem brez sprememb
+- preverjanje kompatibilnosti z LW v samostojno proceduro (LW_SpecOps), problem sosledja SET in RESET CAN msg
+  se kompenzira z mirror vmesnim registrom vpletenih parametrov; mirr. shranjuje nespremenjene vrednosti in služi
+  za odlocanje, pfm->burst pa se spreminja...
+- odlocitve o režimu obratovanja postavljajo flage v Ereg registru; izkljucno na CAN parserju, direktnega 
+  filtriranja parametrov in odlocitev med delovanjem ni vec!
+- spr. luck pri usb loaderju !!!
   
-			
+  
