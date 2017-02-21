@@ -36,22 +36,18 @@
 	#### error, no HW defined
 #endif
 
-
 GPIO_TypeDef *gpio[10];		// pointer na GPIO od indiv. leda
-short					pin[10];		// oznaka pina 
-
+short					pin[10];		// oznaka pina
 /**********************************************************************/
 /**
-  * @brief  LED processing
-  * @param a: led ID, 0.9 as defined in pfm.h ... _RED1,_BLUE2 ... etc.
+	* @brief  LED processing
+	* @param a: led ID, 0.9 as defined in pfm.h ... _RED1,_BLUE2 ... etc.
   * @param b: msecs, 0=off, -1=perm. on, a=-1 = periodic call, 1 msec
   * @retval : None
   */
 void	_led(int a, int b) {
 int				i;
-static 	
-int 	t[]={1,1,1,1,1,1,1,1,1,1};
-
+static 		int 	t[]={1,1,1,1,1,1,1,1,1,1};
 				if(a==-1) {
 					for(i=0;i<10;++i) {
 						if(t[i])

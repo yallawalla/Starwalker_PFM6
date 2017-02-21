@@ -1301,7 +1301,7 @@ int					USBH_Iap(int call) {
 FATFS				fs0,fs1;
 DIR					dir;
 FIL					f0,f1;
-BYTE 				buffer[1024];   																									//	file copy buffer */
+BYTE 				buffer[128];   																										//	file copy buffer */
 FRESULT 		fr;          																											//	FatFs function common result code	*/
 UINT 				br, bw;         																									//	File read/write count */
 FILINFO			fno;
@@ -1312,21 +1312,27 @@ int					state=0;
 						if(state==0 && call==0) {
 							++state;
 							Watchdog_init(4000);
-							_RED2(0);_GREEN2(0);_BLUE2(0);_YELLOW2(0);
+							_RED1(0);_GREEN1(0);_BLUE1(0);_YELLOW1(0);
 							if(f_mount(&fs0,FS_USB,1)==FR_OK)																// mount usb 
 								if(f_mount(&fs1,FS_CPU,1)==FR_OK)															// mount flash
 									if(f_chdrive(FS_USB)== FR_OK)																// go to usb drive
 										if(f_chdir("/sync")==FR_OK)																// goto /sync directory
-											if(f_opendir(&dir,fno.fname)==FR_OK) {												// & open it !
+											if(f_opendir(&dir,fno.fname)==FR_OK) {									// & open it !
 												while(f_readdir(&dir,&fno)==FR_OK && dir.sect) {			// scan the files, if end, exit
 													if (fno.fattrib & AM_DIR)														// skip if it is a subdirectory 
 														continue;
-													t = *fno.fname ? fno.fname : fno.fname;						// check for long filenames
+													t = *fno.fname ? fno.fname : fno.fname;							// check for long filenames
 													
-													if(f_chdrive(FS_USB)== FR_OK && f_open(&f0,t,FA_OPEN_EXISTING | FA_READ)!=FR_OK) continue;
-													if(f_chdrive(FS_CPU)== FR_OK && f_open(&f1,t,FA_CREATE_ALWAYS | FA_WRITE)!=FR_OK) continue;
+													if(f_chdrive(FS_USB)== FR_OK && f_open(&f0,t,FA_OPEN_EXISTING | FA_READ)!=FR_OK) 
+														continue;
+													if(f_chdrive(FS_CPU)== FR_OK && f_open(&f1,t,FA_CREATE_ALWAYS | FA_WRITE)!=FR_OK) 
+														continue;
 
 													for (;;) {
+														if((__time__ / 100) % 2)
+															_YELLOW1(1000);
+														else
+															_YELLOW1(0);															
 														fr = f_read(&f0, buffer, sizeof buffer, &br);			/* Read a chunk of source file */
 														if (fr || br == 0) break; 												/* error or eof */
 														fr = f_write(&f1, buffer, br, &bw);								/* Write it to the destination file */
@@ -1334,17 +1340,17 @@ int					state=0;
 														Watchdog();
 													}
 													++state;
-												f_close(&f0);																					// close both files
-												f_close(&f1);	
+													f_close(&f0);																				// close both files
+													f_close(&f1);	
 												}
-											f_mount(NULL,FS_USB,1);																	// dismount both drives
-											f_mount(NULL,FS_CPU,1);
-											}
-											if(state>1) {
-												_YELLOW2(1000);
-											} else {
-												_RED2(1000);
-											}
+							f_mount(NULL,FS_USB,1);																					// dismount both drives
+							f_mount(NULL,FS_CPU,1);
+							}
+							if(state>1) {
+								_GREEN1(3000);
+							} else {
+								_RED1(3000);
+							}
 						}
 						
 						if(call==EOF) {

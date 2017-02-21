@@ -64,16 +64,16 @@
 void						_led(int, int),
 								*Lightshow(void *v);
 
-#define					_RED1(a)			if(__time__ > 10000) _led(0,a)
-#define					_GREEN1(a)		if(__time__ > 10000) _led(1,a)
-#define					_YELLOW1(a)		if(__time__ > 10000) _led(2,a)
-#define					_BLUE1(a)			if(__time__ > 10000) _led(3,a)
-#define					_ORANGE1(a)		if(__time__ > 10000) _led(4,a)
-#define					_RED2(a)			if(__time__ > 10000) _led(5,a)
-#define					_GREEN2(a)		if(__time__ > 10000) _led(6,a)
-#define					_YELLOW2(a)		if(__time__ > 10000) _led(7,a)
-#define					_BLUE2(a)			if(__time__ > 10000) _led(8,a)
-#define					_ORANGE2(a)		if(__time__ > 10000) _led(9,a)             
+#define					_RED1(a)			do if(__time__ > 10000) _led(0,a); while(0)
+#define					_GREEN1(a)		do if(__time__ > 10000) _led(1,a); while(0)
+#define					_YELLOW1(a)		do if(__time__ > 10000) _led(2,a); while(0)
+#define					_BLUE1(a)			do if(__time__ > 10000) _led(3,a); while(0)
+#define					_ORANGE1(a)		do if(__time__ > 10000) _led(4,a); while(0)
+#define					_RED2(a)			do if(__time__ > 10000) _led(5,a); while(0)
+#define					_GREEN2(a)		do if(__time__ > 10000) _led(6,a); while(0)
+#define					_YELLOW2(a)		do if(__time__ > 10000) _led(7,a); while(0)
+#define					_BLUE2(a)			do if(__time__ > 10000) _led(8,a); while(0)
+#define					_ORANGE2(a)		do if(__time__ > 10000) _led(9,a); while(0)   
 //________________________________________________________________________
 typedef					enum 					{_SIMMER_LOW, _SIMMER_HIGH} SimmerType; 
 typedef					enum					{false=0, true} bool;

@@ -7,7 +7,6 @@
 	* @brief	Timers initialization & ISR
 	*
 	*/
-	
 /** @addtogroup PFM6_Setup
 * @{
 */
@@ -25,12 +24,13 @@ struct _TIM _TIM;
 // ________________________________________________________________________________
 // ________________________________________________________________________________
 // ________________________________________________________________________________
-/*******************************************************************************
+//
+/**********************************************************************************
 * Function Name	: Timer_Init
 * Description		: Configure timer pins as output open drain
 * Output				: TIM1, TIM8
 * Return				: None
-*******************************************************************************/
+**********************************************************************************/
 void 		Initialize_TIM() {
 TIM_TimeBaseInitTypeDef		TIM_TimeBaseStructure;
 TIM_OCInitTypeDef					TIM_OCInitStructure;
@@ -44,7 +44,6 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
 
 #ifdef _VBUS_BIT
-// Usb Host VBUS pin
 		GPIO_InitStructure.GPIO_Pin = _VBUS_BIT;
 		GPIO_Init(_VBUS_PORT, &GPIO_InitStructure);
 		GPIO_SetBits(_VBUS_PORT,_VBUS_BIT);
@@ -65,6 +64,7 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 // ________________________________________________________________________________
 // TRIGGER 1, TRIGGER 2, 
 // TRIGGER 3, IGBT Reset, PFM8 only
+//
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStructure.GPIO_Pin = _TRIGGER1_BIT;
