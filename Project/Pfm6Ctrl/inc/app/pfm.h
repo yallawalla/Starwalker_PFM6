@@ -9,7 +9,6 @@
 #include 				"proc.h"
 #include				"ff.h"
 #include				"diskio.h"
-//#include			"CAN_MAP.h"
 
 #include				"usbh_core.h"
 #include				"usbh_msc_usr.h"
@@ -55,9 +54,10 @@
 #define					_AD2Vn(val,rh,rl)	((float)(((val)-4096)*(rl+rh)/rl*3.3/4096.0 + 3.3))
 #define					_V2AD(val,rh,rl)	((int)((val)*4096.0/3.3*rl/(rh+rl)+0.5))
 #define					_Vn2AD(val,rh,rl)	((int)(4096+((val)-3.3)*4096.0/3.3*rl/(rh+rl)+0.5))
-	
-#define					_I2AD(a)			((int)(((a)*4096)/(int)(3.3/2.9999/0.001+0.5)))
-#define					_AD2I(a)			((int)(((a)*(int)(3.3/2.9999/0.001+0.5))/4096))
+
+#define					_Ifullsc			((int)(3.3/2.9999/0.001))
+#define					_I2AD(a)			((int)(((a)*4096 + _Ifullsc/2)/_Ifullsc))
+#define					_AD2I(a)			((int)(((a)*_Ifullsc + 2048)/4096))
 																
 #define					__charger6		__i2c1
 
@@ -86,16 +86,12 @@ typedef					enum
 								_REBOOT=30
 } 							_event;
 
-#define					_DBG(p,a)				(p->debug & (1<<(a)))
-#define					_SET_DBG(p,a)		 p->debug |= (1<<(a))
-#define					_CLEAR_DBG(p,a)	 p->debug &= ~(1<<(a))
-
 typedef					 enum
 {								_DBG_CAN_TX,							//0
 								_DBG_CAN_RX,							//1
 								_DBG_ERR_MSG,							//2
 								_DBG_PULSE_MSG,						//3
-								_DBG_ENERG_MSG,						//4
+								_DBG_ENM_MSG,							//4
 								_DBG_SYS_MSG,							//5
 								_DBG_I2C_TX,							//6
 								_DBG_I2C_RX,							//7
@@ -149,55 +145,45 @@ typedef					enum
 extern const char *_errStr[];
 
 #if		defined		(__F4__)
-	#define					_MODE(p,a)			(bool)(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a))
-	#define					_SET_MODE(p,a)				(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 1
-	#define					_CLEAR_MODE(p,a)			(*(char *)(0x22000000 + ((int)&p->mode - 0x20000000) * 32 + 4*a)) = 0
-
-	#define					_EVENT(p,a)			(bool)(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a))
-	#define					_SET_EVENT(p,a)				(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a)) = 1
-	#define					_CLEAR_EVENT(p,a)			(*(char *)(0x22000000 + ((int)&p->events - 0x20000000) * 32 + 4*a)) = 0
+	#define					_BIT(p,n)					(bool)(*(char *)(0x22000000 + ((int)(&p) - 0x20000000) * 32 + 4*n))
+	#define					_SET_BIT(p,n)			(*(char *)(0x22000000 + ((int)(&p) - 0x20000000) * 32 + 4*n)) = 1
+	#define					_CLEAR_BIT(p,n)		(*(char *)(0x22000000 + ((int)(&p) - 0x20000000) * 32 + 4*n)) = 0
 #elif defined		(__F7__)
-	#define					_EVENT(p,a)					(p->events & (1<<(a)))
-	
-	#define					_SET_EVENT(p,a)			do {				\
+	#define					_BIT(p,n)					((p) & (1<<(n)))
+	#define					_SET_BIT(p,a)			do {					\
 										int primask=__get_PRIMASK();	\
 										__disable_irq();							\
-										p->events |= (1<<(a));				\
+										(p) |= (1<<(a));							\
 										__set_PRIMASK(primask);				\
 									} while(0)
-
-	#define					_CLEAR_EVENT(p,a)		do {				\
+	#define					_CLEAR_BIT(p,a)		do {					\
 										int primask=__get_PRIMASK();	\
 										__disable_irq();							\
-										p->events &= ~(1<<(a));				\
+										(p) &= ~(1<<(a));							\
 										__set_PRIMASK(primask);				\
 									} while(0)
-
-	#define					_MODE(p,a)					(p->mode & (1<<(a)))
-
-	#define					_SET_MODE(p,a)			do {				\
-										int primask=__get_PRIMASK();	\
-										__disable_irq();							\
-										p->mode |= (1<<(a));					\
-										__set_PRIMASK(primask);				\
-									} while(0)
-
-	#define					_CLEAR_MODE(p,a)		do {				\
-										int primask=__get_PRIMASK();	\
-										__disable_irq();							\
-										p->mode &= ~(1<<(a));					\
-										__set_PRIMASK(primask);				\
-									} while(0)					
 #else
 	*** error, undefined HW
 #endif					
+	
+#define					_MODE(p,a)					_BIT(p->mode,a)
+#define					_SET_MODE(p,a)			_SET_BIT(p->mode,a)
+#define					_CLEAR_MODE(p,a)		_CLEAR_BIT(p->mode,a)
 
-#define					_STATUS(p,a)					(p->Status & (a))
-#define					_SET_STATUS(p,a)			(p->Status |= (a))
-#define					_CLEAR_STATUS(p,a)		(p->Status &= ~(a))
+#define					_EVENT(p,a)					_BIT(p->events,a)
+#define					_SET_EVENT(p,a)			_SET_BIT(p->events,a)
+#define					_CLEAR_EVENT(p,a)		_CLEAR_BIT(p->events,a)
+
+#define					_DBG(p,a)						_BIT(p->debug,a)
+#define					_SET_DBG(p,a)				_SET_BIT(p->debug,a)
+#define					_CLEAR_DBG(p,a)			_CLEAR_BIT(p->debug,a)
+
+#define					_STATUS(p,a)				(p->Status & (a))
+#define					_SET_STATUS(p,a)		(p->Status |= (a))
+#define					_CLEAR_STATUS(p,a)	(p->Status &= ~(a))
 
 
-#define					_ERROR(p,a)						(p->Error & (a))
+#define					_ERROR(p,a)					(p->Error & (a))
 
 #define					_CLEAR_ERROR(p,a)	do {																																				\
 									if(p->Error & (a)) {																																				\

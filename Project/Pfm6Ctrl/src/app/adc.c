@@ -35,6 +35,7 @@ void	TriggerADC(PFM *p) {
 					ADC_AnalogWatchdogThresholdsConfig(ADC1,pfm->Simmer.max,0);
 				ADC_ITConfig(ADC1,ADC_IT_AWD,ENABLE);
 			}
+			
 			if(!_MODE(pfm,_CHANNEL2_DISABLE)) {
 				if(p)
 					ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Burst->max[1],0);
@@ -52,8 +53,8 @@ void	TriggerADC(PFM *p) {
 			if(p) {
 				DMA_MemoryTargetConfig(DMA2_Stream3,(uint32_t)ADC2_buf,DMA_Memory_0);
 				DMA_MemoryTargetConfig(DMA2_Stream4,(uint32_t)ADC1_buf,DMA_Memory_0);
-				DMA_SetCurrDataCounter(DMA2_Stream3,_TIM.eint*_uS/_MAX_ADC_RATE*sizeof(_ADCDMA)/sizeof(short));
-				DMA_SetCurrDataCounter(DMA2_Stream4,_TIM.eint*_uS/_MAX_ADC_RATE*sizeof(_ADCDMA)/sizeof(short));
+				DMA_SetCurrDataCounter(DMA2_Stream3,__min(_TIM.eint*_uS/_MAX_ADC_RATE*sizeof(_ADCDMA)/sizeof(short),sizeof(ADC1_buf)/sizeof(short)));
+				DMA_SetCurrDataCounter(DMA2_Stream4,__min(_TIM.eint*_uS/_MAX_ADC_RATE*sizeof(_ADCDMA)/sizeof(short),sizeof(ADC2_buf)/sizeof(short)));
 				DMA_ClearITPendingBit(DMA2_Stream3,DMA_IT_TCIF3|DMA_IT_HTIF3|DMA_IT_TEIF3|DMA_IT_DMEIF3|DMA_IT_FEIF3);
 				DMA_ClearITPendingBit(DMA2_Stream4,DMA_IT_TCIF4|DMA_IT_HTIF4|DMA_IT_TEIF4|DMA_IT_DMEIF4|DMA_IT_FEIF4);
 				DMA_ITConfig(DMA2_Stream4, DMA_IT_TC, ENABLE);
@@ -364,10 +365,12 @@ void ADC_IRQHandler(void)	{
 		if(ADC_GetITStatus(ADC1, ADC_IT_AWD) != RESET) {
 			ADC_ClearITPendingBit(ADC1, ADC_IT_AWD);
 			_SET_ERROR(pfm,PFM_ADCWDG_ERR);
+			ADC_ITConfig(ADC1,ADC_IT_AWD,DISABLE);
 		}
 		if(ADC_GetITStatus(ADC2, ADC_IT_AWD) != RESET) {
 			ADC_ClearITPendingBit(ADC2, ADC_IT_AWD);
 			_SET_ERROR(pfm,PFM_ADCWDG_ERR);
+			ADC_ITConfig(ADC2,ADC_IT_AWD,DISABLE);
 		}
 		if(ADC_GetITStatus(ADC3, ADC_IT_AWD) != RESET) {
 			ADC_ClearITPendingBit(ADC3, ADC_IT_AWD);

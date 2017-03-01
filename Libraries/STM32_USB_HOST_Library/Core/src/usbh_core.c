@@ -158,8 +158,7 @@ void USBH_Init(USB_OTG_CORE_HANDLE *pdev,
                USBH_HOST *phost,               
                USBH_Class_cb_TypeDef *class_cb, 
                USBH_Usr_cb_TypeDef *usr_cb)
-{
-     
+{  
   /* Hardware Init */
   USB_OTG_BSP_Init(pdev);  
   

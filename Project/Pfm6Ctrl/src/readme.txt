@@ -604,7 +604,12 @@ jeba v usb host in usb device driverjih - usb ID pin pade pa PA10 (USART1 RX)
 v usbd_conf.c in usbh_conf.c zakomentirat inic. PA10 in PD5 (power pin :))
 
 1.2.2017
-
 PFM8, dodan task F2V, na CAN rx pretvarja freq, v napetost za pfm->burst in tx signal. stanje CRITICAL error
 
+22.2.2017
+- debug, dodan text. printout
+- adc watchdog 1,2, na ISR dodan disable interrupt, sicer ponavljajoci interrupt podaljšuje pulz
+
+1.3.2017
+- bug v parserju, "p" brez parametrov ne sme klicat SetPfmTab()
 

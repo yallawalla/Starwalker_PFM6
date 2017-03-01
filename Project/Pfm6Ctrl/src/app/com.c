@@ -30,27 +30,19 @@ int			DecodeMinus(char *c) {
 //__________________________________________________usb host/file/serial_____
 				case 'u':
 				if(strscan(c,cc,' ')==2) {
-					Initialize_host_msc();										// reset host
+					Initialize_host_msc();
 					_wait(200,_proc_loop);
 					switch(*cc[1]) {
 						case 'h':
-#ifdef _VBUS_BIT
-							GPIO_ResetBits(_VBUS_PORT,_VBUS_BIT);
-#endif
-							Initialize_host_msc();
 							break;
 						case 'f':
-#ifdef _VBUS_BIT
-							GPIO_SetBits(_VBUS_PORT,_VBUS_BIT);
-#endif
 							Initialize_device_msc();
 							break;
 						case 's':
-#ifdef _VBUS_BIT
-							GPIO_SetBits(_VBUS_PORT,_VBUS_BIT);
-#endif
 							Initialize_device_vcp();
 							break;
+						default:
+							return _PARSE_ERR_SYNTAX;
 					}
 					break;
 				}
@@ -892,6 +884,7 @@ int				i;
 						__print("\r>p(ulse)  T,U           ... %dus,%dV",pfm->Burst->Time,pfm->Burst->Pmax*_AD2HV(pfm->HVref)/_PWM_RATE_HI);
 						if(pfm->Pockels.delay || pfm->Pockels.width)
 							__print("\r\n>q(swch)  delay,width   ... %.1fus,%.1fus",(float)pfm->Pockels.delay/10,(float)pfm->Pockels.width/10);
+						break;
 					}
 //__________________________________
 					if(n>0)
@@ -939,7 +932,7 @@ int				i;
 					if(n==0) {
 						__print("\r>b(urst)  N,len,per     ... %d,%dus,%dms",pfm->Burst->N, pfm->Burst->Length,pfm->Burst->Period);
 						break;
-						}
+					}
 					if(n>0 && atoi(cc[0]) > 0)
 						pfm->Burst->N=atoi(cc[0]);
 					else
@@ -1029,19 +1022,14 @@ int				i;
 					switch(numscan(++c,cc,',')) {
 						case 0:
 							__print("\r\n");
-							__print("DAC limiter(ch 1/2)         ... %d%c,%d%c\r\n",(DAC_GetDataOutputValue(DAC_Channel_1)*100+0x7ff)/0xfff,'%',(DAC_GetDataOutputValue(DAC_Channel_2)*100+0x7ff)/0xfff,'%');
-							__print("current limits(l/h)         ... %dA,%dA,%dA,%dA\r\n",_AD2I(pfm->Simmer.max),_AD2I(pfm->Simmer.max),_AD2I(pfm->Burst->max[0]),_AD2I(pfm->Burst->max[1]));
+							__print("current limits(l/h)         ... %dA,%dA,%dA\r\n",_AD2I(pfm->Burst->max[0]),_AD2I(pfm->Burst->max[1]),_AD2I(pfm->Simmer.max));
 							__print("voltage limits(l/h)         ... %dV,%dV\r\n",ADC3_AVG*_AD2HV(ADC3->LTR),ADC3_AVG*_AD2HV(ADC3->HTR));
-
 						break;
-						case 2:
-							DAC_SetDualChannelData(DAC_Align_12b_R,(atoi(cc[1])*0xfff+50)/100,(atoi(cc[0])*0xfff+50)/100);
-							DAC_DualSoftwareTriggerCmd(ENABLE);		
-							break;
 						case 3:	
-							pfm->Simmer.max=_I2AD(atoi(cc[0]));
-							pfm->Burst->max[0]=_I2AD(atoi(cc[1]));
-							pfm->Burst->max[1]=_I2AD(atoi(cc[2]));
+							pfm->Simmer.max=_I2AD(atoi(cc[2]));
+						case 2:
+							pfm->Burst->max[0]=_I2AD(atoi(cc[0]));
+							pfm->Burst->max[1]=_I2AD(atoi(cc[1]));
 							break;
 						default:
 							return _PARSE_ERR_SYNTAX;

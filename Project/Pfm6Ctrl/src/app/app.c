@@ -198,7 +198,7 @@ void			ProcessingEvents(PFM *p) {
 						if((p->Error & _CRITICAL_ERR_MASK) || p->Trigger.time)// if periodic active or error, disarm count...
 							p->Trigger.time=p->Trigger.counter=0;								// if trigger time set (multiple triggers), switch it off
 						else {
-							if(_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2) == PFM_STAT_SIMM2)
+							if(_STATUS(p,PFM_STAT_SIMM1 | PFM_STAT_SIMM2) == PFM_STAT_SIMM2 && _MODE(pfm,_ALTERNATE_TRIGGER))
 								p->Trigger.counter=1;															// ce je eksplicit zahteva za trigger 2, zacnemo z neparnim 
 							else
 								p->Trigger.counter=0;
@@ -375,12 +375,12 @@ static		int		bounce=0;
 							_YELLOW2(20);
 						}
 //-------------------------------------------------------------------------------
-					if(pfm->debug & (1<<_DBG_ERR_MSG)) {
+					if(_BIT(pfm->debug, _DBG_ERR_MSG)) {
 						_io *io=_stdio(__dbug);
 						for(i=0; i<32 && _errStr[i]; ++i) {
-							if(error_debug & (1<<i)) {
+							if(_BIT(error_debug, i)) {
 								__print(":%06X error: %s\r\n>",(1<<i),(int)_errStr[i]);
-								error_debug ^= (1<<i);
+								_CLEAR_BIT(error_debug, i);
 								break;
 							}
 						}
@@ -427,7 +427,6 @@ int						i=_STATUS_WORD;
 							_RED2(100);																		// indicator !!!
 							if(p->Simmer.active)													// on error = simmer off
 								PFM_command(p,0);
-							
 						}
 						return;
 					}
@@ -776,7 +775,7 @@ char			*q=(char *)rx.Data;
 								{
 									union {short w[4];} *e = (void *)q; 
 									if((unsigned short)e->w[0]==0xD103)
-										_DEBUG_(_DBG_ENERG_MSG,"e1=%d.%dmJ, e2=%d.%dmJ",e->w[2]/10,e->w[2]%10,e->w[3]/10,e->w[3]%10);
+										_DEBUG_(_DBG_ENM_MSG,"e1=%d.%dmJ, e2=%d.%dmJ",e->w[2]/10,e->w[2]%10,e->w[3]/10,e->w[3]%10);
 								}
 								break;
 //______________________________________________________________________________________
@@ -865,7 +864,7 @@ int				i;
 	* @param 	: PFM object
   * @retval : None
   *
-  */	
+  */
 int				Eack(PFM *p) {
 
 static		uint64_t	e1=0,
@@ -875,7 +874,7 @@ static		int				n=0;
 int				i;
 
 					if(p) {
-						for(i=_TIM.eint*_uS/_MAX_ADC_RATE-1; i>=0; --i) {
+						for(i=__min(_TIM.eint*_uS/_MAX_ADC_RATE-1,_MAX_BURST/_uS-1); i>=0; --i) {
 							if(ADC1_buf[i].I > _I2AD(20.0))
 								e1+=(short)(ADC1_buf[i].U) * (short)(ADC1_buf[i].I-_TIM.I1off);	
 							if(ADC2_buf[i].I > _I2AD(20.0))

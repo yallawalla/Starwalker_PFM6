@@ -268,6 +268,7 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_SelectInputTrigger(TIM2, TIM_TS_ITR0); 										// T2 started from T1 trigger enable event
 		TIM_SelectInputTrigger(TIM4, TIM_TS_ITR0); 										// T4 started from T1 trigger enable event
 #endif
+
 		TIM_CtrlPWMOutputs(TIM13, ENABLE);
 		TIM_Cmd(TIM1,ENABLE);
 		TIM_Cmd(TIM13,ENABLE);

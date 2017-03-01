@@ -41,19 +41,20 @@
 /** @defgroup USBH_USR 
 * @brief    This file includes the usb host stack user callbacks
 * @{
-*/ 
+*/
 
 /** @defgroup USBH_USR_Private_TypesDefinitions
 * @{
-*/ 
+*/
+
 /**
 * @}
-*/ 
-
+*/
 
 /** @defgroup USBH_USR_Private_Defines
 * @{
-*/ 
+*/
+
 #define	IMAGE_BUFFER_SIZE   		512
 extern	USB_OTG_CORE_HANDLE			USB_OTG_Core;
 int			(*USBH_App)(int);
@@ -67,7 +68,13 @@ void		USBHost (USBH_HOST *h) {
 }
 
 void		Initialize_host_msc(void) {
+#ifdef _VBUS_BIT
+				GPIO_ResetBits(_VBUS_PORT,_VBUS_BIT);
+#endif
+				if(USB_OTG_IsDeviceMode(&USB_OTG_Core))
+						USBD_DeInit(&USB_OTG_Core);
 				USBH_App=USBH_Iap;
+				
 				USBH_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USB_Host, &USBH_MSC_cb, &USR_USBH_MSC_cb);
 				if(!_proc_find((func *)USBHost,&USB_Host))
 					_proc_add((func *)USBHost,&USB_Host,"host USB",0);
@@ -75,7 +82,6 @@ void		Initialize_host_msc(void) {
 /**
 * @}
 */ 
-
 
 /** @defgroup USBH_USR_Private_Macros
 * @{
@@ -91,7 +97,6 @@ extern uint8_t Enum_Done;
 * @{
 */ 
  
-
 /*  Points to the DEVICE_PROP structure of current device */
 /*  The purpose of this register is to speed up the execution */
 
@@ -169,7 +174,7 @@ const uint8_t MSG_MSC_UNREC_ERROR[] = "> UNRECOVERED ERROR STATE\n";
 */
 void USBH_USR_Init(void)
 {
-	_DEBUG_(_DBG_SYS_MSG,"... initialized");
+	_DEBUG_(_DBG_SYS_MSG,"... host initialized");
 }
 
 /**

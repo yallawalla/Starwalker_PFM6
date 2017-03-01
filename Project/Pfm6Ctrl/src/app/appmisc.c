@@ -427,10 +427,10 @@ int		cc,t=__max( __fit(ADC3_buf[0].IgbtT[0],Rtab,Ttab),
 #elif	defined (__PFM8__)
 
 const	int Rtab[]={
-			(4096.0*_Rdiv(22000.0,47000.0)),	// tabela vhodnih toèk za
-			(4096.0*_Rdiv(22000.0,18045.0)),	// interpolacijo (readout iz ADC !!!)
-			(4096.0*_Rdiv(22000.0,6685.6)),
-			(4096.0*_Rdiv(22000.0,1936.6))
+			(4096.0*_Rdiv(3000.0,10000.0)),		// tabela vhodnih toèk za
+			(4096.0*_Rdiv(3000.0,3598.7)),		// interpolacijo (readout iz ADC !!!)
+			(4096.0*_Rdiv(3000.0,1251.8)),
+			(4096.0*_Rdiv(3000.0,336.7))
 			};
 
 int		cc,t=__max( __max(__fit(ADC3_buf[0].IgbtT[0],Rtab,Ttab),

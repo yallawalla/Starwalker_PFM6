@@ -112,18 +112,14 @@ void 				App_Init(void) {
 						GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
 						GPIO_Init(GPIOA, &GPIO_InitStructure);
-						GPIO_ResetBits(GPIOA,GPIO_Pin_6);		
-
-//	trigger fiber off on pfm6		
-						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13;
-						GPIO_Init(GPIOD, &GPIO_InitStructure);
+						GPIO_ResetBits(GPIOA,GPIO_Pin_6);
 
 // red, yellow, blue		
 						GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
 						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_2 | GPIO_Pin_3;
 						GPIO_Init(GPIOD, &GPIO_InitStructure);
 
-						GPIO_SetBits(GPIOD,GPIO_Pin_0 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_12 | GPIO_Pin_13);
+						GPIO_SetBits(GPIOD,GPIO_Pin_0 | GPIO_Pin_2 | GPIO_Pin_3);
 }			
 #endif
 						_Words32Received=0;
