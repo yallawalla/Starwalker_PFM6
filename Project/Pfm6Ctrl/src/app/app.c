@@ -100,7 +100,9 @@ void 			App_Init(void) {
 					__can=Initialize_CAN(0);
 					Initialize_ADC();
 					Initialize_TIM();
+#if		!defined (__DISC4__) && !defined (__DISC7__)
 					__charger6=Initialize_I2C(0x58,50000);
+#endif
 
 #define noise (rand()%100 - 50)
 #if defined (__PFM6__) && ( defined  (__DISC4__) || defined  (__DISC7__) )

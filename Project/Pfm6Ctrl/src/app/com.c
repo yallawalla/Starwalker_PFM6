@@ -19,9 +19,9 @@
 #include	<ff.h>
 #include	"limits.h"
 //___________________________________________________________________________
-void		Initialize_host_msc(void);
-void		Initialize_device_msc(void);
-void		Initialize_device_vcp(void);
+void		USB_MSC_host(void);
+void		USB_MSC_device(void);
+void		USB_VCP_device(void);
 //___________________________________________________________________________
 int			DecodeMinus(char *c) {
 				char		*cc[8];
@@ -30,16 +30,16 @@ int			DecodeMinus(char *c) {
 //__________________________________________________usb host/file/serial_____
 				case 'u':
 				if(strscan(c,cc,' ')==2) {
-					Initialize_host_msc();
 					_wait(200,_proc_loop);
 					switch(*cc[1]) {
 						case 'h':
+							USB_MSC_host();
 							break;
 						case 'f':
-							Initialize_device_msc();
+							USB_MSC_device();
 							break;
 						case 's':
-							Initialize_device_vcp();
+							USB_VCP_device();
 							break;
 						default:
 							return _PARSE_ERR_SYNTAX;
@@ -1123,7 +1123,7 @@ int				i;
 int			u=0,umax=0,umin=0;
 					switch(numscan(++c,cc,',')) {
 						case 0:
-#if	defined (__PFM8__) || defined (__DISC7__)
+#if	defined (__PFM8__)
 							__print("\r>u(bank)  U,U/2,Vc1,Vc2 ... %.0fV,%.0fV,%.0fV,%.0fV\n",_AD2V(ADC3_buf[0].HV,2000,6.2),
 																																								_AD2V(ADC3_buf[0].HV2,2000,6.2),
 																																								_AD2V(ADC3_buf[0].VCAP1,2000,6.2),
@@ -1131,11 +1131,13 @@ int			u=0,umax=0,umin=0;
 							__print("\r>u(bank)  V12,V5,V3     ... %.1fV,%.1fV,%.1fV",				_AD2V(ADC3_buf[0].Up12,62,10),
 																																								_AD2V(ADC3_buf[0].Up5,10,10),
 																																								_AD2V(ADC3_buf[0].Up3,10,10));
-#else
+#elif	defined (__PFM6__)
 							__print("\r>u(bank)  Uc,Uc/2,20,-5 ... %.0fV,%.0fV,%.1fV,%.1fV",	_AD2V(ADC3_buf[0].HV,2000,7.5),
 																																								_AD2V(ADC3_buf[0].HV2,1000,7.5),
 																																								_AD2V(ADC3_buf[0].Up20,68,12),
 																																								_AD2Vn(ADC3_buf[0].Um5,24,12));
+#else
+*** error, define platform
 #endif
 							return _PARSE_OK;
 						case 3:

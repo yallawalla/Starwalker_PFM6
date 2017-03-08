@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------/
-/  Low level disk interface modlue include file   (C)ChaN, 2013          /
+/  Low level disk interface modlue include file   (C)ChaN, 2014          /
 /-----------------------------------------------------------------------*/
 
 #ifndef _DISKIO_DEFINED
@@ -9,27 +9,30 @@
 extern "C" {
 #endif
 
-#define _USE_WRITE	1	/* 1: Enable disk_write function */
-#define _USE_IOCTL	1	/* 1: Enable disk_ioctl fucntion */
-
 #include "integer.h"
 #include "stdint.h"
-	
-#define	PAGE_SIZE					0x20000
-#define	PAGE_COUNT				5
+
+#if defined  (__F7__)
+	#define FATFS_SECTOR			FLASH_Sector_5
+	#define	PAGE_SIZE					0x40000
+	#define	PAGE_COUNT				3
+	#define FS_CPU						"1:"
+	#define FS_USB						"0:"
+#else
+	#define FATFS_SECTOR			FLASH_Sector_6
+	#define	PAGE_SIZE					0x20000
+	#define	PAGE_COUNT				5
+	#define FS_CPU						"0:"
+	#define FS_USB						"1:"
+#endif
 	
 #define	SECTOR_SIZE				512
 #define	CLUSTER_SIZE			4096
-#define	SECTOR_COUNT			((int)PAGE_SIZE*PAGE_COUNT/(SECTOR_SIZE+4))
+#define	SECTOR_COUNT			(int)(PAGE_SIZE*PAGE_COUNT/(SECTOR_SIZE+4))
+#define FATFS_ADDRESS			0x8040000
 
-int8_t	STORAGE_Init (uint8_t);
-int8_t	STORAGE_GetCapacity (uint8_t, uint32_t *, uint32_t *);
-int8_t	STORAGE_IsReady (uint8_t);
-int8_t	STORAGE_IsWriteProtected (uint8_t);
-int8_t	STORAGE_Read (uint8_t, uint8_t *, uint32_t, uint16_t);
-int8_t	STORAGE_Write (uint8_t, uint8_t *, uint32_t, uint16_t);
-int8_t	STORAGE_GetMaxLun (void);
-
+#define _USE_WRITE	1
+#define _USE_IOCTL	1
 /* Status of Disk Functions */
 typedef BYTE	DSTATUS;
 
@@ -63,14 +66,14 @@ DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void* buff);
 
 /* Command code for disk_ioctrl fucntion */
 
-/* Generic command (used by FatFs) */
-#define CTRL_SYNC			0	/* Flush disk cache (for write functions) */
-#define GET_SECTOR_COUNT	1	/* Get media size (for only f_mkfs()) */
-#define GET_SECTOR_SIZE		2	/* Get sector size (for multiple sector size (_MAX_SS >= 1024)) */
-#define GET_BLOCK_SIZE		3	/* Get erase block size (for only f_mkfs()) */
-#define CTRL_ERASE_SECTOR	4	/* Force erased a block of sectors (for only _USE_ERASE) */
+/* Generic command (Used by FatFs) */
+#define CTRL_SYNC			0	/* Complete pending write process (needed at _FS_READONLY == 0) */
+#define GET_SECTOR_COUNT	1	/* Get media size (needed at _USE_MKFS == 1) */
+#define GET_SECTOR_SIZE		2	/* Get sector size (needed at _MAX_SS != _MIN_SS) */
+#define GET_BLOCK_SIZE		3	/* Get erase block size (needed at _USE_MKFS == 1) */
+#define CTRL_TRIM			4	/* Inform device that the data on the block of sectors is no longer used (needed at _USE_TRIM == 1) */
 
-/* Generic command (not used by FatFs) */
+/* Generic command (Not used by FatFs) */
 #define CTRL_POWER			5	/* Get/Set power status */
 #define CTRL_LOCK			6	/* Lock/Unlock media removal */
 #define CTRL_EJECT			7	/* Eject media */
@@ -82,6 +85,9 @@ DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void* buff);
 #define MMC_GET_CID			12	/* Get CID */
 #define MMC_GET_OCR			13	/* Get OCR */
 #define MMC_GET_SDSTAT		14	/* Get SD status */
+#define ISDIO_READ			55	/* Read data form SD iSDIO register */
+#define ISDIO_WRITE			56	/* Write data to SD iSDIO register */
+#define ISDIO_MRITE			57	/* Masked write data to SD iSDIO register */
 
 /* ATA/CF specific ioctl command */
 #define ATA_GET_REV			20	/* Get F/W revision */

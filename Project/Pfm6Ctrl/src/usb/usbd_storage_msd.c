@@ -199,9 +199,9 @@ int8_t  STORAGE_IsWriteProtected (uint8_t lun)
   */
 //_____________________________________________________________________________________________
 int8_t STORAGE_Read(uint8_t lun, 
-                 uint8_t *buf, 
-                 uint32_t blk_addr,                       
-                 uint16_t blk_len)
+										uint8_t *buf, 
+										uint32_t blk_addr,                       
+										uint16_t blk_len)
 {
 int i,*p,*q=NULL;
 	for(p=(int *)FATFS_ADDRESS; (int)p < FATFS_ADDRESS + PAGE_SIZE*PAGE_COUNT &&  p[SECTOR_SIZE/4]!=-1; p=&p[SECTOR_SIZE/4+1]) {
@@ -229,9 +229,9 @@ int i,*p,*q=NULL;
   * @retval Status
   */
 int8_t STORAGE_Write (uint8_t lun, 
-                  uint8_t *buf, 
-                  uint32_t blk_addr,
-                  uint16_t blk_len)
+											uint8_t *buf, 
+											uint32_t blk_addr,
+											uint16_t blk_len)
 {
 int i,*p,*q=NULL;
 	for(p=(int *)FATFS_ADDRESS; (int)p < FATFS_ADDRESS + PAGE_SIZE*PAGE_COUNT &&  p[SECTOR_SIZE/4]!=-1; p=&p[SECTOR_SIZE/4+1])

@@ -119,19 +119,11 @@ void 	Initialize_ADC1(void)
 //		DMA_ITConfig(DMA2_Stream4, DMA_IT_TC, ENABLE);
 
 /* Configure ADC1 Channel gpio pin as analog inputs *************************/
-#ifdef __DISC7__
-			GPIO_StructInit(&GPIO_InitStructure);
-			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_6;
-			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
-			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
-			GPIO_Init(GPIOA, &GPIO_InitStructure);
-#else
 			GPIO_StructInit(&GPIO_InitStructure);
 			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
 			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
 			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
 			GPIO_Init(GPIOB, &GPIO_InitStructure);
-#endif
 /* ADC1 Init ****************************************************************/
 			ADC_StructInit(&ADC_InitStructure);
 			ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;
@@ -148,13 +140,8 @@ void 	Initialize_ADC1(void)
 			ADC_Init(ADC1, &ADC_InitStructure);
 
 /* ADC1 regular channel12 configuration *************************************/
-#ifdef __DISC7__
-			ADC_RegularChannelConfig(ADC1, ADC_Channel_4, 1, ADC_SampleTime_3Cycles);				// Uflash 1
-			ADC_RegularChannelConfig(ADC1, ADC_Channel_6, 2, ADC_SampleTime_3Cycles);				// Iflash 1
-#else
 			ADC_RegularChannelConfig(ADC1, ADC_Channel_9, 1, ADC_SampleTime_3Cycles);				// Uflash 1
-			ADC_RegularChannelConfig(ADC1, ADC_Channel_8, 2, ADC_SampleTime_3Cycles);				// Iflash 1
-#endif			
+			ADC_RegularChannelConfig(ADC1, ADC_Channel_8, 2, ADC_SampleTime_3Cycles);				// Iflash 1		
 
 			ADC_AnalogWatchdogSingleChannelConfig(ADC1,ADC_Channel_8);
 			ADC_AnalogWatchdogCmd(ADC1,ADC_AnalogWatchdog_SingleRegEnable);

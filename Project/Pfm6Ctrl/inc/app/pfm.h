@@ -519,8 +519,6 @@ int			SetChargerVoltage(int);
 #define _USB_PDEN_PORT	 	GPIOD
 
 #if defined (__PFM6__)
-//#define _VBUS_BIT GPIO_Pin_0
-//#define _VBUS_PORT GPIOC
 #define _TRIGGER1_BIT GPIO_Pin_12
 #define _TRIGGER1_PORT GPIOD
 #define _TRIGGER2_BIT GPIO_Pin_13
@@ -532,9 +530,7 @@ int			SetChargerVoltage(int);
 #define _CWBAR_INT_pin	EXTI_PinSource14
 #define _CWBAR_INT_line	EXTI_Line14
 
-#elif defined (__PFM8__) || defined (__DISC7__)
-//#define _VBUS_BIT GPIO_Pin_5
-//#define _VBUS_PORT GPIOD
+#elif defined (__PFM8__)
 #define _TRIGGER1_BIT GPIO_Pin_4
 #define _TRIGGER1_PORT GPIOE
 #define _TRIGGER2_BIT GPIO_Pin_5
@@ -552,6 +548,11 @@ int			SetChargerVoltage(int);
 
 #else
 *** error, define platform
+#endif
+
+#if defined (__DISC7__)
+#define _VBUS_BIT GPIO_Pin_5
+#define _VBUS_PORT GPIOD
 #endif
 
 #define 				_TRIGGER1			(!GPIO_ReadOutputDataBit(_TRIGGER1_PORT,_TRIGGER1_BIT))				        

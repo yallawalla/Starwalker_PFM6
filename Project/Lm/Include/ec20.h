@@ -103,7 +103,7 @@ typedef __packed struct _ENGget {
 	unsigned short 		EMST,
 										Emax,
 										To;
-	_ENGget() : code(Id_ENGget),EMST(0),Emax(0),To(0)		{}
+	_ENGget() : code(Id_ENGget),EMST(0),Emax(0),To(0)						{}
 	void	Send(_stdid s)																				{ Send2Can(s,(void *)&code,sizeof(_ENGget)); };
 } _ENGget;
 
@@ -112,7 +112,7 @@ typedef __packed struct _ENGdata {
 	unsigned short 		EMRE,
 										Val1,
 										Val2;
-	_ENGdata() : code(Id_ENGdata),EMRE(0),Val1(0),Val2(0)		{}
+	_ENGdata() : code(Id_ENGdata),EMRE(0),Val1(0),Val2(0)				{}
 	void	Send(_stdid s)																				{ Send2Can(s,(void *)&code,sizeof(_ENGdata)); };
 } _ENGdata;
 

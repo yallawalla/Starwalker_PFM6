@@ -13,26 +13,27 @@ extern "C" {
 #include "stdint.h"
 
 #if defined  (__F7__)
-	#define FATFS_SECTOR			FLASH_Sector_5
-	#define	PAGE_SIZE					0x40000
-	#define	PAGE_COUNT				3
-	#define FS_CPU						"1:"
-	#define FS_USB						"0:"
+	#define FATFS_SECTOR		FLASH_Sector_5
+	#define	PAGE_SIZE				0x40000
+	#define	PAGE_COUNT			3
+	#define FS_CPU					"1:"
+	#define FS_USB					"0:"
 #else
-	#define FATFS_SECTOR			FLASH_Sector_6
-	#define	PAGE_SIZE					0x20000
-	#define	PAGE_COUNT				5
-	#define FS_CPU						"0:"
-	#define FS_USB						"1:"
+	#define FATFS_SECTOR		FLASH_Sector_6
+	#define	PAGE_SIZE				0x20000
+	#define	PAGE_COUNT			5
+	#define FS_CPU					"0:"
+	#define FS_USB					"1:"
 #endif
 	
 #define	SECTOR_SIZE				512
 #define	CLUSTER_SIZE			4096
-#define	SECTOR_COUNT			((int)PAGE_SIZE*PAGE_COUNT/(SECTOR_SIZE+4))
+#define	SECTOR_COUNT			(int)(PAGE_SIZE*PAGE_COUNT/(SECTOR_SIZE+4))
 #define FATFS_ADDRESS			0x8040000
 
-#define _USE_WRITE	1
-#define _USE_IOCTL	1
+#define _USE_WRITE				1
+#define _USE_IOCTL				1
+
 /* Status of Disk Functions */
 typedef BYTE	DSTATUS;
 
@@ -45,11 +46,8 @@ typedef enum {
 	RES_PARERR		/* 4: Invalid Parameter */
 } DRESULT;
 
-
 /*---------------------------------------*/
 /* Prototypes for disk control functions */
-
-
 DSTATUS disk_initialize (BYTE pdrv);
 DSTATUS disk_status (BYTE pdrv);
 DRESULT disk_read (BYTE pdrv, BYTE* buff, DWORD sector, UINT count);

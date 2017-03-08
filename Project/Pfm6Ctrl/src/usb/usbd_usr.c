@@ -112,25 +112,6 @@ USBD_Usr_cb_TypeDef USR_CDC_cb =
 __ALIGN_BEGIN
 USB_OTG_CORE_HANDLE							USB_OTG_Core;
 __ALIGN_END
-extern 	USBD_DEVICE 						USR_MSC_desc,
-																USR_VCP_desc;
-extern 	USBD_Class_cb_TypeDef  	USBD_MSC_cb,
-																USBD_CDC_cb;
-extern USBH_HOST								USB_Host;
-
-void	 	Initialize_device_msc(void) {
-#ifdef _VBUS_BIT
-				GPIO_SetBits(_VBUS_PORT,_VBUS_BIT);
-#endif
-				USBD_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USR_MSC_desc, &USBD_MSC_cb, &USR_MSC_cb);
-}
-
-void		Initialize_device_vcp(void) {
-#ifdef _VBUS_BIT
-				GPIO_SetBits(_VBUS_PORT,_VBUS_BIT);
-#endif
-				USBD_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USR_VCP_desc, &USBD_CDC_cb, &USR_CDC_cb);
-}
 
 /**
 * @}

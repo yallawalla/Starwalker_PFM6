@@ -63,22 +63,6 @@ __ALIGN_BEGIN
 USBH_HOST           						USB_Host;
 __ALIGN_END
 
-void		USBHost (USBH_HOST *h) {
-				USBH_Process(&USB_OTG_Core, h);
-}
-
-void		Initialize_host_msc(void) {
-#ifdef _VBUS_BIT
-				GPIO_ResetBits(_VBUS_PORT,_VBUS_BIT);
-#endif
-				if(USB_OTG_IsDeviceMode(&USB_OTG_Core))
-						USBD_DeInit(&USB_OTG_Core);
-				USBH_App=USBH_Iap;
-				
-				USBH_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USB_Host, &USBH_MSC_cb, &USR_USBH_MSC_cb);
-				if(!_proc_find((func *)USBHost,&USB_Host))
-					_proc_add((func *)USBHost,&USB_Host,"host USB",0);
-}
 /**
 * @}
 */ 

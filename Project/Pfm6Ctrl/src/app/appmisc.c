@@ -618,9 +618,9 @@ int		i,j,*p,*q;
 					while(++j<SECTOR_COUNT && p[SECTOR_SIZE/4] != q[SECTOR_SIZE/4])
 						q=&q[SECTOR_SIZE/4+1];
 					if(j==SECTOR_COUNT)
-						__print(" %-4d",p[SECTOR_SIZE/4]);
+						__print(" %-04X",p[SECTOR_SIZE/4]);
 					else
-						__print("%c%-4d",'*',p[SECTOR_SIZE/4]);
+						__print("%c%-04X",'*',p[SECTOR_SIZE/4]);
 				}
 				p=&p[SECTOR_SIZE/4+1];
 			}
@@ -925,6 +925,55 @@ int		sLoad(char *p)
 			}
 			return(-1);
 }
+
+
+#if !defined (__DISC7__)
+
+extern 	USBD_DEVICE 						USR_MSC_desc,	USR_VCP_desc;
+extern 	USBD_Class_cb_TypeDef  	USBD_MSC_cb,	USBD_CDC_cb;
+extern 	USBH_HOST								USB_Host;
+extern 	USB_OTG_CORE_HANDLE  		USB_OTG_Core;
+typedef enum {off, on} vbus;
+
+void	 	Vbus(vbus on) {
+#ifdef _VBUS_BIT
+GPIO_InitTypeDef					GPIO_InitStructure;
+				GPIO_StructInit(&GPIO_InitStructure);
+				GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+				GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+				GPIO_InitStructure.GPIO_Pin = _VBUS_BIT;
+				GPIO_Init(_VBUS_PORT, &GPIO_InitStructure);
+				if(on)
+					GPIO_ResetBits(_VBUS_PORT,_VBUS_BIT);
+				else
+					GPIO_SetBits(_VBUS_PORT,_VBUS_BIT);
+#endif
+}
+
+void	 	USB_MSC_device(void) {
+				Vbus(off);
+				USBD_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USR_MSC_desc, &USBD_MSC_cb, &USR_MSC_cb);
+}
+
+void		USB_VCP_device(void) {
+				Vbus(off);
+				USBD_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USR_VCP_desc, &USBD_CDC_cb, &USR_CDC_cb);
+}
+
+void		USBHost (USBH_HOST *h) {
+				USBH_Process(&USB_OTG_Core, h);
+}
+
+void		USB_MSC_host(void) {
+				Vbus(on);
+				if(USB_OTG_IsDeviceMode(&USB_OTG_Core))
+						USBD_DeInit(&USB_OTG_Core);
+				USBH_App=USBH_Iap;
+				USBH_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USB_Host, &USBH_MSC_cb, &USR_USBH_MSC_cb);
+				if(!_proc_find((func *)USBHost,&USB_Host))
+					_proc_add((func *)USBHost,&USB_Host,"host USB",0);
+}
+#endif // __DISC7__
 /**
 * @}
 */

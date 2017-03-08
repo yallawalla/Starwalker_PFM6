@@ -14,26 +14,14 @@
 */
 
 #include		<stdlib.h>
-#if defined  (STM32F2XX)
 #include		"stm32f2xx.h"
-#
-#elif defined (__PVC__)
-#include		"stm32f10x.h"
-#elif	undefined (STM32F2XX || __PVC__)
-*** undefined target !!!!
-#endif
 
-#if		defined (__PFM6__) || defined (__PFM8__)
+#if		!defined (__DISC4__) && !defined (__DISC7__)
 	#define	__LED_ON(a,b)			GPIO_ResetBits(a,b)
 	#define	__LED_OFF(a,b)		GPIO_SetBits(a,b)
-#elif defined (__DISC4__)	|| defined (__DISC7__)
-	#define	__LED_OFF(a,b)
-	#define	__LED_ON(a,b)
-#elif  defined (__PVC__)
-	#define	__LED_OFF(a,b)
-	#define	__LED_ON(a,b)
 #else
-	#### error, no HW defined
+	#define	__LED_ON(a,b)
+	#define	__LED_OFF(a,b)
 #endif
 
 GPIO_TypeDef *gpio[10];		// pointer na GPIO od indiv. leda
@@ -107,6 +95,18 @@ int		i;
 			GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
 
 			for(i=0; i<n; ++i) {
+				switch(*p[i]) {
+					case 'a':gpio[i]=GPIOA;break;
+					case 'b':gpio[i]=GPIOB;break;
+					case 'c':gpio[i]=GPIOC;break;
+					case 'd':gpio[i]=GPIOD;break;
+					case 'e':gpio[i]=GPIOE;break;
+					case 'f':gpio[i]=GPIOF;break;
+					case 'g':gpio[i]=GPIOG;break;
+					case 'h':gpio[i]=GPIOH;break;
+					case 'i':gpio[i]=GPIOI;break;
+					default:gpio[i]=NULL;
+				}
 				switch(*p[i]) {
 					case 'a':gpio[i]=GPIOA;break;
 					case 'b':gpio[i]=GPIOB;break;
