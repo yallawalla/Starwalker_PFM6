@@ -242,7 +242,7 @@ void	SetPwmTab(PFM *p) {
 */
 static void	_TIMERS_PWM_SET(PFM *p, int rate) {
 
-int 	psimm0=p->Simmer.pw[0];																//		#kwwe723lwhd
+int 	psimm0=p->Simmer.pw[0];
 int 	psimm1=p->Simmer.pw[1];
 
 			if(p->Simmer.active != _STATUS(p, PFM_STAT_SIMM1 | PFM_STAT_SIMM2)) {			
@@ -294,10 +294,10 @@ int 	psimm1=p->Simmer.pw[1];
 					TIM2->CCR4=TIM2->CCR3=TIM4->CCR4=TIM4->CCR3=psimm1/2;
 				else
 					TIM2->CCR4=TIM2->CCR3=TIM4->CCR4=TIM4->CCR3=0;
-				TIM_OC2PolarityConfig(TIM4, TIM_OCPolarity_High);
-				TIM_OC4PolarityConfig(TIM4, TIM_OCPolarity_High);
 				TIM_OC2PolarityConfig(TIM2, TIM_OCPolarity_High);
 				TIM_OC4PolarityConfig(TIM2, TIM_OCPolarity_High);
+				TIM_OC2PolarityConfig(TIM4, TIM_OCPolarity_High);
+				TIM_OC4PolarityConfig(TIM4, TIM_OCPolarity_High);
 			} else {
 				if(_STATUS(p, PFM_STAT_SIMM1))  {
 					TIM2->CCR1=TIM4->CCR1=psimm0/2;
@@ -311,7 +311,7 @@ int 	psimm1=p->Simmer.pw[1];
 					TIM2->CCR4=TIM4->CCR4=(rate-psimm1)/2;
 				} else {
 					TIM2->CCR3=TIM4->CCR3=0;
-					TIM8->CCR4=TIM4->CCR4=rate/2;
+					TIM2->CCR4=TIM4->CCR4=rate/2;
 				}
 				TIM_OC2PolarityConfig(TIM4, TIM_OCPolarity_Low);
 				TIM_OC4PolarityConfig(TIM4, TIM_OCPolarity_Low);
@@ -327,7 +327,7 @@ int 	psimm1=p->Simmer.pw[1];
 * Output        : None
 * Return        : None
 */
-void	SetSimmerRate(PFM *p, SimmerType type) {										// #kd890304ri
+void	SetSimmerRate(PFM *p, SimmerType type) {	
 int		simmrate;
 			_CLEAR_MODE(pfm,_XLAP_SINGLE);
 			_CLEAR_MODE(pfm,_XLAP_DOUBLE);
@@ -352,7 +352,7 @@ int		simmrate;
 			_DISABLE_PWM_OUT();
 			__enable_irq();
 			if(type == _SIMMER_HIGH) {
-				_TIMERS_RESYNC(p, simmrate);
+				_TIMERS_RESYNC(p,simmrate);
 				_TIMERS_PWM_SET(p,simmrate);		
 				_TIMERS_ARR_SET(simmrate);
 				_TIMERS_PRELOAD_ON();
@@ -360,7 +360,7 @@ int		simmrate;
 				_TIMERS_PRELOAD_OFF();
 				_TIMERS_ARR_SET(simmrate);
 				_TIMERS_PWM_SET(p,simmrate);			
-				_TIMERS_RESYNC(p, simmrate);
+				_TIMERS_RESYNC(p,simmrate);
 			}
 			if(_MODE(p,_PULSE_INPROC)) {
 				TriggerADC(p);

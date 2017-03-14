@@ -212,7 +212,7 @@ extern int			_ADCRates[];
 typedef struct	{	unsigned short			IgbtT[2],HV2,HV,Up20,Um5;													} _ADC3DMA;
 #endif
 #if	defined (__PFM8__)
-typedef struct	{	unsigned short			IgbtT[4],HV2,HV,VCAP1,VCAP2,Up12,Up5,Up3;					} _ADC3DMA;						
+typedef struct	{	unsigned short			IgbtT[4],HV2,HV,Up12,Up5,Up3,VCAP1,VCAP2;					} _ADC3DMA;						
 #endif
 					
 

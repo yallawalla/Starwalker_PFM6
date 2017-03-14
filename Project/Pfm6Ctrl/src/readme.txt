@@ -613,3 +613,9 @@ PFM8, dodan task F2V, na CAN rx pretvarja freq, v napetost za pfm->burst in tx s
 1.3.2017
 - bug v parserju, "p" brez parametrov ne sme klicat SetPfmTab()
 
+14.3.2017
+- popravljen bug za Pfm8 na TIM8/4 v _TIMERS_PWM_SET()
+- ADC na PC0 ne kaže prou ??!? Odstranil stari vbus za discovery, ne pomaga !
+
+
+

@@ -107,18 +107,6 @@ int		i;
 					case 'i':gpio[i]=GPIOI;break;
 					default:gpio[i]=NULL;
 				}
-				switch(*p[i]) {
-					case 'a':gpio[i]=GPIOA;break;
-					case 'b':gpio[i]=GPIOB;break;
-					case 'c':gpio[i]=GPIOC;break;
-					case 'd':gpio[i]=GPIOD;break;
-					case 'e':gpio[i]=GPIOE;break;
-					case 'f':gpio[i]=GPIOF;break;
-					case 'g':gpio[i]=GPIOG;break;
-					case 'h':gpio[i]=GPIOH;break;
-					case 'i':gpio[i]=GPIOI;break;
-					default:gpio[i]=NULL;
-				}
 				GPIO_InitStructure.GPIO_Pin = pin[i]=1<<(atoi(++p[i]));
 				GPIO_Init(gpio[i], &GPIO_InitStructure);		
 				__LED_OFF(gpio[i],pin[i]);

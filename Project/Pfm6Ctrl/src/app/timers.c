@@ -48,10 +48,7 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		GPIO_Init(_VBUS_PORT, &GPIO_InitStructure);
 		GPIO_SetBits(_VBUS_PORT,_VBUS_BIT);
 #endif
-
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
-		GPIO_Init(GPIOC, &GPIO_InitStructure);
-		GPIO_SetBits(GPIOC,GPIO_Pin_0);
+	
 		GPIO_StructInit(&GPIO_InitStructure);
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
