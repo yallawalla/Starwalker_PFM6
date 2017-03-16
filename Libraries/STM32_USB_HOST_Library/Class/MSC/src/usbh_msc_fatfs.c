@@ -11,7 +11,7 @@ static volatile DSTATUS Stat = STA_NOINIT;	/* Disk status */
 
 extern USB_OTG_CORE_HANDLE          USB_OTG_Core;
 extern USBH_HOST                    USB_Host;
-extern USBD_STORAGE_cb_TypeDef USBD_MICRO_SDIO_fops;
+extern USBD_STORAGE_cb_TypeDef			USBD_MICRO_SDIO_fops;
 
 /*-----------------------------------------------------------------------*/
 /* Initialize Disk Drive                                                 */

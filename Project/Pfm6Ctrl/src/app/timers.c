@@ -356,7 +356,7 @@ int 		hv,j,k,x,
 					return;
 //----- HV voltage averaging, calc. active ADC DMA index----------------------------------
 
-				for(hv=j=0;j<ADC3_AVG;++j)																// 
+				for(hv=j=0;j<_AVG3;++j)																// 
 					hv+=(unsigned short)(ADC3_buf[j].HV);
 																																	// --- on first entry, compute DMA index 
 				k = _TIM.eint*_uS/_MAX_ADC_RATE;

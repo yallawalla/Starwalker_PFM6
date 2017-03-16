@@ -20,7 +20,7 @@ GPIO_InitTypeDef	GPIO_InitStructure;
 	GPIO_StructInit(&GPIO_InitStructure);
 	DAC_StructInit(&DAC_InitStructure);
 
-#if		defined (__PFM6__)
+#if		defined (__PFM6__) || defined (__PFM8__)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;

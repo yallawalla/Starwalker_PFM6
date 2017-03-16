@@ -265,7 +265,7 @@ int			DecodeEq(char *c) {
 				switch(*c) {
 //______________________________________________________________________________________
 				case 'C':
-					_TIM.Caps=__max(100,1000.0*atof(++c));	// scale fakt. za C v mF pri 880V/1100A full scale, 100kHz sample rate in ADC3_AVG = 4 pride 20... ni placa za izpeljavo
+					_TIM.Caps=__max(100,1000.0*atof(++c));	// scale fakt. za C v mF pri 880V/1100A full scale, 100kHz sample rate in _AVG3 = 4 pride 20... ni placa za izpeljavo
 					break;
 //______________________________________________________________________________________
 				case 'P':					
@@ -1023,7 +1023,7 @@ int				i;
 						case 0:
 							__print("\r\n");
 							__print("current limits(l/h)         ... %dA,%dA,%dA\r\n",_AD2I(pfm->Burst->max[0]),_AD2I(pfm->Burst->max[1]),_AD2I(pfm->Simmer.max));
-							__print("voltage limits(l/h)         ... %dV,%dV\r\n",ADC3_AVG*_AD2HV(ADC3->LTR),ADC3_AVG*_AD2HV(ADC3->HTR));
+							__print("voltage limits(l/h)         ... %dV,%dV\r\n",_AVG3*_AD2HV(ADC3->LTR),_AVG3*_AD2HV(ADC3->HTR));
 						break;
 						case 3:	
 							pfm->Simmer.max=_I2AD(atoi(cc[2]));
@@ -1036,12 +1036,26 @@ int				i;
 					}
 				break;
 //______________________________________________________________________________________
+				case 'I':							
+					switch(strscan(++c,cc,',')) {
+						case 0:
+							printf("\r>i(DAC)   i1,i2         ... %d%c,%d%c",(DAC_GetDataOutputValue(DAC_Channel_1)*100+0x7ff)/0xfff,'%',(DAC_GetDataOutputValue(DAC_Channel_2)*100+0x7ff)/0xfff,'%');
+							break;
+						case 2:
+							DAC_SetDualChannelData(DAC_Align_12b_R,(atoi(cc[1])*0xfff+50)/100,(atoi(cc[0])*0xfff+50)/100);
+							DAC_DualSoftwareTriggerCmd(ENABLE);		
+							break;
+						default:
+							return _PARSE_ERR_SYNTAX;
+					}
+				break;
+//______________________________________________________________________________________
 				case 'a':
 					switch(numscan(++c,cc,',')) {
 						case 0:
-							__print("  \r>a(dc)    U1,I1,U2,I2   ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*ADC1_simmer.U),_AD2I(ADC1_simmer.I-_TIM.I1off),
-																																					_AD2HV(ADC3_AVG*ADC2_simmer.U),_AD2I(ADC2_simmer.I-_TIM.I2off));
-							__print("\n\r>a(dc)    idle          ... %dV,%dA,%dV,%dA",_AD2HV(ADC3_AVG*_TIM.U1off),_AD2I(_TIM.I1off),_AD2HV(ADC3_AVG*_TIM.U2off),_AD2I(_TIM.I2off));
+							__print("  \r>a(dc)    U1,I1,U2,I2   ... %dV,%dA,%dV,%dA",_AD2HV(_AVG3*ADC1_simmer.U),_AD2I(ADC1_simmer.I-_TIM.I1off),
+																																					_AD2HV(_AVG3*ADC2_simmer.U),_AD2I(ADC2_simmer.I-_TIM.I2off));
+							__print("\n\r>a(dc)    idle          ... %dV,%dA,%dV,%dA",_AD2HV(_AVG3*_TIM.U1off),_AD2I(_TIM.I1off),_AD2HV(_AVG3*_TIM.U2off),_AD2I(_TIM.I2off));
 							break;
 						default:
 							return _PARSE_ERR_SYNTAX;
@@ -1159,7 +1173,7 @@ int			u=0,umax=0,umin=0;
 					pfm->HVref=_HV2AD(u);
 						
 					ADC_ITConfig(ADC3,ADC_IT_AWD,DISABLE);
-					ADC_AnalogWatchdogThresholdsConfig(ADC3,_HV2AD(umax)/ADC3_AVG,_HV2AD(umin)/ADC3_AVG);
+					ADC_AnalogWatchdogThresholdsConfig(ADC3,_HV2AD(umax)/_AVG3,_HV2AD(umin)/_AVG3);
 					return SetChargerVoltage(u);
 }
 //______________________________________________________________________________________

@@ -47,8 +47,8 @@
 #define					_Rdiv(a,b)		((a)/(a+b))
 #define					_Rpar(a,b)		((a)*(b)/(a+b))
 			          
-#define					_AD2HV(a)			((int)(((a)*_UREF)/4096.0/ADC3_AVG/_Rdiv(7.5e3,2e6)+0.5))
-#define					_HV2AD(a)			((int)(((a)*4096.0*ADC3_AVG*_Rdiv(7.5e3,2e6))/_UREF+0.5))
+#define					_AD2HV(a)			((int)(((a)*_UREF)/4096.0/_AVG3/_Rdiv(7.5e3,2e6)+0.5))
+#define					_HV2AD(a)			((int)(((a)*4096.0*_AVG3*_Rdiv(7.5e3,2e6))/_UREF+0.5))
 
 #define					_AD2V(val,rh,rl)	((float)((val)*(rl+rh)/rl*3.3/4096.0))	
 #define					_AD2Vn(val,rh,rl)	((float)(((val)-4096)*(rl+rh)/rl*3.3/4096.0 + 3.3))
@@ -114,7 +114,7 @@ typedef					enum
 								_CHANNEL1_SINGLE_TRIGGER,	//13
 								_CHANNEL2_SINGLE_TRIGGER,	//14
 								_ALTERNATE_TRIGGER,				//15
-								__TEST__						=29,
+								__TEST__									=29,
 								_CAN_2_COM								//30
 } 							mode;
 
@@ -203,7 +203,7 @@ extern const char *_errStr[];
 								} while(0)
 								
 //________________________________________________________________________
-#define 				ADC3_AVG							4
+#define 				_AVG3							1
 #define					_MAX_QSHAPE						8
 #define					_MAX_USER_SHAPE				1024
 extern int			_ADCRates[];	
@@ -356,8 +356,8 @@ int							Error,
 								Errmask;
 short						Status,	
 								HVref,								// req. reference HV
-								HV,										// Cap1+Cap2	ADC value x ADC3_AVG
-								HV2,									// Cap1			ADC value x ADC3_AVG								
+								HV,										// Cap1+Cap2	ADC value x _AVG3
+								HV2,									// Cap1			ADC value x _AVG3								
 								Temp,									// Igbt temp,	degrees
 #if	defined (__PFM6__)
 								Up20,				
@@ -665,8 +665,8 @@ __inline void dbg_6(int n,char *s, int arg1, int arg2, int arg3, int arg4) {
 #define	_k_Er	(20.0*20.0)
 #define	_k_Nd	(28.5 * 28.5)
 // __________________________________________________________________________________________________________
-//											cref1=_I2AD(p->Burst->U * p->Burst->U) * _HV2AD(p->Burst->U) / (ADC3_AVG *_k_Er * 1000 * 4096);
-//											cref2=_I2AD(p->Burst->U * p->Burst->U) * _HV2AD(p->Burst->U) / (ADC3_AVG *_k_Nd * 1000 * 4096);
+//											cref1=_I2AD(p->Burst->U * p->Burst->U) * _HV2AD(p->Burst->U) / (_AVG3 *_k_Er * 1000 * 4096);
+//											cref2=_I2AD(p->Burst->U * p->Burst->U) * _HV2AD(p->Burst->U) / (_AVG3 *_k_Nd * 1000 * 4096);
 #define	kVf	(3.3/4096.0*2000.0/7.5)					// 		flash voltage			
 #define	kIf	(3.3/4096.0/2.9999/0.001)				// 		flash curr.
 #define Ts	 1e-6														// 		ADC sample rate

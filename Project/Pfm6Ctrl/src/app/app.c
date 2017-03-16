@@ -109,7 +109,7 @@ void 			App_Init(void) {
 {
 int				i,j;
 					srand(__time__);
-					for(i=0; i<ADC3_AVG; ++i) {
+					for(i=0; i<_AVG3; ++i) {
 						ADC3_buf[i].HV=_V2AD(700,2000,6.2) + noise;
 						ADC3_buf[i].HV2=_V2AD(350,2000,6.2) + noise;
 						for(j=0; j<sizeof(ADC3_buf[i].IgbtT)/sizeof(short); ++j)
@@ -123,7 +123,7 @@ int				i,j;
 {
 int				i,j;
 					srand(__time__);
-					for(i=0; i<ADC3_AVG; ++i) {
+					for(i=0; i<_AVG3; ++i) {
 						ADC3_buf[i].HV=_V2AD(700,2000,6.2) + noise;
 						ADC3_buf[i].HV2=_V2AD(350,2000,6.2) + noise;
 						for(j=0; j<sizeof(ADC3_buf[i].IgbtT)/sizeof(short); ++j)
@@ -252,7 +252,7 @@ static		short	status_image=0;
 static		int		error_image=0,error_debug=0;
 static		int		bounce=0;
 					
-					for(i=j=k=0; i<ADC3_AVG; ++i) {
+					for(i=j=k=0; i<_AVG3; ++i) {
 						j+=ADC3_buf[i].HV;
 						k+=ADC3_buf[i].HV2;
 					}
@@ -957,7 +957,7 @@ int						u=p->HV/7;
 								u=2*p->HV/7;
 							_TIM.I1off=ADC1_simmer.I;																			// get current sensor offset
 							_TIM.U1off=ADC1_simmer.U;																			// check idle voltage
-							if(abs(u - ADC3_AVG*ADC1_simmer.U) > _HV2AD(50)) {						// HV +/- 30V range ???
+							if(abs(u - _AVG3*ADC1_simmer.U) > _HV2AD(50)) {						// HV +/- 30V range ???
 								_SET_ERROR(p,PFM_ERR_LNG);																	// if not, PFM_STAT_UBHIGH error 
 							}
 						}
@@ -967,7 +967,7 @@ int						u=p->HV/7;
 								u=2*p->HV/7;
 							_TIM.I2off=ADC2_simmer.I;
 							_TIM.U2off=ADC2_simmer.U;
-							if(abs(u - ADC3_AVG*ADC2_simmer.U) > _HV2AD(50)) {
+							if(abs(u - _AVG3*ADC2_simmer.U) > _HV2AD(50)) {
 								_SET_ERROR(p,PFM_ERR_LNG);
 							}
 						}
