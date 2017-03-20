@@ -1200,6 +1200,37 @@ int			u=0,umax=0,umin=0;
 					_SET_EVENT(pfm,_TRIGGER);
 				break;
 //______________________________________________________________________________________
+				case '$':
+				{
+					int n=atoi(++c);
+					int i=0,U=0,I=0;
+					__print(",%d\r\n",_TIM.eint);
+					while(i<__min(_TIM.eint*_uS/_MAX_ADC_RATE-1,_MAX_BURST/_uS-1)) {
+						if(n==1) {
+							U+=ADC1_buf[i].U;
+							I+=ADC1_buf[i].I;
+						}
+						if(n==2) {
+							U+=ADC2_buf[i].U;
+							I+=ADC2_buf[i].I;
+						}
+						if(++i % 4 == 0) {
+							U/=4;
+							I/=4;
+							while(fputc((U%256),&__stdout)==EOF)
+								_wait(2,_proc_loop);
+							while(fputc((U/256),&__stdout)==EOF)
+								_wait(2,_proc_loop);
+							while(fputc((I%256),&__stdout)==EOF)
+								_wait(2,_proc_loop);
+							while(fputc((I/256),&__stdout)==EOF)
+								_wait(2,_proc_loop);
+							U=I=0;
+						}
+					}
+				}
+				break;
+//______________________________________________________________________________________
 				case '@':
 					return batch(++c);
 //______________________________________________________________________________________

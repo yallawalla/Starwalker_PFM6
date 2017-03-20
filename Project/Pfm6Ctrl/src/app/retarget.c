@@ -25,8 +25,8 @@ int 		fputc(int c, FILE *f) {
 					if(f->io) {
 						while(f->io->put(f->io->tx,c) == EOF)
 							_wait(2,_proc_loop);
-						if(f->io->file)
-							f_putc(c,f->io->file);
+//						if(f->io->file)																			#kj873uhjfru
+//							f_putc(c,f->io->file);
 					}
 					return c;
 				}
@@ -38,8 +38,8 @@ int			c=EOF;
 				if(f==stdin) {
 					if(f->io)
 						c=f->io->get(f->io->rx);
-					if(f->io->file && c==EOF)
-						c=f_getc(f->io->file);
+//					if(f->io->file && c==EOF)															#kj873uhjfru
+//						c=f_getc(f->io->file);
 					return c;
 				}
 				return f_getc((FIL *)f);

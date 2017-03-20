@@ -21,7 +21,7 @@ _proc	*p=NULL;
 			if(_proc_buf && _buffer_pull(_proc_buf,&p,sizeof(_proc *)) && p) {
 				if(__time__ >= p->t) {
 					p->to = __time__ - p->t;
-					p->f(p->arg);
+					p->f(p); // (p->arg);
 					p->t = __time__ + p->dt;
 				}
 				_buffer_push(_proc_buf,&p,sizeof(_proc *));

@@ -176,7 +176,8 @@ int				i,j;
   * @param	PFM object
   * @retval	: None
   */
-void			ProcessingEvents(PFM *p) {
+void			ProcessingEvents(_proc *proc) {
+PFM				*p=proc->arg;
 //_______Fan tacho processing context___________________________________________
 					if(_EVENT(p,_FAN_TACHO)) {															// fan timeout counter reset
 						_CLEAR_EVENT(p,_FAN_TACHO);
@@ -246,7 +247,8 @@ void			ProcessingEvents(PFM *p) {
   * @retval : None
   *
 ______________________________________________________________________________*/
-void			ProcessingStatus(PFM *p) {
+void			ProcessingStatus(_proc *proc) {
+PFM				*p=proc->arg;
 int 			i,j,k;
 static		short	status_image=0; 
 static		int		error_image=0,error_debug=0;
@@ -397,7 +399,8 @@ static		int		bounce=0;
   * @retval : None
   *
 ____________________________________________________________________________*/
-void			ProcessingCharger(PFM *p) {
+void			ProcessingCharger(_proc *proc) {
+PFM				*p=proc->arg;
 static
 	int			ton=1500,					// _PFC_ON command delay
 					toff=1000,				// _PFC_OFF command delay
@@ -413,7 +416,7 @@ static
 						else {																					// 100 ms charger6 scan, stop when i2c comms error !
 int						i=_STATUS_WORD;
 							if(readI2C(__charger6,(char *)&i,2))					// add status word >> error status. byte 3
-								p->Error = (p->Error & 0xffff) | ((i & 0xff)<<24);
+								p->Error = (p->Error & ~(1<<24)) | ((i & 0xff)<<24);
 						}
 					}
 //-------------------------------------------------------------------------------						
@@ -454,8 +457,8 @@ int						i=_STATUS_WORD;
 								ton=3000;
 							}
 						}
-					}	
-											
+					}
+
 					if(ton) {
 						if(!--ton) {																		// switch on countdown
 							int i=_PFC_ON;
@@ -469,45 +472,49 @@ int						i=_STATUS_WORD;
 						if(!--toff) {																		// switch off countdown
 							int i=_PFC_OFF;
 							writeI2C(__charger6,(char *)&i,2);	
-						}			
+						}
 }
 //______________________________________________________________________________________
-void			ParseCom(_io *v) {
-char 			*p;
+void			ParseCom(_proc *p) {
+char 			*c;
 int 			i;
 _io				*io;
 
-					if(v) {
-						if(!v->arg.parse)																// first call init
-							v->arg.parse=DecodeCom;
-						io=_stdio(v);																		// recursion lock
-//						if(io != v) {
-							i=fgetc(&__stdin);
-							switch(i) {
-								case _Eof:																	// empty usart
-									break;
-								case _CtrlZ:																// call watchdog reset
-									while(1);
-								case _CtrlY:																// call system reset
-									NVIC_SystemReset();
-								case _CtrlE:																// can console - maintenance only
-									CAN_console();
-								case _Esc:
-									_SET_EVENT(pfm,_TRIGGER);									// console esc +-	trigger... no ja!!
-									break;
-								default:
-									p=cgets(i,EOF);
-									if(p) {
-										while(*p==' ') ++p;
-										i=v->arg.parse(p);
-										if(*p && i)
-											__print("... WTF(%d)",i);							// error message
-										v->arg.parse(NULL);											// call newline
-									}
-								}
-//							}
-						_stdio(io);
-					}
+					if(p)
+						io=_stdio(p->arg);															// recursion lock
+					i=fgetc(stdin);
+					if(i != _Eof)
+					switch(i) {
+						case _Eof:																			// empty usart
+							break;				
+						case _CtrlZ:																		// call watchdog reset
+							while(1);				
+						case _CtrlY:																		// call system reset
+							NVIC_SystemReset();				
+						case _CtrlE:																		// can console - maintenance only
+							CAN_console();				
+						case _Esc:				
+							_SET_EVENT(pfm,_TRIGGER);											// console esc +-	trigger... no ja!!
+							break;				
+						default:				
+							c=cgets(i,EOF);				
+							if(c) {		
+								while(*c==' ') ++c;	
+								if(stdin->io->arg.parse)
+									i=stdin->io->arg.parse(c);
+								else
+									i=DecodeCom(c);
+								if(*c && i)				
+									__print("... WTF(%d)",i);									// error message
+								if(stdin->io->arg.parse)														// call newline
+									i=stdin->io->arg.parse(NULL);
+								else
+									i=DecodeCom(NULL);
+							}
+						}
+						if(p)
+							_stdio(io);
+
 }
 /*______________________________________________________________________________
   * @brief  CAN transmit parser
@@ -516,7 +523,8 @@ _io				*io;
 	*
 	*
   */
-void			ParseCanTx(PFM *p) {	
+void			ParseCanTx(_proc *proc) {	
+PFM				*p=proc->arg;
 CanTxMsg	tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 static 
 	int			count=0,timeout=0;
@@ -558,10 +566,11 @@ static
 	*
 	*
   */
-void			ParseCanRx(PFM *p) {	
+void			ParseCanRx(_proc *proc) {	
 CanRxMsg	rx;
 short			n;
 char			*q=(char *)rx.Data;
+PFM				*p=proc->arg;
 //______________________________________________________________________________________					
 					if(_buffer_pull(__can->rx,&rx,sizeof(CanRxMsg))) {
 						q=(char *)rx.Data;
@@ -827,7 +836,7 @@ va_list		v;
 char*			c;
 int				i;				
 					if(!format) {
-						io=__stdin.io;
+						io=stdin->io;
 						return;
 					}
 					va_start(v, format);

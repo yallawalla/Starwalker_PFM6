@@ -18,8 +18,8 @@
 #include 	"io.h"
 //_________________________________________________________________________________
 _io			*_stdio(_io	*p) {
-_io			*io=__stdin.io;
-				__stdin.io=__stdout.io=p;
+_io			*io=stdin->io;
+				stdin->io=stdout->io=p;
 				return(io);
 }
 //______________________________________________________________________________________
@@ -145,7 +145,7 @@ _io			*p=calloc(1,sizeof(_io));
 					p->tx=_buffer_init(txl);
 					p->get=__get;
 					p->put=__put;
-					p->arg.io=NULL;
+					p->arg.parse=NULL;
 					if(p->rx && p->tx)
 						return(p);
 					if(p->rx)

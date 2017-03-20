@@ -61,8 +61,7 @@
 																
 #define					__charger6		__i2c1
 
-void						_led(int, int),
-								*Lightshow(void *v);
+void						_led(int, int);
 
 #define					_RED1(a)			do if(__time__ > 10000) _led(0,a); while(0)
 #define					_GREEN1(a)		do if(__time__ > 10000) _led(1,a); while(0)
@@ -422,9 +421,13 @@ void 						USBD_Storage_Init(void),
 int							FLASH_Program(uint32_t, uint32_t); 
 int							FLASH_Erase(uint32_t);
 	
-void						ProcessingEvents(PFM *),
-								ProcessingCharger(PFM *),
-								ProcessingStatus(PFM *);
+void 						ParseCanRx(_proc *),
+								ParseCanTx(_proc *),
+								ParseCom(_proc *),
+								ProcessingEvents(_proc *),
+								ProcessingCharger(_proc *),
+								ProcessingStatus(_proc *),
+								Lightshow(_proc *);
 				        
 void						SysTick_init(void),
 								Watchdog_init(int),
@@ -459,11 +462,6 @@ int							DecodeCom(char *),
 								DecodeFs(char *);
 
 
-void 						ParseCan(PFM *),
-								ParseCanRx(PFM *),
-								ParseCanTx(PFM *),
-								ParseCom(_io *);
-								
 int							ScopeDumpBinary(_ADCDMA *, int);
 							
 int							getHEX(char *, int);

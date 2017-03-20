@@ -15,6 +15,7 @@
 
 #include		<stdlib.h>
 #include		"stm32f2xx.h"
+#include		"proc.h"
 
 #if		!defined (__DISC4__) && !defined (__DISC7__)
 	#define	__LED_ON(a,b)			GPIO_ResetBits(a,b)
@@ -59,7 +60,8 @@ static 		int 	t[]={1,1,1,1,1,1,1,1,1,1};
 #define	NN 30
 #define	Nk 10
 //______________________________________________________________________
-void		Lightshow(int *time) {
+void		Lightshow(_proc *proc) {
+int 		*time = proc->arg;
 static	int	t=0,t1=0,t2=0,t3=0;
 	
 				if(*time != t) {

@@ -617,5 +617,10 @@ PFM8, dodan task F2V, na CAN rx pretvarja freq, v napetost za pfm->burst in tx s
 - popravljen bug za Pfm8 na TIM8/4 v _TIMERS_PWM_SET()
 - ADC na PC0 ne kaže prou ??!? Odstranil stari vbus za discovery, ne pomaga !
 
+20.3.2017
+- _proc_loop klice taske s pointerjem na proces v argumentu
+- vsi taski imajo spremenjen argument
+- VSPfm6 ne uporablja vec ScopeDumpBinary, konzolni ukaz "$"
+- en bug na branju temperature v IgbtTemp()
 
 

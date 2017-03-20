@@ -214,23 +214,23 @@ float	P2V = (float)_AD2HV(p->HVref)/_PWM_RATE_HI;
 *******************************************************************************/
 void	SetPwmTab(PFM *p) {
 			int n,ch=p->Simmer.active;												// active channel
-			while(_MODE(p,_PULSE_INPROC))												// wait the prev setup to finish !!!
+			while(_MODE(p,_PULSE_INPROC))											// wait the prev setup to finish !!!
 				_wait(2,_proc_loop);
 			if(ch == PFM_STAT_SIMM1) {				
 				_TIM_DMA *t=SetPwmTab00(p,_TIM.pwch1);
 				for(n=0; t-- != _TIM.pwch1; n+= t->n);
-				_TIM.eint1 = (n+1)*5;
+				_TIM.eint1 = (n)*5;
 			}
 			else if(ch == PFM_STAT_SIMM2) {
 				_TIM_DMA *t=SetPwmTab00(p,_TIM.pwch2);
 				for(n=0; t-- != _TIM.pwch2; n+= t->n);
-				_TIM.eint2 = (n+1)*5;
+				_TIM.eint2 = (n)*5;
 			} else {
 				_TIM_DMA *t = SetPwmTab00(p,_TIM.pwch1);
 				memcpy(_TIM.pwch2,_TIM.pwch1,sizeof(_TIM_DMA)*_MAX_BURST/_PWM_RATE_HI);
 				memcpy(&pfm->burst[1],&pfm->burst[0],sizeof(burst));
 				for(n=0; t-- != _TIM.pwch1; n+= t->n);
-				_TIM.eint1=_TIM.eint2 = (n+1)*5;
+				_TIM.eint1=_TIM.eint2 = (n)*5;
 			}
 }
 /*______________________________________________________________________________
@@ -462,7 +462,7 @@ int		cc,t=(_FAN_PWM_RATE*fanPmin)/200;
 			else
 				TIM_SetCompare1(TIM13,TIM_GetCapture1(TIM13)-1);
 			if(n==T_MIN)
-				return(t/100);
+				return(t);
 			else
 				return __fit(ADC3_buf[0].IgbtT[n-1],Rtab,Ttab);
 }
@@ -534,17 +534,42 @@ FATFS	fs;
 
 			if(f_chdrive(FS_CPU)==FR_OK && f_mount(&fs,FS_CPU,1)==FR_OK && f_open(&f,filename,FA_READ)==FR_OK) {
 				__print("\r\n>");
-				__stdin.io->file=&f;
-				do
-					ParseCom(__stdin.io);
-				while(!f_eof(&f));
-				__stdin.io->file=NULL;
+//				__stdin.io->file=&f;
+				do {
+					ungetch(fgetc((FILE *)&f));
+					ParseCom(NULL);
+				} while(!f_eof(&f));
+//				__stdin.io->file=NULL;
 				f_close(&f);
 				f_mount(NULL,FS_CPU,1);
 				return _PARSE_OK;
 			} else
 				return _PARSE_ERR_OPENFILE;
 }
+/*******************************************************************************
+* Function Name : batch
+* Description   :	
+* Input         :
+* Output        :
+* Return        :
+*******************************************************************************/
+//int		batch(char *filename) {										#kj873uhjfru
+//FIL		f;
+//FATFS	fs;
+
+//			if(f_chdrive(FS_CPU)==FR_OK && f_mount(&fs,FS_CPU,1)==FR_OK && f_open(&f,filename,FA_READ)==FR_OK) {
+//				__print("\r\n>");
+//				__stdin.io->file=&f;
+//				do
+//					ParseCom(__stdin.io);
+//				while(!f_eof(&f));
+//				__stdin.io->file=NULL;
+//				f_close(&f);
+//				f_mount(NULL,FS_CPU,1);
+//				return _PARSE_OK;
+//			} else
+//				return _PARSE_ERR_OPENFILE;
+//}
 /*******************************************************************************
 * Function Name : batch
 * Description   :	ADP1047 output voltage setup, using the default format
@@ -961,8 +986,8 @@ void		USB_VCP_device(void) {
 				USBD_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USR_VCP_desc, &USBD_CDC_cb, &USR_CDC_cb);
 }
 
-void		USBHost (USBH_HOST *h) {
-				USBH_Process(&USB_OTG_Core, h);
+void		USBHost (_proc *p) {
+				USBH_Process(&USB_OTG_Core, p->arg);
 }
 
 void		USB_MSC_host(void) {
