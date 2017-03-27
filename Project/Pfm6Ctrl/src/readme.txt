@@ -477,5 +477,13 @@ sweeps:
 - odlocitve o režimu obratovanja postavljajo flage v Ereg registru; izkljucno na CAN parserju, direktnega 
   filtriranja parametrov in odlocitev med delovanjem ni vec!
 - spr. luck pri usb loaderju !!!
+
+
+23.2.2017
+
+>v 1.14 Feb 24 2017, <5A51785E>
+
+sweeps update...
+
   
   

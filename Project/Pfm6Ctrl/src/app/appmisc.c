@@ -119,7 +119,8 @@ int 	LW_SpecOps(PFM *p, burst *mirr) {
 				return -1;
 			}
 // _________________________________________________________________________________________________________
-			if(_MODE(p,__SWEEPS__) && mirr->Time == 50 && mirr->N == 2 && mirr->Ptype == _SHPMOD_MAIN) {
+///			if(_MODE(p,__SWEEPS__) && mirr->Time == 50 && mirr->N == 2 && mirr->Ptype == _SHPMOD_MAIN) {
+			if(mirr->Time == 50 && mirr->N == 2 && mirr->Ptype == _SHPMOD_MAIN) {
 				p->Burst.Ptype |= _SHPMOD_SWEEPS;
 				p->Burst.Length=mirr->Length*10;
 				p->Burst.Time=mirr->Time;
@@ -277,22 +278,23 @@ int		Uo=p->Burst.Pmax;
 
 					if(p->Burst.Ptype & _SHPMOD_SWEEPS) {
 // set distance after 1 pulse
-							if(j==0) {
-								if(p->Burst.Length < 300 || p->Burst.Length > 600)
-									too=10*abs((p->Burst.Count % 60)-30)+250;					
-								else
-									too=p->Burst.Length - p->Burst.Time;	
-							}								
+						if(j==0) {
+							if(p->Burst.Length < 300 || p->Burst.Length > 600)
+								too=10*abs((p->Burst.Count % 60)-30)+250;					
+							else
+								too=p->Burst.Length - p->Burst.Time;	
+						}								
 // break the seq. if alternate setup mode and odd pulse; else, compute voltage correction on delta t 
-							if(j==1) {
-								if(p->Burst.Count > 0 && p->Burst.Count % 30 == 0)
-									break;
-								else
-									Uo += Uo*(too - 550)*ksweeps/300/1000+Uo*nsweeps/1000;
-							}
-// unconditional break on second pulse 
-							if(j==2)
+						if(j==1) {
+							if(p->Burst.Count > 0 && p->Burst.Count % 30 == 0)
 								break;
+// nad 600V ni spreminjanja 2 pulza, da ne tresci v 650 plafon !
+							if(p->Burst.Pmax < (int)(_PWM_RATE_HI*0.85))		
+								Uo += Uo*(too - 550)*ksweeps/300/1000+Uo*nsweeps/1000;
+						}
+// unconditional break on second pulse 
+						if(j==2)
+							break;
 					}					
 //..end  sweeps........................................
 //_______________________________________________________________________________________________________________________________
@@ -562,7 +564,7 @@ int			n=abs(p->Burst.Count % 60 - 30);
 								_stdio(io);
 							}
 						} else {																														// in between
-							nsweeps = __max(__min(nsweeps + signum(offref-emj/2),100),-100);			// 		adjust 2nd's offset
+							nsweeps = __max(__min(nsweeps + signum(offref-emj/2),100),-100);	// 		adjust 2nd's offset
 						}
 					}
 					kref=emj/2;																														// take the K reference
