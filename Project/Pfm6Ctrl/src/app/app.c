@@ -19,32 +19,32 @@
 PFM				*pfm;
 _io				*__com0;
 const char *_errStr[]={
-	"simmer 1 failed",
-	"simmer 2 failed",
-	"illegal CAN parameters",
-	"illegal flash idle voltage",
-	"IGBT overheat",
-	"IGBT fault",
-	"IGBT not ready",
-	"Crowbar fired",
-	"PWM overrange",
+					"simmer 1 failed",
+					"simmer 2 failed",
+					"illegal CAN parameters",
+					"illegal flash idle voltage",
+					"IGBT overheat",
+					"IGBT fault",
+					"IGBT not ready",
+					"Crowbar fired",
+					"PWM overrange",
 #if	defined (__PFM6__)
-	"20V supply failure",
-	"-5V supply failure",
+					"20V supply failure",
+					"-5V supply failure",
 #elif	defined (__PFM8__)
-	"12V supply failure",
-	"5V supply failure",
+					"12V supply failure",
+					"5V supply failure",
 #else
-	"unspecified....",
-	"unspecified....",
+					"unspecified....",
+					"unspecified....",
 #endif
-	"unspecified....",
-	"HV out of range",
-	"IGBT fan error",
-	"HV mid voltage out of range",
-	"I2C comm. error",
-	"VCAP1 error",
-	"VCAP2 error",
+					"unspecified....",
+					"HV out of range",
+					"IGBT fan error",
+					"HV mid voltage out of range",
+					"I2C comm. error",
+					"VCAP1 error",
+					"VCAP2 error",
 	NULL
 };
 /*______________________________________________________________________________
@@ -835,10 +835,6 @@ union			{
 va_list		v;
 char*			c;
 int				i;				
-					if(!format) {
-						io=stdin->io;
-						return;
-					}
 					va_start(v, format);
 					while(*format) { 
 						u.i=va_arg(v, int);
@@ -846,12 +842,13 @@ int				i;
 						i=0;
 						switch(*format++) {
 							case '.': memcpy(&tx,u.v,sizeof(tx));	break;							
-							case 'P':	tx.StdId=_ID_PFM2SYS;			break;
-							case 'E':	tx.StdId=_ID_EC2SYS;			break;
-							case 'X':	tx.StdId=*c++;						break;
-							case 'c':	i=sizeof(char);						break;
-							case 'w':	i=sizeof(short);					break;
-							case 'i':	i=sizeof(int);						break;
+							case 'I':	memcpy(&io,c,sizeof(_io *));return;
+							case 'P':	tx.StdId=_ID_PFM2SYS;				break;
+							case 'E':	tx.StdId=_ID_EC2SYS;				break;
+							case 'X':	tx.StdId=*c++;							break;
+							case 'c':	i=sizeof(char);							break;
+							case 'w':	i=sizeof(short);						break;
+							case 'i':	i=sizeof(int);							break;
 						}
 						while(i--)			
 							tx.Data[tx.DLC++]=*c++;
@@ -940,7 +937,6 @@ int				PFM_status_send(PFM *p) {
 							p->Error);		
 				return p->Simmer.active;
 }
-
 /*______________________________________________________________________________
   * @brief  Interprets the PFM command message
   * @param 	pfmcmd: PFM command word as defined in CAN protocol  ICD 

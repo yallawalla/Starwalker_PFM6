@@ -23,16 +23,24 @@
 
 //________SW version string_____________________________	
 
-#define 				SW_version		215		
-
-//________global HW dependent defines___________________			
-#ifdef __F4__
-#define					_uS						60
+#if		defined		(__PFM6__)
+	#define 				SW_version			215		
+#elif 		defined		(__PFM8__)
+	#define 				SW_version			315		
+#else
+*** error, define HW platform
 #endif
-#ifdef __F7__
-#define					_uS						108
+//________global platform dependencies	________________			
+#if		defined (__F4__)
+	#define					_uS							60
+	#define 				ADC_SampleTime 	ADC_SampleTime_3Cycles
+#elif	defined (__F7__)
+	#define					_uS							108
+	#define ADC_SampleTime 					ADC_SampleTime_15Cycles
+#else
+*** error, define CPU
 #endif
-
+//______________________________________________________
 #define					_MAX_BURST		(10*_mS)
 #define					__CAN__				CAN2
 #define					__FILT_BASE__	14
@@ -47,19 +55,34 @@
 #define					_Rdiv(a,b)		((a)/(a+b))
 #define					_Rpar(a,b)		((a)*(b)/(a+b))
 			          
-#define					_AD2HV(a)			((int)(((a)*_UREF)/4096.0/_AVG3/_Rdiv(7.5e3,2e6)+0.5))
-#define					_HV2AD(a)			((int)(((a)*4096.0*_AVG3*_Rdiv(7.5e3,2e6))/_UREF+0.5))
+#if		defined	(__PFM6__)
+	#define				_AD2HV(a)		((int)(((a)*_UREF)/4096.0/_AVG3/_Rdiv(7.5e3,2e6)+0.5))
+	#define				_HV2AD(a)		((int)(((a)*4096.0*_AVG3*_Rdiv(7.5e3,2e6))/_UREF+0.5))
+	#define				_Ifullsc		((int)1100)
+#elif	defined		(__PFM8__)
+	#define				_AD2HV(a)		((int)(((a)*_UREF)/4096.0/_AVG3/_Rdiv(6.2e3,2e6)+0.5))
+	#define				_HV2AD(a)		((int)(((a)*4096.0*_AVG3*_Rdiv(6.2e3,2e6))/_UREF+0.5))
+	#define				_Ifullsc		((int)1270)
+#else
+*** error, define HW platform
+#endif
 
 #define					_AD2V(val,rh,rl)	((float)((val)*(rl+rh)/rl*3.3/4096.0))	
 #define					_AD2Vn(val,rh,rl)	((float)(((val)-4096)*(rl+rh)/rl*3.3/4096.0 + 3.3))
 #define					_V2AD(val,rh,rl)	((int)((val)*4096.0/3.3*rl/(rh+rl)+0.5))
 #define					_Vn2AD(val,rh,rl)	((int)(4096+((val)-3.3)*4096.0/3.3*rl/(rh+rl)+0.5))
 
-#define					_Ifullsc			((int)(3.3/2.9999/0.001))
 #define					_I2AD(a)			((int)(((a)*4096 + _Ifullsc/2)/_Ifullsc))
 #define					_AD2I(a)			((int)(((a)*_Ifullsc + 2048)/4096))
-																
+#define					kmJ						(0.001*_HV2AD(1)*_I2AD(1)/1e-6	+0.5)
+															
 #define					__charger6		__i2c1
+
+//#define	kVf	(3.3/4096.0*2000.0/7.5)					// 		flash voltage			
+//#define	kIf	(3.3/4096.0/2.9999/0.001)				// 		flash curr.
+//#define Ts	 1e-6														// 		ADC sample rate
+//#define kmJ	(int)(0.001/kVf/kIf/Ts+0.5) 		//		mJ, fakt. delitve kum. energije < 1 !!!  0.4865351
+//	
 
 void						_led(int, int);
 
@@ -202,7 +225,7 @@ extern const char *_errStr[];
 								} while(0)
 								
 //________________________________________________________________________
-#define 				_AVG3							1
+#define 				_AVG3									1
 #define					_MAX_QSHAPE						8
 #define					_MAX_USER_SHAPE				1024
 extern int			_ADCRates[];	
@@ -660,17 +683,6 @@ __inline void dbg_6(int n,char *s, int arg1, int arg2, int arg3, int arg4) {
 #define	GET_MAC(_1,_2,_3,_4,_5,_6,NAME,...) NAME
 #define	_DEBUG_(...) GET_MAC(__VA_ARGS__,dbg_6,dbg_5,dbg_4,dbg_3,dbg_2)(__VA_ARGS__)
 
-#define	_k_Er	(20.0*20.0)
-#define	_k_Nd	(28.5 * 28.5)
-// __________________________________________________________________________________________________________
-//											cref1=_I2AD(p->Burst->U * p->Burst->U) * _HV2AD(p->Burst->U) / (_AVG3 *_k_Er * 1000 * 4096);
-//											cref2=_I2AD(p->Burst->U * p->Burst->U) * _HV2AD(p->Burst->U) / (_AVG3 *_k_Nd * 1000 * 4096);
-#define	kVf	(3.3/4096.0*2000.0/7.5)					// 		flash voltage			
-#define	kIf	(3.3/4096.0/2.9999/0.001)				// 		flash curr.
-#define Ts	 1e-6														// 		ADC sample rate
-#define kmJ	(int)(0.001/kVf/kIf/Ts+0.5) 		//		mJ, fakt. delitve kum. energije < 1 !!!  0.4865351
-	
-
 __inline void _TIMERS_HALT(void) {
 #if defined __PFM8__
 			TIM_Cmd(TIM4,DISABLE);			
@@ -746,3 +758,10 @@ __inline void _TIMERS_ARR_SET(int simmrate) {
 #endif
 }
 
+//u 200
+//>p 200,100
+//>+D 3
+//>s3
+//>:4640 E1=9.3J, E2=3.2J
+//>:0700 E1=9.3J, E2=3.2J
+//>

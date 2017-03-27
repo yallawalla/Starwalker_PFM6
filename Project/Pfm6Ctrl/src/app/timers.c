@@ -348,15 +348,55 @@ void		TIM1_UP_TIM10_IRQHandler(void) {
 //int			e1=0,
 //				e2=0;
 
-int 		hv,j,k,x,
+static 
+int			x=0,
+				y=0;
+
+int 		hv,j,k,
 				ki=30,kp=0;
 
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);								// brisi ISR flage
 				if(TIM1->CR1 & TIM_CR1_DIR)
 					return;
-//----- HV voltage averaging, calc. active ADC DMA index----------------------------------
+				
+				TIM8->CCR1 = TIM1->CCR1 = x;			
+				TIM8->CCR3 = TIM1->CCR3 = y;
+#if defined __PFM8__
+				TIM4->CCR1 = TIM2->CCR1 = TIM1->CCR1/2;			
+				TIM4->CCR3 = TIM2->CCR3 = TIM1->CCR3/2;
+#endif
+				if(_MODE(pfm,_XLAP_SINGLE)) {															//----- x1, x2, x4 ------------
+					TIM8->CCR2 = TIM1->CCR2 = TIM1->CCR1;
+					TIM8->CCR4 = TIM1->CCR4 = TIM1->CCR3;
+#if defined __PFM8__
+					TIM4->CCR2 = TIM2->CCR2 = TIM2->CCR1;
+					TIM4->CCR4 = TIM2->CCR4 = TIM2->CCR3;
+#endif
+				} else {
+					TIM8->CCR2 = TIM1->CCR2 = TIM1->ARR - TIM1->CCR1;
+					TIM8->CCR4 = TIM1->CCR4 = TIM1->ARR - TIM1->CCR3;
+#if defined __PFM8__
+					TIM4->CCR2 = TIM2->CCR2 = TIM2->ARR - TIM2->CCR1;
+					TIM4->CCR4 = TIM2->CCR4 = TIM2->ARR - TIM2->CCR3;
+#endif
+				}
 
-				for(hv=j=0;j<_AVG3;++j)																// 
+#if defined __DISC4__ && defined __PFM8__
+				DAC_SetDualChannelData(DAC_Align_12b_R,x,y);
+#endif
+				
+				if(!_TIM.p1 && !_TIM.p2) {																//----- end of burst, stop IT, notify main loop ---------------------------				
+					TIM_ITConfig(TIM1,TIM_IT_Update,DISABLE);
+					_SET_EVENT(pfm,_PULSE_FINISHED);
+					_CLEAR_MODE(pfm,_PULSE_INPROC);
+#if !defined __PFM8__
+					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);				//----- Qswitch pasus
+#endif					
+					return;
+				}
+				
+//----- HV voltage averaging, calc. active ADC DMA index----------------------------------
+				for(hv=j=0;j<_AVG3;++j)																		// 
 					hv+=(unsigned short)(ADC3_buf[j].HV);
 																																	// --- on first entry, compute DMA index 
 				k = _TIM.eint*_uS/_MAX_ADC_RATE;
@@ -414,27 +454,21 @@ int 		hv,j,k,x,
 					}					
 //----- vpis v OC registre ---------------------------------------------------------------
 					if(_TIM.p1->n) {																				// set simmer pw on last sample !
-						TIM8->CCR1 = TIM1->CCR1 = __max(pfm->Burst->Pdelay,__min(_MAX_PWM_RATE, x));			
-#if defined __PFM8__
-						TIM4->CCR1 = TIM2->CCR1 = TIM1->CCR1/2;			
-#endif
+						x = __max(pfm->Burst->Pdelay,__min(_MAX_PWM_RATE, x));			
 						if(_TIM.m1++ == _TIM.p1->n/2) {												//----- pwch tabs increment ---
 							_TIM.m1=0;
 							++_TIM.p1;
 						}
 					} else {
-						TIM8->CCR1 = TIM1->CCR1 = pfm->Simmer.pw[0];
-#if defined __PFM8__
-						TIM4->CCR1 = TIM2->CCR1 = TIM1->CCR1/2;	
-#endif
+						x = pfm->Simmer.pw[0];
 						_TIM.p1=NULL;
 					}
 				}
-				if(_TIM.p2) {																							//----- channel 1 -----------
-					x=_TIM.p2->T;
+				if(_TIM.p2) {																							//----- channel 2 -----------
+					y=_TIM.p2->T;
 //----- mode 9, forward voltage stab. ---------------------------------------------------	
 					if(_MODE(pfm,_U_LOOP)) {
-						x = (x * _TIM.Hvref + hv/2)/hv;
+						y = (y * _TIM.Hvref + hv/2)/hv;
 				
 //					if(m && z1 > pfm->Burst->Pdelay*2) {
 //						for(i=4;i<8;++i)
@@ -459,7 +493,7 @@ int 		hv,j,k,x,
 							if(_TIM.cref2 && _TIM.p2->T > pfm->Burst->Pdelay*2) {
 								int dx=(_TIM.cref2 - ADC2_buf[k-5].U * ADC2_buf[k-5].I)/4096;
 								_TIM.ci2 += dx*ki;
-								x += _TIM.ci2/4096 + dx*kp/4096;
+								y += _TIM.ci2/4096 + dx*kp/4096;
 							}
 //----- calc. cref2 after 200 us for ch2 -----------------------------------------									
 							if(k > 200 + pfm->Burst->Delay) {
@@ -477,46 +511,18 @@ int 		hv,j,k,x,
 					}					
 //----- vpis v OC registre ---------------------------------------------------------------
 					if(_TIM.p2->n)	{																				// set simmer pw on last sample !
-						TIM8->CCR3 = TIM1->CCR3 = __max(pfm->Burst->Pdelay,__min(_MAX_PWM_RATE, x));
-#if defined __PFM8__
-						TIM4->CCR3 = TIM2->CCR3 = TIM1->CCR3/2;
-#endif
+						y = __max(pfm->Burst->Pdelay,__min(_MAX_PWM_RATE, y));
+						
 						if(_TIM.m2++ == _TIM.p2->n/2) {												//----- pwch tabs increment ---	
 							_TIM.m2=0;
 							++_TIM.p2;
 						}
 					} else {
-						TIM8->CCR3 = TIM1->CCR3 = pfm->Simmer.pw[1];
-#if defined __PFM8__
-						TIM4->CCR3 = TIM2->CCR3 = TIM1->CCR3/2;
-#endif
+						y = pfm->Simmer.pw[1];
 						_TIM.p2=NULL;
 					}
 				}
-				if(_MODE(pfm,_XLAP_SINGLE)) {															//----- x1, x2, x4 ------------
-					TIM8->CCR2 = TIM1->CCR2 = TIM1->CCR1;
-					TIM8->CCR4 = TIM1->CCR4 = TIM1->CCR3;
-#if defined __PFM8__
-					TIM4->CCR2 = TIM2->CCR2 = TIM2->CCR1;
-					TIM4->CCR4 = TIM2->CCR4 = TIM2->CCR3;
-#endif
-				} else {
-					TIM8->CCR2 = TIM1->CCR2 = TIM1->ARR - TIM1->CCR1;
-					TIM8->CCR4 = TIM1->CCR4 = TIM1->ARR - TIM1->CCR3;
-#if defined __PFM8__
-					TIM4->CCR2 = TIM2->CCR2 = TIM2->ARR - TIM2->CCR1;
-					TIM4->CCR4 = TIM2->CCR4 = TIM2->ARR - TIM2->CCR3;
-#endif
-				}
-				if(!_TIM.p1 && !_TIM.p2) {																//----- end of burst, stop IT, notify main loop ---------------------------				
-					TIM_ITConfig(TIM1,TIM_IT_Update,DISABLE);
-					_SET_EVENT(pfm,_PULSE_FINISHED);
-					_CLEAR_MODE(pfm,_PULSE_INPROC);
-#if !defined __PFM8__
-					TIM_SelectOnePulseMode(TIM4, TIM_OPMode_Single);				//----- Qswitch pasus
-#endif					
-					return;
-				}
+
 				if(_MODE(pfm,__TEST__)) {																	//----- mode  29, simulacija klasicnega odziva, =C cap (mF), =P current(A)
 					_SET_MODE(pfm,_U_LOOP);																	// obveze U stab. ker modificiramo HV referenco
 						if(k>5)																								// scale fakt. za C v uF pri 880V/1100A full scale, 100kHz sample rate pride ~80... ni placa za izpeljavo		

@@ -16,6 +16,7 @@
 #include	<ctype.h>
 #include	<math.h>
 #include	<string.h>
+#include	<stdio.h>
 #include	<ff.h>
 #include	"limits.h"
 //___________________________________________________________________________
@@ -783,13 +784,16 @@ int	DecodeCom(char *c) {
 				case '.': {
 CanTxMsg	tx={_ID_SYS2PFM,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 int				n;
-					for(++c,n=0; n<strlen(c);++n,++n)
-						tx.Data[n/2]=getHEX(&c[n],2);
-					tx.DLC=n/2;
-					CAN_ITConfig(__CAN__, CAN_IT_FMP0, DISABLE);
-					_buffer_push(__can->rx,&tx,sizeof(CanTxMsg));
-					CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
-					CanReply(NULL);	
+					if(*++c) {
+						for(n=0; n<strlen(c);++n,++n)
+							tx.Data[n/2]=getHEX(&c[n],2);
+						tx.DLC=n/2;
+						CAN_ITConfig(__CAN__, CAN_IT_FMP0, DISABLE);
+						_buffer_push(__can->rx,&tx,sizeof(CanTxMsg));
+						CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
+						CanReply("I",stdin->io);	
+					} else
+						CanReply("I",NULL);	
 					break;
 				}
 //__________________________________________________submit CAN message(SYS to __)______
@@ -1116,7 +1120,7 @@ int				i;
 							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%3.1f,%3.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH1)/100.0,(float)IgbtTemp(TH2)/100.0);
 #elif __PFM8__
 							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%d,%d%c,%d%c,%3.1f,%3.1f,%3.1f,%3.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',
-								(float)IgbtTemp(TH1)/100.0,(float)IgbtTemp(TL1)/100.0,(float)IgbtTemp(TH2)/100.0,(float)IgbtTemp(TL2)/100.0);
+								(float)IgbtTemp(TL1)/100.0,(float)IgbtTemp(TH1)/100.0,(float)IgbtTemp(TL2)/100.0,(float)IgbtTemp(TH2)/100.0);
 #else
 *** error, define platform
 #endif
@@ -1204,7 +1208,8 @@ int			u=0,umax=0,umin=0;
 				{
 					int n=atoi(++c);
 					int i=0,U=0,I=0;
-					__print(",%d\r\n",_TIM.eint);
+					CanReply("I",NULL);
+					__print(",%d\r\n",_TIM.eint);		
 					while(i<__min(_TIM.eint*_uS/_MAX_ADC_RATE-1,_MAX_BURST/_uS-1)) {
 						if(n==1) {
 							U+=ADC1_buf[i].U;
@@ -1217,17 +1222,18 @@ int			u=0,umax=0,umin=0;
 						if(++i % 4 == 0) {
 							U/=4;
 							I/=4;
-							while(fputc((U%256),&__stdout)==EOF)
+							while(fputc(U%256,stdout)==EOF)
 								_wait(2,_proc_loop);
-							while(fputc((U/256),&__stdout)==EOF)
+							while(fputc(U/256,stdout)==EOF)
 								_wait(2,_proc_loop);
-							while(fputc((I%256),&__stdout)==EOF)
+							while(fputc(I%256,stdout)==EOF)
 								_wait(2,_proc_loop);
-							while(fputc((I/256),&__stdout)==EOF)
+							while(fputc(I/256,stdout)==EOF)
 								_wait(2,_proc_loop);
 							U=I=0;
 						}
 					}
+					CanReply("I",stdin->io);
 				}
 				break;
 //______________________________________________________________________________________

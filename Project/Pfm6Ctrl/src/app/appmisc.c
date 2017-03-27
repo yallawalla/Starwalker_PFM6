@@ -952,7 +952,6 @@ int		sLoad(char *p)
 			return(-1);
 }
 
-
 #if !defined (__DISC7__)
 
 extern 	USBD_DEVICE 						USR_MSC_desc,	USR_VCP_desc;
@@ -975,6 +974,9 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 					GPIO_SetBits(_VBUS_PORT,_VBUS_BIT);
 #endif
 }
+#endif // __DISC7__
+
+#if defined (__F4__)
 
 void	 	USB_MSC_device(void) {
 				Vbus(off);
@@ -999,7 +1001,20 @@ void		USB_MSC_host(void) {
 				if(!_proc_find((func *)USBHost,&USB_Host))
 					_proc_add((func *)USBHost,&USB_Host,"host USB",0);
 }
-#endif // __DISC7__
+#endif	// (__F4__)
+
+/*						VBUS
+PFM6 F4					N
+PFM6 F7					N
+PFM8 F4					N
+PFM8 F7					N
+DISC F4					Y
+DISC F746				Y
+DISC F769				Y
+*/
+
+
+
 /**
 * @}
 */

@@ -11,6 +11,7 @@
 * @{
 */
 #include	"pfm.h"
+
 _ADC3DMA	ADC3_buf[_AVG3];
 _ADCDMA		ADC1_buf[_MAX_BURST/_uS],
 					ADC2_buf[_MAX_BURST/_uS],
@@ -140,8 +141,8 @@ void 	Initialize_ADC1(void)
 			ADC_Init(ADC1, &ADC_InitStructure);
 
 /* ADC1 regular channel12 configuration *************************************/
-			ADC_RegularChannelConfig(ADC1, ADC_Channel_9, 1, ADC_SampleTime_3Cycles);				// Uflash 1
-			ADC_RegularChannelConfig(ADC1, ADC_Channel_8, 2, ADC_SampleTime_3Cycles);				// Iflash 1		
+			ADC_RegularChannelConfig(ADC1, ADC_Channel_9, 1, ADC_SampleTime);				// Uflash 1
+			ADC_RegularChannelConfig(ADC1, ADC_Channel_8, 2, ADC_SampleTime);				// Iflash 1		
 
 			ADC_AnalogWatchdogSingleChannelConfig(ADC1,ADC_Channel_8);
 			ADC_AnalogWatchdogCmd(ADC1,ADC_AnalogWatchdog_SingleRegEnable);
@@ -209,8 +210,8 @@ void 	Initialize_ADC2(void)
 			ADC_Init(ADC2, &ADC_InitStructure);
 
 /* ADC2 regular channel12 configuration *************************************/
-			ADC_RegularChannelConfig(ADC2, ADC_Channel_15, 1, ADC_SampleTime_3Cycles);		// Uflash 2
-			ADC_RegularChannelConfig(ADC2, ADC_Channel_14, 2, ADC_SampleTime_3Cycles);		// Iflash 2
+			ADC_RegularChannelConfig(ADC2, ADC_Channel_15, 1, ADC_SampleTime);		// Uflash 2
+			ADC_RegularChannelConfig(ADC2, ADC_Channel_14, 2, ADC_SampleTime);		// Iflash 2
 
 			ADC_AnalogWatchdogSingleChannelConfig(ADC2,ADC_Channel_14);	
 			ADC_AnalogWatchdogCmd(ADC2,ADC_AnalogWatchdog_SingleRegEnable);
@@ -286,25 +287,25 @@ void 	Initialize_ADC3(void)
 /* ADC3 regular channel12 configuration ************************************
 */
 #if	defined (__PFM6__)
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_0,  1, ADC_SampleTime_3Cycles);			// temp 1
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_1,  2, ADC_SampleTime_3Cycles);			// temp 2
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_2,  3, ADC_SampleTime_3Cycles);			// HV/2
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_11, 4, ADC_SampleTime_3Cycles);			// HV
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_12, 5, ADC_SampleTime_3Cycles);			// +20V
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_13, 6, ADC_SampleTime_3Cycles);			// -5V
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_0,  1, ADC_SampleTime);			// temp 1
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_1,  2, ADC_SampleTime);			// temp 2
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_2,  3, ADC_SampleTime);			// HV/2
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_11, 4, ADC_SampleTime);			// HV
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_12, 5, ADC_SampleTime);			// +20V
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_13, 6, ADC_SampleTime);			// -5V
 #endif						                                                                    
 #if	defined (__PFM8__)						                                                    
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_4,	 1, ADC_SampleTime_15Cycles);			// TH1
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_5,	 2, ADC_SampleTime_15Cycles);			// TH2
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_6,  3,	ADC_SampleTime_15Cycles);			// TL1
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_7,  4,	ADC_SampleTime_15Cycles);			// TL2
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_2,  5, ADC_SampleTime_15Cycles);			// HV/2
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_11, 6, ADC_SampleTime_15Cycles);			// HV
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_9,  7, ADC_SampleTime_15Cycles);			// 12V
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_14, 8, ADC_SampleTime_15Cycles);			// 5V
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_15, 9, ADC_SampleTime_15Cycles);			// 3.3V
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_3,  10, ADC_SampleTime_15Cycles);		// VCAP1sense	
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_10, 11, ADC_SampleTime_15Cycles);		// VCAP2sense
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_4,	 1, ADC_SampleTime);			// TH1
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_5,	 2, ADC_SampleTime);			// TH2
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_6,  3,	ADC_SampleTime);			// TL1
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_7,  4,	ADC_SampleTime);			// TL2
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_2,  5, ADC_SampleTime);			// HV/2
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_11, 6, ADC_SampleTime);			// HV
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_9,  7, ADC_SampleTime);			// 12V
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_14, 8, ADC_SampleTime);			// 5V
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_15, 9, ADC_SampleTime);			// 3.3V
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_3,  10, ADC_SampleTime);		// VCAP1sense	
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_10, 11, ADC_SampleTime);		// VCAP2sense
 #endif
 #if		!defined (__DISC4__) && !defined (__DISC7__)
 			ADC_AnalogWatchdogSingleChannelConfig(ADC3,ADC_Channel_11);
