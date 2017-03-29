@@ -51,18 +51,21 @@
 #define					_MAX_ADC_RATE	(1*_uS)
 #define					_FAN_PWM_RATE	(50*_uS)	 
 
-#define					_UREF					3.3
 #define					_Rdiv(a,b)		((a)/(a+b))
 #define					_Rpar(a,b)		((a)*(b)/(a+b))
+#define					_UREF					3.3
+#define 				_Ts						1e-6
 			          
 #if		defined	(__PFM6__)
 	#define				_AD2HV(a)		((int)(((a)*_UREF)/4096.0/_AVG3/_Rdiv(7.5e3,2e6)+0.5))
 	#define				_HV2AD(a)		((int)(((a)*4096.0*_AVG3*_Rdiv(7.5e3,2e6))/_UREF+0.5))
 	#define				_Ifullsc		((int)1100)
+	#define				_kmJ				((int)(_V2AD(1000,2000,7.5)*_I2AD(1000)/1000))
 #elif	defined		(__PFM8__)
 	#define				_AD2HV(a)		((int)(((a)*_UREF)/4096.0/_AVG3/_Rdiv(6.2e3,2e6)+0.5))
 	#define				_HV2AD(a)		((int)(((a)*4096.0*_AVG3*_Rdiv(6.2e3,2e6))/_UREF+0.5))
 	#define				_Ifullsc		((int)1270)
+	#define				_kmJ				((int)(_V2AD(1000,2000,6.2)*_I2AD(1000)/1000))
 #else
 *** error, define HW platform
 #endif
@@ -71,18 +74,16 @@
 #define					_AD2Vn(val,rh,rl)	((float)(((val)-4096)*(rl+rh)/rl*3.3/4096.0 + 3.3))
 #define					_V2AD(val,rh,rl)	((int)((val)*4096.0/3.3*rl/(rh+rl)+0.5))
 #define					_Vn2AD(val,rh,rl)	((int)(4096+((val)-3.3)*4096.0/3.3*rl/(rh+rl)+0.5))
+	
+#define					_I2AD(a)					((int)(((a)*4096 + _Ifullsc/2)/_Ifullsc))
+#define					_AD2I(a)					((int)(((a)*_Ifullsc + 2048)/4096))
 
-#define					_I2AD(a)			((int)(((a)*4096 + _Ifullsc/2)/_Ifullsc))
-#define					_AD2I(a)			((int)(((a)*_Ifullsc + 2048)/4096))
-#define					kmJ						(0.001*_HV2AD(1)*_I2AD(1)/1e-6	+0.5)
-															
-#define					__charger6		__i2c1
+//#define					kVf								(3.3/4096.0*2000.0/7.5)					
+//#define					kIf								(3.3/4096.0/2.9999/0.001)
+//#define 				kmJ							(int)(0.001/kVf/kIf/_Ts+0.5)
+	
 
-//#define	kVf	(3.3/4096.0*2000.0/7.5)					// 		flash voltage			
-//#define	kIf	(3.3/4096.0/2.9999/0.001)				// 		flash curr.
-//#define Ts	 1e-6														// 		ADC sample rate
-//#define kmJ	(int)(0.001/kVf/kIf/Ts+0.5) 		//		mJ, fakt. delitve kum. energije < 1 !!!  0.4865351
-//	
+#define					__charger6				__i2c1
 
 void						_led(int, int);
 
@@ -136,6 +137,7 @@ typedef					enum
 								_CHANNEL1_SINGLE_TRIGGER,	//13
 								_CHANNEL2_SINGLE_TRIGGER,	//14
 								_ALTERNATE_TRIGGER,				//15
+								_F2V,											//16
 								__TEST__									=29,
 								_CAN_2_COM								//30
 } 							mode;
@@ -231,10 +233,10 @@ extern const char *_errStr[];
 extern int			_ADCRates[];	
 								
 #if	defined (__PFM6__)
-typedef struct	{	unsigned short			IgbtT[2],HV2,HV,Up20,Um5;													} _ADC3DMA;
+typedef struct	{	unsigned short			IgbtT[2],HV2,HV,Up20,Um5;											} _ADC3DMA;
 #endif
 #if	defined (__PFM8__)
-typedef struct	{	unsigned short			IgbtT[4],HV2,HV,Up12,Up5,Up3,VCAP1,VCAP2;					} _ADC3DMA;						
+typedef struct	{	unsigned short			IgbtT[4],HV2,HV,Up12,Up5,Up3,VCAP1,VCAP2;			} _ADC3DMA;						
 #endif
 					
 
@@ -366,8 +368,9 @@ unsigned int		timeout;
 typedef 				struct {
 unsigned int		erpt,									// send energy on every ....
 								counter,							// counter for multiple  triggers sequence	
-								count,
-								time;
+								count,								// number of multiple  triggers
+								time,									// next trigger
+								timeout;							// trigger timeout, _F2V mode 
 } trigger;
 //________________________________________________________________________
 typedef 				struct {

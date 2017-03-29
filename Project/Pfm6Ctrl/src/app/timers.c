@@ -330,6 +330,10 @@ TIM_ICInitTypeDef				TIM_ICInitStructure;
 	} else {
 		if(pfm->Burst && TIM_GetCapture2(TIM3)) {
 			pfm->Burst->Pmax=600000*_PWM_RATE_HI/(TIM_GetCapture1(TIM3) + TIM_GetCapture2(TIM3)/2)/_AD2HV(pfm->HVref);
+			if(pfm->Trigger.timeout && __time__ >= pfm->Trigger.timeout) {
+				SetPwmTab(pfm);
+				pfm->Trigger.timeout=0;
+			}
 		}
 	}
 	return Initialize_F2V;
@@ -564,13 +568,21 @@ void 		__EXTI_IRQHandler(void)
 {
 				if(EXTI_GetITStatus(_CWBAR_INT_line) == SET) {
 					EXTI_ClearITPendingBit(_CWBAR_INT_line);
-					if(_PFM_CWBAR) {
-						_SET_STATUS(pfm,_PFM_CWBAR_STAT);
-						_CLEAR_ERROR(pfm, _CRITICAL_ERR_MASK);
-						EnableIgbtOut();
-					}	else {
-						_CLEAR_STATUS(pfm,_PFM_CWBAR_STAT);
-						_SET_ERROR(pfm,PFM_ERR_PULSEENABLE);
+					if(_MODE(pfm,_F2V)) {
+						if(_PFM_CWBAR) {
+							_SET_EVENT(pfm,_TRIGGER);
+						}	else {
+							pfm->Trigger.timeout=__time__+2;
+						}							
+					} else {
+						if(_PFM_CWBAR) {
+							_SET_STATUS(pfm,_PFM_CWBAR_STAT);
+							_CLEAR_ERROR(pfm, _CRITICAL_ERR_MASK);
+							EnableIgbtOut();
+						}	else {
+							_CLEAR_STATUS(pfm,_PFM_CWBAR_STAT);
+							_SET_ERROR(pfm,PFM_ERR_PULSEENABLE);
+						}
 					}
 				}
 

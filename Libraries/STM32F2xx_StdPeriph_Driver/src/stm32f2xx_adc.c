@@ -1331,16 +1331,16 @@ void ADC_ExternalTrigInjectedConvConfig(ADC_TypeDef* ADCx, uint32_t ADC_External
   /* Check the parameters */
   assert_param(IS_ADC_ALL_PERIPH(ADCx));
   assert_param(IS_ADC_EXT_INJEC_TRIG(ADC_ExternalTrigInjecConv));
-  
+
   /* Get the old register value */
   tmpreg = ADCx->CR2;
-  
+
   /* Clear the old external event selection for injected group */
   tmpreg &= CR2_JEXTSEL_RESET;
-  
+
   /* Set the external event selection for injected group */
   tmpreg |= ADC_ExternalTrigInjecConv;
-  
+
   /* Store the new register value */
   ADCx->CR2 = tmpreg;
 }

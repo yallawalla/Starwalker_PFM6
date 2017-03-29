@@ -36,7 +36,7 @@ void	TriggerADC(PFM *p) {
 					ADC_AnalogWatchdogThresholdsConfig(ADC1,pfm->Simmer.max,0);
 				ADC_ITConfig(ADC1,ADC_IT_AWD,ENABLE);
 			}
-			
+
 			if(!_MODE(pfm,_CHANNEL2_DISABLE)) {
 				if(p)
 					ADC_AnalogWatchdogThresholdsConfig(ADC2,pfm->Burst->max[1],0);
@@ -125,17 +125,20 @@ void 	Initialize_ADC1(void)
 			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
 			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
 			GPIO_Init(GPIOB, &GPIO_InitStructure);
+			
 /* ADC1 Init ****************************************************************/
 			ADC_StructInit(&ADC_InitStructure);
 			ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;
 			ADC_InitStructure.ADC_ScanConvMode = ENABLE;
 			ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;
 			ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising;	
+			
 #ifdef	__F7__
 			ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T3_CC1;
 #else
 			ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T8_TRGO;
 #endif
+
 			ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
 			ADC_InitStructure.ADC_NbrOfConversion = sizeof(_ADCDMA)/sizeof(short);
 			ADC_Init(ADC1, &ADC_InitStructure);
@@ -143,6 +146,13 @@ void 	Initialize_ADC1(void)
 /* ADC1 regular channel12 configuration *************************************/
 			ADC_RegularChannelConfig(ADC1, ADC_Channel_9, 1, ADC_SampleTime);				// Uflash 1
 			ADC_RegularChannelConfig(ADC1, ADC_Channel_8, 2, ADC_SampleTime);				// Iflash 1		
+
+/* Set injected sequencer length */
+			ADC_InjectedSequencerLengthConfig(ADC1, 1);
+/* ADC1 injected channel Configuration */
+			ADC_InjectedChannelConfig(ADC1, ADC_Channel_TempSensor, 1, ADC_SampleTime_144Cycles);
+/* ADC1 injected external trigger configuration */
+			ADC_ExternalTrigInjectedConvEdgeConfig(ADC1, ADC_ExternalTrigInjecConvEdge_None);
 
 			ADC_AnalogWatchdogSingleChannelConfig(ADC1,ADC_Channel_8);
 			ADC_AnalogWatchdogCmd(ADC1,ADC_AnalogWatchdog_SingleRegEnable);
@@ -287,27 +297,27 @@ void 	Initialize_ADC3(void)
 /* ADC3 regular channel12 configuration ************************************
 */
 #if	defined (__PFM6__)
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_0,  1, ADC_SampleTime);			// temp 1
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_1,  2, ADC_SampleTime);			// temp 2
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_2,  3, ADC_SampleTime);			// HV/2
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_11, 4, ADC_SampleTime);			// HV
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_12, 5, ADC_SampleTime);			// +20V
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_13, 6, ADC_SampleTime);			// -5V
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_0,  1, ADC_SampleTime);				// temp 1
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_1,  2, ADC_SampleTime);				// temp 2
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_2,  3, ADC_SampleTime);				// HV/2
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_11, 4, ADC_SampleTime);				// HV
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_12, 5, ADC_SampleTime);				// +20V
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_13, 6, ADC_SampleTime);				// -5V
 #endif						                                                                    
 #if	defined (__PFM8__)						                                                    
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_4,	 1, ADC_SampleTime);			// TH1
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_5,	 2, ADC_SampleTime);			// TH2
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_6,  3,	ADC_SampleTime);			// TL1
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_7,  4,	ADC_SampleTime);			// TL2
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_2,  5, ADC_SampleTime);			// HV/2
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_11, 6, ADC_SampleTime);			// HV
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_9,  7, ADC_SampleTime);			// 12V
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_14, 8, ADC_SampleTime);			// 5V
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_15, 9, ADC_SampleTime);			// 3.3V
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_3,  10, ADC_SampleTime);		// VCAP1sense	
-			ADC_RegularChannelConfig(ADC3, ADC_Channel_10, 11, ADC_SampleTime);		// VCAP2sense
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_4,	 1, ADC_SampleTime);				// TH1
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_5,	 2, ADC_SampleTime);				// TH2
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_6,  3,	ADC_SampleTime);				// TL1
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_7,  4,	ADC_SampleTime);				// TL2
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_2,  5, ADC_SampleTime);				// HV/2
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_11, 6, ADC_SampleTime);				// HV
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_9,  7, ADC_SampleTime);				// 12V
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_14, 8, ADC_SampleTime);				// 5V
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_15, 9, ADC_SampleTime);				// 3.3V
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_3,  10, ADC_SampleTime);				// VCAP1sense	
+			ADC_RegularChannelConfig(ADC3, ADC_Channel_10, 11, ADC_SampleTime);				// VCAP2sense
 #endif
-#if		!defined (__DISC4__) && !defined (__DISC7__)
+//#if		!defined (__DISC4__) && !defined (__DISC7__)
 			ADC_AnalogWatchdogSingleChannelConfig(ADC3,ADC_Channel_11);
 			ADC_AnalogWatchdogCmd(ADC3,ADC_AnalogWatchdog_SingleRegEnable);	
 
@@ -315,7 +325,7 @@ void 	Initialize_ADC3(void)
 			ADC_DMACmd(ADC3, ENABLE);
 			ADC_Cmd(ADC3, ENABLE);
 			ADC_SoftwareStartConv(ADC3);
-#endif
+//#endif
 }
 /**
   * @brief  ADC	common init
@@ -338,6 +348,7 @@ void 	Initialize_ADC(void)
 			ADC_CommonInitStructure.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles;
 			ADC_CommonInit(&ADC_CommonInitStructure);
 
+			ADC_TempSensorVrefintCmd(ENABLE);
 			Initialize_ADC1();
 			Initialize_ADC2();
 			Initialize_ADC3();

@@ -890,8 +890,8 @@ int				i;
 						}
 
 						if(n++ == p->Trigger.erpt) {
-							e1/=(kmJ*_uS/p->ADCRate);
-							e2/=(kmJ*_uS/p->ADCRate);
+							e1/=(_kmJ*_uS/p->ADCRate);
+							e2/=(_kmJ*_uS/p->ADCRate);
 							if(_STATUS(p,PFM_STAT_SIMM1) && !_STATUS(p,PFM_STAT_SIMM2)) {
 								CanReply("cicP",_PFM_E_ack,e1,0);	
 								_DEBUG_(_DBG_PULSE_MSG,"E1=%d.%dJ",e1/1000,(e1%1000)/100);
@@ -962,7 +962,7 @@ int						u=p->HV/7;
 								u=2*p->HV/7;
 							_TIM.I1off=ADC1_simmer.I;																			// get current sensor offset
 							_TIM.U1off=ADC1_simmer.U;																			// check idle voltage
-							if(abs(u - _AVG3*ADC1_simmer.U) > _HV2AD(50)) {						// HV +/- 30V range ???
+							if(abs(u - _AVG3*ADC1_simmer.U) > _HV2AD(50)) {							// HV +/- 30V range ???
 								_SET_ERROR(p,PFM_ERR_LNG);																	// if not, PFM_STAT_UBHIGH error 
 							}
 						}
