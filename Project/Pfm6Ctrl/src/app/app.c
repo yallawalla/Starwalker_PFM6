@@ -375,7 +375,7 @@ static		int		bounce=0;
 //-------------------------------------------------------------------------------
 					if(_MODE(p,__TEST__) && !_MODE(p,_PULSE_INPROC) && !(__time__ % 100))
 						if(_TIM.Hvref < p->HVref - p->HVref/15) {
-							_TIM.Hvref += _TIM.Icaps*400*4096/880/_TIM.Caps;
+							_TIM.Hvref = __min(p->HVref,_TIM.Hvref + _TIM.Icaps*400*4096/880/_TIM.Caps);
 							_YELLOW2(20);
 						}
 //-------------------------------------------------------------------------------

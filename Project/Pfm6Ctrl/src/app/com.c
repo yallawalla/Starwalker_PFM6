@@ -268,10 +268,12 @@ int			DecodeEq(char *c) {
 //______________________________________________________________________________________
 				case 'C':
 					_TIM.Caps=__max(100,1000.0*atof(++c));	// scale fakt. za C v mF pri 880V/1100A full scale, 100kHz sample rate in _AVG3 = 4 pride 20... ni placa za izpeljavo
+					printf(" ... bank capacity set to %5.1lf mF",(double)_TIM.Caps/1000.0);
 					break;
 //______________________________________________________________________________________
-				case 'P':					
-					_TIM.Caps=__max(100,1000.0*atof(++c));
+				case 'I':					
+					_TIM.Icaps=__max(10,1000.0*atof(++c));
+					printf(" ... charge current set to %5.1lf A",(double)_TIM.Icaps/1000.0);
 					break;
 //______________________________________________________________________________________
 				case 'E':

@@ -274,8 +274,8 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		TIM_CtrlPWMOutputs(TIM8, ENABLE);			
 		
 		_TIM.Hvref=0;
-		_TIM.Caps=5000;
-		_TIM.Icaps=1000;
+		_TIM.Caps=2000;																								// 2000 u
+		_TIM.Icaps=1000;																							// 1A
 		}
 
 /*******************************************************************************
