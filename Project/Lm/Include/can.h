@@ -29,8 +29,8 @@
 //
 class	_CAN {
 	private:
-		_buffer		*rx,*tx;
-		_io				*com;
+		_io				*com, *oldcom;
+		_io				*io;
 	
 	public:
 #if defined (__DISCO__)
@@ -39,7 +39,8 @@ class	_CAN {
 		_CAN	(bool=false);
 #endif
 		static _CAN *Instance(void);
-		void	RX_ISR(_CAN *), TX_ISR(_CAN *);
+	
+		void	ISR_rx(void), ISR_tx(void);
 		void 	Parse(void *);
 		void	Send(CanTxMsg *);
 		void	Send(char *);

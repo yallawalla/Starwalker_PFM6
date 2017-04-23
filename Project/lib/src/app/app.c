@@ -110,13 +110,14 @@ _io				*io;
 								break;
 								case __f12:
 								case __F12:
-									{
-									int lm(void);
-									_thread_remove(_lightshow,NULL);
-									lm();
-									v->parse(NULL);	
-									break;
-									}
+									return NULL;
+//									{
+//									int lm(void);
+//									_thread_remove(_lightshow,NULL);
+//									lm();
+//									v->parse(NULL);	
+//									break;
+//									}
 								default:
 									p=cgets(i,EOF);
 									if(p) {

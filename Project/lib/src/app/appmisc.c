@@ -229,19 +229,18 @@ int wcard(char *t, char *s)
 }
 //___________________________________________________________________________
 void			PrintVersion(int v) {
-	int i=-1,
-			*p=(int *)__Vectors,
-			n=(FATFS_ADDRESS-(int)__Vectors)/sizeof(int);
-			while(n--)
-				i=crc(i,*p++);
+//	int i=-1,
+//			*p=(int *)__Vectors,
+//			n=(FATFS_ADDRESS-(int)__Vectors)/sizeof(int);
+//			while(n--)
+//				i=crc(i,*p++);
 	
 					RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
 					CRC_ResetDR();
-					printf(" %d.%02d %s, <%08X>, <%08X>",
+					printf(" %d.%02d %s, <%08X>+",
 						v/100,v%100,
 						__DATE__,
-							CRC_CalcBlockCRC(__Vectors, (FATFS_ADDRESS-(int)__Vectors)/sizeof(int)),
-								i);
+							CRC_CalcBlockCRC(__Vectors, (FATFS_ADDRESS-(int)__Vectors)/sizeof(int)));
 }
 
 /**

@@ -839,7 +839,7 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8000000</StartAddress>
+                <StartAddress>0x8008000</StartAddress>
                 <Size>0x100000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
@@ -1145,7 +1145,7 @@
       <TargetName>IOC_Discovery</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060020::V5.06 (build 20)::ARMCC</pCCUsed>
+      <pCCUsed>5060183::V5.06 update 2 (build 183)::ARMCC</pCCUsed>
       <TargetOption>
         <TargetCommonOption>
           <Device>STM32F207VG</Device>
@@ -1407,7 +1407,7 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8000000</StartAddress>
+                <StartAddress>0x8008000</StartAddress>
                 <Size>0x100000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>

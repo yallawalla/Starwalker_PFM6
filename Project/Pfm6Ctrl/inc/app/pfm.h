@@ -59,7 +59,7 @@
 #if		defined	(__PFM6__)
 	#define				_AD2HV(a)		((int)(((a)*_UREF)/4096.0/_AVG3/_Rdiv(7.5e3,2e6)+0.5))
 	#define				_HV2AD(a)		((int)(((a)*4096.0*_AVG3*_Rdiv(7.5e3,2e6))/_UREF+0.5))
-	#define				_Ifullsc		((int)1100)
+	#define				_Ifullsc		((int)1200)
 	#define				_kmJ				((int)(_V2AD(1000,2000,7.5)*_I2AD(1000)/1000))
 #elif	defined		(__PFM8__)
 	#define				_AD2HV(a)		((int)(((a)*_UREF)/4096.0/_AVG3/_Rdiv(6.2e3,2e6)+0.5))
@@ -82,7 +82,6 @@
 //#define					kIf								(3.3/4096.0/2.9999/0.001)
 //#define 				kmJ							(int)(0.001/kVf/kIf/_Ts+0.5)
 	
-
 #define					__charger6				__i2c1
 
 void						_led(int, int);
@@ -224,8 +223,7 @@ extern const char *_errStr[];
 /*										_DEBUG_(_DBG_ERR_MSG,"error %04X,  set from %04X, status=%04X",a,p->Error,p->Status);	*/		\
 										p->Error |= a;																																						\
 									}																																														\
-								} while(0)
-								
+								} while(0)	
 //________________________________________________________________________
 #define 				_AVG3									1
 #define					_MAX_QSHAPE						8

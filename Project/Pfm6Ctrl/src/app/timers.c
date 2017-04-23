@@ -86,7 +86,7 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		GPIO_Init(_USB_PDEN_PORT, &GPIO_InitStructure);
 		GPIO_SetBits(_USB_PDEN_PORT,_USB_PDEN_BIT);
 // ________________________________________________________________________________	
-//  CROWBAR port && interrupt _____________________________________________________
+//  CROWBAR port && interrupt
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 		GPIO_InitStructure.GPIO_Pin = _CWBAR_BIT;					
@@ -386,9 +386,11 @@ int 		hv,j,k,
 				}
 
 #if defined __DISC4__ && defined __PFM8__
-				DAC_SetDualChannelData(DAC_Align_12b_R,x,y);
+				DAC_SetDualChannelData(DAC_Align_12b_R,5*y,5*x);
+				DAC_DualSoftwareTriggerCmd(ENABLE);		
 #endif
-				
+				x=y=0;
+
 				if(!_TIM.p1 && !_TIM.p2) {																//----- end of burst, stop IT, notify main loop ---------------------------				
 					TIM_ITConfig(TIM1,TIM_IT_Update,DISABLE);
 					_SET_EVENT(pfm,_PULSE_FINISHED);
@@ -398,7 +400,7 @@ int 		hv,j,k,
 #endif					
 					return;
 				}
-				
+
 //----- HV voltage averaging, calc. active ADC DMA index----------------------------------
 				for(hv=j=0;j<_AVG3;++j)																		// 
 					hv+=(unsigned short)(ADC3_buf[j].HV);
@@ -406,17 +408,16 @@ int 		hv,j,k,
 				k = _TIM.eint*_uS/_MAX_ADC_RATE;
 				k-= DMA_GetCurrDataCounter(DMA2_Stream4) / sizeof(_ADCDMA)*sizeof(short);
 
-				if(k < 10) {																							// on first entry, take HV reference && current simmer mode
-					if(!_MODE(pfm,__TEST__))
-						_TIM.Hvref=pfm->HVref;
-				}
+				if(!_MODE(pfm,__TEST__))																	// ---  on __TEST__ mode, leave virt. reference for HV
+					_TIM.Hvref=pfm->HVref;
 				
 				if(_TIM.p1) {																							//----- channel 1 -----------
 					x=_TIM.p1->T;
+
 //----- mode 9, forward voltage stab. ---------------------------------------------------	
 					if(_MODE(pfm,_U_LOOP)) {
 						x = (x * _TIM.Hvref + hv/2)/hv;
-					
+
 //					if(m && z1 > pfm->Burst->Pdelay*2) {
 //						for(i=4;i<8;++i)
 //							e1+=(short)(ADC1_buf[k-i].U) * (short)(ADC1_buf[k-i].I-_TIM.I1off);
@@ -529,8 +530,8 @@ int 		hv,j,k,
 
 				if(_MODE(pfm,__TEST__)) {																	//----- mode  29, simulacija klasicnega odziva, =C cap (mF), =P current(A)
 					_SET_MODE(pfm,_U_LOOP);																	// obveze U stab. ker modificiramo HV referenco
-						if(k>5)																								// scale fakt. za C v uF pri 880V/1100A full scale, 100kHz sample rate pride ~80... ni placa za izpeljavo		
-							_TIM.Hvref -= (ADC1_buf[k-5].I+ADC2_buf[k-5].I)/80*1000/_TIM.Caps;	
+					if(k>5)																									// scale fakt. za C v uF pri 880V/1100A full scale, 100kHz sample rate pride ~80... ni placa za izpeljavo		
+						_TIM.Hvref -= (ADC1_buf[k-5].I+ADC2_buf[k-5].I)/80*1000/_TIM.Caps;	
 				}
 #if !defined __PFM8__
 				if(_TIM.p1 && _TIM.p1->T > pfm->Burst->Pdelay && 					//----- Qswitch pasus, dela samo na ch 1 -------------------------------------------------

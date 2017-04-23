@@ -268,7 +268,7 @@ int			DecodeEq(char *c) {
 //______________________________________________________________________________________
 				case 'C':
 					_TIM.Caps=__max(100,1000.0*atof(++c));	// scale fakt. za C v mF pri 880V/1100A full scale, 100kHz sample rate in _AVG3 = 4 pride 20... ni placa za izpeljavo
-					printf(" ... bank capacity set to %5.1lf mF",(double)_TIM.Caps/1000.0);
+					printf(" ... bank capacity set to %6.1lf mF",(double)_TIM.Caps/1000.0);
 					break;
 //______________________________________________________________________________________
 				case 'I':					
@@ -1133,14 +1133,14 @@ int				i;
 					n=numscan(++c,cc,',');
 					if(!n) {
 						if(_MODE(pfm,_CHANNEL1_DISABLE))		
-							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%3d,%3d%c,%3d%c, -- ,%5.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH2)/100.0);
+							__print("\r>f(an)   Tl,Th,min,max,T... %d,%3d,%3d%c,%3d%c, -- ,%5.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH2)/100.0);
 						else if(_MODE(pfm,_CHANNEL2_DISABLE))		
-							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%3d,%3d%c,%3d%c,%5.1f, -- ",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH1)/100.0);
+							__print("\r>f(an)   Tl,Th,min,max,T... %d,%3d,%3d%c,%3d%c,%5.1f, -- ",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH1)/100.0);
 						else	
 #ifdef __PFM6__
-							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%3d,%3d%c,%3d%c,%5.1f,%5.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH1)/100.0,(float)IgbtTemp(TH2)/100.0);
+							__print("\r>f(an)   Tl,Th,min,max,T... %d,%3d,%3d%c,%3d%c,%5.1f,%5.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH1)/100.0,(float)IgbtTemp(TH2)/100.0);
 #elif __PFM8__
-							__print("\r>f(an)    Tl,Th,min,max,T.. %d,%3d,%3d%c,%3d%c,%5.1f,%5.1f,%5.1f,%5.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',
+							__print("\r>f(an)   Tl,Th,min,max,T... %d,%3d,%3d%c,%3d%c,%5.1f,%5.1f,%5.1f,%5.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',
 								(float)IgbtTemp(TL1)/100.0,(float)IgbtTemp(TH1)/100.0,(float)IgbtTemp(TL2)/100.0,(float)IgbtTemp(TH2)/100.0);
 #else
 *** error, define platform
@@ -1163,15 +1163,15 @@ int			u=0,umax=0,umin=0;
 					switch(numscan(++c,cc,',')) {
 						case 0:
 #if	defined (__PFM8__)
-							__print("\r>u(bank)  U,U/2,Vc1,Vc2 ... %.0fV,%5.0fV,%5.0fV,%5.0fV\n",_AD2V(ADC3_buf[0].HV,2000,6.2),
+							__print("(bank) HV,HV/2,Vc1,Vc2... %.0fV,%5.0fV,%5.0fV,%5.0fV\r\n",_AD2V(ADC3_buf[0].HV,2000,6.2),
 																																								_AD2V(ADC3_buf[0].HV2,2000,6.2),
 																																								_AD2V(ADC3_buf[0].VCAP1,2000,6.2),
 																																								_AD2V(ADC3_buf[0].VCAP2,2000,6.2));
-							__print("\r>u(bank)  V12,V5,V3     ... %.1fV,%5.1fV,%5.1fV",				_AD2V(ADC3_buf[0].Up12,62,10),
+							__print("         V12,V5,V3      ... %.1fV,%5.1fV,%5.1fV",				_AD2V(ADC3_buf[0].Up12,62,10),
 																																								_AD2V(ADC3_buf[0].Up5,10,10),
 																																								_AD2V(ADC3_buf[0].Up3,10,10));
 #elif	defined (__PFM6__)
-							__print("\r>u(bank)  Uc,Uc/2,20,-5 ... %.0fV,%5.0fV,%5.1fV,%5.1fV",	_AD2V(ADC3_buf[0].HV,2000,7.5),
+							__print("(bank)  Uc,Uc/2,20,-5 ... %.0fV,%5.0fV,%5.1fV,%5.1fV",	_AD2V(ADC3_buf[0].HV,2000,7.5),
 																																								_AD2V(ADC3_buf[0].HV2,1000,7.5),
 																																								_AD2V(ADC3_buf[0].Up20,68,12),
 																																								_AD2Vn(ADC3_buf[0].Um5,24,12));

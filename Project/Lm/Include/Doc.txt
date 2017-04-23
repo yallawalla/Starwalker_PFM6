@@ -91,3 +91,8 @@ f ready.led
 ----------------------------------------------------------------
 - == in != operator overload za HSV strukturo, popravki v run left & right  FILL_RIGHT_OFF
 
+21.4.2017
+- sprememba pri realizaciji F12, ne preide vec v lib ampak klice nov DecodeCom
+- sprememba pri realizaciji CAN konzole, ne klice DecodeCom ampak zamenja io od stdin
+
+

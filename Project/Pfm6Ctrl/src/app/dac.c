@@ -32,7 +32,13 @@ GPIO_InitTypeDef	GPIO_InitStructure;
 	DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
 	DAC_Init(DAC_Channel_1, &DAC_InitStructure);
 	DAC_Init(DAC_Channel_2, &DAC_InitStructure);
+#if defined __PFM6__
 	DAC_SetDualChannelData(DAC_Align_12b_R,0.85*4096,0.85*4096);
+#else
+	DAC_SetDualChannelData(DAC_Align_12b_R,0,0);
+	DAC_DualSoftwareTriggerCmd(ENABLE);	
+#endif
+
 	DAC_DualSoftwareTriggerCmd(ENABLE);
 	DAC_Cmd(DAC_Channel_1, ENABLE);
 	DAC_Cmd(DAC_Channel_2, ENABLE);

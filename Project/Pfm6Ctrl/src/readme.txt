@@ -623,4 +623,10 @@ PFM8, dodan task F2V, na CAN rx pretvarja freq, v napetost za pfm->burst in tx s
 - VSPfm6 ne uporablja vec ScopeDumpBinary, konzolni ukaz "$"
 - en bug na branju temperature v IgbtTemp()
 
+12.4.2017
+- bug na __TEST__ mode, polnenje virt. C je preseglo operativni HV, zato je bil vsak naslednji pulz vecji
+- za Pfm6 je tokovni fullscale 1200A
+13.4.2017
+- bug v _TIM handlerju - virtualni HV v normalnem režimu ni prevzel obratovalne napetosti! 
+
 

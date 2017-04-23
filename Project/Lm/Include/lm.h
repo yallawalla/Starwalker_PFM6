@@ -40,7 +40,6 @@ typedef enum		{PYRO, PYROnew, PILOT, PLOT_OFFSET, PLOT_SCALE, PUMP, FAN, SPRAY,
 class	_LM {
 
 	private:
-		_io					*io;
 		_SELECTED_ 	item;
 		_TERM				VT100; 
 
@@ -55,6 +54,7 @@ class	_LM {
 		_LM();
 		~_LM();
 	
+		_io					*io;
 		static int	debug, error, error_mask;
 		static 			string ErrMsg[];
 		double			plotA,plotB,plotC;
@@ -77,9 +77,9 @@ class	_LM {
 		void 				Increment(int, int);
 		void 				Select(_SELECTED_);
 		void 				Submit(string);
-		_SELECTED_	Selected(void)		{return item; }
+		_SELECTED_	Selected(void)		{	return item;	}
 		
-		void 				Refresh(void)			{Increment(0,0);}
+		void 				Refresh(void)			{	Increment(0,0);	}
 		bool				Parse(FILE *);
 		bool				Parse(void);
 		

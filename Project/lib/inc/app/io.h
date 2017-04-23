@@ -22,7 +22,7 @@ _buffer	*rx,
 int			(*get)(_buffer *),
 				(*put)(_buffer *, int);
 int			(*parse)(char *);
-FIL 		*file;
+				FIL 		*file;
 } _io;
 //______________________________________________________________________________________
 _buffer	*_buffer_init(int),

@@ -724,7 +724,11 @@ bool	_LM::Parse(int i) {
 
 				case __F12:
 				case __f12:
-					return false;
+					do
+						_thread_loop();
+					while(ParseCom(io));
+					break;
+//					return false;
 				
 				case __Up:
 					Increment(1, 0);

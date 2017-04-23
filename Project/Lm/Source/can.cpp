@@ -60,13 +60,13 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 					CAN_InitStructure.CAN_AWUM=DISABLE;
 					CAN_InitStructure.CAN_NART=DISABLE;
 					CAN_InitStructure.CAN_RFLM=DISABLE;
-					
+
 //... pomembn.. da ne zamesa mailboxov in jih oddaja po vrstnem redu vpisovanja... ni default !!!
 					CAN_InitStructure.CAN_TXFP=ENABLE;	
 //... prijava instance za ISR
-					RX_ISR(this);
-					TX_ISR(this);
-
+					io=_io_init(100*sizeof(CanRxMsg),100*sizeof(CanTxMsg));
+					me=this;
+					
 					if(loopback)
 						CAN_InitStructure.CAN_Mode=CAN_Mode_LoopBack;
 					else
@@ -121,7 +121,6 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+5;
 					CAN_FilterInit(&CAN_FilterInitStructure);
 
-
 					NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
 					NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
 					NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
@@ -147,16 +146,10 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 * Output				:
 * Return				:
 *******************************************************************************/
-void			_CAN::RX_ISR(_CAN *p) {
+void			_CAN::ISR_rx() {
 CanRxMsg	buf;
-					if(p) {																					// klic za prijavo instance
-							p->rx=_buffer_init(100*(sizeof(CanRxMsg) + sizeof(unsigned int)));
-							me=p;
-					} else {																				// klic iz ISR, instanca in 
-						CAN_Receive(__CAN__, CAN_FIFO0, &buf);				// buffer morata bit ze formirana
-						_buffer_push(me->rx,&buf,sizeof(CanRxMsg));
-						_buffer_push(me->rx,(void *)&__time__,sizeof(unsigned int));
-					}
+					CAN_Receive(__CAN__, CAN_FIFO0, &buf);
+					_buffer_push(me->io->rx,&buf,sizeof(CanRxMsg));
 }
 /*******************************************************************************
 * Function Name	: 
@@ -164,17 +157,12 @@ CanRxMsg	buf;
 * Output				:
 * Return				:
 *******************************************************************************/
-void			_CAN::TX_ISR(_CAN *p) {
+void			_CAN::ISR_tx() {
 CanTxMsg	buf={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
-					if(p) {																					// klic za prijavo instance
-						me=p;
-						me->tx=_buffer_init(100*sizeof(CanTxMsg));
-					} else {																				// klic iz ISR, instanca in buffer morata bit ze formirana
-						if(_buffer_pull(me->tx,&buf,sizeof(CanTxMsg)))
-							CAN_Transmit(__CAN__,&buf);									// oddaj, ce je kaj na bufferju
-						else
-							CAN_ITConfig(__CAN__, CAN_IT_TME, DISABLE);	// sicer zapri interrupt
-					}					
+					if(_buffer_pull(me->io->tx,&buf,sizeof(CanTxMsg)))
+						CAN_Transmit(__CAN__,&buf);									// oddaj, ce je kaj na bufferju
+					else
+						CAN_ITConfig(__CAN__, CAN_IT_TME, DISABLE);	// sicer zapri interrupt				
 }
 /*******************************************************************************
 * Function Name	: 
@@ -183,8 +171,8 @@ CanTxMsg	buf={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 * Return				:
 *******************************************************************************/
 void			_CAN::Send(CanTxMsg *msg) {
-					if(_buffer_count(tx) > 0 || (__CAN__->TSR & CAN_TSR_TME) == 0) {
-						_buffer_push(tx,&msg,sizeof(msg));
+					if(_buffer_count(io->tx) > 0 || (__CAN__->TSR & CAN_TSR_TME) == 0) {
+						_buffer_push(io->tx,&msg,sizeof(msg));
 					} else
 						CAN_Transmit(__CAN__,msg);
 					CAN_ITConfig(__CAN__, CAN_IT_TME, ENABLE);		
@@ -223,20 +211,18 @@ CanTxMsg	buf={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 * Return				:
 *******************************************************************************/
 void			_CAN::Parse(void *v) {	
-
-unsigned	int tstamp=0;
 CanTxMsg	msg={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};		
 _LM				*lm = (_LM *)v;
 //
 //________ flushing com buffer/not echoed if debug_________ 
-					if(com &&  tx->size - _buffer_count(tx) > sizeof(CanTxMsg)) {
+					if(com &&  io->tx->size - _buffer_count(io->tx) > sizeof(CanTxMsg)) {
 						msg.StdId=Com2CanIoc;
 						msg.DLC=_buffer_pull(com->tx,msg.Data,sizeof(msg.Data));
 						if(msg.DLC)
 							Send(&msg);
 					}
 //______________________________________________________________________________________					
-					if(_buffer_count(rx)  && _buffer_pull(rx,&msg,sizeof(CanTxMsg)) && _buffer_pull(rx,&tstamp,sizeof(unsigned int))) {
+					if(_buffer_count(io->rx)  && _buffer_pull(io->rx,&msg,sizeof(CanTxMsg))) {
 //
 //________ debug print__________________________________________________________________
 						if(_BIT(_LM::debug, DBG_CAN_RX)) {
@@ -249,25 +235,29 @@ _LM				*lm = (_LM *)v;
 						}
 //______________________________________________________________________________________
 						switch(msg.StdId) {
+							case Sys2Ioc:
+								switch(msg.Data[0]) {
+									case 0xAA:
+										while(1);
+								}
+								break;
 //______________________________________________________________________________________							
 							case Com2CanEc20: 
 							case Com2CanIoc: 
-							{
 								if(lm->Selected() == REMOTE_CONSOLE)
 									for(int i=0; i<msg.DLC; ++i)
 										putchar(msg.Data[i]);
-							}
 							break;
 //______________________________________________________________________________________
 							case Can2ComIoc:
 								if(msg.DLC) {
 									if(com == NULL) {
-										com=_io_init(128,128);
-										_thread_add((void *)ParseCom,com,(char *)"ParseCom CAN",0);	
+										oldcom = lm->io;
+										lm->io = com = _io_init(128,128);
 									}
 									_buffer_push(com->rx,msg.Data,msg.DLC);
 								} else {
-									_thread_remove((void *)ParseCom,com);	
+									lm->io = oldcom;
 									com=_io_close(com);
 								}
 								break;
@@ -319,8 +309,7 @@ CanRxMsg	rxbuf={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 						for(n=0; *msg && n<16; ++n,++n,++msg,++msg)
 							sscanf(msg,"%02X",(unsigned int *)&rxbuf.Data[n/2]);
 						rxbuf.DLC=n/2;
-						_buffer_push(rx,&rxbuf,sizeof(rxbuf));
-						_buffer_push(rx,(void *)&__time__,sizeof(unsigned int));
+						_buffer_push(io->rx,&rxbuf,sizeof(rxbuf));
 					} while(*msg);
 }
 /*******************************************************************************
@@ -331,16 +320,16 @@ CanRxMsg	rxbuf={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 *******************************************************************************/
 extern 		"C" {
 void 			CAN1_TX_IRQHandler() {
-					me->TX_ISR(NULL);
+					me->ISR_tx();
 }
 void 			CAN2_TX_IRQHandler() {
-					me->TX_ISR(NULL);
+					me->ISR_tx();
 }
 void 			CAN1_RX0_IRQHandler() {
-					me->RX_ISR(NULL);
+					me->ISR_rx();
 }
 void 			CAN2_RX0_IRQHandler() {
-					me->RX_ISR(NULL);
+					me->ISR_rx();
 }
 void 			CAN1_SCE_IRQHandler(void) {
 					CAN1->MSR |= 0x0004;

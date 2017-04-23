@@ -317,7 +317,7 @@ void 	Initialize_ADC3(void)
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_3,  10, ADC_SampleTime);				// VCAP1sense	
 			ADC_RegularChannelConfig(ADC3, ADC_Channel_10, 11, ADC_SampleTime);				// VCAP2sense
 #endif
-//#if		!defined (__DISC4__) && !defined (__DISC7__)
+#if		!defined (__DISC4__) && !defined (__DISC7__)
 			ADC_AnalogWatchdogSingleChannelConfig(ADC3,ADC_Channel_11);
 			ADC_AnalogWatchdogCmd(ADC3,ADC_AnalogWatchdog_SingleRegEnable);	
 
@@ -325,7 +325,7 @@ void 	Initialize_ADC3(void)
 			ADC_DMACmd(ADC3, ENABLE);
 			ADC_Cmd(ADC3, ENABLE);
 			ADC_SoftwareStartConv(ADC3);
-//#endif
+#endif
 }
 /**
   * @brief  ADC	common init
