@@ -49,7 +49,6 @@
 #endif
 
 
-
 /* Definitions of sector size */
 #if (_MAX_SS < _MIN_SS) || (_MAX_SS != 512 && _MAX_SS != 1024 && _MAX_SS != 2048 && _MAX_SS != 4096) || (_MIN_SS != 512 && _MIN_SS != 1024 && _MIN_SS != 2048 && _MIN_SS != 4096)
 #error Wrong sector size configuration
@@ -4597,6 +4596,7 @@ FRESULT f_mkdir (
 					mem_set(dir, 0, SS(fs));
 				}
 			}
+
 			if (res == FR_OK) res = dir_register(&dj);	/* Register the object to the directoy */
 			if (res == FR_OK) {
 #if _FS_EXFAT

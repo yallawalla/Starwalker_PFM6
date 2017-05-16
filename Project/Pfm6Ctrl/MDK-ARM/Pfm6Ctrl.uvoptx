@@ -1295,12 +1295,12 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ADC1_simmer</ItemText>
+          <ItemText>c</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ADC2_simmer</ItemText>
+          <ItemText>buf</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -1319,7 +1319,7 @@
         <Mm>
           <WinNumber>1</WinNumber>
           <SubType>0</SubType>
-          <ItemText>0x20001736</ItemText>
+          <ItemText>0x2001A889</ItemText>
           <AccSizeX>0</AccSizeX>
         </Mm>
       </MemoryWindow1>
@@ -1986,7 +1986,7 @@
 
   <Group>
     <GroupName>Pfm6Setup</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -2102,7 +2102,7 @@
 
   <Group>
     <GroupName>Pfm6Misc</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

@@ -643,6 +643,16 @@ TCHAR			buf[128];
 									__print("%d",(int)fno.fsize);
 							}
 						}
+////__xmodem test_________________________________________________________________________
+//						else if(!strncmp("xtx",sc[0],len)) {
+//int Ymodem_Transmit(void);
+//							Ymodem_Transmit();
+
+//						}
+//						else if(!strncmp("xrx",sc[0],len)) {
+//int Ymodem_Receive(void);
+//							Ymodem_Receive();
+//						}
 //______________________________________________________________________________________
 						else if(!strncmp(">",sc[0],len)) {
 							__stdin.io->arg.parse=DecodeCom;
@@ -801,32 +811,30 @@ int				n;
 				}
 //__________________________________________________submit CAN message(SYS to __)______
 				case '<': {
-CanTxMsg	tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
-int				n;
-					tx.StdId=getHEX(++c,2);
-					++c;++c;
-					for(n=0; n<strlen(c);++n,++n)
-						tx.Data[n/2]=getHEX(&c[n],2);
-					tx.DLC=n/2;
-					CAN_ITConfig(__CAN__, CAN_IT_FMP0, DISABLE);
-					_buffer_push(__can->rx,&tx,sizeof(CanTxMsg));
-					CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
+CanRxMsg	buf={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
+					buf.StdId=strtol(++c,&c,16);
+					do {
+						while(*c == ' ') ++c;
+						for(buf.DLC=0; *c && buf.DLC < 8; ++buf.DLC)
+							buf.Data[buf.DLC]=strtol(c,&c,16);
+							CAN_ITConfig(__CAN__, CAN_IT_FMP0, DISABLE);
+							_buffer_push(__can->rx,&buf,sizeof(CanTxMsg));
+							CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
+					} while(*c);
 					break;
 				}				
 //__________________________________________________submit CAN message(SYS to __)______
 				case '>': {
-CanTxMsg	tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
-int				i;
-					tx.StdId=getHEX(++c,2);
-					++c;++c;
-					for(i=0; i<strlen(c);++i,++i)
-						tx.Data[i/2]=getHEX(&c[i],2);
-					tx.DLC=i/2;
-//					CAN_ITConfig(__CAN__, CAN_IT_TME, DISABLE);	
-					i=_buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
-//					CAN_ITConfig(__CAN__, CAN_IT_TME, ENABLE);							
+CanTxMsg	buf={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};			
+					buf.StdId=strtol(++c,&c,16);
+					do {
+						while(*c == ' ') ++c;
+						for(buf.DLC=0; *c && buf.DLC < 8; ++buf.DLC)
+							buf.Data[buf.DLC]=strtol(c,&c,16);
+						_buffer_push(__can->tx,&buf,sizeof(CanTxMsg));
+					} while(*c);
 					break;
-				}
+				}				
 //__________________________________________________i2c read_________________
 				case 'r':
 					n=strscan(++c,cc,',');

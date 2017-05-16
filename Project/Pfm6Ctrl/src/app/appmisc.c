@@ -583,20 +583,20 @@ int		i,j;
 			__dbug=__stdin.io;
 			_SET_MODE(pfm,_CAN_2_COM);
 			printf("\r\n remote console open... \r\n>");
-			sprintf(c,">%02X%02X%02X",_ID_SYS2PFMcom,'v','\r');
+			sprintf(c,">%03X %02X %02X",_ID_SYS2PFMcom,'v','\r');
 			DecodeCom(c);
 			do {
 				for(i=0; i<8; ++i) {
 					j=getchar();
 					if(j == EOF || j == _CtrlE)
 						break;
-					sprintf(&c[2*i+3],"%02X",j);
+					sprintf(&c[3*i+4]," %02X",j);
 				}
 				if(i > 0)
 					DecodeCom(c);
 				_proc_loop();
 			} while (j != _CtrlE);
-			sprintf(c,">%02X",_ID_SYS2PFMcom);
+			sprintf(c,">%03X",_ID_SYS2PFMcom);
 			DecodeCom(c);
 			_CLEAR_MODE(pfm,_CAN_2_COM);
 			__dbug=NULL;
