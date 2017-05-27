@@ -20,13 +20,13 @@
 #include	<math.h>
 
 ws2812 _WS2812::ws[] = 
-			{{8,{0,0,0},NULL,noCOMM,NULL},
-			{24,{0,0,0},NULL,noCOMM,NULL},
-			{8,{0,0,0},NULL,noCOMM,NULL},
-			{8,{0,0,0},NULL,noCOMM,NULL},
-			{24,{0,0,0},NULL,noCOMM,NULL},
-			{8,{0,0,0},NULL,noCOMM,NULL},
-			{0,{0,0,0},NULL,noCOMM,NULL}};
+			{{8,0,0,{0,0,0},NULL,noCOMM,NULL},
+			{24,0,0,{0,0,0},NULL,noCOMM,NULL},
+			{8,0,0,{0,0,0},NULL,noCOMM,NULL},
+			{8,0,0,{0,0,0},NULL,noCOMM,NULL},
+			{24,0,0,{0,0,0},NULL,noCOMM,NULL},
+			{8,0,0,{0,0,0},NULL,noCOMM,NULL},
+			{0,0,0,{0,0,0},NULL,noCOMM,NULL}};
 /*******************************************************************************/
 /**
 	* @brief	_WS2812 class constructor
@@ -142,10 +142,12 @@ int			i,j,k;
 dma			*p;
 RGB_set	q;
 	
-				for(i=0; ws[i].size; ++i)
+				for(i=0; ws[i].size; ++i) {
 					for(j=0; j<ws[i].size; ++j)
 						if(ws[i].cbuf) {
-							HSV2RGB(ws[i].cbuf[j], &q);
+HSV_set				r=*ws[i].cbuf;					
+							r.v = __max(0,__min(r.v * (j-ws[i].offset+1)/(ws[i].gain+1),ws[i].cbuf->v));
+							HSV2RGB(r, &q);
 							for(k=0,p=ws[i].lbuf; k<8; ++k) {
 								(q.b & (0x80>>k)) ? (p[j].b[k]=53)	: (p[j].b[k]=20);
 								(q.g & (0x80>>k)) ? (p[j].g[k]=53)	: (p[j].g[k]=20);
@@ -155,6 +157,7 @@ RGB_set	q;
 						else
 							for(k=0,p=ws[i].lbuf; k<24; ++k)
 									p[j].g[k]=20;
+				}
 				
 				DMA_Cmd(DMA1_Stream1, DISABLE);
 				TIM_Cmd(TIM2,DISABLE);
@@ -443,6 +446,8 @@ int			i;
 						ws[i].color.h =atoi(strtok(NULL,", "));
 						ws[i].color.s =atoi(strtok(NULL,", "));
 						ws[i].color.v =atoi(strtok(NULL,", "));
+						ws[i].offset =atoi(strtok(NULL,", "));
+						ws[i].gain =atoi(strtok(NULL,", "));
 						break;						
 					case 't':
 						i=atoi(strtok(NULL,", "));
@@ -468,11 +473,31 @@ int		_WS2812::GetColor(int color) {
 			ws2812 *w=&ws[color];
 			int flag=0;
 			
-			printf("\n\rHSB:%d,%d,%d      ",w->color.h,w->color.s,w->color.v);
+			printf("\n\rHSB:%d,%d,%d,%d,%d      ",w->color.h,w->color.s,w->color.v,w->offset,w->gain);
 			while(1) {
 				switch(key.Escape()) {
 					case EOF:
 						break;
+					case __CtrlUp:
+						++flag;
+						--w->gain;
+						w->gain = __max(__min(3*w->size, w->gain),0);
+						break;				
+					case __CtrlDown:
+						++flag;
+						++w->gain;
+						w->gain = __max(__min(3*w->size, w->gain),0);
+						break;
+					case __CtrlRight:
+						++flag;
+						++w->offset;
+						w->offset = __max(__min(w->size, w->offset),0);
+						break;				
+					case __CtrlLeft:
+						++flag;
+						--w->offset;
+						w->offset = __max(__min(w->size, w->offset),0);
+						break;				
 					case __Up:
 						++flag;
 						w->color.h=__min(359,w->color.h + 1);
@@ -501,7 +526,7 @@ int		_WS2812::GetColor(int color) {
 						return PARSE_OK;
 				}
 				if(flag) {
-					printf("\rHSB:%d,%d,%d      ",w->color.h,w->color.s,w->color.v);
+					printf("\rHSB:%d,%d,%d,%d,%d      ",w->color.h,w->color.s,w->color.v,w->offset,w->gain);
 					for(int i=0; i<w->size; ++i)
 						w->cbuf[i] =w->color;
 					trigger();
@@ -519,7 +544,7 @@ int		_WS2812::GetColor(int color) {
 /*******************************************************************************/
 void		_WS2812::SaveSettings(FILE *f){
 				for(int i=0; ws[i].size; ++i)
-					fprintf(f,"=color %d,%d,%d,%d\r\n",i,ws[i].color.h,ws[i].color.s,ws[i].color.v);
+					fprintf(f,"=color %d,%d,%d,%d,%d,%d\r\n",i,ws[i].color.h,ws[i].color.s,ws[i].color.v,ws[i].offset,ws[i].gain);
 }
 /*******************************************************************************
  * Function RGB2HSV

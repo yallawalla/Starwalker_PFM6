@@ -73,10 +73,17 @@ void						_led(int, int),
 #define	__PageUp		0x1B5B357E
 #define	__Delete		0x1B5B337E
 #define	__PageDown	0x1B5B367E
+
+
 #define	__Up				0x001B5B41
 #define	__Left			0x001B5B44
 #define	__Down			0x001B5B42
 #define	__Right			0x001B5B43
+
+#define	__CtrlUp		0x001B4F41
+#define	__CtrlLeft	0x001B4F44
+#define	__CtrlDown	0x001B4F42
+#define	__CtrlRight	0x001B4F43
 
 typedef	enum				{PARSE_OK,PARSE_SYNTAX,PARSE_ILLEGAL,PARSE_MISSING,PARSE_MEM} ERR_MSG;
 
@@ -131,6 +138,10 @@ int 		update_crc(int, char *, char);
 int 		crc(int, int);
 }
 
+__inline int __sgn(int val) {
+			  return((0 < val) - (val < 0));
+}
+	
 #ifndef	__max				
 #define __max(a,b)  (((a) > (b)) ? (a) : (b))	
 #endif

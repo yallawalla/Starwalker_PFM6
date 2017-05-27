@@ -37,7 +37,7 @@ typedef struct	{
 								} dma;
 
 typedef	struct	{
-									int				size;
+									int				size,offset, gain;
 									HSV_set		color, 
 														*cbuf;
 									wsCmd			mode;
