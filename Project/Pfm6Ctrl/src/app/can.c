@@ -19,10 +19,66 @@ _io				*__can;
 * Output         : None
 * Return         : PASSED if the reception is well done, FAILED in other case
 *******************************************************************************/
+struct { int idL,maskL,idH,maskH; } canFilter[14] =
+{
+	{_ID_SYS2PFM,0x3ff,_ID_SYS2EC,0x3ff},
+	{_ID_SYS2PFMcom,0x3ff,_ID_PFMcom2SYS,0x3ff},
+	{_ID_SYS_TRIGG,0x3ff,_PFM_POCKELS,0x3ff},
+	{_ID_SYS2ENRG,0x3ff,_ID_ENRG2SYS,0x3ff},
+	{0,0,0,0},
+	{0,0,0,0},
+	{0,0,0,0},
+	{0,0,0,0},
+	{0,0,0,0},
+	{0,0,0,0},
+	{0,0,0,0},
+	{0,0,0,0},
+	{0,0,0,0},	
+	{0,0,0,0}	
+};
+/*******************************************************************************
+* Function Name  : CAN_Initialize
+* Description    : Configures the CAN, transmit and receive using interrupt.
+* Input          : None
+* Output         : None
+* Return         : PASSED if the reception is well done, FAILED in other case
+*******************************************************************************/
+void	canFilterConfig(int id, int mask) {
+	int i;
+	CAN_FilterInitTypeDef		CAN_FilterInitStructure;
+	for(i=0; canFilter[i].idL && canFilter[i].idH; ++i);
+	if(canFilter[i].idL) {
+		canFilter[i].idH= id;
+		canFilter[i].idH= mask;
+	} else {
+		canFilter[i].idL= id;
+		canFilter[i].idL= mask;
+	}
+
+	CAN_FilterInitStructure.CAN_FilterMode=CAN_FilterMode_IdMask;
+	CAN_FilterInitStructure.CAN_FilterScale=CAN_FilterScale_16bit;
+	CAN_FilterInitStructure.CAN_FilterActivation=ENABLE;
+	CAN_FilterInitStructure.CAN_FilterFIFOAssignment=CAN_FIFO0;
+	for(i=0; canFilter[i].idL && canFilter[i].idH; ++i) {
+		CAN_FilterInitStructure.CAN_FilterIdHigh= canFilter[i].idH<<5;
+		CAN_FilterInitStructure.CAN_FilterMaskIdHigh= canFilter[i].maskH<<5;
+		CAN_FilterInitStructure.CAN_FilterIdLow =  canFilter[i].idL<<5;
+		CAN_FilterInitStructure.CAN_FilterMaskIdLow = canFilter[i].maskL<<5;
+		CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+i;
+		CAN_FilterInit(&CAN_FilterInitStructure);
+	}					
+}
+/*******************************************************************************
+* Function Name  : CAN_Initialize
+* Description    : Configures the CAN, transmit and receive using interrupt.
+* Input          : None
+* Output         : None
+* Return         : PASSED if the reception is well done, FAILED in other case
+*******************************************************************************/
 _io			 	*Initialize_CAN(int loop) {
 	
 CAN_InitTypeDef					CAN_InitStructure;
-CAN_FilterInitTypeDef		CAN_FilterInitStructure;
+//CAN_FilterInitTypeDef		CAN_FilterInitStructure;
 GPIO_InitTypeDef				GPIO_InitStructure;
 
 					GPIO_StructInit(&GPIO_InitStructure);
@@ -74,32 +130,42 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 #else
 *** define CPU
 #endif
-					
-					CAN_FilterInitStructure.CAN_FilterMode=CAN_FilterMode_IdList;
-					CAN_FilterInitStructure.CAN_FilterScale=CAN_FilterScale_32bit;
-					CAN_FilterInitStructure.CAN_FilterMaskIdLow=0;
-					CAN_FilterInitStructure.CAN_FilterIdLow=0;
-					CAN_FilterInitStructure.CAN_FilterActivation=ENABLE;
+					canFilterConfig(0,0);
 
-					CAN_FilterInitStructure.CAN_FilterFIFOAssignment=CAN_FIFO0;
+//CAN_FilterInitStructure.CAN_FilterMode=CAN_FilterMode_IdMask;
+//					CAN_FilterInitStructure.CAN_FilterScale=CAN_FilterScale_32bit;
+//					CAN_FilterInitStructure.CAN_FilterActivation=ENABLE;
+//					CAN_FilterInitStructure.CAN_FilterFIFOAssignment=CAN_FIFO0;
 
-	// filtri za PFM in EC
-					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS2PFM<<5;
-					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_SYS2EC<<5;
-					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+0;
-					CAN_FilterInit(&CAN_FilterInitStructure);
-					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS2PFMcom<<5;
-					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_PFMcom2SYS<<5;
-					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+1;
-					CAN_FilterInit(&CAN_FilterInitStructure);
-					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS_TRIGG<<5;
-					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_PFM_POCKELS<<5;
-					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+2;
-					CAN_FilterInit(&CAN_FilterInitStructure);
-					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS2ENRG<<5;
-					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_ENRG2SYS<<5;
-					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+3;
-					CAN_FilterInit(&CAN_FilterInitStructure);
+//					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS2PFM<<5;
+//					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_SYS2PFM<<5;
+//					CAN_FilterInitStructure.CAN_FilterIdLow = _ID_SYS2EC<<5;
+//					CAN_FilterInitStructure.CAN_FilterMaskIdLow = _ID_SYS2EC<<5;
+//					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+0;
+//					CAN_FilterInit(&CAN_FilterInitStructure);
+
+//					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS2PFMcom<<5;
+//					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_SYS2PFMcom<<5;
+//					CAN_FilterInitStructure.CAN_FilterIdLow = _ID_PFMcom2SYS<<5;
+//					CAN_FilterInitStructure.CAN_FilterMaskIdLow = _ID_PFMcom2SYS<<5;
+//					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+1;
+//					CAN_FilterInit(&CAN_FilterInitStructure);
+
+//					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS_TRIGG<<5;
+//					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_SYS_TRIGG<<5;
+//					CAN_FilterInitStructure.CAN_FilterIdLow = _PFM_POCKELS<<5;
+//					CAN_FilterInitStructure.CAN_FilterMaskIdLow = _PFM_POCKELS<<5;
+//					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+2;
+//					CAN_FilterInit(&CAN_FilterInitStructure);
+
+//					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS2ENRG<<5;
+//					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_SYS2ENRG<<5;
+//					CAN_FilterInitStructure.CAN_FilterIdLow = _ID_ENRG2SYS<<5;
+//					CAN_FilterInitStructure.CAN_FilterMaskIdLow = _ID_ENRG2SYS<<5;
+//					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+3;
+//					CAN_FilterInit(&CAN_FilterInitStructure);
+	
+/*******************************************************************************/
 
 					CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
 					if(__can)

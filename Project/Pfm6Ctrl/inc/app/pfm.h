@@ -468,6 +468,8 @@ void						SysTick_init(void),
 										
 _io 						*Initialize_USART(int),
 								*Initialize_CAN(int);
+void						canFilterConfig(int, int);
+
 void	 					*Initialize_F2V(PFM *);
 _i2c*						Initialize_I2C(int, int);
 				

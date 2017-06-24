@@ -145,8 +145,9 @@ RGB_set	q;
 				for(i=0; ws[i].size; ++i) {
 					for(j=0; j<ws[i].size; ++j)
 						if(ws[i].cbuf) {
-HSV_set				r=*ws[i].cbuf;					
-							r.v = __max(0,__min(r.v * (j-ws[i].offset+1)/(ws[i].gain+1),ws[i].cbuf->v));
+HSV_set				r=*ws[i].cbuf;
+							if(ws[i].gain != 0)
+								r.v = __max(0,__min(r.v * (j-ws[i].offset)/ws[i].gain,ws[i].cbuf->v));
 							HSV2RGB(r, &q);
 							for(k=0,p=ws[i].lbuf; k<8; ++k) {
 								(q.b & (0x80>>k)) ? (p[j].b[k]=53)	: (p[j].b[k]=20);
@@ -471,70 +472,52 @@ int		_WS2812::GetColor(int color) {
 	
 			_TERM key;
 			ws2812 *w=&ws[color];
-			int flag=0;
-			
 			printf("\n\rHSB:%d,%d,%d,%d,%d      ",w->color.h,w->color.s,w->color.v,w->offset,w->gain);
 			while(1) {
 				switch(key.Escape()) {
 					case EOF:
-						break;
+						continue;
 					case __CtrlUp:
-						++flag;
-						--w->gain;
-						w->gain = __max(__min(3*w->size, w->gain),0);
+						w->gain		=	__max(__min(w->gain - 1, 10*w->size), -10*w->size);
 						break;				
 					case __CtrlDown:
-						++flag;
-						++w->gain;
-						w->gain = __max(__min(3*w->size, w->gain),0);
+						w->gain		=	__max(__min(w->gain + 1, 10*w->size), -10*w->size);
 						break;
 					case __CtrlRight:
-						++flag;
-						++w->offset;
-						w->offset = __max(__min(w->size, w->offset),0);
+						w->offset	=	__max(__min(w->offset + 1, w->size), -w->size);
 						break;				
 					case __CtrlLeft:
-						++flag;
-						--w->offset;
-						w->offset = __max(__min(w->size, w->offset),0);
+						w->offset	=	__max(__min(w->offset - 1, w->size), -w->size);
 						break;				
 					case __Up:
-						++flag;
 						w->color.h=__min(359,w->color.h + 1);
 						break;				
 					case __Down:
-						++flag;
 						w->color.h=__max(1,w->color.h - 1);
 						break;
 					case __Right:
-						++flag;
 						w->color.s=__min(255,w->color.s + 1);
 						break;				
 					case __Left:
-						++flag;
 						w->color.s=__max(1,w->color.s - 1);
 						break;				
 					case __PageUp:
-						++flag;
 						w->color.v=__min(255,w->color.v + 1);
 						break;				
 					case __PageDown:
-						++flag;
 						w->color.v=__max(1,w->color.v - 1);
 						break;				
 					case __Esc:
 						return PARSE_OK;
 				}
-				if(flag) {
-					printf("\rHSB:%d,%d,%d,%d,%d      ",w->color.h,w->color.s,w->color.v,w->offset,w->gain);
-					for(int i=0; i<w->size; ++i)
-						w->cbuf[i] =w->color;
-					trigger();
-					flag=0;
-				}
+				printf("\rHSB:%d,%d,%d,%d,%d      ",w->color.h,w->color.s,w->color.v,w->offset,w->gain);
+				for(int i=0; i<w->size; ++i)
+					w->cbuf[i] =w->color;
+				trigger();
+
 				_wait(10,_thread_loop);
 			}	
-				}
+}
 /*******************************************************************************/
 /**
 	* @brief	_WS2812 class load/save settings method

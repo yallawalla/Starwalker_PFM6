@@ -23,6 +23,8 @@
 void		USB_MSC_host(void);
 void		USB_MSC_device(void);
 void		USB_VCP_device(void);
+FRESULT iapRemote(char *);
+
 //___________________________________________________________________________
 int			DecodeMinus(char *c) {
 				char		*cc[8];
@@ -54,8 +56,28 @@ int			DecodeMinus(char *c) {
 					break;
 //__________________________________________________can loop/net_____________
 				case 'c':
-				if(strscan(c,cc,' ')==2)
-					__can=Initialize_CAN(*cc[1]-'n');
+					n=strscan(c,cc,' ');
+				if(n > 1)
+					switch(*cc[1]) {
+						case 'l':
+							if(*cc[2]== 'y')
+								__can=Initialize_CAN(true);
+							else if(*cc[2]== 'n')
+								__can=Initialize_CAN(false);
+							else
+								return _PARSE_ERR_SYNTAX;		
+							break;
+						case 'm':
+							if(n % 2)
+								return(_PARSE_ERR_MISSING); 
+							else while (n) {
+								canFilterConfig(atoi(cc[2]),atoi(cc[3]));
+								n-=2;
+							}
+						break;
+						default:
+							return _PARSE_ERR_SYNTAX;							
+					}
 				break;
 //__________________________________________________can loop/net_____________
 				case 'f':
@@ -643,16 +665,10 @@ TCHAR			buf[128];
 									__print("%d",(int)fno.fsize);
 							}
 						}
-////__xmodem test_________________________________________________________________________
-//						else if(!strncmp("xtx",sc[0],len)) {
-//int Ymodem_Transmit(void);
-//							Ymodem_Transmit();
-
-//						}
-//						else if(!strncmp("xrx",sc[0],len)) {
-//int Ymodem_Receive(void);
-//							Ymodem_Receive();
-//						}
+//__iap_________________________________________________________________________________
+						else if(!strncmp("iap",sc[0],len)) {
+							return iapRemote(sc[1]);
+						}
 //______________________________________________________________________________________
 						else if(!strncmp(">",sc[0],len)) {
 							__stdin.io->arg.parse=DecodeCom;
@@ -1343,16 +1359,148 @@ int			u=0,umax=0,umin=0;
 //______________________________________________________________________________________
 //______________________________________________________________________________________
 //______________________________________________________________________________________
+#define			_ID_IAP_GO			0xA0
+#define			_ID_IAP_ERASE		0xA1
+#define			_ID_IAP_ADDRESS	0xA2
+#define			_ID_IAP_DWORD		0xA3
+#define			_ID_IAP_ACK			0xA4
+#define			_ID_IAP_SIGN		0xA5
+#define			_ID_IAP_STRING	0xA6
+#define			_ID_IAP_PING		0xA7
+//______________________________________________________________________________________
+//______________________________________________________________________________________
+int	AckWait(int t) {
+	int to;
+	CanRxMsg	rx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
+	to=__time__ + t; 
+	while(__time__ < to)
+		if(_buffer_pull(__can->rx,&rx,sizeof(CanRxMsg)) && rx.StdId == _ID_IAP_ACK)
+			return rx.Data[0];
+		else
+			_proc_loop();
+		return EOF;
+}
+//______________________________________________________________________________________
+/*******************************************************************************
+* Function Name  : HexChecksumError
+* Description    : preverja konsistentnost vrstice iz hex fila
+* Input          : pointer na string 
+* Output         : 
+* Return         : 0 ce je OK
+*******************************************************************************/
+int					HexChecksumError(char *p) {
+int	 				err,n=str2hex(&p,2);
+						for(err=n;n-->-5;err+=str2hex(&p,2));
+						return(err & 0xff);
+}
+/*******************************************************************************
+* Function Name  : CanHexProg request, server
+* Description    : dekodira in razbije vrstice hex fila na 	pakete 8 bytov in jih
+*								 : pošlje na CAN bootloader
+* Input          : pointer na string, zaporedne vrstice hex fila, <cr> <lf> ali <null> niso nujni
+* Output         : 
+* Return         : 0 ce je checksum error sicer eof(-1). bootloader asinhrono odgovarja z ACK message
+*				 				 : za vsakih 8 bytov !!!
+*******************************************************************************/
+int					CanHexProg(char *p) {
+CanTxMsg		tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
+static int	ExtAddr=0;
+int	 				n,a,i=FLASH_COMPLETE;
+int					*d=(int *)tx.Data;
+
+						if(HexChecksumError(++p))
+						{ printf(".1"); return 0; }
+						n=str2hex(&p,2);
+						a=(ExtAddr<<16)+str2hex(&p,4);
+						switch(str2hex(&p,2)) {
+							case 00:
+								if(a<_FLASH_TOP)
+									{ printf(".2"); return 0; }
+								tx.StdId=_ID_IAP_ADDRESS;
+								d[0]=a;
+								tx.DLC=sizeof(int);
+								_buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
+								if(AckWait(10) != 0)
+									{ printf(".3"); return 0; }
+								tx.StdId=_ID_IAP_DWORD;
+								for(i=0; n--;) {
+									tx.Data[i++]=str2hex(&p,2);
+									if(i==8 || !n) {	
+										tx.DLC=i;
+										i=0;
+										_buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
+										if(AckWait(10) != 0)
+											{ printf(".4"); return 0; }
+									}	
+								}
+								break;
+							case 01:
+								break;
+							case 02:
+								break;
+							case 04:
+							case 05:
+								ExtAddr=str2hex(&p,4);
+								break;
+						}
+						return(EOF);
+}
 //______________________________________________________________________________________
 //______________________________________________________________________________________
 //______________________________________________________________________________________
 //______________________________________________________________________________________
 //______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
+FRESULT iapRemote(char * filename) {
+	FIL	f;
+	int n,k;
+	TCHAR l[128];
+	_proc	*p;
+	
+	FRESULT err= f_open(&f,filename,FA_READ);
+	
+	if(err)
+		return err;
+	for(n=0; !f_eof(&f); ++n) {
+		f_gets(l,sizeof(l),&f);
+		Watchdog();
+	}
+	f_close(&f);
+	
+	p = _proc_find(ParseCanRx,pfm);
+	p->t += 3000;
+	
+	canFilterConfig(_ID_IAP_GO, 0x7f0);
+	CanReply("cX",0xAA,_ID_SYS2PFM);
+	_wait(300,_proc_loop);
+	CanReply("X",_ID_IAP_PING);
+	if(AckWait(10) != 0)
+		return FR_NOT_READY;
+	for(k=FLASH_Sector_1; k<FLASH_Sector_6; k+=FLASH_Sector_1) {
+		CanReply("iX",k,_ID_IAP_ERASE);
+		if(AckWait(3000) != 0)
+			return FR_NOT_READY;
+			p->t += 3000;
+	}
+	
+	err= f_open(&f,filename,FA_READ);
+	for(k=0; (!f_eof(&f)); ++k) {
+		p->t += 3000;
+		f_gets(l,sizeof(l),&f);
+		if(CanHexProg(l) == 0) {
+			printf(" error programming flash....\r\n");
+				return FR_NOT_READY;
+		}
+		if((k % n/20) == 0)
+			printf(". %d%c",100*k/n,'%');
+	}
+	
+	CanReply("X",_ID_IAP_SIGN);
+	if(AckWait(10) != 0)
+		return FR_NOT_READY;
+	CanReply("X",_ID_IAP_GO);
+	f_close(&f);
+	return FR_OK;
+}
 //______________________________________________________________________________________
 //______________________________________________________________________________________
 //______________________________________________________________________________________
