@@ -3,13 +3,8 @@
 
 #define 		SW_version					110		
 
-#if defined	(__PFM6__)
 	#define			__CAN__						CAN2
 	#define			__FILTER_BASE__		14
-#elif defined	(__DISCO__)
-	#define			__CAN__						CAN2
-	#define			__FILTER_BASE__		14
-#endif
 
 #define			_PAGE_SIZE					FLASH_Sector_1
 #define			_SIGN_PAGE					FLASH_Sector_1

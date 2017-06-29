@@ -85,13 +85,18 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 					GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 					GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 
+#if		!defined (__DISC4__) && !defined (__DISC7__)
 					GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
 					GPIO_Init(GPIOB, &GPIO_InitStructure);
+					GPIO_PinAFConfig(GPIOB, GPIO_PinSource5, GPIO_AF_CAN2);
+#else
+					GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
+					GPIO_Init(GPIOB, &GPIO_InitStructure);
+					GPIO_PinAFConfig(GPIOB, GPIO_PinSource12, GPIO_AF_CAN2);
+#endif
 					GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
 					GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
 					GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-					GPIO_PinAFConfig(GPIOB, GPIO_PinSource5, GPIO_AF_CAN2);
 					GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_CAN2);
 
 					RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);							// glej opis driverja, šmafu, oba je treba inicializirat
@@ -130,44 +135,9 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 #else
 *** define CPU
 #endif
-					canFilterConfig(0,0);
-
-//CAN_FilterInitStructure.CAN_FilterMode=CAN_FilterMode_IdMask;
-//					CAN_FilterInitStructure.CAN_FilterScale=CAN_FilterScale_32bit;
-//					CAN_FilterInitStructure.CAN_FilterActivation=ENABLE;
-//					CAN_FilterInitStructure.CAN_FilterFIFOAssignment=CAN_FIFO0;
-
-//					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS2PFM<<5;
-//					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_SYS2PFM<<5;
-//					CAN_FilterInitStructure.CAN_FilterIdLow = _ID_SYS2EC<<5;
-//					CAN_FilterInitStructure.CAN_FilterMaskIdLow = _ID_SYS2EC<<5;
-//					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+0;
-//					CAN_FilterInit(&CAN_FilterInitStructure);
-
-//					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS2PFMcom<<5;
-//					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_SYS2PFMcom<<5;
-//					CAN_FilterInitStructure.CAN_FilterIdLow = _ID_PFMcom2SYS<<5;
-//					CAN_FilterInitStructure.CAN_FilterMaskIdLow = _ID_PFMcom2SYS<<5;
-//					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+1;
-//					CAN_FilterInit(&CAN_FilterInitStructure);
-
-//					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS_TRIGG<<5;
-//					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_SYS_TRIGG<<5;
-//					CAN_FilterInitStructure.CAN_FilterIdLow = _PFM_POCKELS<<5;
-//					CAN_FilterInitStructure.CAN_FilterMaskIdLow = _PFM_POCKELS<<5;
-//					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+2;
-//					CAN_FilterInit(&CAN_FilterInitStructure);
-
-//					CAN_FilterInitStructure.CAN_FilterIdHigh=_ID_SYS2ENRG<<5;
-//					CAN_FilterInitStructure.CAN_FilterMaskIdHigh=_ID_SYS2ENRG<<5;
-//					CAN_FilterInitStructure.CAN_FilterIdLow = _ID_ENRG2SYS<<5;
-//					CAN_FilterInitStructure.CAN_FilterMaskIdLow = _ID_ENRG2SYS<<5;
-//					CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+3;
-//					CAN_FilterInit(&CAN_FilterInitStructure);
-	
-/*******************************************************************************/
-
-					CAN_ITConfig(__CAN__, CAN_IT_FMP0, ENABLE);
+					canFilterConfig(0,0);	
+					CAN_ITConfig(__CAN__, CAN_IT_FMP0 | 
+					CAN_IT_EWG, ENABLE);
 					if(__can)
 						return __can;
 					else

@@ -236,11 +236,10 @@ int 				i=-1,crc;
 						RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
 #endif				
 #ifdef	__DISCO__	
-						_Words32Received=0;
-						_minAddress=0x08008000;
-						
+						_Words32Received=(STORAGE_TOP-_FLASH_TOP)/sizeof(int);
+						_minAddress=_FLASH_TOP;
+#endif											
 						if(_Words32Received)
-#endif						
 						{
 							i=FlashErase(_SIGN_PAGE);
 							CRC_ResetDR();
@@ -631,14 +630,14 @@ GPIO_InitTypeDef				GPIO_InitStructure;
 						GPIO_PinAFConfig(GPIOB, GPIO_PinSource5, GPIO_AF_CAN2);
 						GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_CAN2);
 #else
-						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
-						GPIO_Init(GPIOA, &GPIO_InitStructure);
-						GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
 						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
-						GPIO_Init(GPIOA, &GPIO_InitStructure);
+						GPIO_Init(GPIOB, &GPIO_InitStructure);
+						GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+						GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-						GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_CAN1);
-						GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_CAN1);
+						GPIO_PinAFConfig(GPIOB, GPIO_PinSource12, GPIO_AF_CAN2);
+						GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_CAN2);
 #endif
 						RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);
 						RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN2, ENABLE);
