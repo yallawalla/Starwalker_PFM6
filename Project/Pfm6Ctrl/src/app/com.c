@@ -33,10 +33,10 @@ int			DecodeMinus(char *c) {
 //__________________________________________________usb host/file/serial_____
 				case 'u':
 				if(strscan(c,cc,' ')==2) {
+					USB_MSC_host();
 					_wait(200,_proc_loop);
 					switch(*cc[1]) {
 						case 'h':
-							USB_MSC_host();
 							break;
 						case 'f':
 							USB_MSC_device();
@@ -67,11 +67,11 @@ int			DecodeMinus(char *c) {
 							else
 								return _PARSE_ERR_SYNTAX;		
 							break;
-						case 'm':
+						case 'f':
 							if(n % 2)
 								return(_PARSE_ERR_MISSING); 
-							else while (n) {
-								canFilterConfig(atoi(cc[2]),atoi(cc[3]));
+							else while (n-2) {
+								canFilterConfig(strtoul(cc[2],&cc[2],16),strtoul(cc[3],&cc[3],16));
 								n-=2;
 							}
 						break;
@@ -79,7 +79,7 @@ int			DecodeMinus(char *c) {
 							return _PARSE_ERR_SYNTAX;							
 					}
 				break;
-//__________________________________________________can loop/net_____________
+//__________________________________________________Pfm8, V to F ___________
 				case 'f':
 					Initialize_F2V(pfm);
 					_SET_MODE(pfm,_F2V);
@@ -1367,20 +1367,31 @@ int			u=0,umax=0,umin=0;
 #define			_ID_IAP_SIGN		0xA5
 #define			_ID_IAP_STRING	0xA6
 #define			_ID_IAP_PING		0xA7
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-int	AckWait(int t) {
-	int to;
-	CanRxMsg	rx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
-	to=__time__ + t; 
-	while(__time__ < to)
-		if(_buffer_pull(__can->rx,&rx,sizeof(CanRxMsg)) && rx.StdId == _ID_IAP_ACK)
-			return rx.Data[0];
-		else
-			_proc_loop();
-		return EOF;
+/*******************************************************************************
+* Function Name  : HexChecksumError
+* Description    : preverja konsistentnost vrstice iz hex fila
+* Input          : pointer na string 
+* Output         : 
+* Return         : 0 ce je OK
+*******************************************************************************/
+int					AckWait(CanTxMsg *tx, int t) {
+						int to;
+						_proc	*p= _proc_find(ParseCanRx,pfm);	
+						CanRxMsg	rx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
+
+						p->t = __time__ + 1000; 
+						to = __time__ + t; 
+						
+						_buffer_push(__can->tx,tx,sizeof(CanTxMsg));
+						if(t == 0)
+							return 0;
+						while(__time__ < to)
+							if(_buffer_pull(__can->rx,&rx,sizeof(CanRxMsg)) && rx.StdId == _ID_IAP_ACK) {
+								return rx.Data[0];
+							}	else
+								_proc_loop();
+						return EOF;
 }
-//______________________________________________________________________________________
 /*******************************************************************************
 * Function Name  : HexChecksumError
 * Description    : preverja konsistentnost vrstice iz hex fila
@@ -1409,28 +1420,26 @@ int	 				n,a,i=FLASH_COMPLETE;
 int					*d=(int *)tx.Data;
 
 						if(HexChecksumError(++p))
-						{ printf(".1"); return 0; }
+							return 0;
 						n=str2hex(&p,2);
 						a=(ExtAddr<<16)+str2hex(&p,4);
 						switch(str2hex(&p,2)) {
 							case 00:
 								if(a<_FLASH_TOP)
-									{ printf(".2"); return 0; }
+									return 0;
 								tx.StdId=_ID_IAP_ADDRESS;
 								d[0]=a;
 								tx.DLC=sizeof(int);
-								_buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
-								if(AckWait(10) != 0)
-									{ printf(".3"); return 0; }
+								AckWait(&tx,0);
+
 								tx.StdId=_ID_IAP_DWORD;
 								for(i=0; n--;) {
 									tx.Data[i++]=str2hex(&p,2);
 									if(i==8 || !n) {	
 										tx.DLC=i;
 										i=0;
-										_buffer_push(__can->tx,&tx,sizeof(CanTxMsg));
-										if(AckWait(10) != 0)
-											{ printf(".4"); return 0; }
+										if(AckWait(&tx,100) != 0)
+											return 0;
 									}	
 								}
 								break;
@@ -1445,76 +1454,84 @@ int					*d=(int *)tx.Data;
 						}
 						return(EOF);
 }
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-FRESULT iapRemote(char * filename) {
-	FIL	f;
-	int n,k;
-	TCHAR l[128];
-	_proc	*p;
-	
-	FRESULT err= f_open(&f,filename,FA_READ);
-	
-	if(err)
-		return err;
-	for(n=0; !f_eof(&f); ++n) {
-		f_gets(l,sizeof(l),&f);
-		Watchdog();
-	}
-	f_close(&f);
-	
-	p = _proc_find(ParseCanRx,pfm);
-	p->t += 3000;
-	
-	canFilterConfig(_ID_IAP_GO, 0x7f0);
-	CanReply("cX",0xAA,_ID_SYS2PFM);
-	_wait(300,_proc_loop);
-	CanReply("X",_ID_IAP_PING);
-	if(AckWait(10) != 0)
-		return FR_NOT_READY;
-	for(k=FLASH_Sector_1; k<FLASH_Sector_6; k+=FLASH_Sector_1) {
-		CanReply("iX",k,_ID_IAP_ERASE);
-		if(AckWait(3000) != 0)
-			return FR_NOT_READY;
-			p->t += 3000;
-	}
-	
-	err= f_open(&f,filename,FA_READ);
-	for(k=0; (!f_eof(&f)); ++k) {
-		p->t += 3000;
-		f_gets(l,sizeof(l),&f);
-		if(CanHexProg(l) == 0) {
-			printf(" error programming flash....\r\n");
-				return FR_NOT_READY;
-		}
-		if((k % n/20) == 0)
-			printf(". %d%c",100*k/n,'%');
-	}
-	
-	CanReply("X",_ID_IAP_SIGN);
-	if(AckWait(10) != 0)
-		return FR_NOT_READY;
-	CanReply("X",_ID_IAP_GO);
-	f_close(&f);
-	return FR_OK;
+/*******************************************************************************
+* Function Name  : CanHexProg request, server
+* Description    : dekodira in razbije vrstice hex fila na 	pakete 8 bytov in jih
+*								 : pošlje na CAN bootloader
+* Input          : pointer na string, zaporedne vrstice hex fila, <cr> <lf> ali <null> niso nujni
+* Output         : 
+* Return         : 0 ce je checksum error sicer eof(-1). bootloader asinhrono odgovarja z ACK message
+*				 				 : za vsakih 8 bytov !!!
+*******************************************************************************/
+FRESULT			iapRemote(char * filename) {
+						FIL	f;
+						int n,k;
+						TCHAR l[128];
+						CanTxMsg tx ={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};		
+						FRESULT err= f_open(&f,filename,FA_READ);
+						
+						if(err)
+							return err;
+						for(n=0; !f_eof(&f); ++n) {
+							f_gets(l,sizeof(l),&f);
+							Watchdog();
+						}
+						f_close(&f);
+						
+						canFilterConfig(_ID_IAP_GO, 0x7f0);
+						
+						tx.StdId=_ID_SYS2PFM;
+						tx.Data[0]=_PFM_Iap;
+						tx.DLC=1;
+						if(AckWait(&tx,3000) != 0) {						
+							tx.StdId=_ID_IAP_PING;
+							tx.DLC=0;
+							if(AckWait(&tx,100) != 0)
+								return FR_NOT_READY;
+						}
+						printf("\r\niap ping received...");
+						
+						printf("\r\nerasing");
+						for(k=FLASH_Sector_1; k<FLASH_Sector_6; k+=FLASH_Sector_1) {
+							tx.StdId=_ID_IAP_ERASE;
+							tx.DLC=sizeof(int);
+							*(int *)tx.Data=k;
+							if(AckWait(&tx,2000) != 0)
+								return FR_NOT_READY;
+							printf(".");
+						}
+						
+						err= f_open(&f,filename,FA_READ);
+						printf("\r\nprogramming");
+						for(k=0; (!f_eof(&f)); ++k) {
+							f_gets(l,sizeof(l),&f);
+							if(CanHexProg(l) == 0)
+								return FR_NOT_READY;
+							if((k % (n/20)) == 0)
+								printf(".%3d%c%c%c%c%c",100*k/n,'%','\x8','\x8','\x8','\x8');
+						}
+						
+						tx.StdId=_ID_IAP_SIGN;
+						tx.DLC=0;
+						if(AckWait(&tx,300) != 0)
+							return FR_NOT_READY;
+						printf("\r\nsign ...");
+						tx.StdId=_ID_IAP_GO;
+						tx.DLC=0;
+						AckWait(&tx,0);
+						f_close(&f);
+						printf("and RUN :)");
+						return FR_OK;
 }
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
-//______________________________________________________________________________________
+/*******************************************************************************
+* Function Name  : CanHexProg request, server
+* Description    : dekodira in razbije vrstice hex fila na 	pakete 8 bytov in jih
+*								 : pošlje na CAN bootloader
+* Input          : pointer na string, zaporedne vrstice hex fila, <cr> <lf> ali <null> niso nujni
+* Output         : 
+* Return         : 0 ce je checksum error sicer eof(-1). bootloader asinhrono odgovarja z ACK message
+*				 				 : za vsakih 8 bytov !!!
+*******************************************************************************/
 int					USBH_Iap(int call) {	
 FATFS				fs0,fs1;
 DIR					dir;

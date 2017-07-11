@@ -968,8 +968,6 @@ void		USBHost (_proc *p) {
 
 void		USB_MSC_host(void) {
 				Vbus(on);
-				if(USB_OTG_IsDeviceMode(&USB_OTG_Core))
-						USBD_DeInit(&USB_OTG_Core);
 				USBH_App=USBH_Iap;
 				USBH_Init(&USB_OTG_Core, USB_OTG_FS_CORE_ID, &USB_Host, &USBH_MSC_cb, &USR_USBH_MSC_cb);
 				if(!_proc_find((func *)USBHost,&USB_Host))

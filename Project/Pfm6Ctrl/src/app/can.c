@@ -19,22 +19,16 @@ _io				*__can;
 * Output         : None
 * Return         : PASSED if the reception is well done, FAILED in other case
 *******************************************************************************/
-struct { int idL,maskL,idH,maskH; } canFilter[14] =
+struct { int id, mask; } canFilter[28] =
 {
-	{_ID_SYS2PFM,0x3ff,_ID_SYS2EC,0x3ff},
-	{_ID_SYS2PFMcom,0x3ff,_ID_PFMcom2SYS,0x3ff},
-	{_ID_SYS_TRIGG,0x3ff,_PFM_POCKELS,0x3ff},
-	{_ID_SYS2ENRG,0x3ff,_ID_ENRG2SYS,0x3ff},
-	{0,0,0,0},
-	{0,0,0,0},
-	{0,0,0,0},
-	{0,0,0,0},
-	{0,0,0,0},
-	{0,0,0,0},
-	{0,0,0,0},
-	{0,0,0,0},
-	{0,0,0,0},	
-	{0,0,0,0}	
+	{_ID_SYS2PFM,0x3ff},
+	{_ID_SYS2EC,0x3ff},
+	{_ID_SYS2PFMcom,0x3ff},
+	{_ID_PFMcom2SYS,0x3ff},
+	{_ID_SYS_TRIGG,0x3ff},
+	{_PFM_POCKELS,0x3ff},
+	{_ID_SYS2ENRG,0x3ff},
+	{_ID_ENRG2SYS,0x3ff}
 };
 /*******************************************************************************
 * Function Name  : CAN_Initialize
@@ -46,27 +40,25 @@ struct { int idL,maskL,idH,maskH; } canFilter[14] =
 void	canFilterConfig(int id, int mask) {
 	int i;
 	CAN_FilterInitTypeDef		CAN_FilterInitStructure;
-	for(i=0; canFilter[i].idL && canFilter[i].idH; ++i);
-	if(canFilter[i].idL) {
-		canFilter[i].idH= id;
-		canFilter[i].idH= mask;
-	} else {
-		canFilter[i].idL= id;
-		canFilter[i].idL= mask;
-	}
+	for(i=0; canFilter[i].id && canFilter[i].mask; ++i)
+		if((canFilter[i].id==id && canFilter[i].mask==mask))
+			return;
+	canFilter[i].id= id;
+	canFilter[i].mask= mask;
 
 	CAN_FilterInitStructure.CAN_FilterMode=CAN_FilterMode_IdMask;
 	CAN_FilterInitStructure.CAN_FilterScale=CAN_FilterScale_16bit;
 	CAN_FilterInitStructure.CAN_FilterActivation=ENABLE;
 	CAN_FilterInitStructure.CAN_FilterFIFOAssignment=CAN_FIFO0;
-	for(i=0; canFilter[i].idL && canFilter[i].idH; ++i) {
-		CAN_FilterInitStructure.CAN_FilterIdHigh= canFilter[i].idH<<5;
-		CAN_FilterInitStructure.CAN_FilterMaskIdHigh= canFilter[i].maskH<<5;
-		CAN_FilterInitStructure.CAN_FilterIdLow =  canFilter[i].idL<<5;
-		CAN_FilterInitStructure.CAN_FilterMaskIdLow = canFilter[i].maskL<<5;
-		CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__+i;
+
+	for(i=0; i<sizeof(canFilter)/2/sizeof(int); i+=2) {
+		CAN_FilterInitStructure.CAN_FilterIdHigh= canFilter[i+1].id<<5;
+		CAN_FilterInitStructure.CAN_FilterMaskIdHigh= canFilter[i+1].mask<<5;
+		CAN_FilterInitStructure.CAN_FilterIdLow =  canFilter[i].id<<5;
+		CAN_FilterInitStructure.CAN_FilterMaskIdLow = canFilter[i].mask<<5;
+		CAN_FilterInitStructure.CAN_FilterNumber=__FILT_BASE__ + i/2;
 		CAN_FilterInit(&CAN_FilterInitStructure);
-	}					
+	}
 }
 /*******************************************************************************
 * Function Name  : CAN_Initialize
@@ -77,9 +69,8 @@ void	canFilterConfig(int id, int mask) {
 *******************************************************************************/
 _io			 	*Initialize_CAN(int loop) {
 	
-CAN_InitTypeDef					CAN_InitStructure;
-//CAN_FilterInitTypeDef		CAN_FilterInitStructure;
-GPIO_InitTypeDef				GPIO_InitStructure;
+CAN_InitTypeDef		CAN_InitStructure;
+GPIO_InitTypeDef	GPIO_InitStructure;
 
 					GPIO_StructInit(&GPIO_InitStructure);
 					GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;

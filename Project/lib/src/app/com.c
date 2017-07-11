@@ -590,7 +590,7 @@ int				DecodeCom(char *c) {
 					case 'x':
 					{
 					int lm(void);
-						_thread_remove(_lightshow,NULL);
+					_thread_remove(_lightshow,NULL);
 					return lm();
 					}
 //______________________________________________________________________________________
