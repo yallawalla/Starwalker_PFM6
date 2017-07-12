@@ -334,11 +334,58 @@ int							USBH_Iap(int);
 #define					_EC_RevNum_req				0x0A
 #define					_EC_Ping							0x0C
 //________________________________________________________________________
+
+#define	 				_Esc									0x1b
+					                            
+#define					_CtrlA								0x01
+#define					_CtrlB								0x02
+#define					_CtrlC								0x03
+#define					_CtrlD								0x04
 #define					_CtrlE								0x05
+#define					_CtrlF								0x06
+					                            
+#define					_CtrlI								0x09
+#define					_CtrlO								0x0f
+#define					_CtrlV								0x16
+#define					_CtrlZ								0x1a
 #define					_CtrlY								0x19
-#define					_CtrlZ								0x1A
-#define					_Esc									0x1B
-#define					_Eof									-1
+					                            
+#define	 				_f1										0x001B4F50
+#define	 				_f2										0x001B4F51
+#define	 				_f3										0x001B4F52
+#define	 				_f4										0x001B4F53
+#define	 				_f5										0x001B4F54
+#define	 				_f6										0x001B4F55
+#define	 				_f7										0x001B4F56
+#define	 				_f8										0x001B4F57
+#define	 				_f9										0x001B4F58
+#define	 				_f10									0x001B4F59
+#define	 				_f11									0x001B4F5A
+#define	 				_f12									0x001B4F5B
+					                            
+#define	 				_F1										0x5B31317E
+#define	 				_F2 									0x5B31327E
+#define	 				_F3										0x5B31337E
+#define	 				_F4										0x5B31347E
+#define	 				_F5										0x5B31357E
+#define	 				_F6										0x5B31377E
+#define	 				_F7										0x5B31387E
+#define	 				_F8										0x5B31397E
+#define	 				_F9										0x5B32307E
+#define	 				_F10									0x5B32317E
+#define	 				_F11									0x5B32337E
+#define	 				_F12									0x5B32347E
+#define	 				_Home									0x1B5B317E
+#define	 				_End									0x1B5B347E
+#define	 				_Insert								0x1B5B327E
+#define	 				_PageUp								0x1B5B357E
+#define	 				_Delete								0x1B5B337E
+#define	 				_PageDown							0x1B5B367E
+#define	 				_Up										0x001B5B41
+#define	 				_Left									0x001B5B44
+#define	 				_Down									0x001B5B42
+#define	 				_Right								0x001B5B43
+
 //________________________________________________________________________
 typedef 				struct {
 short						N,										// burst pulse count 
@@ -485,7 +532,9 @@ extern _i2c			*__i2c1,
 						
 char						*cgets(int, int);
 int							DecodeCom(char *),
-								DecodeFs(char *);
+								DecodeFs(char *),
+								DecodeIncr(void);
+int							Escape(void);
 
 
 int							ScopeDumpBinary(_ADCDMA *, int);

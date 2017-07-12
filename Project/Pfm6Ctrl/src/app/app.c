@@ -474,6 +474,37 @@ int						i=_STATUS_WORD;
 							writeI2C(__charger6,(char *)&i,2);	
 						}
 }
+/*******************************************************************************
+* Function Name	: 
+* Description		: 
+* Output				:
+* Return				:
+*******************************************************************************/
+int				Escape(void) {
+static	
+int 			timeout,seq;
+int				i=getchar();
+	
+					if(i==EOF) {
+						if(timeout && (__time__ > abs(timeout))) {
+							timeout=0;
+							return seq;
+							}
+					} else if(timeout > 0) {
+						seq=(seq<<8) | i;
+						if(i=='~' || i=='A' || i=='B' || i=='C' || i=='D') {
+							timeout=0;
+							return seq;
+						}
+					} else if(i==_Esc) {
+						timeout=__time__+5;
+						seq=i;
+					} else {
+						timeout=0;
+						return i;
+					}
+					return EOF;
+}
 //______________________________________________________________________________________
 void			ParseCom(_proc *p) {
 char 			*c;
@@ -482,17 +513,21 @@ _io				*io;
 
 					if(p)
 						io=_stdio(p->arg);															// recursion lock
-					i=fgetc(stdin);
-					if(i != _Eof)
+					i=Escape();
 					switch(i) {
-						case _Eof:																			// empty usart
+						case EOF:																				// empty usart
 							break;				
 						case _CtrlZ:																		// call watchdog reset
 							while(1);				
 						case _CtrlY:																		// call system reset
 							NVIC_SystemReset();				
 						case _CtrlE:																		// can console - maintenance only
-							CAN_console();				
+							CAN_console();	
+							break;
+						case _f12:																			// can console - maintenance only
+						case _F12:																			// can console - maintenance only
+							DecodeIncr();
+							break;						
 						case _Esc:				
 							_SET_EVENT(pfm,_TRIGGER);											// console esc +-	trigger... no ja!!
 							break;				

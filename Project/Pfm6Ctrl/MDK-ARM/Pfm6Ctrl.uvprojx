@@ -399,6 +399,11 @@
               <FileType>1</FileType>
               <FilePath>..\src\app\com.c</FilePath>
             </File>
+            <File>
+              <FileName>tandem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\tandem\tandem.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1479,6 +1484,11 @@
               <FileName>com.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\app\com.c</FilePath>
+            </File>
+            <File>
+              <FileName>tandem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\tandem\tandem.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -3154,6 +3164,11 @@
               <FileType>1</FileType>
               <FilePath>..\src\app\com.c</FilePath>
             </File>
+            <File>
+              <FileName>tandem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\tandem\tandem.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -4234,6 +4249,11 @@
               <FileName>com.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\app\com.c</FilePath>
+            </File>
+            <File>
+              <FileName>tandem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\tandem\tandem.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -5501,7 +5521,7 @@
       <TargetName>__DISC405</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060183::V5.06 update 2 (build 183)::ARMCC</pCCUsed>
+      <pCCUsed>5060422::V5.06 update 4 (build 422)::ARMCC</pCCUsed>
       <TargetOption>
         <TargetCommonOption>
           <Device>STM32F205VGTx</Device>
@@ -5824,7 +5844,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__DISC4__,__PFM8__,__F4__,HSE_VALUE=8000000</Define>
+              <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__DISC4__,__PFM6__,__F4__,HSE_VALUE=8000000</Define>
               <Undefine></Undefine>
               <IncludePath>..\inc;..\inc\app;..\inc\usbd_msc;..\inc\usbd_cdc;..\inc\usbh_msc;..\src\wifi;..\..\..\Libraries\CMSIS\Include;..\..\..\Libraries\CMSIS\Device\ST\STM32F2xx\Include;..\..\..\Libraries\STM32F2xx_StdPeriph_Driver\inc;..\..\..\Libraries\STM32_USB_OTG_Driver\inc;..\..\..\Libraries\STM32_USB_Device_Library\Core\inc;..\..\..\Libraries\STM32_USB_HOST_Library\Core\inc;..\..\..\Libraries\STM32_USB_Host_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\msc\inc;..\..\..\Libraries\STM32_USB_Device_Library\Class\cdc\inc;..\..\..\Utilities\FatFs_R0.12b\src;..\..\..\Utilities\STM32F4-Discovery;..\src\ymodem</IncludePath>
             </VariousControls>
@@ -5889,6 +5909,11 @@
               <FileName>com.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\app\com.c</FilePath>
+            </File>
+            <File>
+              <FileName>tandem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\tandem\tandem.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -6970,6 +6995,11 @@
               <FileName>com.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\app\com.c</FilePath>
+            </File>
+            <File>
+              <FileName>tandem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\tandem\tandem.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -8694,6 +8724,11 @@
               <FileName>com.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\app\com.c</FilePath>
+            </File>
+            <File>
+              <FileName>tandem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\tandem\tandem.c</FilePath>
             </File>
           </Files>
         </Group>
