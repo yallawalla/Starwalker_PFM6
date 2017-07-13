@@ -69,13 +69,14 @@ void 			App_Init(void) {
 
 					pfm=calloc(1,sizeof(PFM));		
 	
-					pfm->Burst=&pfm->burst[0];
+					pfm->Burst=pfm->burst;
 					pfm->Burst->U=0;
 					pfm->Burst->Time=100;
 					pfm->Burst->Delay=100;
 					pfm->Burst->N=1;
 					pfm->Burst->Length=1000;
 					pfm->Burst->Period=1000;
+					pfm->Burst->Ereq=_SHPMOD_MAIN;
 					pfm->Burst->Mode=_XLAP_QUAD;
 					pfm->Burst->Pdelay=pfm->Burst->Pmax=_PWM_RATE_HI*0.02;
 					pfm->Burst->max[0]=pfm->Burst->max[1]=_I2AD(1000);

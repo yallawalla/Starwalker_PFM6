@@ -489,6 +489,14 @@ void 						USBD_Storage_Init(void),
 #define					_READ_RATE						0xFE3A
 #define					_STATUS_WORD 					0x79
 
+#define 				_SHPMOD_OFF			0
+#define 				_SHPMOD_MAIN		1
+#define 				_SHPMOD_CAL			2
+#define 				_SHPMOD_QSWCH		4
+
+#define					_minmax(x,x1,x2,y1,y2) 	__min(__max(((y2-y1)*(x-x1))/(x2-x1)+y1,y1),y2)
+
+
 int							FLASH_Program(uint32_t, uint32_t); 
 int							FLASH_Erase(uint32_t);
 	
