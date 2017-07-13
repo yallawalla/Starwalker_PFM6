@@ -526,7 +526,7 @@ _io				*io;
 							break;
 						case _f12:																			// can console - maintenance only
 						case _F12:																			// can console - maintenance only
-							DecodeIncr();
+							Tandem(pfm);
 							break;						
 						case _Esc:				
 							_SET_EVENT(pfm,_TRIGGER);											// console esc +-	trigger... no ja!!
