@@ -12,6 +12,7 @@
 * @{
 */
 
+
 #include	"pfm.h"
 #include	<ctype.h>
 #include	<math.h>
@@ -19,11 +20,14 @@
 #include	<stdio.h>
 #include	<ff.h>
 #include	"limits.h"
-//
-//
-typedef 	enum {__ERR, __ER,__ND,__TRG} ich;
+
+
+static		enum 	{__OFF,__ER,__ND,__TRG,__ERR} ich=__OFF;
+static		int		idx;
+static		PFM		*p=NULL;
 //______________________________________________________________________________________
-void			LoadSettings(PFM *p) {
+static
+	void		LoadSettings(PFM *p) {
 FIL				f;
 FATFS			fs;
 UINT			bw;
@@ -34,7 +38,8 @@ UINT			bw;
 					}
 }
 //______________________________________________________________________________________
-void			SaveSettings(PFM *p) {
+static
+	void		SaveSettings() {
 FIL				f;
 FATFS			fs;
 UINT			bw;
@@ -46,9 +51,10 @@ UINT			bw;
 					}
 }
 //______________________________________________________________________________________
-void			showCLI(PFM *p, int idx, int ch) {
-int i;
-					switch(ch) {
+static 
+	void		showCLI() {
+int				i;
+					switch(ich) {
 						case __ERR:
 							__print("\r\n:simmer error...\r\n:");
 							return;
@@ -58,19 +64,26 @@ int i;
 						case __ND:							
 							__print("\rNd:%4du,%4dV, n=%2d,%4du",p->Burst->Time,p->Burst->Pmax,p->Burst->N,p->Burst->Length);
 							break;
-						case __TRG:
-							if(_MODE(p,_ALTERNATE_TRIGGER))							
-								__print("\r  :ALTER,%4dm,%4du,%4du",p->Burst->Period,p->burst[0].Delay,p->burst[1].Delay);
-							else {
-								i=p->burst[1].Delay-p->burst[0].Delay;
-								__print("\r  : BOTH,%4dm,%4du, --- ",p->Burst->Period,i);
+						case __OFF:				
+						case __TRG:				
+							if(_MODE(p,_ALTERNATE_TRIGGER))	{
+								int per=p->burst[0].Period+p->burst[1].Period;	
+								__print("\r  :ALTER,%4dm,%4dm",per,per-p->Burst->Period);
+							} else {
+								__print("\r  : BOTH,%4dm,%4du",p->Burst->Period,p->burst[1].Delay-p->burst[0].Delay);
 							}
+							
+							if(ich==__TRG)
+								__print(", _-_ ");
+							else
+								__print(", ___ ");
 							break;
 					}
 					for(i=6*(3-idx)+1; i--; printf("\b"));
 }
 //______________________________________________________________________________________
-void			Increment(PFM *p, int idx, int a) {
+static 
+	void		IncrementPar(int a) {
 					switch(idx) {
 						case 0:
 							p->Burst->Time = __max(0,__min(1000,p->Burst->Time +a));
@@ -87,50 +100,60 @@ void			Increment(PFM *p, int idx, int a) {
 					}
 }
 //______________________________________________________________________________________
-void			IncrementTrigger(PFM *p, int idx, int a) {
-int				i;
+static 
+	void		IncrementTrg(int a) {
 					switch(idx) {
 						case 0:
-							if(a>0)
+							if(a > 0)
 								_SET_MODE(p,_ALTERNATE_TRIGGER);
 							else
 								_CLEAR_MODE(p,_ALTERNATE_TRIGGER);
 							break;
 						case 1:
-							p->burst[0].Period = p->burst[1].Period = __max(50,__min(1000,p->burst[0].Period +a));
+							p->burst[1].Period += a;
+							if(!_MODE(p,_ALTERNATE_TRIGGER))
+								p->burst[0].Period=p->burst[1].Period;
 							break;
 						case 2:
-							if(_MODE(p,_ALTERNATE_TRIGGER))	{
-								i=p->burst[1].Period+p->burst[0].Period;
-								i = __max(-500,__min(500,i  +a));
-								if(i > 0) {
-									p->burst[0].Period = 5;
-									p->burst[1].Period = 5+i;
-								} else {
-									p->burst[1].Period = 5;
-									p->burst[0].Period = 5-i;
+							if(_MODE(p,_ALTERNATE_TRIGGER)) {
+								p->burst[0].Period +=a;
+								p->burst[1].Period -=a;
+								if(p->burst[0].Period < 5 || p->burst[1].Period < 5) {
+									p->burst[0].Period +=a;
+									p->burst[1].Period +=a;
 								}
 							} else {
-								i=p->burst[1].Delay-p->burst[0].Delay;
-								i = __max(-5000,__min(5000,i  +a));
-								if(i > 0) {
-									p->burst[0].Delay = 100;
-									p->burst[1].Delay = 100+i;
-								} else {
-									p->burst[1].Delay = 100;
-									p->burst[0].Delay = 100-i;
+								p->burst[1].Delay +=a;
+								p->burst[0].Delay -=a;
+								if(p->burst[0].Delay < 100 || p->burst[1].Delay < 100) {
+									p->burst[0].Delay +=a;
+									p->burst[1].Delay +=a;
 								}
 							}
 							break;
 						case 3:
+							if(ich==__OFF && a > 0) {
+									ich=__ER;
+									PFM_command(p,ich);	
+									SetPwmTab(p);
+									
+									ich=__ND;
+									PFM_command(p,ich);	
+									SetPwmTab(p);
+									
+									ich=__TRG;
+									PFM_command(p,ich);	
+							} else if (ich==__TRG && a < 0){
+								ich=__OFF;
+								PFM_command(p,ich);	
+							}
 							break;
-
 					}
 }
 //______________________________________________________________________________________
-int				Tandem(PFM *p) {
-ich				ch=__ERR;
-int				i,idx=0;
+int				Tandem(PFM *pfm) {
+int				i;
+					p=pfm;
 					LoadSettings(p);
 
 					printf("\r\n[F1]  - Er parameters");
@@ -139,50 +162,51 @@ int				i,idx=0;
 					printf("\r\n[F11] - save settings");
 					printf("\r\n[F12] - exit");
 					printf("\r\n:");	
-
+	
+	
 					while(1) {
 						i=Escape();
 						switch(i) {
 							case EOF:
-								if(ch != p->Simmer.active) {
-									ch=__ERR;
-									PFM_command(p,ch);
-									showCLI(p, idx, ch);
+								if(ich != p->Simmer.active) {
+									ich=__ERR;
+									PFM_command(p,ich);
+									showCLI();
 								}
 								_proc_loop();
 								continue;
 							case _f1: 
 							case _F1:
-								if(ch != __ER)
+								if(ich != __ER)
 									printf("\r\n");
-								ch=__ER;
-								PFM_command(p,ch);
+								ich=__ER;
+								PFM_command(p,ich);
 								break;								
 							case _f2: 
 							case _F2:
-								if(ch != __ND)
+								if(ich != __ND)
 									printf("\r\n");
-								ch=__ND;
-								PFM_command(p,ch);
+								ich=__ND;
+								PFM_command(p,ich);
 								break;								
 							case _f3: 
 							case _F3:
-								if(ch != __TRG)
+								if(ich != __OFF)
 									printf("\r\n");
-								ch=__TRG;
-								PFM_command(p,ch);
+								ich=__OFF;
+								PFM_command(p,ich);
 								break;								
 							case _Up:
-								if(ch==__TRG)
-									IncrementTrigger(p, idx, 1);
+								if(ich==__OFF || ich==__TRG)
+									IncrementTrg(1);
 								else
-									Increment(p, idx, 1);
+									IncrementPar(1);
 								break;
 							case _Down:
-								if(ch==__TRG)
-									IncrementTrigger(p, idx, -1);
+								if(ich==__OFF || ich==__TRG)
+									IncrementTrg(-1);
 								else
-									Increment(p, idx, -1);
+									IncrementPar(-1);
 								break;
 							case _Left:
 								if(idx)	
@@ -194,16 +218,16 @@ int				i,idx=0;
 								break;
 							case _f11: 
 							case _F11:
-								SaveSettings(p);
+								SaveSettings();
 								printf("\r\n: saved...\r\n:");
 								break;								
 							case _f12: 
 							case _F12:
-								ch=__ERR;
-								PFM_command(p,ch);
+								ich=__OFF;
+								PFM_command(p,ich);
 								printf("\r\n: bye...\r\n>");
 								return _PARSE_OK;							
 					}
-					showCLI(p, idx, ch);
+					showCLI();
 				}
 }
