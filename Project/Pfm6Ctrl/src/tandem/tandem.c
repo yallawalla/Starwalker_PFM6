@@ -21,8 +21,10 @@
 #include	<ff.h>
 #include	"limits.h"
 
+#define		setSimmer(a,b)	simm=b;	PFM_command(a,b);
 
-static		enum 	{__OFF,__ER,__ND,__TRG} ich=__OFF;
+static		enum 	{_ER,_ND,_STANDBY,_READY,_LASER} state=_STANDBY;
+static		enum	{_OFF,_SIMM1,_SIMM2,_SIMM_ALL} simm=_OFF;
 static		int		idx;
 static		PFM		*p=NULL;
 //______________________________________________________________________________________
@@ -54,29 +56,33 @@ UINT			bw;
 static 
 	void		showCLI() {
 int				i;
-					switch(ich) {
-						case __ER:							
+					switch(state) {
+						case _ER:							
 							__print("\rEr     : %4du,%4dV, n=%2d,%4du",p->Burst->Time,p->Burst->Pmax,p->Burst->N,p->Burst->Length);
 							break;
-						case __ND:							
+						case _ND:							
 							__print("\rNd     : %4du,%4dV, n=%2d,%4du",p->Burst->Time,p->Burst->Pmax,p->Burst->N,p->Burst->Length);
 							break;
-						case __OFF:
-						case __TRG:				
+						case _STANDBY:
+						case _READY:				
+						case _LASER:				
 							if(_MODE(p,_ALTERNATE_TRIGGER))	{
 								int per=p->burst[0].Period+p->burst[1].Period;	
 								__print("\rtrigger: ALTER,%4dm,%4dm",per,per-p->Burst->Period);
 							} else {
 								__print("\rtrigger:  BOTH,%4dm,%4du",p->Burst->Period,p->burst[1].Delay-p->burst[0].Delay);
 							}
-							
-							if(p->Simmer.active)
-								__print(", _-_ ");
-							else
-								__print(", ___ ");
+							if(state==_STANDBY)
+								__print(",STNBY");
+							if(state==_READY)
+								__print(",READY");
+							if(state==_LASER) {
+								__print(",LASER\r\n");
+								return;
+							}
 							break;
 					}
-					for(i=6*(3-idx)+1; i--; printf("\b"));
+					for(i=6*(3-idx)+1; i--; __print("\b"));
 }
 //______________________________________________________________________________________
 static 
@@ -99,7 +105,6 @@ static
 //______________________________________________________________________________________
 static 
 	void		IncrementTrg(int a) {
-					a*=10;
 					switch(idx) {
 						case 0:
 							if(a > 0)
@@ -108,7 +113,7 @@ static
 								_CLEAR_MODE(p,_ALTERNATE_TRIGGER);
 							break;
 						case 1:
-							p->burst[1].Period += a;
+							p->burst[1].Period += 10*a;
 							if(!_MODE(p,_ALTERNATE_TRIGGER))
 								p->burst[0].Period=p->burst[1].Period;
 							break;
@@ -121,32 +126,41 @@ static
 									p->burst[1].Period +=a;
 								}
 							} else {
-								p->burst[1].Delay +=a;
-								p->burst[0].Delay -=a;
+								p->burst[1].Delay +=5*a;
+								p->burst[0].Delay -=5*a;
 								if(p->burst[0].Delay < 100 || p->burst[1].Delay < 100) {
-									p->burst[0].Delay +=a;
-									p->burst[1].Delay +=a;
+									p->burst[0].Delay +=5*a;
+									p->burst[1].Delay +=5*a;
 								}
 							}
 							break;
 						case 3:
-							if(ich==__OFF && a > 0) {
-								ich=__ER;
-								PFM_command(p,ich);	
-								SetPwmTab(p);
-								
-								ich=__ND;
-								PFM_command(p,ich);	
-								SetPwmTab(p);
-								
-								ich=__TRG;
-								PFM_command(p,ich);	
-								return;
-							} 
-							break;
+							state = __max(_STANDBY,__min(_LASER, state + a));
+							switch(state) {
+								case _STANDBY:
+									setSimmer(p,_OFF);	
+									break;
+								case _READY:
+									if(p->Trigger.time)
+										_SET_EVENT(pfm,_TRIGGER);		
+									else {
+										setSimmer(p,_SIMM1);	
+										SetPwmTab(p);
+										setSimmer(p,_SIMM2);	
+										SetPwmTab(p);
+										setSimmer(p,_SIMM_ALL);	
+									}
+									break;
+								case _LASER:
+								_SET_EVENT(pfm,_TRIGGER);	
+								break;
+							default:
+								break;
+							}
+							return;
 					}
-					ich=__OFF;
-					PFM_command(p,ich);	
+					state=_STANDBY;
+					setSimmer(p,_OFF);	
 }
 //______________________________________________________________________________________
 int				Tandem(PFM *pfm) {
@@ -154,58 +168,58 @@ int				i;
 					p=pfm;
 					LoadSettings(p);
 
-					printf("\r\n[F1]  - Er parameters");
-					printf("\r\n[F2]  - Nd parameters");
-					printf("\r\n[F3]  - trigger parameters");
-					printf("\r\n[F11] - save settings");
-					printf("\r\n[F12] - exit");
-					printf("\r\n:");	
+					__print("\r\n[F1]  - Er parameters");
+					__print("\r\n[F2]  - Nd parameters");
+					__print("\r\n[F3]  - trigger parameters");
+					__print("\r\n[F11] - save settings");
+					__print("\r\n[F12] - exit");
+					__print("\r\n:");	
+	
+					state=_STANDBY;
+					setSimmer(p,simm);
+					_SET_MODE(p,_TRIGGER_PERIODIC);
 	
 	
 					while(1) {
 						i=Escape();
 						switch(i) {
 							case EOF:
-								if(ich != p->Simmer.active) {
+								if(simm != p->Simmer.active) {
 									__print("\r\n:simmer error...\r\n:");
-									ich=__OFF;
-									PFM_command(p,ich);
+									state=_STANDBY;
+									setSimmer(p,_OFF);
 								}
 								_proc_loop();
 								continue;
-							case _Esc:		
-								if(ich==__TRG)
-									_SET_EVENT(pfm,_TRIGGER);	
-								break;
 							case _f1: 
 							case _F1:
-								if(ich != __ER)
-									printf("\r\n");
-								ich=__ER;
-								PFM_command(p,ich);
+								if(state != _ER)
+									__print("\r\n");
+								state=_ER;
+								setSimmer(p,_SIMM1);
 								break;								
 							case _f2: 
 							case _F2:
-								if(ich != __ND)
-									printf("\r\n");
-								ich=__ND;
-								PFM_command(p,ich);
+								if(state != _ND)
+									__print("\r\n");
+								state=_ND;
+								setSimmer(p,_SIMM2);
 								break;								
 							case _f3: 
 							case _F3:
-								if(ich != __OFF)
-									printf("\r\n");
-								ich=__OFF;
-								PFM_command(p,ich);
+								if(state != _STANDBY)
+									__print("\r\n");
+								state=_STANDBY;
+								setSimmer(p,_OFF);
 								break;								
 							case _Up:
-								if(ich==__OFF || ich==__TRG)
+								if(state==_STANDBY || state==_READY || state==_LASER) 
 									IncrementTrg(1);
 								else
 									IncrementPar(1);
 								break;
 							case _Down:
-								if(ich==__OFF || ich==__TRG)
+								if(state==_STANDBY || state==_READY || state==_LASER) 
 									IncrementTrg(-1);
 								else
 									IncrementPar(-1);
@@ -221,13 +235,14 @@ int				i;
 							case _f11: 
 							case _F11:
 								SaveSettings();
-								printf("\r\n: saved...\r\n:");
+								__print("\r\n: saved...\r\n:");
 								break;								
 							case _f12: 
 							case _F12:
-								ich=__OFF;
-								PFM_command(p,ich);
-								printf("\r\n: bye...\r\n>");
+								state=_STANDBY;
+								setSimmer(p,_OFF);
+								_CLEAR_MODE(p,_TRIGGER_PERIODIC);
+								__print("\r\n: bye...\r\n>");
 								return _PARSE_OK;	
 							default:
 								_proc_loop();
