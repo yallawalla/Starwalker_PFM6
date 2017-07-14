@@ -629,4 +629,9 @@ PFM8, dodan task F2V, na CAN rx pretvarja freq, v napetost za pfm->burst in tx s
 13.4.2017
 - bug v _TIM handlerju - virtualni HV v normalnem režimu ni prevzel obratovalne napetosti! 
 
-
+14.7.2017
+- bug, major jeba --- v timer ISR je bila zacetna vrednost x in y 0, kar je v ALTERNATE režimu povzrocilo, da je simmer ugasnil !!!
+- todo: 
+tandem:
+	-urediti izpis za debug
+	-šmafu ukrog regul. zakasnitve v alternate režimu

@@ -58,31 +58,31 @@ static
 int				i;
 					switch(state) {
 						case _ER:							
-							__print("\rEr     : %4du,%4dV, n=%2d,%4du",p->Burst->Time,p->Burst->Pmax,p->Burst->N,p->Burst->Length);
+							__print("\rEr     : %5du,%5dV, n=%3d,%5du",p->Burst->Time,p->Burst->Pmax,p->Burst->N,p->Burst->Length);
 							break;
 						case _ND:							
-							__print("\rNd     : %4du,%4dV, n=%2d,%4du",p->Burst->Time,p->Burst->Pmax,p->Burst->N,p->Burst->Length);
+							__print("\rNd     : %5du,%5dV, n=%3d,%5du",p->Burst->Time,p->Burst->Pmax,p->Burst->N,p->Burst->Length);
 							break;
 						case _STANDBY:
 						case _READY:				
 						case _LASER:				
 							if(_MODE(p,_ALTERNATE_TRIGGER))	{
 								int per=p->burst[0].Period+p->burst[1].Period;	
-								__print("\rtrigger: ALTER,%4dm,%4dm",per,per-p->Burst->Period);
+								__print("\rtrigger:  ALTER,%5dm,%5dm",per,per-p->Burst->Period);
 							} else {
-								__print("\rtrigger:  BOTH,%4dm,%4du",p->Burst->Period,p->burst[1].Delay-p->burst[0].Delay);
+								__print("\rtrigger:   BOTH,%5dm,%5du",p->Burst->Period,p->burst[1].Delay-p->burst[0].Delay);
 							}
 							if(state==_STANDBY)
-								__print(",STNBY");
+								__print(",STNDBY");
 							if(state==_READY)
-								__print(",READY");
+								__print(", READY");
 							if(state==_LASER) {
-								__print(",LASER\r\n");
+								__print(", LASER\r\n");
 								return;
 							}
 							break;
 					}
-					for(i=6*(3-idx)+1; i--; __print("\b"));
+					for(i=7*(3-idx)+1; i--; __print("\b"));
 }
 //______________________________________________________________________________________
 static 
@@ -121,16 +121,22 @@ static
 							if(_MODE(p,_ALTERNATE_TRIGGER)) {
 								p->burst[0].Period +=a;
 								p->burst[1].Period -=a;
-								if(p->burst[0].Period < 5 || p->burst[1].Period < 5) {
-									p->burst[0].Period +=a;
-									p->burst[1].Period +=a;
+								if(p->burst[0].Period < 5) {
+									p->burst[0].Period = p->burst[0].Period + p->burst[1].Period - 5;
+									p->burst[1].Period = 5;
+								}
+								if(p->burst[1].Period < 5) {
+									p->burst[0].Period = 5;
+									p->burst[1].Period = p->burst[0].Period + p->burst[1].Period - 5;
 								}
 							} else {
-								p->burst[1].Delay +=5*a;
-								p->burst[0].Delay -=5*a;
-								if(p->burst[0].Delay < 100 || p->burst[1].Delay < 100) {
-									p->burst[0].Delay +=5*a;
-									p->burst[1].Delay +=5*a;
+								int d = p->burst[1].Delay - p->burst[0].Delay + 10*a;
+								if( d >= 0) {
+									p->burst[0].Delay=100;
+									p->burst[1].Delay=d+100;
+								} else {
+									p->burst[1].Delay=100;
+									p->burst[0].Delay=-d+100;
 								}
 							}
 							break;

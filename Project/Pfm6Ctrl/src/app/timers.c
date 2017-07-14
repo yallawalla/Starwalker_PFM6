@@ -389,8 +389,10 @@ int 		hv,j,k,
 				DAC_SetDualChannelData(DAC_Align_12b_R,5*y,5*x);
 				DAC_DualSoftwareTriggerCmd(ENABLE);		
 #endif
-				x=y=0;
-
+//				x=y=0;
+				x = pfm->Simmer.pw[0];
+				y = pfm->Simmer.pw[1];
+				
 				if(!_TIM.p1 && !_TIM.p2) {																//----- end of burst, stop IT, notify main loop ---------------------------				
 					TIM_ITConfig(TIM1,TIM_IT_Update,DISABLE);
 					_SET_EVENT(pfm,_PULSE_FINISHED);
@@ -605,7 +607,7 @@ void		Trigger(PFM *p) {
 						_DEBUG_(_DBG_SYS_MSG,"trigger aborted...");
 					}
 					else {						
-						_TIM.active=p->Simmer.active;												// find active channel
+						_TIM.active=p->Simmer.active;														// find active channel
 						if(_MODE(pfm,_CHANNEL1_DISABLE)) {											// single channel 2 mode
 							if(_MODE(pfm,_ALTERNATE_TRIGGER)) {										// altenate trigger
 								if(p->Trigger.counter % 2) {
