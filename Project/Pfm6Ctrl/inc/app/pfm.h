@@ -541,7 +541,7 @@ extern _i2c			*__i2c1,
 char						*cgets(int, int);
 int							DecodeCom(char *),
 								DecodeFs(char *),
-								Tandem(PFM *);
+								Tandem();
 int							Escape(void);
 
 

@@ -351,13 +351,9 @@ void		TIM1_UP_TIM10_IRQHandler(void) {
 //static
 //int			e1=0,
 //				e2=0;
-
 static 
-int			x=0,
-				y=0;
-
-int 		hv,j,k,
-				ki=30,kp=0;
+int			x=0,y=0;
+int 		hv,j,k,ki=30,kp=0;
 
 				TIM_ClearITPendingBit(TIM1, TIM_IT_Update);								// brisi ISR flage
 				if(TIM1->CR1 & TIM_CR1_DIR)
@@ -389,9 +385,14 @@ int 		hv,j,k,
 				DAC_SetDualChannelData(DAC_Align_12b_R,5*y,5*x);
 				DAC_DualSoftwareTriggerCmd(ENABLE);		
 #endif
-//				x=y=0;
-				x = pfm->Simmer.pw[0];
-				y = pfm->Simmer.pw[1];
+				if(_TIM.active & PFM_STAT_SIMM1)
+					x=pfm->Simmer.pw[0];
+				else
+					x=0;
+				if(_TIM.active & PFM_STAT_SIMM2)
+					y=pfm->Simmer.pw[1];
+				else
+					y=0;
 				
 				if(!_TIM.p1 && !_TIM.p2) {																//----- end of burst, stop IT, notify main loop ---------------------------				
 					TIM_ITConfig(TIM1,TIM_IT_Update,DISABLE);

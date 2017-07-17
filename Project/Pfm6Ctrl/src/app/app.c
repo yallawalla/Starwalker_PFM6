@@ -527,7 +527,7 @@ _io				*io;
 							break;
 						case _f12:																			// can console - maintenance only
 						case _F12:																			// can console - maintenance only
-							Tandem(pfm);
+							Tandem();
 							break;						
 						case _Esc:				
 							_SET_EVENT(pfm,_TRIGGER);											// console esc +-	trigger... no ja!!
@@ -563,22 +563,22 @@ void			ParseCanTx(_proc *proc) {
 PFM				*p=proc->arg;
 CanTxMsg	tx={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 static 
-	int			count=0,timeout=0;
+	int			timeout=0;
 
-					if(__time__ >= timeout) {
-						timeout = __time__ + 2;
-						count=0;
-					}
-
-					while((__CAN__->TSR & CAN_TSR_TME)) {
+					while(1) {
+						if(CAN_TransmitStatus(__CAN__, 0) == CAN_TxStatus_Pending &&
+							CAN_TransmitStatus(__CAN__, 1) == CAN_TxStatus_Pending &&
+								CAN_TransmitStatus(__CAN__, 2) == CAN_TxStatus_Pending) {
+									break;
+								}
 						if(_buffer_pull(__can->tx,&tx,sizeof(CanTxMsg)))	{
 							CAN_Transmit(__CAN__,&tx);
-						} else if(__can->arg.io && count < 2) {
+						} else if(__can->arg.io && __time__ >= timeout) {
 							tx.DLC=_buffer_pull(__can->arg.io->tx,tx.Data,8);
 							if(tx.DLC > 0) {
 								tx.StdId=_ID_PFMcom2SYS;
 								CAN_Transmit(__CAN__,&tx);
-								++count;
+								timeout = __time__ + 1;
 							} else
 								break;
 						} else
