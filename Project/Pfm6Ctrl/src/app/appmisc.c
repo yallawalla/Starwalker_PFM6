@@ -697,10 +697,10 @@ _buffer		*p=__stdin.io->gets;
 							fputc('\b',&__stdout);
 					}
 					if(mode) {
-						if(isprint(c))
-							fputc(c,&__stdout);
-						else
+						if(c < ' ' || c > 127)
 							__print("%c%02X%c",'<',c,'>');
+						else
+							fputc(c,&__stdout);
 					}
 					break;
 			}

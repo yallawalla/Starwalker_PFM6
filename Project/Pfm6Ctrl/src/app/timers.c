@@ -604,10 +604,22 @@ void 		__EXTI_IRQHandler(void)
 	*/
 /*******************************************************************************/
 void		Trigger(PFM *p) {
-					if(_MODE(p,_PULSE_INPROC)) {
+//_______________________________________________________________________________					
+					if(_MODE(p,_PULSE_INPROC))
 						_DEBUG_(_DBG_SYS_MSG,"trigger aborted...");
-					}
-					else {						
+//_______________________________________________________________________________
+					else {
+CanTxMsg tx = {0x1a,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
+						if(_MODE(p,_ENM_NOTIFY)) {
+							while(CAN_TransmitStatus(__CAN__, 0) == CAN_TxStatus_Pending &&
+								CAN_TransmitStatus(__CAN__, 1) == CAN_TxStatus_Pending &&
+									CAN_TransmitStatus(__CAN__, 2) == CAN_TxStatus_Pending) {
+										_proc_loop();
+									}
+							_YELLOW1(50);
+							CAN_Transmit(__CAN__,&tx);
+						}
+//_______________________________________________________________________________
 						_TIM.active=p->Simmer.active;														// find active channel
 						if(_MODE(pfm,_CHANNEL1_DISABLE)) {											// single channel 2 mode
 							if(_MODE(pfm,_ALTERNATE_TRIGGER)) {										// altenate trigger

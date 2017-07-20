@@ -75,7 +75,7 @@
       <OPTFL>
         <tvExp>1</tvExp>
         <tvExpOptDlg>0</tvExpOptDlg>
-        <IsCurrentTarget>0</IsCurrentTarget>
+        <IsCurrentTarget>1</IsCurrentTarget>
       </OPTFL>
       <CpuCode>18</CpuCode>
       <DebugOpt>
@@ -101,7 +101,7 @@
         <sRunDeb>0</sRunDeb>
         <sLrtime>0</sLrtime>
         <bEvRecOn>1</bEvRecOn>
-        <nTsel>11</nTsel>
+        <nTsel>5</nTsel>
         <sDll></sDll>
         <sDllPa></sDllPa>
         <sDlgDll></sDlgDll>
@@ -259,78 +259,6 @@
         <IsCurrentTarget>0</IsCurrentTarget>
       </OPTFL>
       <CpuCode>18</CpuCode>
-      <Books>
-        <Book>
-          <Number>0</Number>
-          <Title>STM32F746G-Discovery Quick Start Guide (STM32F746G-Discovery)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\Documentation\32F746GDISCOVERY_QSG.pdf</Path>
-        </Book>
-        <Book>
-          <Number>1</Number>
-          <Title>STM32F756G-Eval Quick Start Guide (STM32756G-EVAL)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\Documentation\STM32F756G-EVAL_QSG.pdf</Path>
-        </Book>
-        <Book>
-          <Number>2</Number>
-          <Title>BSP User Manual (STM32F746G-Discovery)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\Drivers\BSP\STM32746G-Discovery\STM32746G-Discovery_BSP_User_Manual.chm</Path>
-        </Book>
-        <Book>
-          <Number>3</Number>
-          <Title>BSP User Manual (STM32756G-EVAL)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\Drivers\BSP\STM32756G_EVAL\STM32756G_EVAL_BSP_User_Manual.chm</Path>
-        </Book>
-        <Book>
-          <Number>4</Number>
-          <Title>User Manual (STM32756G-EVAL)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32756G_EVAL\Documentation\DM00188617.pdf</Path>
-        </Book>
-        <Book>
-          <Number>5</Number>
-          <Title>Bill of Materials (STM32756G-EVAL)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32756G_EVAL\Documentation\stm327x6g-eval_bom.zip</Path>
-        </Book>
-        <Book>
-          <Number>6</Number>
-          <Title>Gerber Files (STM32756G-EVAL)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32756G_EVAL\Documentation\stm327x6g-eval_gerber.zip</Path>
-        </Book>
-        <Book>
-          <Number>7</Number>
-          <Title>Schematics (STM32756G-EVAL)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32756G_EVAL\Documentation\stm327x6g-eval_sch.zip</Path>
-        </Book>
-        <Book>
-          <Number>8</Number>
-          <Title>User Manual (STM32F746G-Discovery)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32F746G_Discovery\Documentation\DM00190424.pdf</Path>
-        </Book>
-        <Book>
-          <Number>9</Number>
-          <Title>Bill of Materials (STM32F746G-Discovery)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32F746G_Discovery\Documentation\stm32f746g-disco_bom.zip</Path>
-        </Book>
-        <Book>
-          <Number>10</Number>
-          <Title>Gerber Files (STM32F746G-Discovery)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32F746G_Discovery\Documentation\stm32f746g-disco_gerber.zip</Path>
-        </Book>
-        <Book>
-          <Number>11</Number>
-          <Title>Schematics (STM32F746G-Discovery)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32F746G_Discovery\Documentation\stm32f746g-disco_sch.zip</Path>
-        </Book>
-        <Book>
-          <Number>12</Number>
-          <Title>STM32756G_EVAL Evaluation Board Web Page (STM32756G-EVAL)</Title>
-          <Path>http://www.st.com/web/catalog/tools/FM116/SC959/SS1532/LN1199/PF261640</Path>
-        </Book>
-        <Book>
-          <Number>13</Number>
-          <Title>STM32F746G_Discovery Web Page (STM32F746G-Discovery)</Title>
-          <Path>http://www.st.com/web/catalog/tools/FM116/SC959/SS1532/LN1848/PF261641</Path>
-        </Book>
-      </Books>
       <DebugOpt>
         <uSim>0</uSim>
         <uTrg>1</uTrg>
@@ -509,6 +437,22 @@
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>0</BreakIfRCount>
           <Filename>..\src\tandem\tandem.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>7</Number>
+          <Type>0</Type>
+          <LineNumber>74</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\src\app\stm32fxxx_it.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression></Expression>
         </Bp>
@@ -832,6 +776,22 @@
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>0</BreakIfRCount>
           <Filename>..\src\tandem\tandem.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>7</Number>
+          <Type>0</Type>
+          <LineNumber>74</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\src\app\stm32fxxx_it.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression></Expression>
         </Bp>
@@ -1304,6 +1264,22 @@
           <ExecCommand></ExecCommand>
           <Expression></Expression>
         </Bp>
+        <Bp>
+          <Number>13</Number>
+          <Type>0</Type>
+          <LineNumber>74</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\src\app\stm32fxxx_it.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
       </Breakpoint>
       <WatchWindow1>
         <Ww>
@@ -1426,7 +1402,7 @@
       <OPTFL>
         <tvExp>1</tvExp>
         <tvExpOptDlg>0</tvExpOptDlg>
-        <IsCurrentTarget>1</IsCurrentTarget>
+        <IsCurrentTarget>0</IsCurrentTarget>
       </OPTFL>
       <CpuCode>18</CpuCode>
       <DebugOpt>
@@ -1452,7 +1428,7 @@
         <sRunDeb>0</sRunDeb>
         <sLrtime>0</sLrtime>
         <bEvRecOn>1</bEvRecOn>
-        <nTsel>11</nTsel>
+        <nTsel>5</nTsel>
         <sDll></sDll>
         <sDllPa></sDllPa>
         <sDlgDll></sDlgDll>
@@ -1497,7 +1473,40 @@
           <Name>-U-O14 -O14 -S0 -C0 -P00 -N00("") -D00(00000000) -L00(0) -TO18 -TC10000000 -TP21 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO7  -FN1 -FC1000 -FD20000000 -FF0STM32F2xx_1024 -FL0100000 -FS08000000 -FP0($$Device:STM32F205VGTx$CMSIS\Flash\STM32F2xx_1024.FLM)</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
-      <Breakpoint/>
+      <Breakpoint>
+        <Bp>
+          <Number>0</Number>
+          <Type>0</Type>
+          <LineNumber>27</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\src\tandem\tandem.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>74</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\src\app\stm32fxxx_it.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+      </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
@@ -1634,78 +1643,6 @@
         <IsCurrentTarget>0</IsCurrentTarget>
       </OPTFL>
       <CpuCode>18</CpuCode>
-      <Books>
-        <Book>
-          <Number>0</Number>
-          <Title>STM32F746G-Discovery Quick Start Guide (STM32F746G-Discovery)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\Documentation\32F746GDISCOVERY_QSG.pdf</Path>
-        </Book>
-        <Book>
-          <Number>1</Number>
-          <Title>STM32F756G-Eval Quick Start Guide (STM32756G-EVAL)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\Documentation\STM32F756G-EVAL_QSG.pdf</Path>
-        </Book>
-        <Book>
-          <Number>2</Number>
-          <Title>BSP User Manual (STM32F746G-Discovery)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\Drivers\BSP\STM32746G-Discovery\STM32746G-Discovery_BSP_User_Manual.chm</Path>
-        </Book>
-        <Book>
-          <Number>3</Number>
-          <Title>BSP User Manual (STM32756G-EVAL)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\Drivers\BSP\STM32756G_EVAL\STM32756G_EVAL_BSP_User_Manual.chm</Path>
-        </Book>
-        <Book>
-          <Number>4</Number>
-          <Title>User Manual (STM32756G-EVAL)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32756G_EVAL\Documentation\DM00188617.pdf</Path>
-        </Book>
-        <Book>
-          <Number>5</Number>
-          <Title>Bill of Materials (STM32756G-EVAL)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32756G_EVAL\Documentation\stm327x6g-eval_bom.zip</Path>
-        </Book>
-        <Book>
-          <Number>6</Number>
-          <Title>Gerber Files (STM32756G-EVAL)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32756G_EVAL\Documentation\stm327x6g-eval_gerber.zip</Path>
-        </Book>
-        <Book>
-          <Number>7</Number>
-          <Title>Schematics (STM32756G-EVAL)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32756G_EVAL\Documentation\stm327x6g-eval_sch.zip</Path>
-        </Book>
-        <Book>
-          <Number>8</Number>
-          <Title>User Manual (STM32F746G-Discovery)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32F746G_Discovery\Documentation\DM00190424.pdf</Path>
-        </Book>
-        <Book>
-          <Number>9</Number>
-          <Title>Bill of Materials (STM32F746G-Discovery)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32F746G_Discovery\Documentation\stm32f746g-disco_bom.zip</Path>
-        </Book>
-        <Book>
-          <Number>10</Number>
-          <Title>Gerber Files (STM32F746G-Discovery)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32F746G_Discovery\Documentation\stm32f746g-disco_gerber.zip</Path>
-        </Book>
-        <Book>
-          <Number>11</Number>
-          <Title>Schematics (STM32F746G-Discovery)</Title>
-          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F7xx_DFP\2.7.0\MDK\Boards\ST\STM32F746G_Discovery\Documentation\stm32f746g-disco_sch.zip</Path>
-        </Book>
-        <Book>
-          <Number>12</Number>
-          <Title>STM32756G_EVAL Evaluation Board Web Page (STM32756G-EVAL)</Title>
-          <Path>http://www.st.com/web/catalog/tools/FM116/SC959/SS1532/LN1199/PF261640</Path>
-        </Book>
-        <Book>
-          <Number>13</Number>
-          <Title>STM32F746G_Discovery Web Page (STM32F746G-Discovery)</Title>
-          <Path>http://www.st.com/web/catalog/tools/FM116/SC959/SS1532/LN1848/PF261641</Path>
-        </Book>
-      </Books>
       <DebugOpt>
         <uSim>0</uSim>
         <uTrg>1</uTrg>
@@ -1751,7 +1688,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGTARM</Key>
-          <Name>(1010=-1,-1,-1,-1,0)(1007=-1,-1,-1,-1,0)(1008=-1,-1,-1,-1,0)(1009=-1,-1,-1,-1,0)(1012=-1,-1,-1,-1,0)</Name>
+          <Name>(1010=-1,-1,-1,-1,0)(6017=-1,-1,-1,-1,0)(1008=-1,-1,-1,-1,0)(6016=-1,-1,-1,-1,0)(1012=-1,-1,-1,-1,0)</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -1780,96 +1717,96 @@
           <Type>0</Type>
           <LineNumber>5247</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>0</Address>
+          <Address>134323802</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>0</BreakIfRCount>
+          <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\..\..\Utilities\FatFs_R0.12b\src\ff.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression></Expression>
+          <Expression>\\__DISC746\../../../Utilities/FatFs_R0.12b/src/ff.c\5247</Expression>
         </Bp>
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
           <LineNumber>5274</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>0</Address>
+          <Address>134323898</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>0</BreakIfRCount>
+          <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\..\..\Utilities\FatFs_R0.12b\src\ff.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression></Expression>
+          <Expression>\\__DISC746\../../../Utilities/FatFs_R0.12b/src/ff.c\5274</Expression>
         </Bp>
         <Bp>
           <Number>2</Number>
           <Type>0</Type>
           <LineNumber>1425</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>0</Address>
+          <Address>134227400</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>0</BreakIfRCount>
+          <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\src\app\com.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression></Expression>
+          <Expression>\\__DISC746\../src/app/com.c\1425</Expression>
         </Bp>
         <Bp>
           <Number>3</Number>
           <Type>0</Type>
           <LineNumber>1434</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>0</Address>
+          <Address>134227452</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>0</BreakIfRCount>
+          <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\src\app\com.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression></Expression>
+          <Expression>\\__DISC746\../src/app/com.c\1434</Expression>
         </Bp>
         <Bp>
           <Number>4</Number>
           <Type>0</Type>
           <LineNumber>1428</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>0</Address>
+          <Address>134227410</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>0</BreakIfRCount>
+          <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\src\app\com.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression></Expression>
+          <Expression>\\__DISC746\../src/app/com.c\1428</Expression>
         </Bp>
         <Bp>
           <Number>5</Number>
           <Type>0</Type>
-          <LineNumber>27</LineNumber>
+          <LineNumber>74</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>0</Address>
+          <Address>134262068</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>0</BreakIfRCount>
-          <Filename>..\src\tandem\tandem.c</Filename>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\src\app\stm32fxxx_it.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression></Expression>
+          <Expression>\\__DISC746\../src/app/stm32fxxx_it.c\74</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -1893,7 +1830,7 @@
       <DebugFlag>
         <trace>0</trace>
         <periodic>1</periodic>
-        <aLwin>1</aLwin>
+        <aLwin>0</aLwin>
         <aCover>0</aCover>
         <aSer1>0</aSer1>
         <aSer2>0</aSer2>
@@ -2241,6 +2178,22 @@
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>0</BreakIfRCount>
           <Filename>..\src\tandem\tandem.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression></Expression>
+        </Bp>
+        <Bp>
+          <Number>7</Number>
+          <Type>0</Type>
+          <LineNumber>74</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>0</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>0</BreakIfRCount>
+          <Filename>..\src\app\stm32fxxx_it.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression></Expression>
         </Bp>
@@ -2969,7 +2922,7 @@
 
   <Group>
     <GroupName>STM32F2xx</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -3381,7 +3334,7 @@
 
   <Group>
     <GroupName>Doc</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

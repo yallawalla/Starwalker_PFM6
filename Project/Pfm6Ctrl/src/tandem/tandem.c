@@ -35,8 +35,8 @@ static
 FIL				f;
 FATFS			fs;
 UINT			bw;
-					if(f_mount(&fs,"0:",1) == FR_OK && 
-						f_open(&f,"0:/tandem.ini",FA_READ) == FR_OK) {
+					if(f_mount(&fs,FS_CPU,1) == FR_OK && 
+						f_open(&f,"/tandem.ini",FA_READ) == FR_OK) {
 						f_read(&f,pfm->burst,2*sizeof(burst),&bw);
 						f_close(&f);
 					}
@@ -47,8 +47,8 @@ static
 FIL				f;
 FATFS			fs;
 UINT			bw;
-					if(f_mount(&fs,"0:",1) == FR_OK && 
-						f_open(&f,"0:/tandem.ini",FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {
+					if(f_mount(&fs,FS_CPU,1) == FR_OK && 
+						f_open(&f,"/tandem.ini",FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {
 						f_write(&f,pfm->burst,2*sizeof(burst),&bw);
 						f_sync(&f);
 						f_close(&f);
@@ -61,18 +61,12 @@ int				i=pfm->burst[0].Period+pfm->burst[1].Period;
 
 					switch(state) {
 						case _ErSetup:							
-							__print("\rEr     : %5du,%5dV, n=%3d,%5du",pfm->Burst->Time,pfm->Burst->Pmax,pfm->Burst->N,pfm->Burst->Length);
+							__print("\rEr     : %5du,%5dV, n=%3d,%5du",pfm->Burst->Time,pfm->Burst->Pmax*_AD2HV(pfm->HVref)/_PWM_RATE_HI,pfm->Burst->N,pfm->Burst->Length);
 							break;
 						case _NdSetup:							
-							__print("\rNd     : %5du,%5dV, n=%3d,%5du",pfm->Burst->Time,pfm->Burst->Pmax,pfm->Burst->N,pfm->Burst->Length);
+							__print("\rNd     : %5du,%5dV, n=%3d,%5du",pfm->Burst->Time,pfm->Burst->Pmax*_AD2HV(pfm->HVref)/_PWM_RATE_HI,pfm->Burst->N,pfm->Burst->Length);
 							break;
 						default:				
-							if(_MODE(pfm,_ALTERNATE_TRIGGER))	{
-								int per=pfm->burst[0].Period+pfm->burst[1].Period;	
-								__print("\rtrigger:  ALTER,%5dm,%5dm",per,per-pfm->Burst->Period);
-							} else {
-								__print("\rtrigger:   BOTH,%5dm,%5du",pfm->Burst->Period,pfm->burst[1].Delay-pfm->burst[0].Delay);
-							}
 							switch(triggerMode) {
 								case _BOTH:
 									_CLEAR_MODE(pfm,_ALTERNATE_TRIGGER);
@@ -114,7 +108,7 @@ static
 							triggerMode = __max(_BOTH,__min(_Nd, triggerMode + a));
 							break;
 						case 1:
-							pfm->burst[1].Period += 10*a;
+							pfm->burst[1].Period = __max(10,__min(2000, pfm->burst[1].Period + 10*a));
 							if(!_MODE(pfm,_ALTERNATE_TRIGGER))
 								pfm->burst[0].Period=pfm->burst[1].Period;
 							break;
@@ -133,11 +127,11 @@ static
 							} else {
 								int d = pfm->burst[1].Delay - pfm->burst[0].Delay + 10*a;
 								if( d >= 0) {
-									pfm->burst[0].Delay=100;
-									pfm->burst[1].Delay=d+100;
+									pfm->burst[0].Delay=300;
+									pfm->burst[1].Delay=d+300;
 								} else {
-									pfm->burst[1].Delay=100;
-									pfm->burst[0].Delay=-d+100;
+									pfm->burst[1].Delay=300;
+									pfm->burst[0].Delay=-d+300;
 								}
 							}
 							break;
@@ -165,6 +159,8 @@ static
 											simmerMode(_SIMM2);	
 										break;
 									}
+									_SET_MODE(pfm,_ENM_NOTIFY);
+									CanReply("wwwwX",0xC101,pfm->Simmer.active,40000,pfm->Burst->Length,_ID_SYS2ENRG);
 									break;
 								case _LASER:
 								_SET_MODE(pfm,_TRIGGER_PERIODIC);
@@ -186,22 +182,26 @@ static
 					else
 						switch(idx) {
 							case 0:
-								pfm->Burst->Time = __max(0,__min(1000,pfm->Burst->Time +10*a));
+								pfm->Burst->Time		= __max(50,__min(2000,pfm->Burst->Time +10*a));
 								break;
 							case 1:
-								pfm->Burst->Pmax = __max(0,__min(600,pfm->Burst->Pmax +a));
+								pfm->Burst->Pmax		= __max(0,__min(_PWM_RATE_HI,pfm->Burst->Pmax +a));
 								break;
 							case 2:
-								pfm->Burst->N = __max(0,__min(10,pfm->Burst->N +a));
+								pfm->Burst->N				= __max(1,__min(10,pfm->Burst->N +a));
 								break;
 							case 3:
-								pfm->Burst->Length = __max(pfm->Burst->Time,__min(10000,pfm->Burst->Length +100*a));
+								pfm->Burst->Length	= __max(pfm->Burst->Time,__min(5000,pfm->Burst->Length +100*a));
 								break;
 						}
 }
-	//______________________________________________________________________________________
+	
+//									_SET_MODE(pfm,_ENM_NOTIFY);
+//									CanReply("wwwwX",0xC101,pfm->Simmer.active,40000,pfm->Burst->Length,_ID_SYS2ENRG);
+
+//______________________________________________________________________________________
 int				Tandem() {
-int				i;
+int				i,cnt=0,timeout=0;
 					LoadSettings();
 
 					__print("\r\n[F1]  - Er parameters");
@@ -224,6 +224,15 @@ int				i;
 									state=_STANDBY;
 									simmerMode(_OFF);
 								}
+								if(pfm->Trigger.counter != cnt) {
+									cnt=pfm->Trigger.counter;
+									timeout=__time__ + 5;
+								}
+								if(state==_LASER && timeout && __time__ > timeout &&
+									(triggerMode == _BOTH || triggerMode == _ALTER)) {
+										CanReply("wwwwX",0xC101,(cnt % 2) + 1,40000,pfm->Burst->Length,_ID_SYS2ENRG);
+										timeout = 0;
+								}									
 								_proc_loop();
 								continue;
 							case _f1: 
@@ -270,6 +279,7 @@ int				i;
 							case _F12:
 								state=_STANDBY;
 								simmerMode(_OFF);
+								_CLEAR_MODE(pfm,_ENM_NOTIFY);
 								_CLEAR_MODE(pfm,_TRIGGER_PERIODIC);
 								_CLEAR_DBG(pfm,_DBG_PULSE_MSG);
 								_CLEAR_DBG(pfm,_DBG_ENM_MSG);

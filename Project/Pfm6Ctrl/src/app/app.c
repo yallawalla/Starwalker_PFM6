@@ -207,7 +207,7 @@ PFM				*p=proc->arg;
 							else
 								p->Trigger.counter=0;
 							p->Trigger.time = __time__;
-							if(p->Trigger.count > 1)
+							//						if(p->Trigger.count > 1)
 								++p->Trigger.time;																// rearm counters, rounded to next milliseconds to avoid 1ms jitter !!!
 						}
 					}
@@ -571,6 +571,7 @@ static
 								CAN_TransmitStatus(__CAN__, 2) == CAN_TxStatus_Pending) {
 									break;
 								}
+								
 						if(_buffer_pull(__can->tx,&tx,sizeof(CanTxMsg)))	{
 							CAN_Transmit(__CAN__,&tx);
 						} else if(__can->arg.io && __time__ >= timeout) {

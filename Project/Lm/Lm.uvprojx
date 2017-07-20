@@ -329,6 +329,7 @@
             <vShortWch>1</vShortWch>
             <v6Lto>0</v6Lto>
             <v6WtE>0</v6WtE>
+            <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls>--exceptions</MiscControls>
               <Define>USE_STDPERIPH_DRIVER, ARM_MATH_CM3,__IOC_V1__</Define>
@@ -346,6 +347,7 @@
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
+            <uClangAs>0</uClangAs>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -489,7 +491,8 @@
                     <vShortEn>0</vShortEn>
                     <vShortWch>0</vShortWch>
                     <v6Lto>0</v6Lto>
-                    <v6WtE>0</v6WtE>
+                    <v6WtE>2</v6WtE>
+                    <v6Rtti>2</v6Rtti>
                     <VariousControls>
                       <MiscControls></MiscControls>
                       <Define></Define>
@@ -897,6 +900,7 @@
             <vShortWch>1</vShortWch>
             <v6Lto>0</v6Lto>
             <v6WtE>0</v6WtE>
+            <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls>--exceptions</MiscControls>
               <Define>USE_STDPERIPH_DRIVER, ARM_MATH_CM3,__IOC_V2__</Define>
@@ -914,6 +918,7 @@
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
+            <uClangAs>0</uClangAs>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -1057,7 +1062,8 @@
                     <vShortEn>0</vShortEn>
                     <vShortWch>0</vShortWch>
                     <v6Lto>0</v6Lto>
-                    <v6WtE>0</v6WtE>
+                    <v6WtE>2</v6WtE>
+                    <v6Rtti>2</v6Rtti>
                     <VariousControls>
                       <MiscControls></MiscControls>
                       <Define></Define>
@@ -1465,6 +1471,7 @@
             <vShortWch>1</vShortWch>
             <v6Lto>0</v6Lto>
             <v6WtE>0</v6WtE>
+            <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls>--exceptions</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,__DISCO__,__SIMULATION__,USE_LCD,ARM_MATH_CM3</Define>
@@ -1482,6 +1489,7 @@
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
+            <uClangAs>0</uClangAs>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -1661,5 +1669,11 @@
       </Groups>
     </Target>
   </Targets>
+
+  <RTE>
+    <apis/>
+    <components/>
+    <files/>
+  </RTE>
 
 </Project>
