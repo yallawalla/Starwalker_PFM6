@@ -160,7 +160,7 @@ extern void HAL_IncTick(void);
   * @retval None
   */
 
-#if defined (__F4__)
+#if defined (__F2__) || defined (__F4__)
 void OTG_FS_IRQHandler(void)
 {
   if (USB_OTG_IsHostMode(&USB_OTG_Core)) /* ensure that we are in device mode */

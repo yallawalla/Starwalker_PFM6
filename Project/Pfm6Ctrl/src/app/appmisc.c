@@ -943,7 +943,7 @@ GPIO_InitTypeDef					GPIO_InitStructure;
 }
 #endif // __DISC7__
 
-#if defined (__F4__)
+#if defined (__F2__) ||  defined (__F4__)
 
 void	 	USB_MSC_device(void) {
 				Vbus(off);

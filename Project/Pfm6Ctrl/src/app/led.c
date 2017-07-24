@@ -14,7 +14,7 @@
 */
 
 #include		<stdlib.h>
-#include		"stm32f2xx.h"
+#include		"cpu.h"
 #include		"proc.h"
 
 #if		!defined (__DISC4__) && !defined (__DISC7__)

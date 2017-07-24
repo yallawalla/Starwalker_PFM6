@@ -11,16 +11,10 @@
 /** @addtogroup PFM6_Setup
 * @{
 */
-#if defined  (STM32F2XX)
-#include		"stm32f2xx.h"
-#elif defined (STM32F10X_HD)
-#include		"stm32f10x.h"
-#elif	undefined (STM32F2XX || STM32F10X_HD)
-*** undefined target !!!!
-#endif
-#include <string.h>
-#include <stdio.h>
-#include "io.h"
+#include	"cpu.h"
+#include	<string.h>
+#include	<stdio.h>
+#include	"io.h"
 /*******************************************************************************
 * Function Name  : DMA_Configuration
 * Description    : Configures the DMA.

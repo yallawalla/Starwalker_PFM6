@@ -1,6 +1,6 @@
 /* Includes ------------------------------------------------------------------*/
 #ifndef WIN32
-#include				"stm32f2xx.h"
+#include				"cpu.h"
 #endif
 #include				<string.h>
 #include				<stdio.h>
@@ -31,9 +31,12 @@
 *** error, define HW platform
 #endif
 //________global platform dependencies	________________			
-#if		defined (__F4__)
+#if		defined (__F2__)
 	#define					_uS							60
 	#define 				ADC_SampleTime 	ADC_SampleTime_3Cycles
+#elif	defined (__F4__)
+	#define					_uS							60
+	#define ADC_SampleTime 					ADC_SampleTime_3Cycles
 #elif	defined (__F7__)
 	#define					_uS							108
 	#define ADC_SampleTime 					ADC_SampleTime_15Cycles
@@ -168,7 +171,7 @@ typedef					enum
 
 extern const char *_errStr[];
 
-#if		defined		(__F4__)
+#if		defined		(__F2__) || defined		(__F4__)
 	#define					_BIT(p,n)					(bool)(*(char *)(0x22000000 + ((int)(&p) - 0x20000000) * 32 + 4*n))
 	#define					_SET_BIT(p,n)			(*(char *)(0x22000000 + ((int)(&p) - 0x20000000) * 32 + 4*n)) = 1
 	#define					_CLEAR_BIT(p,n)		(*(char *)(0x22000000 + ((int)(&p) - 0x20000000) * 32 + 4*n)) = 0
@@ -693,7 +696,7 @@ enum	err_parse	{
 								_PARSE_ERR_MEM
 								};
 
-__inline void dbg_2(int n, char *s) {
+static __inline void dbg_2(int n, char *s) {
 			if(pfm->debug & (1<<(n))) {
 				_io *io=_stdio(__dbug);
 				__print(":%04d %s\r\n>",__time__ % 10000, s);
@@ -701,7 +704,7 @@ __inline void dbg_2(int n, char *s) {
 			}
 }
 
-__inline void dbg_3(int n, char *s, int arg1) {
+static __inline void dbg_3(int n, char *s, int arg1) {
 			if(pfm->debug & (1<<(n))) {
 				_io *io=_stdio(__dbug);
 				__print(":%04d ",__time__ % 10000);
@@ -711,7 +714,7 @@ __inline void dbg_3(int n, char *s, int arg1) {
 			}
 }
 
-__inline void dbg_4(int n,char *s, int arg1, int arg2) {
+static __inline void dbg_4(int n,char *s, int arg1, int arg2) {
 			if(pfm->debug & (1<<(n))) {
 				_io *io=_stdio(__dbug);
 				__print(":%04d ",__time__ % 10000);
@@ -721,7 +724,7 @@ __inline void dbg_4(int n,char *s, int arg1, int arg2) {
 			}
 }
 
-__inline void dbg_5(int n,char *s, int arg1, int arg2, int arg3) {
+static __inline void dbg_5(int n,char *s, int arg1, int arg2, int arg3) {
 			if(pfm->debug & (1<<(n))) {
 				_io *io=_stdio(__dbug);
 				__print(":%04d ",__time__ % 10000);
@@ -731,7 +734,7 @@ __inline void dbg_5(int n,char *s, int arg1, int arg2, int arg3) {
 			}
 }
 
-__inline void dbg_6(int n,char *s, int arg1, int arg2, int arg3, int arg4) {
+static __inline void dbg_6(int n,char *s, int arg1, int arg2, int arg3, int arg4) {
 			if(pfm->debug & (1<<(n))) {
 				_io *io=_stdio(__dbug);
 				__print(":%04d ",__time__ % 10000);
@@ -744,7 +747,7 @@ __inline void dbg_6(int n,char *s, int arg1, int arg2, int arg3, int arg4) {
 #define	GET_MAC(_1,_2,_3,_4,_5,_6,NAME,...) NAME
 #define	_DEBUG_(...) GET_MAC(__VA_ARGS__,dbg_6,dbg_5,dbg_4,dbg_3,dbg_2)(__VA_ARGS__)
 
-__inline void _TIMERS_HALT(void) {
+static __inline void _TIMERS_HALT(void) {
 #if defined __PFM8__
 			TIM_Cmd(TIM4,DISABLE);			
 			TIM_Cmd(TIM2,DISABLE);
@@ -753,7 +756,7 @@ __inline void _TIMERS_HALT(void) {
 			TIM_Cmd(TIM1,DISABLE);
 }
 
-__inline void _TIMERS_PRELOAD_ON(void) {
+static __inline void _TIMERS_PRELOAD_ON(void) {
 			TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Enable);
 			TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Enable);
 			TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Enable);
@@ -774,7 +777,7 @@ __inline void _TIMERS_PRELOAD_ON(void) {
 #endif				
 }
 
-__inline void _TIMERS_PRELOAD_OFF(void) {
+static __inline void _TIMERS_PRELOAD_OFF(void) {
 			TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Disable);
 			TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Disable);
 			TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Disable);
@@ -795,7 +798,7 @@ __inline void _TIMERS_PRELOAD_OFF(void) {
 #endif				
 }
 
-__inline void _TIMERS_RESYNC(PFM *p, int simmrate) {
+static __inline void _TIMERS_RESYNC(PFM *p, int simmrate) {
 			TIM_SetCounter(TIM1,0);
 			if(_MODE(p,_XLAP_QUAD))
 				TIM_SetCounter(TIM8,simmrate/2);
@@ -810,7 +813,7 @@ __inline void _TIMERS_RESYNC(PFM *p, int simmrate) {
 #endif
 }
 
-__inline void _TIMERS_ARR_SET(int simmrate) {
+static __inline void _TIMERS_ARR_SET(int simmrate) {
 			TIM_SetAutoreload(TIM1,simmrate);
 			TIM_SetAutoreload(TIM8,simmrate);
 #if defined __PFM8__

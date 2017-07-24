@@ -13,7 +13,7 @@
  *
  * Copyright (c) 2012 Keil - An ARM Company. All rights reserved.
  *----------------------------------------------------------------------------*/
-#include	"stm32f2xx.h"
+#include	"cpu.h"
 #include	"proc.h"
 //_________________________________________________________________________________
 FILE 		__stdout;

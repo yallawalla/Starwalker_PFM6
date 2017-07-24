@@ -117,7 +117,7 @@ GPIO_InitTypeDef	GPIO_InitStructure;
 					else
 						CAN_InitStructure.CAN_Mode=CAN_Mode_Normal;
 
-#if defined (__F4__)
+#if defined (__F2__) || defined (__F4__)
 					CAN_InitStructure.CAN_SJW=CAN_SJW_4tq;
 					CAN_InitStructure.CAN_BS1=CAN_BS1_10tq;
 					CAN_InitStructure.CAN_BS2=CAN_BS2_4tq;

@@ -1133,7 +1133,7 @@ CanTxMsg	buf={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 //______________________________________________________________________________________
 				case 't':
 				{
-#ifdef __F4__
+#if defined (__F2__) || defined (__F4__) 
 					short *t30	=(short *)0x1FFF7A2C;
 					short *t110	=(short *)0x1FFF7A2E;
 #endif
@@ -1153,15 +1153,15 @@ CanTxMsg	buf={0,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
 					n=numscan(++c,cc,',');
 					if(!n) {
 						if(_MODE(pfm,_CHANNEL1_DISABLE))		
-							__print("\r>f(an)   Tl,Th,min,max,T... %d,%3d,%3d%c,%3d%c, -- ,%5.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH2)/100.0);
+							__print("\r>f(an)   Tl,Th,min,max,T... %d,%3d,%3d%c,%3d%c, -- ,%5.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(double)IgbtTemp(TH2)/100.0);
 						else if(_MODE(pfm,_CHANNEL2_DISABLE))		
-							__print("\r>f(an)   Tl,Th,min,max,T... %d,%3d,%3d%c,%3d%c,%5.1f, -- ",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH1)/100.0);
+							__print("\r>f(an)   Tl,Th,min,max,T... %d,%3d,%3d%c,%3d%c,%5.1f, -- ",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(double)IgbtTemp(TH1)/100.0);
 						else	
 #ifdef __PFM6__
-							__print("\r>f(an)   Tl,Th,min,max,T... %d,%3d,%3d%c,%3d%c,%5.1f,%5.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(float)IgbtTemp(TH1)/100.0,(float)IgbtTemp(TH2)/100.0);
+							__print("\r>f(an)   Tl,Th,min,max,T... %d,%3d,%3d%c,%3d%c,%5.1f,%5.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',(double)IgbtTemp(TH1)/100.0,(double)IgbtTemp(TH2)/100.0);
 #elif __PFM8__
 							__print("\r>f(an)   Tl,Th,min,max,T... %d,%3d,%3d%c,%3d%c,%5.1f,%5.1f,%5.1f,%5.1f",fanTL/100,fanTH/100,fanPmin,'%',fanPmax,'%',
-								(float)IgbtTemp(TL1)/100.0,(float)IgbtTemp(TH1)/100.0,(float)IgbtTemp(TL2)/100.0,(float)IgbtTemp(TH2)/100.0);
+								(double)IgbtTemp(TL1)/100.0,(double)IgbtTemp(TH1)/100.0,(double)IgbtTemp(TL2)/100.0,(double)IgbtTemp(TH2)/100.0);
 #else
 *** error, define platform
 #endif
