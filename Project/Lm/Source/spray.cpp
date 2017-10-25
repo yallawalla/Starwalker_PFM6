@@ -102,7 +102,8 @@ int		err=0;
 						}		
 					}
 					
-					if(WaterLevel && mode.On)
+//					if(WaterLevel && mode.On)
+					if(mode.On)
 						Water->On();
 					else
 						Water->Off();	

@@ -66,6 +66,9 @@ void 	Initialize_NVIC() {
 			
 			NVIC_InitStructure.NVIC_IRQChannel = ADC_IRQn;							// analog watchdogs
 			NVIC_Init(&NVIC_InitStructure);
+
+			NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;							// analog watchdogs
+			NVIC_Init(&NVIC_InitStructure);
 }
 /******************************************************************************/
 void	Watchdog_init(int t) {

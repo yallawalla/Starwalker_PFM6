@@ -84,13 +84,23 @@ int			DecodeMinus(char *c) {
 					Initialize_F2V(pfm);
 					_SET_MODE(pfm,_F2V);
 				break;
-//__________________________________________________soft crowbar reset_______
+//__________________________________________________soft crowbar reset______
 				case 'r':
 					_SET_STATUS(pfm,_PFM_CWBAR_STAT);
 					_CLEAR_ERROR(pfm, _CRITICAL_ERR_MASK);
 					EnableIgbtOut();
 				break;
-//__________________________________________________defragment ______________
+//__________________________________________________boot disable____________
+				case 'B':
+#if defined (_NRST_DISABLE_BIT) && defined (_BOOT_ENABLE_BIT)
+					pfm->boot_timeout = atoi(strchr(c,' '));
+					if(pfm->boot_timeout)
+						pfm->boot_timeout += __time__;
+					GPIO_SetBits(_NRST_DISABLE_PORT,_NRST_DISABLE_BIT);
+					GPIO_ResetBits(_BOOT_ENABLE_PORT,_BOOT_ENABLE_BIT);
+#endif
+				break;
+//__________________________________________________defragment _____________
 				case 'P':
 				{
 					int i;
@@ -105,7 +115,7 @@ int			DecodeMinus(char *c) {
 				}
 				break;
 				
-//__________________________________________________formatting flash drive___
+//__________________________________________________formatting flash drive__
 				case 'F':
 					if(strscan(c,cc,' ')<2)
 						return _PARSE_ERR_MISSING;
@@ -275,6 +285,16 @@ int			DecodePlus(char *c) {
 						break;
 					}
 					break;
+//__________________________________________________boot enable____________
+				case 'B':
+#if defined (_NRST_DISABLE_BIT) && defined (_BOOT_ENABLE_BIT)
+					pfm->boot_timeout = atoi(strchr(c,' '));
+					if(pfm->boot_timeout)
+						pfm->boot_timeout += __time__;
+					GPIO_ResetBits(_NRST_DISABLE_PORT,_NRST_DISABLE_BIT);
+					GPIO_SetBits(_BOOT_ENABLE_PORT,_BOOT_ENABLE_BIT);
+#endif				
+					break;
 //______________________________________________________________________________________
 				default:
 					return _PARSE_ERR_SYNTAX;
@@ -339,6 +359,17 @@ int			DecodeWhat(char *c) {
 //______________________________________________________________________________________
 				case 'a':
 					_proc_list();
+					break;
+//______________________________________________________________________________________
+				case 'B':
+#if defined (_NRST_DISABLE_BIT) && defined (_BOOT_ENABLE_BIT)
+					if(GPIO_ReadOutputDataBit(_BOOT_ENABLE_PORT,_BOOT_ENABLE_BIT)==SET)
+						printf (" ..boot enabled");
+					else
+						printf (" ..boot disabled");
+					if(pfm->boot_timeout)
+						printf(", timeout=%d ms",pfm->boot_timeout - __time__);
+#endif
 					break;
 //______________________________________________________________________________________
 				case 'h':

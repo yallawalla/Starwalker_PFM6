@@ -17,7 +17,7 @@
 #include 	<stdio.h>
 
 PFM				*pfm;
-_io				*__com0;
+_io				*__com1,*__com3;
 const char *_errStr[]={
 					"simmer 1 failed",
 					"simmer 2 failed",
@@ -97,7 +97,10 @@ void 			App_Init(void) {
 					pfm->Pockels.trigger=0;
 
 					Initialize_NVIC();
-					__com0=Initialize_USART(921600);		
+					__com1=Initialize_USART1(921600);		
+#if		defined (__PFM8__)
+					__com3=Initialize_USART3(115200);		
+#endif
 					__can=Initialize_CAN(0);
 					Initialize_ADC();
 					Initialize_TIM();
@@ -138,7 +141,11 @@ int				i,j;
 }
 #endif
 //---------------------------------------------------------------------------------
-					_proc_add((func *)ParseCom,__com0,							"ParseCOM",0);
+					if(__com1)
+						_proc_add((func *)ParseCom,__com1,						"ParseCOM0",0);
+					if(__com3)
+						_proc_add((func *)ParseCom,__com3,						"ParseCOM3",0);
+					
 					_proc_add((func *)ParseCanTx,pfm,								"txCAN",0);
 					_proc_add((func *)ParseCanRx,pfm,								"rxCAN",0);
 					_proc_add((func *)ProcessingEvents,pfm,					"events",0);
@@ -156,7 +163,7 @@ int				i,j;
 					Watchdog_init(300);	
 					Initialize_DAC();
 //---------------------------------------------------------------------------------
-					_stdio(__com0);
+					_stdio(__com1);
 					if(RCC_GetFlagStatus(RCC_FLAG_SFTRST) == SET)
 						__print("\r ... SWR reset, %dMHz\r\n>",SystemCoreClock/1000000);
 					else if(RCC_GetFlagStatus(RCC_FLAG_IWDGRST) == SET)
@@ -176,10 +183,14 @@ int				i,j;
   * @brief	ISR events polling, main loop
   * @param	PFM object
   * @retval	: None
+	*
   */
 void			ProcessingEvents(_proc *proc) {
 PFM				*p=proc->arg;
+//______________________________________________________________________________
+//______________________________________________________________________________
 //_______Fan tacho processing context___________________________________________
+//______________________________________________________________________________
 					if(_EVENT(p,_FAN_TACHO)) {															// fan timeout counter reset
 						_CLEAR_EVENT(p,_FAN_TACHO);
 						p->fan_rate = __time__;
@@ -337,7 +348,15 @@ static		int		bounce=0;
 							_CLEAR_ERROR(p,PFM_ERR_VCAP2);
 					}
 #else
-#endif	
+#endif
+					
+#if defined (_NRST_DISABLE_BIT) && defined (_BOOT_ENABLE_BIT)
+					if(p->boot_timeout && __time__ > p->boot_timeout) {
+						GPIO_ToggleBits(_NRST_DISABLE_PORT,_NRST_DISABLE_BIT);
+						GPIO_ToggleBits(_BOOT_ENABLE_PORT,_BOOT_ENABLE_BIT);
+						p->boot_timeout=0;
+					}
+#endif
 //-------------------------------------------------------------------------------
 // - polovicna napetost na banki +/- 20%
 // - meris sele od 100V naprej
@@ -384,7 +403,7 @@ static		int		bounce=0;
 						_io *io=_stdio(__dbug);
 						for(i=0; i<32 && _errStr[i]; ++i) {
 							if(_BIT(error_debug, i)) {
-								__print(":%06X error: %s\r\n>",(1<<i),(int)_errStr[i]);
+								__print("error %06X: %s\r\n>",1<<i,(int)_errStr[i]);
 								_CLEAR_BIT(error_debug, i);
 								break;
 							}
@@ -417,9 +436,9 @@ static
 						else {																					// 100 ms charger6 scan, stop when i2c comms error !
 int						i=_STATUS_WORD;
 							if(readI2C(__charger6,(char *)&i,2))					// add status word >> error status. byte 3
-								p->Error = (p->Error & ~(1<<24)) | ((i & 0xff)<<24);
+								p->Error = (p->Error & ((1<<24)-1)) | ((i & 0xff)<<24);
 						}
-					}
+					} 
 //-------------------------------------------------------------------------------						
 //	critical PFM error handling
 //
@@ -999,7 +1018,7 @@ int						u=p->HV/7;
 								u=2*p->HV/7;
 							_TIM.I1off=ADC1_simmer.I;																			// get current sensor offset
 							_TIM.U1off=ADC1_simmer.U;																			// check idle voltage
-							if(abs(u - _AVG3*ADC1_simmer.U) > _HV2AD(50)) {							// HV +/- 30V range ???
+							if(abs(u - _AVG3*ADC1_simmer.U) > _HV2AD(50)) {								// HV +/- 50 range ???
 								_SET_ERROR(p,PFM_ERR_LNG);																	// if not, PFM_STAT_UBHIGH error 
 							}
 						}
@@ -1027,9 +1046,11 @@ int						u=p->HV/7;
 						_SET_ERROR(p,PFM_ERR_PULSEENABLE);
 #endif
 //__________________________________________________________________________________________________________
-					if((p->Simmer.active & PFM_STAT_SIMM1) && !_MODE(p,_CHANNEL2_SINGLE_TRIGGER))
+//					if((p->Simmer.active & PFM_STAT_SIMM1) && !_MODE(p,_CHANNEL2_SINGLE_TRIGGER))
+					if(p->Simmer.active & PFM_STAT_SIMM1)
 						_TRIGGER1_ON;
-					if((p->Simmer.active & PFM_STAT_SIMM2) && !_MODE(p,_CHANNEL1_SINGLE_TRIGGER))
+//					if((p->Simmer.active & PFM_STAT_SIMM2) && !_MODE(p,_CHANNEL1_SINGLE_TRIGGER))
+					if(p->Simmer.active & PFM_STAT_SIMM2)
 						_TRIGGER2_ON;
 					
 					SetSimmerRate(p,_SIMMER_LOW);																			// set low simmer
@@ -1086,3 +1107,4 @@ int				PFM_pockels(PFM *p) {
 /**
 * @}
 */ 
+

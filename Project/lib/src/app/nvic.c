@@ -75,7 +75,7 @@ void 	Initialize_NVIC() {
 }
 /******************************************************************************/
 void	Watchdog_init(int t) {
-#ifdef	__PFM6__
+#if		!defined (__DISC0__)
 			IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
 			IWDG_SetPrescaler(IWDG_Prescaler_32);
 			IWDG_SetReload(t);

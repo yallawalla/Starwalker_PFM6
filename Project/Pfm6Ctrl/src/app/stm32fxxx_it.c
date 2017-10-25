@@ -59,7 +59,7 @@ extern void __OTG_FS_IRQHandler(void),
   */
 void NMI_Handler(void)
 {
-	_stdio(__com0);
+	_stdio(__com1);
 	__print(":%04d NMI_Handler\r\n>",__time__ % 10000);
 	while(1);
 }
@@ -71,7 +71,7 @@ void NMI_Handler(void)
   */
 void HardFault_Handler(void)
 {
-	_stdio(__com0);
+	_stdio(__com1);
 	__print(":%04d HardFault_Handler\r\n>",__time__ % 10000);
 	while(1);
 }
@@ -83,7 +83,7 @@ void HardFault_Handler(void)
   */
 void MemManage_Handler(void)
 {
-	_stdio(__com0);
+	_stdio(__com1);
 	__print(":%04d MemManage_Handler\r\n>",__time__ % 10000);
 	while(1);
 }
@@ -95,7 +95,7 @@ void MemManage_Handler(void)
   */
 void BusFault_Handler(void)
 {
-	_stdio(__com0);
+	_stdio(__com1);
 	__print(":%04d BusFault_Handler\r\n>",__time__ % 10000);
 	while(1);
 }
@@ -107,7 +107,7 @@ void BusFault_Handler(void)
   */
 void UsageFault_Handler(void)
 {
-	_stdio(__com0);
+	_stdio(__com1);
 	__print(":%04d UsageFault_Handler\r\n>",__time__ % 10000);
 	while(1);
 }

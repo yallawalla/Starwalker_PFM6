@@ -111,25 +111,6 @@ USBH_Usr_cb_TypeDef USR_USBH_MSC_cb =
 * @}
 */
 
-/** @defgroup USBH_USR_Private_Constants
-* @{
-*/ 
-/*--------------- LCD Messages ---------------*/
-const uint8_t MSG_DEV_ATTACHED[]     = "> Device Attached \n";
-const uint8_t MSG_DEV_DISCONNECTED[] = "> Device Disconnected\n";
-const uint8_t MSG_DEV_ENUMERATED[]   = "> Enumeration completed \n";
-const uint8_t MSG_DEV_HIGHSPEED[]    = "> High speed device detected\n";
-const uint8_t MSG_DEV_FULLSPEED[]    = "> Full speed device detected\n";
-const uint8_t MSG_DEV_LOWSPEED[]     = "> Low speed device detected\n";
-const uint8_t MSG_DEV_ERROR[]        = "> Device fault \n";
-
-const uint8_t MSG_MSC_CLASS[]       = "> Mass storage device connected\n";
-const uint8_t MSG_DISK_SIZE[]       = "> Size of the disk in MBytes: \n";
-const uint8_t MSG_LUN[]             = "> LUN Available in the device:\n";
-const uint8_t MSG_ROOT_CONT[]       = "> Exploring disk flash ...\n";
-const uint8_t MSG_WR_PROTECT[]      = "> The disk is write protected\n";
-const uint8_t MSG_MSC_UNREC_ERROR[] = "> UNRECOVERED ERROR STATE\n";
-
 /**
 * @}
 */

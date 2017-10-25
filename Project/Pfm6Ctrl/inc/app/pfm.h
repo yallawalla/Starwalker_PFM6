@@ -14,9 +14,9 @@
 #include				"usbh_msc_usr.h"
 #include				"usbd_usr.h"
 #include				"usbd_desc.h"
-#include				"usbh_msc_core.h"
 #include				"usbd_msc_core.h"
 #include				"usbd_cdc_core.h"
+#include				"usbh_msc_core.h"
 
 #include				"usb_conf.h"
 #include				"usbh_core.h"
@@ -163,11 +163,11 @@ typedef					enum
 #define 				PFM_ERR_48V  							0x0200					// 20V igbt supply error
 #define 				PFM_ERR_15V 							0x0400					// -5V igbt supply error
 #define					PFM_ADCWDG_ERR						0x1000					// adc watchdog fired
-#define					PFM_FAN_ERR								0x2000					// igbt fan error 
+#define					PFM_FAN_ERR								0x2000					// igbt fan error
 #define					PFM_HV2_ERR								0x4000					// center cap voltaghe out of range
 #define					PFM_I2C_ERR								0x8000					// i2c comm. not responding
-#define					PFM_ERR_VCAP1							0x10000					// 
-#define					PFM_ERR_VCAP2							0x20000					// 
+#define					PFM_ERR_VCAP1							0x10000					//
+#define					PFM_ERR_VCAP2							0x20000					//
 
 extern const char *_errStr[];
 
@@ -446,7 +446,8 @@ volatile unsigned int
 								events,
 								debug,
 								mode,
-								fan_rate;
+								fan_rate,
+								boot_timeout;
 struct {
 	short					delay,
 								width,
@@ -525,7 +526,8 @@ void						SysTick_init(void),
 								Initialize_TIM(void),
 								Initialize_NVIC(void);
 										
-_io 						*Initialize_USART(int),
+_io 						*Initialize_USART1(int),
+								*Initialize_USART3(int),
 								*Initialize_CAN(int);
 void						canFilterConfig(int, int);
 
@@ -534,7 +536,8 @@ _i2c*						Initialize_I2C(int, int);
 				
 extern int			fanPmin,fanPmax,fanTL,fanTH;
 
-extern _io			*__com0,
+extern _io			*__com1,
+								*__com3,
 								*__dbug,
 								*__can;
 								
@@ -618,8 +621,14 @@ int			SetChargerVoltage(int);
 #elif defined (__PFM8__)
 #define _TRIGGER1_BIT GPIO_Pin_4
 #define _TRIGGER1_PORT GPIOE
+
 #define _TRIGGER2_BIT GPIO_Pin_5
 #define _TRIGGER2_PORT GPIOE
+
+#define	_NRST_DISABLE_BIT 			GPIO_Pin_13
+#define _NRST_DISABLE_PORT			GPIOF
+#define	_BOOT_ENABLE_BIT				GPIO_Pin_14
+#define _BOOT_ENABLE_PORT				GPIOF			        
 
 #define _CWBAR_BIT GPIO_Pin_7
 #define _CWBAR_PORT GPIOE
@@ -638,6 +647,11 @@ int			SetChargerVoltage(int);
 #if defined (__DISC7__)
 #define _VBUS_BIT GPIO_Pin_5
 #define _VBUS_PORT GPIOD
+#endif
+
+#if defined (__DISC4__)
+#define _VBUS_BIT GPIO_Pin_0
+#define _VBUS_PORT GPIOC
 #endif
 
 #define 				_TRIGGER1			(!GPIO_ReadOutputDataBit(_TRIGGER1_PORT,_TRIGGER1_BIT))				        

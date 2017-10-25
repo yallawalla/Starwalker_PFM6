@@ -105,8 +105,9 @@ static
 	void		IncrementTrigger(int a) {
 					switch(idx) {
 						case 0:
-							triggerMode = __max(_BOTH,__min(_Nd, triggerMode + a));
-							break;
+							triggerMode += a;
+							triggerMode = __max(_BOTH,__min(_Nd, triggerMode));
+						break;
 						case 1:
 							pfm->burst[1].Period = __max(10,__min(2000, pfm->burst[1].Period + 10*a));
 							if(!_MODE(pfm,_ALTERNATE_TRIGGER))
@@ -136,7 +137,8 @@ static
 							}
 							break;
 						case 3:
-							state = __max(_STANDBY,__min(_LASER, state + a));
+							state += a;
+							state = __max(_STANDBY,__min(_LASER, state));
 							switch(state) {
 								case _STANDBY:
 									simmerMode(_OFF);	

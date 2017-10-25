@@ -22,8 +22,8 @@
 * Output         : None
 * Return         : None
 *******************************************************************************/
-#define RxBufferSize		256
-#define TxBufferSize		256
+#define RxBufferSize		128
+#define TxBufferSize		128
 /* Private variables ---------------------------------------------------------*/
 USART_InitTypeDef USART_InitStructure;
 #if	!defined (__DISC4__)	&& !defined (__DISC7__)
@@ -103,8 +103,7 @@ int	i=0;
 #else
 //______________________________________________________________________________________
 volatile int32_t  ITM_RxBuffer=ITM_RXBUFFER_EMPTY; 
-void DMA_Configuration(_io *io)
-{	
+void DMA_Configuration(_io *io) {	
 
 }
 //______________________________________________________________________________________
@@ -123,9 +122,8 @@ int	i=0;
 		return EOF;
 }
 #endif
-
 //______________________________________________________________________________________
-_io *Initialize_USART(int speed) {
+_io *Initialize_USART1(int speed) {
 
 USART_InitTypeDef 			USART_InitStructure;
 USART_ClockInitTypeDef  USART_ClockInitStructure;
@@ -168,6 +166,85 @@ _io 										*io;
 	DMA_Configuration(io);
 	return io;
 }
+//______________________________________________________________________________________
+extern _io* __com3;
+
+int	putCOM3(_buffer *p, int	c) {
+	if(_buffer_push(__com3->tx,&c,1)==1)
+		USART_ITConfig(USART3, USART_IT_TXE, ENABLE);
+	else
+		c=EOF;
+	return(c);
+}
+//______________________________________________________________________________________
+_io *Initialize_USART3(int speed) {
+
+USART_InitTypeDef 			USART_InitStructure;
+USART_ClockInitTypeDef  USART_ClockInitStructure;
+_io 										*io;
+GPIO_InitTypeDef				GPIO_InitStructure;
+	
+	GPIO_StructInit(&GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+ 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+ 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+ 	GPIO_PinAFConfig(GPIOC, GPIO_PinSource10, GPIO_AF_USART3);		
+ 	GPIO_PinAFConfig(GPIOC, GPIO_PinSource11, GPIO_AF_USART3);		
+	
+	io=_io_init(RxBufferSize,TxBufferSize);
+	io->put = putCOM3;
+
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
+ 
+	USART_ClockInitStructure.USART_Clock = USART_Clock_Disable;
+	USART_ClockInitStructure.USART_CPOL = USART_CPOL_Low;
+	USART_ClockInitStructure.USART_CPHA = USART_CPHA_2Edge;
+	USART_ClockInitStructure.USART_LastBit = USART_LastBit_Disable;
+	USART_ClockInit(USART3, &USART_ClockInitStructure);
+ 
+	USART_InitStructure.USART_BaudRate = speed;
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;
+	USART_InitStructure.USART_Parity = USART_Parity_No;
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+	USART_Init(USART3, &USART_InitStructure);
+
+	/* Enable USART3 */
+	
+	USART_Cmd(USART3, ENABLE);
+	USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);		
+	return io;
+}
+/*******************************************************************************
+* Function Name  : USART1_IRQHandler
+* Description    : This function handles USART3  interrupt request.
+* Input          : None
+* Output         : None
+* Return         : None
+*******************************************************************************/
+void USART3_IRQHandler(void) {
+int i=0;
+	if(USART_GetFlagStatus(USART3, USART_FLAG_RXNE) != RESET) {
+		USART_ClearITPendingBit(USART3, USART_IT_RXNE);
+		i=USART_ReceiveData(USART3);
+		_buffer_push(__com3->rx,&i,1);
+		}
+	if(USART_GetFlagStatus(USART3, USART_FLAG_TXE) != RESET) {
+		USART_ClearITPendingBit(USART3, USART_IT_TXE);
+		if (_buffer_pull(__com3->tx,&i,1))															// if data available
+			USART_SendData(USART3, i);																		// send!
+		else																														// else
+			USART_ITConfig(USART3, USART_IT_TXE, DISABLE);								// disable interrupt
+	}
+}
+
 /**
 * @}
 */ 

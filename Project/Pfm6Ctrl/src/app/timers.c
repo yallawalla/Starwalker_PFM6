@@ -77,7 +77,19 @@ EXTI_InitTypeDef   				EXTI_InitStructure;
 		GPIO_Init(_IGBT_RESET_PORT, &GPIO_InitStructure);
 		_IGBT_RESET;
 // ________________________________________________________________________________
+// NRST, BOOT
+//
+#if defined (_NRST_DISABLE_BIT) && defined (_BOOT_ENABLE_BIT)
+		GPIO_ResetBits(_NRST_DISABLE_PORT,_NRST_DISABLE_BIT);
+		GPIO_SetBits(_BOOT_ENABLE_PORT,_BOOT_ENABLE_BIT);
+		GPIO_InitStructure.GPIO_Pin = _NRST_DISABLE_BIT;
+		GPIO_Init(_NRST_DISABLE_PORT, &GPIO_InitStructure);	
+		GPIO_InitStructure.GPIO_Pin = _BOOT_ENABLE_BIT;
+		GPIO_Init(_BOOT_ENABLE_PORT, &GPIO_InitStructure);
+#endif
+// ________________________________________________________________________________
 // USB isolator PIN, PDEN signals, PFM8 only
+//
 		GPIO_InitStructure.GPIO_Pin = _USB_PIN_BIT;
 		GPIO_Init(_USB_PIN_PORT, &GPIO_InitStructure);
 		GPIO_SetBits(_USB_PIN_PORT,_USB_PIN_BIT);
