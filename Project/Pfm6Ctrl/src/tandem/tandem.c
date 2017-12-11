@@ -211,12 +211,12 @@ int				i,cnt=0,timeout=0;
 					__print("\r\n[F3]  - trigger parameters");
 					__print("\r\n[F11] - save settings");
 					__print("\r\n[F12] - exit");
-					__print("\r\n:");	
-	
-					triggerMode=_BOTH;	
+					__print("\r\n:");
+
+					triggerMode=_BOTH;
 					state=_STANDBY;
 					simmerMode(_OFF);
-	
+
 					while(1) {
 						i=Escape();
 						switch(i) {

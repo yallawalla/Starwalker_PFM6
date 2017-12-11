@@ -218,12 +218,18 @@ PFM				*p=proc->arg;
 							else
 								p->Trigger.counter=0;
 							p->Trigger.time = __time__;
-							//						if(p->Trigger.count > 1)
+							if(p->Trigger.count > 1)
 								++p->Trigger.time;																// rearm counters, rounded to next milliseconds to avoid 1ms jitter !!!
 						}
 					}
 //______________________________________________________________________________
 //______________________________________________________________________________
+//					if(_EVENT(p,_TRIGGER1)) {																// trigger request
+//						_CLEAR_EVENT(p,_TRIGGER1);
+//						p->Trigger.counter=0;																	// 
+//						p->Trigger.count=1;
+//						p->Trigger.time = __time__;														// rearm counters, rounded to next milliseconds to avoid 1ms jitter !!!
+//					}
 //______________________________________________________________________________
 //______________________________________________________________________________
 //______________________________________________________________________________
@@ -689,9 +695,9 @@ PFM				*p=proc->arg;
 										p->Burst->U = *(short *)q++;q++;
 										p->Burst->Time=*(short *)q++;q++;
 										p->Burst->Ereq=*q++;
-// __________________________________________________________________________________________________________
+// _______
 										p->Burst->Pmax = __max(0,__min(_PWM_RATE_HI, (p->Burst->U *_PWM_RATE_HI)/_AD2HV(10*p->HVref)));
-// __________________________________________________________________________________________________________
+// _______
 										if(p->Burst->Pmax > 0 && p->Burst->Pmax < _PWM_RATE_HI) {
 //											p->Burst->Imax=__min(4095,_I2AD(p->Burst->U/10 + p->Burst->U/2));
 											SetPwmTab(p);														
@@ -700,18 +706,18 @@ PFM				*p=proc->arg;
 											_SET_ERROR(p,PFM_ERR_PSRDYN);
 										}
 										break;
-// __________________________________________________________________________________________________________
+// ______ smafu za preverjanje LW protokola______________________________________________________________
 									case _PFM_reset:
 										p->Burst->Period=*(short *)q++;q++;
 										p->Burst->N=*q++;
 										p->Burst->Length=*q++*1000;
-// ________________________________________________________________smafu za preverjanje LW protokola ________
+// _______ 
 										if(p->Burst->N==0)
 											p->Burst->N=1;
 										if(p->Burst->Length==0)
 											p->Burst->Length=3000;	
 										p->Trigger.erpt = 0;
-// __________________________________________________________________________________________________________
+// _______
 										if(_MODE(p,_LONG_INTERVAL)) {
 											for(n=0; n<8; ++n)
 												if((_ADCRates[n]+12)*(_MAX_BURST/_uS)/15 >  p->Burst->Length)
@@ -722,7 +728,7 @@ PFM				*p=proc->arg;
 											ADC_RegularChannelConfig(ADC2, ADC_Channel_11,	1, n);
 											ADC_RegularChannelConfig(ADC2, ADC_Channel_12,	2, n);
 											p->ADCRate=((_ADCRates[n]+12)*_uS)/15;											
-//___________________________________________________________________________________________________________								
+//________								
 										} else {																																// NdYag long pulse burst, LW 4x2ms, 15/25 ms burst 
 											if(p->Burst->Length > _MAX_BURST/_uS) {
 												p->Trigger.erpt = p->Burst->N-1;																		// energy report after N pulses
@@ -731,7 +737,7 @@ PFM				*p=proc->arg;
 												p->Burst->N=1;																											// treated as single pulse
 											}
 										}
-//___________________________________________________________________________________________________________								
+//________								
 										SetPwmTab(p);
 										Eack(NULL);
 										break;

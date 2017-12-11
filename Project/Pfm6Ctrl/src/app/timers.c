@@ -417,6 +417,7 @@ int 		hv,j,k,ki=30,kp=0;
 				}
 
 //----- HV voltage averaging, calc. active ADC DMA index----------------------------------
+
 				for(hv=j=0;j<_AVG3;++j)																		// 
 					hv+=(unsigned short)(ADC3_buf[j].HV);
 																																	// --- on first entry, compute DMA index 
@@ -430,6 +431,7 @@ int 		hv,j,k,ki=30,kp=0;
 					x=_TIM.p1->T;
 
 //----- mode 9, forward voltage stab. ---------------------------------------------------	
+
 					if(_MODE(pfm,_U_LOOP)) {
 						x = (x * _TIM.Hvref + hv/2)/hv;
 
@@ -616,84 +618,82 @@ void 		__EXTI_IRQHandler(void)
 	*/
 /*******************************************************************************/
 void		Trigger(PFM *p) {
-//_______________________________________________________________________________					
-					if(_MODE(p,_PULSE_INPROC))
-						_DEBUG_(_DBG_SYS_MSG,"trigger aborted...");
 //_______________________________________________________________________________
-					else {
-CanTxMsg tx = {0x1a,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
-						if(_MODE(p,_ENM_NOTIFY)) {
-							while(CAN_TransmitStatus(__CAN__, 0) == CAN_TxStatus_Pending &&
-								CAN_TransmitStatus(__CAN__, 1) == CAN_TxStatus_Pending &&
-									CAN_TransmitStatus(__CAN__, 2) == CAN_TxStatus_Pending) {
-										_proc_loop();
-									}
-							_YELLOW1(50);
-							CAN_Transmit(__CAN__,&tx);
+				if(!_MODE(p,_PULSE_INPROC)) {
+					if(_MODE(p,_ENM_NOTIFY)) {
+						CanTxMsg tx = {_ID_SYS_TRIGG,0,CAN_ID_STD,CAN_RTR_DATA,0,0,0,0,0,0,0,0,0};
+						while(CAN_TransmitStatus(__CAN__, 0) == CAN_TxStatus_Pending &&
+							CAN_TransmitStatus(__CAN__, 1) == CAN_TxStatus_Pending &&
+								CAN_TransmitStatus(__CAN__, 2) == CAN_TxStatus_Pending) {
+									_proc_loop();
+								}
+						_YELLOW1(50);
+						CAN_Transmit(__CAN__,&tx);
+					}
+//_______________________________________________________________________________
+					_TIM.active=p->Simmer.active;														// find active channel
+					if(_MODE(pfm,_CHANNEL1_DISABLE)) {											// single channel 2 mode
+						if(_MODE(pfm,_ALTERNATE_TRIGGER)) {										// altenate trigger
+							if(p->Trigger.counter % 2) {
+								_TIM.eint=_TIM.eint2;
+								if(_TIM.active & PFM_STAT_SIMM2)
+									_TIM.p2 = _TIM.pwch2;
+							} else {
+								_TIM.eint=_TIM.eint1;
+								if(_TIM.active & PFM_STAT_SIMM1)
+									_TIM.p2 = _TIM.pwch1;
+							} 
+						} else if(_TIM.active & PFM_STAT_SIMM1)	{							// simult. trigger
+							_TIM.p2 = _TIM.pwch1;
+							_TIM.eint=_TIM.eint1;
+						} else if(_TIM.active & PFM_STAT_SIMM2) {
+							_TIM.p2 = _TIM.pwch2;
+							_TIM.eint=_TIM.eint2;
 						}
-//_______________________________________________________________________________
-						_TIM.active=p->Simmer.active;														// find active channel
-						if(_MODE(pfm,_CHANNEL1_DISABLE)) {											// single channel 2 mode
-							if(_MODE(pfm,_ALTERNATE_TRIGGER)) {										// altenate trigger
+					} else if(_MODE(pfm,_CHANNEL2_DISABLE)) {								// single channel 1 mode
+							if(_MODE(pfm,_ALTERNATE_TRIGGER)) {									// altenate trigger
 								if(p->Trigger.counter % 2) {
 									_TIM.eint=_TIM.eint2;
 									if(_TIM.active & PFM_STAT_SIMM2)
-										_TIM.p2 = _TIM.pwch2;
-								} else {
-									_TIM.eint=_TIM.eint1;
-									if(_TIM.active & PFM_STAT_SIMM1)
-										_TIM.p2 = _TIM.pwch1;
-								} 
-							} else if(_TIM.active & PFM_STAT_SIMM1)	{							// simult. trigger
-								_TIM.p2 = _TIM.pwch1;
-								_TIM.eint=_TIM.eint1;
-							} else if(_TIM.active & PFM_STAT_SIMM2) {
-								_TIM.p2 = _TIM.pwch2;
-								_TIM.eint=_TIM.eint2;
-							}
-						} else if(_MODE(pfm,_CHANNEL2_DISABLE)) {								// single channel 1 mode
-								if(_MODE(pfm,_ALTERNATE_TRIGGER)) {									// altenate trigger
-									if(p->Trigger.counter % 2) {
-										_TIM.eint=_TIM.eint2;
-										if(_TIM.active & PFM_STAT_SIMM2)
-											_TIM.p1 = _TIM.pwch2;
-									} else {
-										_TIM.eint=_TIM.eint1;
-										if(_TIM.active & PFM_STAT_SIMM1)
-											_TIM.p1 = _TIM.pwch1;
-									} 
-							} else if(_TIM.active & PFM_STAT_SIMM1) {							// simult. trigger
-								_TIM.p1 = _TIM.pwch1;
-								_TIM.eint=_TIM.eint1;
-							}	else if(_TIM.active & PFM_STAT_SIMM2) {
-								_TIM.p1 = _TIM.pwch2;
-								_TIM.eint=_TIM.eint2;
-							}
-						} else {																								// dual channel mode
-							if(_MODE(pfm,_ALTERNATE_TRIGGER)) {										// altenate trigger
-								if(p->Trigger.counter % 2) {
-									_TIM.eint=_TIM.eint2;
-									if(_TIM.active & PFM_STAT_SIMM2)
-										_TIM.p2 = _TIM.pwch2;
+										_TIM.p1 = _TIM.pwch2;
 								} else {
 									_TIM.eint=_TIM.eint1;
 									if(_TIM.active & PFM_STAT_SIMM1)
 										_TIM.p1 = _TIM.pwch1;
-								}
-							} else {																							// simult. trigger
-								if(_TIM.active & PFM_STAT_SIMM1)
-									_TIM.p1 = _TIM.pwch1;
+								} 
+						} else if(_TIM.active & PFM_STAT_SIMM1) {							// simult. trigger
+							_TIM.p1 = _TIM.pwch1;
+							_TIM.eint=_TIM.eint1;
+						}	else if(_TIM.active & PFM_STAT_SIMM2) {
+							_TIM.p1 = _TIM.pwch2;
+							_TIM.eint=_TIM.eint2;
+						}
+					} else {																								// dual channel mode
+						if(_MODE(pfm,_ALTERNATE_TRIGGER)) {										// altenate trigger
+							if(p->Trigger.counter % 2) {
+								_TIM.eint=_TIM.eint2;
 								if(_TIM.active & PFM_STAT_SIMM2)
 									_TIM.p2 = _TIM.pwch2;
-								_TIM.eint=__max(_TIM.eint1,_TIM.eint2);
+							} else {
+								_TIM.eint=_TIM.eint1;
+								if(_TIM.active & PFM_STAT_SIMM1)
+									_TIM.p1 = _TIM.pwch1;
 							}
-						}					
-						
-						ADC_DMARequestAfterLastTransferCmd(ADC1, DISABLE);			// at least ADC conv. time before ADC/DMA change 
-						ADC_DMARequestAfterLastTransferCmd(ADC2, DISABLE);
-						_SET_MODE(p,_PULSE_INPROC);
-						SetSimmerRate(p,_SIMMER_HIGH);
-					}
+						} else {																							// simult. trigger
+							if(_TIM.active & PFM_STAT_SIMM1)
+								_TIM.p1 = _TIM.pwch1;
+							if(_TIM.active & PFM_STAT_SIMM2)
+								_TIM.p2 = _TIM.pwch2;
+							_TIM.eint=__max(_TIM.eint1,_TIM.eint2);
+						}
+					}					
+					
+					ADC_DMARequestAfterLastTransferCmd(ADC1, DISABLE);			// at least ADC conv. time before ADC/DMA change 
+					ADC_DMARequestAfterLastTransferCmd(ADC2, DISABLE);
+					_SET_MODE(p,_PULSE_INPROC);
+					SetSimmerRate(p,_SIMMER_HIGH);
+				} else					
+					_DEBUG_(_DBG_SYS_MSG,"trigger aborted...");
 }
 /**
 * @}
