@@ -800,8 +800,8 @@ static		int	count=0,no=0;
 								_I1off=ADC1_simmer.I;																					// get current sensor offset
 								_U1off=ADC1_simmer.U;																					// check idle voltage
 #ifndef __DISCO__
-								if(abs(Uidle - ADC3_AVG*ADC1_simmer.U) > _HV2AD(30)) {				// HV +/- 30V range ???
-									_SET_ERROR(p,PFM_STAT_UBHIGH);															// if not, PFM_STAT_UBHIGH error 
+								if(abs(Uidle - ADC3_AVG*ADC1_simmer.U) > _HV2AD(50)) {				// HV +/- 50V range ???
+									_SET_ERROR(p,PFM_ERR_LNG);																	// if not, PFM_ERR_LNG error 
 									no=0;
 								}
 #endif
@@ -814,8 +814,8 @@ static		int	count=0,no=0;
 								_I2off=ADC2_simmer.I;
 								_U2off=ADC2_simmer.U;
 #ifndef __DISCO__
-								if(abs(Uidle - ADC3_AVG*ADC2_simmer.U) > _HV2AD(30)) {
-									_SET_ERROR(p,PFM_STAT_UBHIGH);
+								if(abs(Uidle - ADC3_AVG*ADC2_simmer.U) > _HV2AD(50)) {
+									_SET_ERROR(p,PFM_ERR_LNG);
 									no=0;
 								}
 #endif

@@ -3808,25 +3808,25 @@ FRESULT f_mkfs (
 		if (disk_write(pdrv, tbl, wsect++, 1) != RES_OK)
 			return FR_DISK_ERR;
 		mem_set(tbl, 0, SS(fs));			/* Fill following FAT entries with zero */
-		__print(" formatting");
+//		__print(" formatting");
 		for (n = 1; n < n_fat; n++) {		/* This loop may take a time on FAT32 volume due to many single sector writes */
 			if (disk_write(pdrv, tbl, wsect++, 1) != RES_OK) {
-				__print(" error!");
+//				__print(" error!");
 				return FR_DISK_ERR;
 			}
-#if defined(__PFM6__) || defined (__DISCO__) 
-{
-extern 
-void	(*App_Loop)(void);
-void	Wait(int,void (*)(void));
+//#if defined(__PFM6__) || defined (__DISCO__) 
+//{
+//extern 
+//void	(*App_Loop)(void);
+//void	Wait(int,void (*)(void));
 
-			Wait(5,App_Loop);
-}
-#endif
-			if((n*100+n_fat/2)/n_fat % 10 == 0)
-				__print(".");
+//			Wait(5,App_Loop);
+//}
+//#endif
+//			if((n*100+n_fat/2)/n_fat % 10 == 0)
+//				__print(".");
 		}
-				__print(" done!");
+//				__print(" done!");
 	}
 
 	/* Initialize root directory */

@@ -23,7 +23,7 @@
 
 //________SW version string_____________________________	
 
-#define 				SW_version		213		
+#define 				SW_version		214		
 
 //________global HW dependent defines___________________
 			
@@ -485,7 +485,7 @@ int							SetChargerVoltage(int);
 #define					_PFM_FAULT_SENSE	(GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_8) == Bit_SET)
 
 				        
-#define					_CRITICAL_ERR_MASK		(PFM_ERR_DRVERR | PFM_ERR_PULSEENABLE | PFM_ADCWDG_ERR | PFM_ERR_PSRDYN | PFM_STAT_UBHIGH | PFM_HV2_ERR)
+#define					_CRITICAL_ERR_MASK		(PFM_ERR_DRVERR | PFM_ERR_PULSEENABLE | PFM_ADCWDG_ERR | PFM_ERR_PSRDYN | PFM_ERR_LNG | PFM_HV2_ERR)
 #define					_PFM_CWBAR_STAT				PFM_ERR_PULSEENABLE
 				        
 enum	err_parse	{

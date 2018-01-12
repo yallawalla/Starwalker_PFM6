@@ -508,4 +508,13 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 7.9.2016
 - pri konz. vnosu HV je bila spodnja meja na HV-2*HV/3 namesto 2*HV/3, lapsus ...
 
-  
+10.1.2018
+
+V2.14 	
+	zahteve:
+		- zagonska hitrost ventilatorjev
+		- povecana toleranca za error PFM_STAT_UBHIGH na +-50V
+	wish list:
+		- symb. PFM_STAT_UBHIGH zamenjan z PFM_ERR_LNG
+		- blokirani izpisi v ff.c
+		

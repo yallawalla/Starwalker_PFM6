@@ -10,7 +10,7 @@
       <TargetName>Pfm6Ctrl</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060183::V5.06 update 2 (build 183)::ARMCC</pCCUsed>
+      <pCCUsed>5060422::V5.06 update 4 (build 422)::ARMCC</pCCUsed>
       <TargetOption>
         <TargetCommonOption>
           <Device>STM32F205VG</Device>
@@ -330,6 +330,7 @@
             <vShortWch>1</vShortWch>
             <v6Lto>0</v6Lto>
             <v6WtE>0</v6WtE>
+            <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__PFM6__,HSE_VALUE=25000000</Define>
@@ -347,6 +348,7 @@
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
+            <uClangAs>0</uClangAs>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -615,7 +617,8 @@
                 <vShortEn>2</vShortEn>
                 <vShortWch>2</vShortWch>
                 <v6Lto>0</v6Lto>
-                <v6WtE>0</v6WtE>
+                <v6WtE>2</v6WtE>
+                <v6Rtti>2</v6Rtti>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -633,6 +636,7 @@
                 <NoWarn>2</NoWarn>
                 <uSurpInc>2</uSurpInc>
                 <useXO>2</useXO>
+                <uClangAs>2</uClangAs>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -711,7 +715,8 @@
                 <vShortEn>2</vShortEn>
                 <vShortWch>2</vShortWch>
                 <v6Lto>0</v6Lto>
-                <v6WtE>0</v6WtE>
+                <v6WtE>2</v6WtE>
+                <v6Rtti>2</v6Rtti>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -729,6 +734,7 @@
                 <NoWarn>2</NoWarn>
                 <uSurpInc>2</uSurpInc>
                 <useXO>2</useXO>
+                <uClangAs>2</uClangAs>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -1307,6 +1313,7 @@
             <vShortWch>1</vShortWch>
             <v6Lto>0</v6Lto>
             <v6WtE>0</v6WtE>
+            <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,ARM_MATH_CM3,STM32F2XX,USE_USB_OTG_FS,__DISCO__,HSE_VALUE=8000000</Define>
@@ -1324,6 +1331,7 @@
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
+            <uClangAs>0</uClangAs>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -1592,7 +1600,8 @@
                 <vShortEn>2</vShortEn>
                 <vShortWch>2</vShortWch>
                 <v6Lto>0</v6Lto>
-                <v6WtE>0</v6WtE>
+                <v6WtE>2</v6WtE>
+                <v6Rtti>2</v6Rtti>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -1610,6 +1619,7 @@
                 <NoWarn>2</NoWarn>
                 <uSurpInc>2</uSurpInc>
                 <useXO>2</useXO>
+                <uClangAs>2</uClangAs>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -1688,7 +1698,8 @@
                 <vShortEn>2</vShortEn>
                 <vShortWch>2</vShortWch>
                 <v6Lto>0</v6Lto>
-                <v6WtE>0</v6WtE>
+                <v6WtE>2</v6WtE>
+                <v6Rtti>2</v6Rtti>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -1706,6 +1717,7 @@
                 <NoWarn>2</NoWarn>
                 <uSurpInc>2</uSurpInc>
                 <useXO>2</useXO>
+                <uClangAs>2</uClangAs>
                 <VariousControls>
                   <MiscControls></MiscControls>
                   <Define></Define>
@@ -1961,5 +1973,11 @@
       </Groups>
     </Target>
   </Targets>
+
+  <RTE>
+    <apis/>
+    <components/>
+    <files/>
+  </RTE>
 
 </Project>
