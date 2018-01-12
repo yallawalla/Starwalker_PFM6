@@ -518,3 +518,7 @@ V2.14
 		- symb. PFM_STAT_UBHIGH zamenjan z PFM_ERR_LNG
 		- blokirani izpisi v ff.c
 		
+	v 2.14 Jan 12 2018, <50457B50>
+
+
+		
