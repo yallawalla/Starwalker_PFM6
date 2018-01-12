@@ -7,3 +7,11 @@
 /Project/Lm/output
 /Project/Lm/list
 /Project/Iap/MDK-ARM/iap.uvguix.Mocnik
+/Project/Iap/MDK-ARM/EventRecorderStub.scvd
+/Project/Iap/MDK-ARM/RTE/_iap...Discovery/RTE_Components.h
+/Project/Iap/MDK-ARM/RTE/_iap...PFM6/RTE_Components.h
+/Project/Iap/MDK-ARM/RTE/_iap...PFM8/RTE_Components.h
+/Project/Pfm6Ctrl/MDK-ARM/DebugConfig/Pfm6Ctrl_STM32F405VGTx.dbgconf
+/Project/Pfm6Ctrl/MDK-ARM/DebugConfig/__DISC405_STM32F405VGTx.dbgconf
+/Project/Pfm6Ctrl/MDK-ARM/EventRecorderStub.scvd
+/Project/Pfm6Ctrl/MDK-ARM/Pfm6Ctrl.uvguix.Mocnik.bak
