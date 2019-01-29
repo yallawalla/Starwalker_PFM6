@@ -62,10 +62,32 @@ int			_buffer_empty	(_buffer *p) {
 					return(EOF);
 }
 //______________________________________________________________________________________
+//
+//	stdin prototype
+//
+int			__get (_buffer *p) {
+int			i=0;
+				if(_buffer_pull(p,&i,1))
+					return i;
+				else
+					return EOF;
+}
+//______________________________________________________________________________________
+//
+//	stdout prototype
+//
+int			__put (_buffer *p, int c) {
+				if(_buffer_push(p,&c,1) == 1)
+					return c;
+				else
+					return EOF;
+}
+//______________________________________________________________________________________
 _io			*_io_init(int rxl, int txl) {
 _io			*p=calloc(1,sizeof(_io));
 				if(p) {
-					p->flags=0;
+					p->put=__put;
+					p->get=__get;
 					p->rx=_buffer_init(rxl);
 					p->tx=_buffer_init(txl);
 					if(p->rx && p->tx)

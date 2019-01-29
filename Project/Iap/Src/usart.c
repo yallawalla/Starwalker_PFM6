@@ -7,66 +7,23 @@
 #define 		RxBufferSize		512
 #define 		TxBufferSize		512
 
-_io*				__this_io;
-
-#if  defined (__PVC__)
+#ifndef __DISCO__
+_io					*__com1,*__com3;
 //______________________________________________________________________________________
-int					__get (_buffer *p) {
-int					i=0;
-						if(_buffer_pull(p,&i,1))
-							return i;
-						else
-							return EOF;
-}
-//______________________________________________________________________________________
-int					__put (_buffer *p, int c) {
-int					i=0;
-						USART_ITConfig(USART1, USART_IT_TXE, DISABLE);
-						if(USART_GetFlagStatus(USART1, USART_FLAG_TXE) != RESET) {
-							if(_buffer_pull(__this_io->tx,&i,1))
-								USART_SendData(USART1, i);
-							else {
-								USART_SendData(USART1, c);
-								return(c);
-							}
-						}
-						i=_buffer_push(p,&c,1);
-						USART_ITConfig(USART1, USART_IT_TXE, ENABLE);
-						return(i);
-}
-#endif
-
-#if  defined (__PFM6__) ||  defined (__DISCO__)
-//______________________________________________________________________________________
-#ifdef __DISCO__
-volatile int32_t 
-						ITM_RxBuffer=ITM_RXBUFFER_EMPTY;
-						
-int					__get(_buffer *rx) {
-						int	i;
-						if(ITM_CheckChar()) {
-							i=ITM_ReceiveChar();
-							_buffer_push(rx,&i,1);
-						}		
-#else						
-int					__get(_buffer *rx) {
+int					__getDMA(_buffer *rx) {
 int					i=0;
 						if(DMA2_Stream2->NDTR)
 							rx->_push=&(rx->_buf[rx->len - DMA2_Stream2->NDTR]);
 						else
 							rx->_push=rx->_buf;
-#endif
+						
 						if(_buffer_pull(rx,&i,1))
 							return i;
 						else
 							return EOF;
 }
 //______________________________________________________________________________________
-int					__put(_buffer *tx, int	c) {
-#ifdef __DISCO__
-						return	ITM_SendChar(c);
-}
-#else	
+int					__putDMA(_buffer *tx, int	c) {
 static			int n=0;
 
 						if(DMA2_Stream7->NDTR==0)																					// end of buffer reached
@@ -85,7 +42,7 @@ static			int n=0;
 						DMA2_Stream7->CR |= 0x00000001;																		// stream 7 on
 						return(c);
 }
-#endif
+//______________________________________________________________________________________
 void 				DMA_Configuration(_io *io)
 {
 						DMA_InitTypeDef DMA_InitStructure;
@@ -126,88 +83,47 @@ void 				DMA_Configuration(_io *io)
 
 						USART_DMACmd(USART1, USART_DMAReq_Rx | USART_DMAReq_Tx, ENABLE);
 }
-#endif
+//______________________________________________________________________________________
+int					__putISR(_buffer *tx, int	c) {
+						if(USART_GetFlagStatus(USART3, USART_FLAG_TXE) != RESET)
+							USART_SendData(USART3, c);	
+						else {
+							_buffer_push(tx,&c,1);
+							USART_ITConfig(USART3, USART_IT_TXE, ENABLE);
+						}
+						return c;
+}
 //______________________________________________________________________________________
 _io*	 			Initialize_USART(void) {
-						USART_InitTypeDef 			USART_InitStructure;
 						GPIO_InitTypeDef 				GPIO_InitStructure;
-						
+
 						USART_ClockInitTypeDef  USART_ClockInitStructure;
+						USART_InitTypeDef 			USART_InitStructure;
 
-						__this_io=_io_init(RxBufferSize,TxBufferSize);
-						__this_io->put= __put;
-						__this_io->get= __get;	
-
-
-#if  defined (__PFM6__)
+						__com1=_io_init(RxBufferSize,TxBufferSize);
+						__com1->put= __putDMA;
+						__com1->get= __getDMA;	
 						RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1,ENABLE);
 						RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA,ENABLE);
-						
+
 						GPIO_StructInit(&GPIO_InitStructure);
 						GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 						GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
-						GPIO_Init(GPIOA, &GPIO_InitStructure);
-
 						GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+	
+						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10;
 						GPIO_Init(GPIOA, &GPIO_InitStructure);
-
 						GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_USART1);		
 						GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_USART1);		
-						DMA_Configuration(__this_io);
-
-#elif  defined (__DISCO__)
-						RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1,ENABLE);
-						RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA,ENABLE);
-
-						GPIO_StructInit(&GPIO_InitStructure);
-						GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-						GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
-						GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-						GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
-						GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-						GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_USART1);		
-						GPIO_PinAFConfig(GPIOB, GPIO_PinSource7, GPIO_AF_USART1);	
-						DMA_Configuration(__this_io);
+												
+						DMA_Configuration(__com1);
 						
-#elif  defined (__PVC__)
-{
-						NVIC_InitTypeDef 				NVIC_InitStructure;					
-						NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);  
-						NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
-						NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
-						NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-						NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-						NVIC_Init(&NVIC_InitStructure);
-
-						RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA, ENABLE);
-						GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-
-						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
-						GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-						GPIO_Init(GPIOA, &GPIO_InitStructure);
-	 
-						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
-						GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-						GPIO_Init(GPIOA, &GPIO_InitStructure);
-	
-						USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);		
-}
-
-#else
-#### error, no HW defined
-#endif				 
 						USART_ClockInitStructure.USART_Clock = USART_Clock_Disable;
 						USART_ClockInitStructure.USART_CPOL = USART_CPOL_Low;
 						USART_ClockInitStructure.USART_CPHA = USART_CPHA_2Edge;
 						USART_ClockInitStructure.USART_LastBit = USART_LastBit_Disable;
 						USART_ClockInit(USART1, &USART_ClockInitStructure);
-					 
+						
 						USART_InitStructure.USART_BaudRate = 921600;
 						USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 						USART_InitStructure.USART_StopBits = USART_StopBits_1;
@@ -215,33 +131,103 @@ _io*	 			Initialize_USART(void) {
 						USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 						USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 						USART_Init(USART1, &USART_InitStructure);
-
 						USART_Cmd(USART1, ENABLE);
-						return __this_io;
+						
+#if defined (__IOCV1__) || defined (__IOCV2__) 
+						__com3=_io_init(RxBufferSize,TxBufferSize);
+						__com3->put= __putISR;
+						RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC,ENABLE);
+						RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3,ENABLE);
+						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
+						GPIO_Init(GPIOC, &GPIO_InitStructure);
+						GPIO_PinAFConfig(GPIOC, GPIO_PinSource10, GPIO_AF_USART3);		
+						GPIO_PinAFConfig(GPIOC, GPIO_PinSource11, GPIO_AF_USART3);	
+						
+						USART_ClockInit(USART3, &USART_ClockInitStructure);
+						USART_InitStructure.USART_BaudRate = 57600;
+						USART_Init(USART3, &USART_InitStructure);
+						USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);	
+{						
+						NVIC_InitTypeDef NVIC_InitStructure;
+						NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+						NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+						NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
+						NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+						NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;
+						NVIC_Init(&NVIC_InitStructure);
+						USART_Cmd(USART3, ENABLE);
+}
+#endif
+
+#if defined (__NUCLEO__) 
+						__com3=_io_init(RxBufferSize,TxBufferSize);
+						__com3->put= __putISR;
+						RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD,ENABLE);
+						RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3,ENABLE);
+						GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9;
+						GPIO_Init(GPIOD, &GPIO_InitStructure);
+						GPIO_PinAFConfig(GPIOD, GPIO_PinSource8, GPIO_AF_USART3);		
+						GPIO_PinAFConfig(GPIOD, GPIO_PinSource9, GPIO_AF_USART3);	
+
+						USART_ClockInit(USART3, &USART_ClockInitStructure);
+						USART_InitStructure.USART_BaudRate = 115200;
+						USART_Init(USART3, &USART_InitStructure);
+						USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);	
+{						
+						NVIC_InitTypeDef NVIC_InitStructure;
+						NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+						NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+						NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
+						NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+						NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;
+						NVIC_Init(&NVIC_InitStructure);
+						USART_Cmd(USART3, ENABLE);
+}
+#endif
+						return __com1;
 }
 /*******************************************************************************
 * Function Name  : USART1_IRQHandler
-* Description    : This function handles USART1  interrupt request.
+* Description    : This function handles USART3  interrupt request.
 * Input          : None
 * Output         : None
 * Return         : None
 *******************************************************************************/
-void 				USART1_IRQHandler(void) {
+void 				USART3_IRQHandler(void) {
 int					i;
-						if(USART_GetFlagStatus(USART1, USART_FLAG_RXNE) != RESET) {
-							i= USART_ReceiveData(USART1);
-							USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-							_buffer_push(__this_io->rx,&i,1);
+						if(USART_GetFlagStatus(USART3, USART_FLAG_RXNE) != RESET) {
+							i= USART_ReceiveData(USART3);
+							USART_ClearITPendingBit(USART3, USART_IT_RXNE);
+							_buffer_push(__com3->rx,&i,1);
 						}
-						if(USART_GetFlagStatus(USART1, USART_FLAG_TXE) != RESET) {
-							USART_ClearITPendingBit(USART1, USART_IT_TXE);
+						if(USART_GetFlagStatus(USART3, USART_FLAG_TXE) != RESET) {
+							USART_ClearITPendingBit(USART3, USART_IT_TXE);
 							i=0;																																		// tx ready to send
-							if(_buffer_pull(__this_io->tx,&i,1))																		// if data available
-								USART_SendData(USART1, i);																						// send!
+							if(_buffer_pull(__com3->tx,&i,1))																				// if data available
+								USART_SendData(USART3, i);																						// send!
 							else																																		// else
-								USART_ITConfig(USART1, USART_IT_TXE, DISABLE);												// disable interrupt
+								USART_ITConfig(USART3, USART_IT_TXE, DISABLE);												// disable interrupt
 						}
 }
+//_________________________________________________________________________________
+int 				fputc(int c, FILE *f) {
+						if(__com1)
+							__com1->put(__com1->tx,c);
+						if(__com3)
+						__com3->put(__com3->tx,c);
+						return c;
+}
+int 				fgetc(FILE *f) {
+						if(__com1) {
+							int i=__com1->get(__com1->rx);
+							if(i != EOF)
+								return i;
+						}
+						if(__com3)
+							return __com3->get(__com3->rx);
+						return EOF;
+}
+#else
 /*******************************************************************************
 * Function Name  : IO retarget 
 * Description    : This function handles USART1  interrupt request.
@@ -249,10 +235,15 @@ int					i;
 * Output         : None
 * Return         : None
 *******************************************************************************/
-int 				fputc(int c, FILE *f) {
-						return	__this_io->put(__this_io->tx,c);
-}
+volatile int32_t ITM_RxBuffer=ITM_RXBUFFER_EMPTY;
 //_________________________________________________________________________________
 int 				fgetc(FILE *f) {
-						return	__this_io->get(__this_io->rx);
+						if(ITM_CheckChar())
+							return ITM_ReceiveChar();
+						else
+							return EOF;
+}		
+int 				fputc(int c, FILE *f) {
+							return	ITM_SendChar(c);
 }
+#endif

@@ -14,27 +14,15 @@
 */
 
 #include		<stdlib.h>
-#if defined  (STM32F2XX)
 #include		"stm32f2xx.h"
 #
-#elif defined (__PVC__)
-#include		"stm32f10x.h"
-#elif	undefined (STM32F2XX || __PVC__)
-*** undefined target !!!!
-#endif
-
 extern void			(*App_Loop)(void);
-#if		defined (__PFM6__)
+#ifndef __DISCO__
 	#define	__LED_ON(a,b)			GPIO_ResetBits(a,b);
 	#define	__LED_OFF(a,b)		GPIO_SetBits(a,b);
-#elif  defined (__DISCO__)
+#else
 	#define	__LED_OFF(a,b)		GPIO_ResetBits(a,b);
 	#define	__LED_ON(a,b)			GPIO_SetBits(a,b);
-#elif  defined (__PVC__)
-	#define	__LED_OFF(a,b)
-	#define	__LED_ON(a,b)
-#else
-	#### error, no HW defined
 #endif
 
 
@@ -91,7 +79,8 @@ static	int
 				if(__time__ < 10000) {
 					if(!(++t1 % NN)) {
 						_led(t3,0);
-						t2=++t2 % Nk;
+						++t2;
+						t2 %= Nk;
 						if(t2==t3)
 								_led((t3+1)%Nk,20);
 					}
@@ -108,17 +97,14 @@ static	int
 // leds GPIO setup ______________________________________________________________
 //
 void	Initialize_LED(char *p[], int n) {
-#if		defined (__PFM6__) || defined(__DISCO__)
 GPIO_InitTypeDef	GPIO_InitStructure;
 int		i;
 			GPIO_StructInit(&GPIO_InitStructure);
 			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-#if		defined (__PFM6__)
+#ifndef __DISCO__
 			GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-#elif  defined (__DISCO__)
-			GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 #else
-	#### error, no HW defined
+			GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 #endif
 			if(!n)
 				_lightshow();
@@ -140,5 +126,4 @@ int		i;
 					GPIO_Init(gpio[i], &GPIO_InitStructure);		
 					__LED_OFF(gpio[i],pin[i]);
 				}
-#endif
 }

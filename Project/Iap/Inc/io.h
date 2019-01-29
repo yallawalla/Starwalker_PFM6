@@ -21,8 +21,7 @@ typedef struct _io
 	_buffer	*rx,*tx,*gets;
 	int		(*get)(struct _buffer *),
 				(*put)(struct _buffer *, int);
-	int			(*parse)(char *),
-				flags;
+	int			(*parse)(char *);
 } _io;
 //______________________________________________________________________________________
 _buffer	*_buffer_init(int);

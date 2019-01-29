@@ -508,9 +508,8 @@ v 2.12 Feb 24 2016, <EFF7B41B>
 7.9.2016
 - pri konz. vnosu HV je bila spodnja meja na HV-2*HV/3 namesto 2*HV/3, lapsus ...
 
-10.1.2018
 
-V2.14 	
+v 2.14 Jan 12 2018, <50457B50>
 	zahteve:
 		- zagonska hitrost ventilatorjev
 		- povecana toleranca za error PFM_STAT_UBHIGH na +-50V
@@ -518,7 +517,9 @@ V2.14
 		- symb. PFM_STAT_UBHIGH zamenjan z PFM_ERR_LNG
 		- blokirani izpisi v ff.c
 		
-	v 2.14 Jan 12 2018, <50457B50>
+
+v 2.15 Jan 29 2019, <D6907A9E>
+	- blokiran glitch na Pockelsu ob nastavitvi Qswitch parametrov
 
 
 		

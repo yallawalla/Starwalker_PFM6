@@ -8,7 +8,6 @@
 #include				"io.h"
 #include 				"proc.h"
 #include				"ff.h"
-//#include			"CAN_MAP.h"
 
 #include				"usbh_core.h"
 #include				"usbh_msc_usr.h"
@@ -23,7 +22,7 @@
 
 //________SW version string_____________________________	
 
-#define 				SW_version		214		
+#define 				SW_version		215	
 
 //________global HW dependent defines___________________
 			

@@ -58,19 +58,17 @@ char	*p;
 				case _CtrlZ:
 					while(1);
 				case '1':
-#ifdef	__PVC__
-					for(j=0; j<32; ++j) {
-#endif
-#ifdef	STM32F2XX
 					for(j=0; j<5; ++j) {
-#endif
-						CanHexMessage(_ID_IAP_ERASE,_SIGN_PAGE+j*_PAGE_SIZE);
-						for(i=0;i<1000;++i)	
-							App_Loop();
+					CanHexMessage(_ID_IAP_ERASE,_SIGN_PAGE+j*_PAGE_SIZE);
+					for(i=0;i<1000;++i)	
+						App_Loop();
 					}
 					break;
 				case '2':
 					CanHexMessage(_ID_IAP_SIGN,0);
+					break;
+				case '9':
+					CanHexMessage(_ID_IAP_SIGN,9);
 					break;
 				case '3':
 					CanHexMessage(_ID_IAP_GO,0);
@@ -78,12 +76,12 @@ char	*p;
 				case '?':
 					RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
 					CRC_ResetDR();
-					printf("\r PFM6 bootloader v%d.%02d %s, <%08X>\r\n",
+					printf("\rPFM6 bootloader v%d.%02d %s, <%08X>\r\n",
 						SW_version/100,SW_version%100,__DATE__,CRC_CalcBlockCRC(__Vectors, ((_FLASH_TOP-28)-(int)__Vectors)/sizeof(int)));			//crc od vektorjev do zacetka FS
-					printf("signature under %08X:\r\n",_FLASH_TOP);
+					printf("signature %08X:\r\n",_FLASH_TOP);
 					p=(char *)_SIGN_CRC;
 					for(i=0;i<8;++i)
-						printf("\r\n%08X",*(int *)p++);
+						printf("%08X\r\n",*(int *)p++);
 					break;
 				case 0x1b:
 					if(!(__CAN__->BTR & ((CAN_Mode_LoopBack)<<30)))
